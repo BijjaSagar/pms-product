@@ -1,0 +1,255 @@
+/* Design tokens: 8 light presets. Keep in sync with src/theme/presets.ts. */
+
+:root {
+  color-scheme: light;
+
+  --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-brand: 'Playfair Display', Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+
+  --radius-control: 10px;
+  --radius-card: 16px;
+  --radius-modal: 20px;
+  --radius-pill: 999px;
+  --radius-xl: 20px;
+
+  --transition-fast: 140ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 320ms cubic-bezier(0.34, 1.4, 0.64, 1);
+  --transition-slow: 420ms ease;
+
+  --shadow-xs: 0 1px 2px rgb(40 30 20 / 0.05);
+  --shadow-sm: 0 1px 2px rgb(40 30 20 / 0.06), 0 1px 3px rgb(40 30 20 / 0.08);
+  --shadow-md: 0 4px 8px -2px rgb(40 30 20 / 0.1), 0 6px 18px -4px rgb(40 30 20 / 0.12);
+  --shadow-lg: 0 10px 28px -8px rgb(40 30 20 / 0.18), 0 4px 12px -4px rgb(40 30 20 / 0.1);
+  --shadow-xl: 0 20px 48px -16px rgb(40 30 20 / 0.26), 0 8px 20px -8px rgb(40 30 20 / 0.14);
+  --shadow-2xl: 0 28px 64px -20px rgb(40 30 20 / 0.32), 0 12px 28px -10px rgb(40 30 20 / 0.16);
+  --shadow-inner: inset 0 1px 3px rgb(40 30 20 / 0.08);
+  --shadow-primary: 0 6px 18px -6px rgb(90 70 50 / 0.4), 0 2px 8px -2px rgb(90 70 50 / 0.25);
+  --shadow-card-hover: 0 12px 32px -10px rgb(40 30 20 / 0.2), 0 4px 14px -4px rgb(40 30 20 / 0.12);
+  --shadow-popover: 0 16px 40px -12px rgb(40 30 20 / 0.24), 0 4px 14px -4px rgb(40 30 20 / 0.12);
+
+  --ring-focus: 0 0 0 3px color-mix(in srgb, var(--color-focus) 28%, transparent);
+
+  --gradient-card-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.7) 0%, rgb(255 255 255 / 0) 88px);
+
+  --blur-glass: blur(14px) saturate(1.25);
+
+  /* Semantic status tokens: fixed across presets. */
+  --color-success-bg: #e4efe5;
+  --color-success-text: #285c3a;
+  --color-success-border: #c4ddc7;
+  --color-info-bg: #e6edf5;
+  --color-info-text: #345879;
+  --color-info-border: #c6d5e6;
+  --color-warning-bg: #f7edda;
+  --color-warning-text: #76551d;
+  --color-warning-border: #ead9b5;
+  --color-danger-bg: #f7e5e2;
+  --color-danger-text: #963f38;
+  --color-danger-border: #ecc5c1;
+  --color-neutral-bg: #edecea;
+  --color-neutral-text: #4a5450;
+  --color-neutral-border: #d5d8d5;
+}
+
+/* ================= Theme A — Sky Blue & White ================= */
+:root[data-preset='ocean'] {
+  --color-primary: #0ea5e9;
+  --color-primary-hover: #0284c7;
+  --color-primary-active: #075985;
+  --color-primary-foreground: #ffffff;
+  --color-dark-accent: #075985;
+  --color-soft: #7dd3fc;
+  --color-page: #ffffff;
+  --color-sidebar: var(--color-primary);
+  --color-surface: #ffffff;
+  --color-elevated: #ffffff;
+  --color-hover-surface: #f0f9ff;
+  --color-muted-surface: #e0f2fe;
+  --color-ink: #075985;
+  --color-ink-secondary: #38667f;
+  --color-ink-muted: #7aa9c2;
+  --color-ink-disabled: #b6d5e5;
+  --color-border: #bfe6f8;
+  --color-divider: #e3f3fd;
+  --color-focus: #0ea5e9;
+  --color-selection: rgb(14 165 233 / 0.18);
+}
+
+/* ================= Theme B — Luxury Beige & Taupe ================= */
+:root[data-preset='beige'] {
+  --color-primary: #8c715d;
+  --color-primary-hover: #765d4b;
+  --color-primary-active: #654e3e;
+  --color-primary-foreground: #ffffff;
+  --color-dark-accent: #594638;
+  --color-soft: #d7c6b4;
+  --color-page: #faf7f2;
+  --color-sidebar: var(--color-primary);
+  --color-surface: #ffffff;
+  --color-elevated: #ffffff;
+  --color-hover-surface: #f3ece3;
+  --color-muted-surface: #f0e8de;
+  --color-ink: #382d25;
+  --color-ink-secondary: #75685d;
+  --color-ink-muted: #9a8d80;
+  --color-ink-disabled: #bcafa2;
+  --color-border: #e7ded3;
+  --color-divider: #efe7dc;
+  --color-focus: #8c715d;
+  --color-selection: rgb(140 113 93 / 0.18);
+}
+
+/* ================= Theme C — Sage Green ================= */
+:root[data-preset='sage'] {
+  --color-primary: #527565;
+  --color-primary-hover: #425f51;
+  --color-primary-active: #375044;
+  --color-primary-foreground: #ffffff;
+  --color-dark-accent: #344e43;
+  --color-soft: #b7c9be;
+  --color-page: #f7f8f5;
+  --color-sidebar: var(--color-primary);
+  --color-surface: #ffffff;
+  --color-elevated: #ffffff;
+  --color-hover-surface: #eef3ef;
+  --color-muted-surface: #e9efeb;
+  --color-ink: #24352c;
+  --color-ink-secondary: #66756b;
+  --color-ink-muted: #8fa096;
+  --color-ink-disabled: #b3bfb6;
+  --color-border: #e2e8e2;
+  --color-divider: #ecefec;
+  --color-focus: #527565;
+  --color-selection: rgb(82 117 101 / 0.18);
+}
+
+/* ================= Theme D — Soft Blue & Slate ================= */
+:root[data-preset='slate'] {
+  --color-primary: #536d86;
+  --color-primary-hover: #40586f;
+  --color-primary-active: #364a5e;
+  --color-primary-foreground: #ffffff;
+  --color-dark-accent: #34495e;
+  --color-soft: #c4d3e0;
+  --color-page: #f7f9fc;
+  --color-sidebar: var(--color-primary);
+  --color-surface: #ffffff;
+  --color-elevated: #ffffff;
+  --color-hover-surface: #eef2f7;
+  --color-muted-surface: #e8edf2;
+  --color-ink: #283747;
+  --color-ink-secondary: #627284;
+  --color-ink-muted: #8d99a9;
+  --color-ink-disabled: #b2bcc8;
+  --color-border: #dce4ec;
+  --color-divider: #e8eef4;
+  --color-focus: #536d86;
+  --color-selection: rgb(83 109 134 / 0.18);
+}
+
+/* ================= Theme E — Eucalyptus ================= */
+:root[data-preset='eucalyptus'] {
+  --color-primary: #4c7770;
+  --color-primary-hover: #3c625c;
+  --color-primary-active: #32524d;
+  --color-primary-foreground: #ffffff;
+  --color-dark-accent: #31534e;
+  --color-soft: #b9d0c9;
+  --color-page: #f5f8f6;
+  --color-sidebar: var(--color-primary);
+  --color-surface: #ffffff;
+  --color-elevated: #ffffff;
+  --color-hover-surface: #ecf3f0;
+  --color-muted-surface: #e6eeeb;
+  --color-ink: #283d39;
+  --color-ink-secondary: #647771;
+  --color-ink-muted: #8da19b;
+  --color-ink-disabled: #b2c0bb;
+  --color-border: #dde7e2;
+  --color-divider: #e9efec;
+  --color-focus: #4c7770;
+  --color-selection: rgb(76 119 112 / 0.18);
+}
+
+/* ================= Theme F — Olive & Cream ================= */
+:root[data-preset='olive'] {
+  --color-primary: #687957;
+  --color-primary-hover: #536345;
+  --color-primary-active: #46543a;
+  --color-primary-foreground: #ffffff;
+  --color-dark-accent: #424e38;
+  --color-soft: #c7d0b9;
+  --color-page: #faf9f4;
+  --color-sidebar: var(--color-primary);
+  --color-surface: #ffffff;
+  --color-elevated: #ffffff;
+  --color-hover-surface: #f0f3ea;
+  --color-muted-surface: #e9eee5;
+  --color-ink: #30382a;
+  --color-ink-secondary: #6c7463;
+  --color-ink-muted: #959c8c;
+  --color-ink-disabled: #b8bdae;
+  --color-border: #e2e5d9;
+  --color-divider: #edeee4;
+  --color-focus: #687957;
+  --color-selection: rgb(104 121 87 / 0.18);
+}
+
+/* ================= Theme G — Dusty Lavender ================= */
+:root[data-preset='lavender'] {
+  --color-primary: #796a96;
+  --color-primary-hover: #65557f;
+  --color-primary-active: #55476c;
+  --color-primary-foreground: #ffffff;
+  --color-dark-accent: #504464;
+  --color-soft: #d4c9e2;
+  --color-page: #f8f7fa;
+  --color-sidebar: var(--color-primary);
+  --color-surface: #ffffff;
+  --color-elevated: #ffffff;
+  --color-hover-surface: #f2edf7;
+  --color-muted-surface: #f0ebf5;
+  --color-ink: #342d40;
+  --color-ink-secondary: #70667e;
+  --color-ink-muted: #99909f;
+  --color-ink-disabled: #b8b2c0;
+  --color-border: #e5dfec;
+  --color-divider: #ede9f2;
+  --color-focus: #796a96;
+  --color-selection: rgb(121 106 150 / 0.18);
+}
+
+/* ================= Theme H — Midnight Navy ================= */
+:root[data-preset='midnight'] {
+  --color-primary: #1d4ed8;
+  --color-primary-hover: #1e40af;
+  --color-primary-active: #1e3a8a;
+  --color-primary-foreground: #ffffff;
+  --color-dark-accent: #12304a;
+  --color-soft: #60a5fa;
+  --color-page: #f8fafc;
+  --color-sidebar: #12304a;
+  --color-surface: #ffffff;
+  --color-elevated: #ffffff;
+  --color-hover-surface: #e8f0fe;
+  --color-muted-surface: #dbeafe;
+  --color-ink: #12304a;
+  --color-ink-secondary: #3e5a78;
+  --color-ink-muted: #7a93af;
+  --color-ink-disabled: #b4c6d9;
+  --color-border: #cbddf0;
+  --color-divider: #e4edf5;
+  --color-focus: #1d4ed8;
+  --color-selection: rgb(29 78 216 / 0.18);
+}
+
+/* Spec aliases (§5 example names) map onto the canonical tokens above. */
+:root {
+  --color-bg: var(--color-page);
+  --color-surface-muted: var(--color-muted-surface);
+  --color-surface-hover: var(--color-hover-surface);
+  --color-text: var(--color-ink);
+  --color-text-secondary: var(--color-ink-secondary);
+}
