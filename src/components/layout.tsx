@@ -1,37 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { NAV_ITEMS, NAV_SECTIONS, sectionOf } from './nav';
+import { NAV_ITEMS, NAV_SECTIONS, sectionOf, viewPermission } from './nav';
 import type { NavTarget, ViewId } from './nav';
 import { NOTICES } from '../data/mock';
 import { toast } from './toastStore';
 import { useAuth } from '../features/auth/AuthContext';
 import { displayApiError } from '../lib/api/client';
-
-const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
-  dashboard: 'dashboard.read',
-  reservations: 'reservation.read',
-  'new-reservation': 'reservation.create',
-  'check-in': 'stay.check-in',
-  'check-out': 'stay.check-out',
-  'in-house': 'reservation.read',
-  guests: 'guest.read',
-  'walk-in': 'reservation.create',
-  'room-overview': 'room.read',
-  'room-types': 'room.read',
-  'room-inventory': 'room.read',
-  'status-board': 'room.read',
-  housekeeping: 'housekeeping.read',
-  maintenance: 'maintenance.read',
-  folios: 'folio.read',
-  payments: 'payment.read',
-  invoices: 'invoice.read',
-  reports: 'report.read.operations',
-  'occupancy-report': 'report.read.operations',
-  'revenue-report': 'report.read.financial',
-  'arrivals-departures': 'report.read.operations',
-  'staff-roles': 'user.read',
-  properties: 'property.read',
-  settings: 'theme.update',
-};
 
 function NavIcon({ id }: { id: ViewId }) {
   const common = 'h-[18px] w-[18px] flex-none';
@@ -216,7 +189,7 @@ export function Sidebar({
   const visibleSections = NAV_SECTIONS.map((section) => ({
     ...section,
     items: section.items.filter((item) => {
-      const permission = VIEW_PERMISSION[item.id];
+      const permission = viewPermission(item.id);
       return !permission || can(permission);
     }),
   })).filter((section) => section.items.length > 0);
@@ -371,12 +344,20 @@ export function Header({
   onOpenThemes: () => void;
   onGo: (t: NavTarget) => void;
 }) {
-  const { me, logout, switchProperty } = useAuth();
+  const { me, can, logout, switchProperty } = useAuth();
   const [panel, setPanel] = useState<'none' | 'notices' | 'profile'>('none');
   const [read, setRead] = useState<string[]>([]);
   const closePanels = () => setPanel('none');
   const dismissRef = useDismiss(closePanels);
-  const unread = NOTICES.filter((n) => !read.includes(n.id)).length;
+  // Notices link into views, so hide the ones the current role cannot open.
+  // Otherwise a tap lands on a screen whose API calls are all denied.
+  const visibleNotices = NOTICES.filter((notice) => {
+    const target = NAV_ITEMS.find((i) => i.id === notice.target);
+    if (!target) return true;
+    const permission = viewPermission(target.id);
+    return !permission || can(permission);
+  });
+  const unread = visibleNotices.filter((n) => !read.includes(n.id)).length;
   const activeMembership = me?.user.propertyMemberships.find((membership) => membership.propertyId === me.activePropertyId);
   const fullName = me?.user.fullName ?? 'User';
   const roleName = activeMembership?.role.name ?? 'Staff';
@@ -444,7 +425,7 @@ export function Header({
                 Sample alerts · not server-backed
               </p>
               <ul>
-                {NOTICES.map((n) => (
+                {visibleNotices.map((n) => (
                   <li key={n.id}>
                     <button
                       type="button"
@@ -514,7 +495,9 @@ export function Header({
             >
               {[
                 { label: 'My profile & settings', target: { view: 'settings' } as NavTarget },
-                { label: 'Staff directory', target: { view: 'staff-roles' } as NavTarget },
+                // The Staff screen needs `user.read`; showing it without the
+                // permission renders a 403 error page behind the menu.
+                ...(can('user.read') ? [{ label: 'Staff directory', target: { view: 'staff-roles' } as NavTarget }] : []),
                 { label: 'Appearance', target: null },
               ].map((item) => (
                 <button

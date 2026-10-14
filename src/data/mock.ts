@@ -217,17 +217,6 @@ export interface MaintenanceRequest {
   notes: string[];
 }
 
-export interface StaffMember {
-  id: string;
-  name: string;
-  role: string;
-  department: string;
-  phone: string;
-  email: string;
-  status: 'Active' | 'On leave' | 'Inactive';
-  permissions: string[];
-}
-
 export interface Notice {
   id: string;
   title: string;
@@ -448,17 +437,6 @@ export const MAINTENANCE: MaintenanceRequest[] = [
   { id: 'WO-116', room: 'Lobby', category: 'Electrical', description: 'Two downlights flickering above reception desk.', priority: 'Low', reportedBy: 'Front desk', assignee: 'In-house team', created: 'Oct 08', due: 'Oct 14', status: 'Open', notes: [] },
   { id: 'WO-115', room: '307', category: 'Furniture', description: 'Bunk ladder bolt loose; tighten and verify.', priority: 'High', reportedBy: 'Maria S. (HK)', assignee: 'In-house team', created: 'Oct 10', due: 'Oct 11', status: 'Open', notes: [] },
   { id: 'WO-114', room: '101', category: 'HVAC', description: 'Thermostat unresponsive; replaced batteries, monitoring.', priority: 'Low', reportedBy: 'Guest report', assignee: 'In-house team', created: 'Oct 07', due: 'Oct 09', status: 'Resolved', notes: ['Resolved Oct 08 — sensor reset.'] },
-];
-
-export const STAFF: StaffMember[] = [
-  { id: 'S-01', name: 'Nora Bennett', role: 'General Manager', department: 'Management', phone: '+1 415 555 0101', email: 'nora@triponx.example', status: 'Active', permissions: ['All modules', 'Rates', 'Staff', 'Reports'] },
-  { id: 'S-02', name: 'Liam Carter', role: 'Front-desk Agent', department: 'Front Office', phone: '+1 415 555 0102', email: 'liam@triponx.example', status: 'Active', permissions: ['Reservations', 'Check-in/out', 'Guests', 'Folios'] },
-  { id: 'S-03', name: 'Maria Santos', role: 'Housekeeping Lead', department: 'Housekeeping', phone: '+1 415 555 0103', email: 'maria@triponx.example', status: 'Active', permissions: ['Housekeeping', 'Rooms (status)', 'Maintenance (report)'] },
-  { id: 'S-04', name: 'James Keller', role: 'Housekeeper', department: 'Housekeeping', phone: '+1 415 555 0104', email: 'james@triponx.example', status: 'Active', permissions: ['Housekeeping (assigned)'] },
-  { id: 'S-05', name: 'Ana Reyes', role: 'Housekeeper', department: 'Housekeeping', phone: '+1 415 555 0105', email: 'ana@triponx.example', status: 'On leave', permissions: ['Housekeeping (assigned)'] },
-  { id: 'S-06', name: 'Omar Farouk', role: 'Accountant', department: 'Finance', phone: '+1 415 555 0106', email: 'omar@triponx.example', status: 'Active', permissions: ['Billing', 'Payments', 'Invoices', 'Expenses'] },
-  { id: 'S-07', name: 'Grace Liu', role: 'Maintenance Tech', department: 'Engineering', phone: '+1 415 555 0107', email: 'grace@triponx.example', status: 'Active', permissions: ['Maintenance', 'Rooms (status)'] },
-  { id: 'S-08', name: 'Peter Novak', role: 'Night Auditor', department: 'Front Office', phone: '+1 415 555 0108', email: 'peter@triponx.example', status: 'Inactive', permissions: ['Reservations (view)', 'Reports'] },
 ];
 
 export const NOTICES: Notice[] = [

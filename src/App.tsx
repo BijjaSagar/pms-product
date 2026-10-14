@@ -1,6 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { Header, Sidebar } from './components/layout';
 import type { NavTarget } from './components/nav';
+import { viewPermission } from './components/nav';
 import { ThemeSwatcher } from './components/ThemeSwatcher';
 import { AppCrashFallback, ErrorBoundary, PanelCrashFallback } from './components/ErrorBoundary';
 import { ThemeProvider } from './theme/ThemeContext';
@@ -69,7 +70,7 @@ function PageFallback() {
 }
 
 function Shell() {
-  const { me } = useAuth();
+  const { me, can } = useAuth();
   const [target, setTarget] = useState<NavTarget>({ view: 'dashboard' });
   const [navOpen, setNavOpen] = useState(false);
   const [swatcherOpen, setSwatcherOpen] = useState(false);
@@ -86,6 +87,19 @@ function Shell() {
   }, []);
 
   const page = useMemo(() => {
+    // Presentation-level guard. The API still enforces every permission; this
+    // only stops a deep link or notification from rendering a screen whose
+    // data calls would all come back 403.
+    const required = viewPermission(view);
+    if (required && !can(required)) {
+      return (
+        <section className="pms-card mx-auto max-w-[560px] p-5" aria-label="No access">
+          <h1 className="pms-section-title">No access to this screen</h1>
+          <p className="pms-helper mt-2">Your role at this property does not include the {required} permission.</p>
+          <button className="pms-btn-primary mt-4 px-4 py-2.5" type="button" onClick={() => go({ view: 'dashboard' })}>Back to dashboard</button>
+        </section>
+      );
+    }
     switch (view) {
       case 'dashboard':
         return <Dashboard go={go} />;
@@ -140,7 +154,7 @@ function Shell() {
       case 'settings':
         return <Settings onOpenThemes={() => setSwatcherOpen(true)} />;
     }
-  }, [view, target.query, target.focusId, go]);
+  }, [view, target.query, target.focusId, go, can]);
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>

@@ -113,3 +113,46 @@ export function labelOf(view: ViewId): string {
   const found = NAV_ITEMS.find((i) => i.id === view);
   return found ? found.label : view;
 }
+
+/**
+ * Permission that gates each view. The backend API is the real enforcement
+ * boundary; this only decides what the shell shows. A view with no entry is
+ * visible to every authenticated user.
+ *
+ * `expenses` and `rate-management` have no backend permission family yet, so
+ * they borrow the nearest read gate: spend visibility follows payment read
+ * access, pricing visibility follows reservation read access. Both screens are
+ * local demos with no backend effect.
+ */
+export const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
+  dashboard: 'dashboard.read',
+  reservations: 'reservation.read',
+  'new-reservation': 'reservation.create',
+  'check-in': 'stay.check-in',
+  'check-out': 'stay.check-out',
+  'in-house': 'reservation.read',
+  guests: 'guest.read',
+  'walk-in': 'reservation.create',
+  'room-overview': 'room.read',
+  'room-types': 'room.read',
+  'room-inventory': 'room.read',
+  'status-board': 'room.read',
+  housekeeping: 'housekeeping.read',
+  maintenance: 'maintenance.read',
+  folios: 'folio.read',
+  payments: 'payment.read',
+  invoices: 'invoice.read',
+  expenses: 'payment.read',
+  'rate-management': 'reservation.read',
+  reports: 'report.read.operations',
+  'occupancy-report': 'report.read.operations',
+  'revenue-report': 'report.read.financial',
+  'arrivals-departures': 'report.read.operations',
+  'staff-roles': 'user.read',
+  properties: 'property.read',
+  settings: 'theme.update',
+};
+
+export function viewPermission(view: ViewId): string | undefined {
+  return VIEW_PERMISSION[view];
+}
