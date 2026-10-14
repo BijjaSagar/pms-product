@@ -6,8 +6,25 @@ import { AppCrashFallback, ErrorBoundary, PanelCrashFallback } from './component
 import { ThemeProvider } from './theme/ThemeContext';
 import { useTheme } from './theme/useTheme';
 import { THEME_PRESETS } from './theme/presets';
+import type { ThemePresetId } from './theme/presets';
 import { Toaster } from './components/overlays';
 import { Dashboard } from './pages/Dashboard';
+import { AuthProvider, useAuth } from './features/auth/AuthContext';
+import { Login } from './features/auth/Login';
+import { themeApi } from './lib/api/phase3';
+import type { ThemeKey } from './types';
+
+const THEME_KEY_TO_PRESET: Record<ThemeKey, ThemePresetId> = {
+  MIDNIGHT_NAVY: 'midnight',
+  SKY_BLUE_WHITE: 'ocean',
+  LUXURY_BEIGE_TAUPE: 'beige',
+  SAGE_GREEN: 'sage',
+  SOFT_BLUE_SLATE: 'slate',
+  EUCALYPTUS: 'eucalyptus',
+  OLIVE_CREAM: 'olive',
+  DUSTY_LAVENDER: 'lavender',
+};
+const PRESET_TO_THEME_KEY = Object.fromEntries(Object.entries(THEME_KEY_TO_PRESET).map(([key, value]) => [value, key])) as Record<string, ThemeKey>;
 
 const Reservations = lazy(() => import('./pages/Reservations').then((m) => ({ default: m.Reservations })));
 const NewReservation = lazy(() => import('./pages/NewReservation').then((m) => ({ default: m.NewReservation })));
@@ -52,6 +69,7 @@ function PageFallback() {
 }
 
 function Shell() {
+  const { me } = useAuth();
   const [target, setTarget] = useState<NavTarget>({ view: 'dashboard' });
   const [navOpen, setNavOpen] = useState(false);
   const [swatcherOpen, setSwatcherOpen] = useState(false);
@@ -76,7 +94,7 @@ function Shell() {
       case 'new-reservation':
         return <NewReservation go={go} />;
       case 'check-in':
-        return <CheckIn />;
+        return <CheckIn initialQuery={target.query} />;
       case 'check-out':
         return <CheckOut />;
       case 'in-house':
@@ -136,7 +154,7 @@ function Shell() {
           onOpenThemes={() => setSwatcherOpen(true)}
           onGo={go}
         />
-        <main id="pms-main" tabIndex={-1} key={`${view}-${target.focusId ?? ''}-${target.query ?? ''}`} className="pms-animate-fade-up mx-auto w-full max-w-[1280px] flex-1 px-3 py-4 sm:px-5 sm:py-6 lg:px-8 2xl:max-w-[1440px]">
+        <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}`} className="pms-animate-fade-up mx-auto w-full max-w-[1280px] flex-1 px-3 py-4 sm:px-5 sm:py-6 lg:px-8 2xl:max-w-[1440px]">
           <Suspense fallback={<PageFallback />}>{page}</Suspense>
         </main>
         <footer
@@ -145,7 +163,7 @@ function Shell() {
         >
           <p className="tnum mx-auto w-full max-w-[1280px] text-[11.5px] font-medium 2xl:max-w-[1440px]" style={{ color: 'var(--color-ink-secondary)' }}>
             TriponX PMS · {THEME_PRESETS[preset].name} · 8 colour themes ·
-            status colours fixed across themes · static demo data
+            status colours fixed across themes · unsupported modules remain demo-only
           </p>
         </footer>
       </div>
@@ -169,10 +187,77 @@ function ShellWithBoundary() {
   );
 }
 
+function AuthenticatedApp() {
+  const { me, loading, error, reload, switchProperty } = useAuth();
+  const { preset, setPreset } = useTheme();
+  const [loadedThemeProperty, setLoadedThemeProperty] = useState<string | null>(null);
+  const themeScope = me?.activePropertyId ? `${me.user.id}:${me.activePropertyId}` : null;
+
+  useEffect(() => {
+    if (!themeScope || !me?.activePropertyId) return;
+    let active = true;
+    const scope = themeScope;
+    themeApi.get().then(({ themeKey }) => {
+      const presetId = THEME_KEY_TO_PRESET[themeKey];
+      if (active && presetId) setPreset(presetId);
+    }).catch(() => undefined).finally(() => {
+      if (active) setLoadedThemeProperty(scope);
+    });
+    return () => { active = false; };
+  }, [themeScope, me?.activePropertyId, setPreset]);
+
+  useEffect(() => {
+    if (!themeScope || loadedThemeProperty !== themeScope) return;
+    const themeKey = PRESET_TO_THEME_KEY[preset];
+    if (themeKey) void themeApi.set(themeKey).catch(() => undefined);
+  }, [themeScope, loadedThemeProperty, preset]);
+
+  if (loading) {
+    return <main className="flex min-h-screen items-center justify-center" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}><p className="pms-helper">Connecting to TriponX…</p></main>;
+  }
+
+  if (error && !me) {
+    return (
+      <main className="flex min-h-screen items-center justify-center px-4" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
+        <section className="pms-card max-w-[520px] p-5">
+          <h1 className="pms-section-title">Backend connection unavailable</h1>
+          <p className="pms-helper mt-2">{error}</p>
+          <button className="pms-btn-primary mt-4 px-4 py-2.5" type="button" onClick={() => void reload()}>Try again</button>
+        </section>
+      </main>
+    );
+  }
+
+  if (!me) return <Login />;
+
+  if (!me.activePropertyId) {
+    const memberships = me.user.propertyMemberships.filter((membership) => membership.isActive);
+    return (
+      <main className="flex min-h-screen items-center justify-center px-4" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
+        <section className="pms-card w-full max-w-[520px] p-5">
+          <h1 className="pms-section-title">Choose a property</h1>
+          <p className="pms-helper mt-1">Select an active property to continue.</p>
+          <div className="mt-4 flex flex-col gap-2">
+            {memberships.map((membership) => (
+              <button key={membership.propertyId} type="button" className="pms-btn-ghost px-4 py-3 text-left" onClick={() => void switchProperty(membership.propertyId)}>
+                {membership.property.name} · {membership.role.name}
+              </button>
+            ))}
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  return <ShellWithBoundary />;
+}
+
 function App() {
   return (
     <ThemeProvider>
-      <ShellWithBoundary />
+      <AuthProvider>
+        <AuthenticatedApp />
+      </AuthProvider>
     </ThemeProvider>
   );
 }

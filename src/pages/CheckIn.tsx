@@ -1,20 +1,42 @@
-import { useMemo, useState } from 'react';
-import { RESERVATIONS, ROOMS, formatMoney } from '../data/mock';
+import { useCallback, useMemo, useState } from 'react';
 import type { Reservation } from '../data/mock';
 import { Avatar, Badge, Card, CardTitle } from '../components/ui';
 import { reservationTone, roomTone } from '../components/status';
 import { Field } from '../components/controls';
 import { inputClass } from '../components/inputClass';
 import { toast } from '../components/toastStore';
+import { frontDeskApi, inventoryApi, reservationApi } from '../lib/api/pms';
+import { reservationFromApi, roomFromApi, roomTypeFromApi } from '../lib/api/adapters';
+import { useApiResource } from '../lib/api/useApiResource';
+import { displayApiError } from '../lib/api/client';
+import { formatCurrency } from '../lib/api/format';
 
 const STEPS = ['Find', 'Verify', 'Guests', 'Room', 'Payment', 'Review', 'Done'] as const;
 
-function eligibleRooms(roomType: string) {
-  return ROOMS.filter((r) => r.type === roomType && (r.status === 'Available' || r.status === 'Inspected'));
-}
-
-export function CheckIn() {
-  const [q, setQ] = useState('');
+export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
+  const loadBoard = useCallback(async () => {
+    const [arrivalResult, roomRows, typeRows] = await Promise.all([frontDeskApi.arrivals(), inventoryApi.rooms(), inventoryApi.roomTypes()]);
+    const details = await Promise.all(arrivalResult.data.map((row) => reservationApi.get(row.id)));
+    const roomTypes = typeRows.map((row) => roomTypeFromApi(row, roomRows));
+    const arrivals = details.map((detail) => {
+      const firstLine = detail.roomLines?.[0];
+      const roomType = roomTypes.find((item) => item.id === firstLine?.roomTypeId);
+      return reservationFromApi({
+        ...detail,
+        roomTypeName: roomType?.name,
+        roomLines: detail.roomLines?.map((line) => ({ ...line, roomTypeName: roomType?.name })) ?? [],
+      });
+    });
+    const rooms = roomRows.map((row) => {
+      const type = roomTypes.find((item) => item.id === row.roomTypeId);
+      return roomFromApi({ ...row, baseRate: type ? String(type.baseRate) : undefined });
+    });
+    return { arrivals, rooms };
+  }, []);
+  const resource = useApiResource(loadBoard);
+  const reservations = useMemo(() => resource.data?.arrivals ?? [], [resource.data?.arrivals]);
+  const rooms = useMemo(() => resource.data?.rooms ?? [], [resource.data?.rooms]);
+  const [q, setQ] = useState(initialQuery);
   const [resId, setResId] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [idChecked, setIdChecked] = useState(false);
@@ -26,17 +48,17 @@ export function CheckIn() {
 
   const arrivals: Reservation[] = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return RESERVATIONS.filter(
+    return reservations.filter(
       (r) =>
         ['Confirmed', 'Pending'].includes(r.status) &&
         !doneIds.includes(r.id) &&
         (!needle || r.guest.toLowerCase().includes(needle) || r.id.toLowerCase().includes(needle)),
     );
-  }, [q, doneIds]);
+  }, [q, doneIds, reservations]);
 
-  const current = RESERVATIONS.find((r) => r.id === resId) ?? null;
-  const options = current ? eligibleRooms(current.roomType) : [];
-  const room = ROOMS.find((r) => r.number === roomNo) ?? null;
+  const current = reservations.find((r) => r.id === resId) ?? null;
+  const options = current ? rooms.filter((room) => room.roomTypeId === current.roomTypeId && ['Available', 'Inspected'].includes(room.status)) : [];
+  const room = rooms.find((r) => r.number === roomNo) ?? null;
   const balance = current ? current.total - current.paid : 0;
 
   const pick = (r: Reservation) => {
@@ -45,8 +67,9 @@ export function CheckIn() {
     setIdChecked(false);
     setAdults(r.adults);
     setChildren(r.children);
-    setRoomNo(r.roomNumber && eligibleRooms(r.roomType).some((x) => x.number === r.roomNumber) ? r.roomNumber : null);
-    setDepositOk(r.paid > 0);
+    const readyForStay = rooms.filter((item) => item.roomTypeId === r.roomTypeId && ['Available', 'Inspected'].includes(item.status));
+    setRoomNo(r.roomNumber && readyForStay.some((x) => x.number === r.roomNumber) ? r.roomNumber : null);
+    setDepositOk(true);
   };
 
   const reset = () => {
@@ -54,18 +77,31 @@ export function CheckIn() {
     setStep(0);
     setQ('');
     setRoomNo(null);
+    resource.refresh();
   };
 
-  const complete = () => {
-    if (current) setDoneIds((d) => [...d, current.id]);
-    setStep(6);
-    toast('Checked in (demo)', { detail: `${current?.guest} marked checked-in on this screen.` });
+  const complete = async () => {
+    if (!current?.backendId) return;
+    const selectedRoom = options.find((item) => item.number === roomNo);
+    if (!selectedRoom?.backendId) return;
+    try {
+      if (!current.roomNumber || current.roomNumber !== selectedRoom.number) {
+        await reservationApi.assignRoom(current.backendId, selectedRoom.backendId);
+      }
+      await frontDeskApi.checkIn(current.backendId);
+      setDoneIds((ids) => [...ids, current.id]);
+      setStep(6);
+      toast('Guest checked in', { detail: `${current.guest} · Room ${selectedRoom.number}.`, tone: 'success' });
+    } catch (error) {
+      toast('Check-in failed', { detail: displayApiError(error), tone: 'danger' });
+    }
   };
 
   return (
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
+      {resource.error ? <p className="pms-helper xl:col-span-5" role="alert">Could not load arrivals: {resource.error}</p> : null}
       <Card className="xl:col-span-2">
-        <CardTitle title="1 · Find reservation" subtitle="Today's expected arrivals" />
+          <CardTitle title="1 · Find reservation" subtitle={resource.loading ? 'Loading arrivals…' : 'Today’s expected arrivals'} />
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Booking ID, name or confirmation…" aria-label="Find reservation" className={inputClass() + ' mb-3'} />
         <ul className="flex max-h-[420px] flex-col gap-2 overflow-y-auto">
           {arrivals.map((r) => (
@@ -150,17 +186,17 @@ export function CheckIn() {
                 ) : (
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Ready rooms">
                     {options.map((r) => (
-                      <button key={r.number} type="button" role="radio" aria-checked={roomNo === r.number} onClick={() => setRoomNo(r.number)} className="rounded-[10px] border p-3 text-left" style={{ borderColor: roomNo === r.number ? 'var(--color-primary)' : 'var(--color-border)', background: roomNo === r.number ? 'var(--color-hover-surface)' : 'var(--color-surface)' }}>
+                      <button key={r.number} type="button" role="radio" aria-checked={roomNo === r.number} onClick={() => setRoomNo(r.number)} className="min-w-0 rounded-[10px] border p-3 text-left" style={{ borderColor: roomNo === r.number ? 'var(--color-primary)' : 'var(--color-border)', background: roomNo === r.number ? 'var(--color-hover-surface)' : 'var(--color-surface)' }}>
                         <span className="tnum block text-[17px] font-semibold" style={{ color: 'var(--color-ink)' }}>{r.number}</span>
                         <span className="mt-1 block"><Badge tone={roomTone(r.status)}>{r.status}</Badge></span>
-                        <span className="tnum mt-1 block text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>${r.rate}/night</span>
+                        <span className="tnum mt-1 block text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{formatCurrency(r.rate, current.currencyCode)}/night</span>
                       </button>
                     ))}
                   </div>
                 )}
                 <h4 className="pms-label mb-1 mt-4">All {current.roomType} rooms (reference)</h4>
                 <div className="flex flex-wrap gap-1.5">
-                  {ROOMS.filter((r) => r.type === current.roomType).map((r) => (
+                  {rooms.filter((r) => r.type === current.roomType).map((r) => (
                     <span key={r.number} className="tnum rounded-full border px-2.5 py-1 text-[11.5px]" style={{ borderColor: 'var(--color-border)', color: 'var(--color-ink-secondary)' }}>{r.number} · {r.status}</span>
                   ))}
                 </div>
@@ -170,13 +206,13 @@ export function CheckIn() {
               <div>
                 <h3 className="pms-section-title mb-2">5 · Payment & deposit</h3>
                 <ul className="text-[13.5px]">
-                  <li className="flex justify-between border-b py-2" style={{ borderColor: 'var(--color-divider)' }}><span style={{ color: 'var(--color-ink-secondary)' }}>Stay total</span><span className="tnum font-semibold" style={{ color: 'var(--color-ink)' }}>${formatMoney(current.total)}</span></li>
-                  <li className="flex justify-between border-b py-2" style={{ borderColor: 'var(--color-divider)' }}><span style={{ color: 'var(--color-ink-secondary)' }}>Already paid</span><span className="tnum font-semibold" style={{ color: 'var(--color-ink)' }}>${formatMoney(current.paid)}</span></li>
-                  <li className="flex justify-between py-2"><span className="font-semibold" style={{ color: 'var(--color-ink)' }}>Balance due</span><span className="tnum font-semibold" style={{ color: balance > 0 ? 'var(--color-danger-text)' : 'var(--color-success-text)' }}>${formatMoney(balance)}</span></li>
+                  <li className="pms-summary-row border-b py-2" style={{ borderColor: 'var(--color-divider)' }}><span style={{ color: 'var(--color-ink-secondary)' }}>Stay total</span><span className="tnum font-semibold" style={{ color: 'var(--color-ink)' }}>{formatCurrency(current.total, current.currencyCode)}</span></li>
+                  <li className="pms-summary-row border-b py-2" style={{ borderColor: 'var(--color-divider)' }}><span style={{ color: 'var(--color-ink-secondary)' }}>Already paid</span><span className="tnum font-semibold" style={{ color: 'var(--color-ink)' }}>{formatCurrency(current.paid, current.currencyCode)}</span></li>
+                  <li className="pms-summary-row py-2"><span className="font-semibold" style={{ color: 'var(--color-ink)' }}>Balance due</span><span className="tnum font-semibold" style={{ color: balance > 0 ? 'var(--color-danger-text)' : 'var(--color-success-text)' }}>{formatCurrency(balance, current.currencyCode)}</span></li>
                 </ul>
                 <label className="mt-2 flex cursor-pointer items-center gap-2 text-[13.5px]" style={{ color: 'var(--color-ink)' }}>
-                  <input type="checkbox" checked={depositOk} onChange={(e) => setDepositOk(e.target.checked)} className="h-4 w-4 accent-[var(--color-primary)]" />
-                  Deposit / card pre-authorisation taken (required)
+                   <input type="checkbox" checked={depositOk} onChange={(e) => setDepositOk(e.target.checked)} className="h-4 w-4 accent-[var(--color-primary)]" />
+                   Folio/payment reviewed (payments are recorded separately)
                 </label>
               </div>
             )}
@@ -184,7 +220,7 @@ export function CheckIn() {
               <div>
                 <h3 className="pms-section-title mb-2">6 · Review registration</h3>
                 <dl className="grid grid-cols-1 gap-2 text-[13.5px] sm:grid-cols-2">
-                  {[['Guest', current.guest], ['Party', `${adults} adult(s)${children ? `, ${children} child(ren)` : ''}`], ['Room', roomNo ? `${room?.type} ${roomNo}` : '— not selected —'], ['Dates', `${current.checkIn} → ${current.checkOut}`], ['Balance', `$${formatMoney(balance)}`], ['Requests', current.specialRequests || 'None']].map(([k, v]) => (
+                  {[['Guest', current.guest], ['Party', `${adults} adult(s)${children ? `, ${children} child(ren)` : ''}`], ['Room', roomNo ? `${room?.type} ${roomNo}` : '— not selected —'], ['Dates', `${current.checkIn} → ${current.checkOut}`], ['Balance', formatCurrency(balance, current.currencyCode)], ['Requests', current.specialRequests || 'None']].map(([k, v]) => (
                     <div key={k} className="rounded-[10px] border p-3" style={{ borderColor: 'var(--color-border)' }}>
                       <dt className="pms-helper">{k}</dt>
                       <dd className="font-semibold" style={{ color: 'var(--color-ink)' }}>{v}</dd>

@@ -26,6 +26,7 @@ export function Rates() {
 
   return (
     <div className="flex flex-col gap-4">
+      <p role="note" className="pms-helper">Rate plans and nightly rate calendar have no backend API yet. This section is a local demo and does not change booking prices.</p>
       <Card>
         <CardTitle title="Rate plans" subtitle={`${plans.filter((p) => p.active).length} active plans`} />
         <div className="overflow-x-auto">

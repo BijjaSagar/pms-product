@@ -378,6 +378,21 @@ body {
     font-variant-numeric: tabular-nums;
     color: var(--color-ink);
   }
+  /* Label/value summary rows (folios, estimates, reports). The label may wrap
+     but must never force the row wider; the value keeps its width. */
+  .pms-summary-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+  }
+  .pms-summary-row > :first-child {
+    min-width: 0;
+  }
+  .pms-summary-row > :last-child {
+    flex-shrink: 0;
+    text-align: right;
+  }
   .pms-form-grid {
     display: grid;
     gap: 12px;

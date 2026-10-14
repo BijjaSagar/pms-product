@@ -1,0 +1,9 @@
+export type ThemeKey =
+  | 'MIDNIGHT_NAVY'
+  | 'SKY_BLUE_WHITE'
+  | 'LUXURY_BEIGE_TAUPE'
+  | 'SAGE_GREEN'
+  | 'SOFT_BLUE_SLATE'
+  | 'EUCALYPTUS'
+  | 'OLIVE_CREAM'
+  | 'DUSTY_LAVENDER';

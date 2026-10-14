@@ -20,7 +20,7 @@ export type RoomStatus =
 
 export type HkStatus = 'Clean' | 'Dirty' | 'Cleaning' | 'Inspected';
 
-export type PaymentStatus = 'Paid' | 'Pending' | 'Overdue' | 'Failed';
+export type PaymentStatus = 'Paid' | 'Pending' | 'Overdue' | 'Failed' | 'Refunded' | 'Partially refunded';
 
 export type FolioStatus = 'Open' | 'Settled' | 'Disputed';
 
@@ -42,6 +42,10 @@ export interface RoomType {
 
 export interface Reservation {
   id: string;
+  backendId?: string;
+  bookingCode?: string;
+  currencyCode?: string;
+  roomTypeId?: string;
   guest: string;
   guestId: string;
   room: string;
@@ -49,11 +53,14 @@ export interface Reservation {
   roomType: string;
   checkIn: string;
   checkOut: string;
+  checkInIso?: string;
+  checkOutIso?: string;
   nights: number;
   adults: number;
   children: number;
   status: ReservationStatus;
   total: number;
+  taxAmount?: number;
   paid: number;
   nightlyRate: number;
   channel: string;
@@ -64,6 +71,8 @@ export interface Reservation {
 
 export interface Room {
   number: string;
+  backendId?: string;
+  roomTypeId?: string;
   type: string;
   floor: number;
   status: RoomStatus;
@@ -94,6 +103,9 @@ export interface Guest {
 
 export interface HousekeepingTask {
   id: string;
+  roomId?: string;
+  backendStatus?: string;
+  assignedToId?: string | null;
   room: string;
   roomType: string;
   task: string;
@@ -109,15 +121,19 @@ export interface HousekeepingTask {
 
 export interface Invoice {
   id: string;
+  backendId?: string;
+  folioId?: string;
+  currencyCode?: string;
   guest: string;
   room: string;
   amount: number;
-  status: PaymentStatus;
+  status: PaymentStatus | 'Issued' | 'Draft' | 'Void' | 'Credited';
   due: string;
   method: string;
 }
 
 export interface FolioCharge {
+  backendId?: string;
   label: string;
   detail: string;
   amount: number;
@@ -132,6 +148,9 @@ export interface FolioPayment {
 
 export interface Folio {
   id: string;
+  backendId?: string;
+  currencyCode?: string;
+  checkOutDate?: string;
   reservationId: string;
   guest: string;
   guestId: string;
@@ -145,6 +164,8 @@ export interface Folio {
 
 export interface Payment {
   ref: string;
+  backendId?: string;
+  currencyCode?: string;
   guest: string;
   bookingId: string;
   date: string;
@@ -181,6 +202,9 @@ export interface RatePlan {
 
 export interface MaintenanceRequest {
   id: string;
+  backendId?: string;
+  backendStatus?: string;
+  assignedToId?: string | null;
   room: string;
   category: string;
   description: string;

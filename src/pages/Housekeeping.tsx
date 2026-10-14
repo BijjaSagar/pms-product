@@ -1,11 +1,18 @@
-import { useMemo, useState } from 'react';
-import { TASKS } from '../data/mock';
+import { useCallback, useMemo, useState } from 'react';
 import type { BadgeTone } from '../components/status';
-import type { HousekeepingTask } from '../data/mock';
 import { Badge, Card, CardTitle, ProgressBar } from '../components/ui';
-import { FilterChip, Tabs } from '../components/controls';
+import { Field, FilterChip, Tabs } from '../components/controls';
+import { Modal } from '../components/overlays';
 import { inputClass } from '../components/inputClass';
 import { toast } from '../components/toastStore';
+import { adminApi, operationsApi } from '../lib/api/pms';
+import { loadRoomInventory } from '../lib/api/loaders';
+import type { UserRow } from '../lib/api/pms';
+import type { HousekeepingTask } from '../data/mock';
+import { housekeepingTaskFromApi } from '../lib/api/adapters';
+import { useApiResource } from '../lib/api/useApiResource';
+import { displayApiError } from '../lib/api/client';
+import { useAuth } from '../features/auth/AuthContext';
 
 function statusTone(s: string): BadgeTone {
   if (s === 'Done') return 'success';
@@ -19,15 +26,32 @@ function priorityTone(p: string): BadgeTone {
   return 'neutral';
 }
 
-const STAFF = ['All', 'Maria S.', 'James K.', 'Ana R.', 'Supervisor', 'Ops team'];
-
 export function Housekeeping() {
-  const [tasks, setTasks] = useState<HousekeepingTask[]>(TASKS);
+  const { can } = useAuth();
+  const loadTasks = useCallback(async () => {
+    const [rows, users, inventory] = await Promise.all([
+      operationsApi.housekeepingTasks(),
+      can('housekeeping.assign') && can('user.read') ? adminApi.users() : Promise.resolve([] as UserRow[]),
+      can('housekeeping.assign') ? loadRoomInventory() : Promise.resolve(null),
+    ]);
+    return { tasks: rows.map(housekeepingTaskFromApi), users, rooms: inventory?.rooms ?? [] };
+  }, [can]);
+  const resource = useApiResource(loadTasks);
+  const tasks = useMemo(() => resource.data?.tasks ?? [], [resource.data?.tasks]);
+  const staffUsers = useMemo(() => resource.data?.users ?? [], [resource.data?.users]);
+  const rooms = useMemo(() => resource.data?.rooms ?? [], [resource.data?.rooms]);
+  const [creating, setCreating] = useState(false);
+  const [newRoomId, setNewRoomId] = useState('');
+  const [newType, setNewType] = useState('CHECKOUT_CLEAN');
+  const [newPriority, setNewPriority] = useState('NORMAL');
+  const [newNotes, setNewNotes] = useState('');
   const [view, setView] = useState<'list' | 'board'>('list');
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('All');
   const [priority, setPriority] = useState('All');
-  const [staff, setStaff] = useState('All');
+  const [staffFilter, setStaffFilter] = useState('All');
+
+  const staffOptions = useMemo(() => ['All', ...Array.from(new Set(tasks.map((task) => task.assignee)))], [tasks]);
 
   const filtered = useMemo(() => {
     const needle = q.trim();
@@ -35,27 +59,68 @@ export function Housekeeping() {
       (t) =>
         (status === 'All' || t.status === status) &&
         (priority === 'All' || t.priority === priority) &&
-        (staff === 'All' || t.assignee === staff) &&
+        (staffFilter === 'All' || t.assignee === staffFilter) &&
         (!needle || t.room.includes(needle) || t.id.toLowerCase().includes(needle.toLowerCase())),
     );
-  }, [tasks, q, status, priority, staff]);
+  }, [tasks, q, status, priority, staffFilter]);
 
   const counts = {
-    attention: tasks.filter((t) => t.status !== 'Done').length,
+    attention: tasks.filter((t) => !['READY', 'CANCELLED'].includes(t.backendStatus ?? '')).length,
     dirty: tasks.filter((t) => t.task.toLowerCase().includes('turnover') || t.task.toLowerCase().includes('linen')).length,
-    inProgress: tasks.filter((t) => t.status === 'In progress').length,
-    ready: tasks.filter((t) => t.status === 'Done').length,
-    inspection: tasks.filter((t) => t.task.toLowerCase().includes('inspect')).length,
-    overdue: tasks.filter((t) => t.status !== 'Done' && t.dueTime < '11:00').length,
+    inProgress: tasks.filter((t) => t.backendStatus === 'IN_PROGRESS').length,
+    ready: tasks.filter((t) => t.backendStatus === 'READY').length,
+    inspection: tasks.filter((t) => ['CLEANED', 'INSPECTION_REQUIRED'].includes(t.backendStatus ?? '')).length,
+    overdue: 0,
   };
 
-  const act = (id: string, next: HousekeepingTask['status'], msg: string) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: next, updated: 'now' } : t)));
-    toast(msg, { detail: `${id} updated on this screen.` });
+  const act = async (task: HousekeepingTask, inspectionResult: 'pass' | 'fail' = 'pass') => {
+    try {
+      if (task.backendStatus === 'TODO') await operationsApi.startTask(task.id);
+      else if (task.backendStatus === 'IN_PROGRESS') await operationsApi.completeTask(task.id);
+      else if (task.backendStatus === 'CLEANED') await operationsApi.requestInspection(task.id);
+      else if (task.backendStatus === 'INSPECTION_REQUIRED') await operationsApi.inspectTask(task.id, inspectionResult);
+      else return;
+      resource.refresh();
+      toast('Housekeeping task updated', { detail: `Room ${task.room} · ${task.task}.`, tone: 'success' });
+    } catch (error) { toast('Task update failed', { detail: displayApiError(error), tone: 'danger' }); }
   };
-  const assign = (id: string, who: string) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, assignee: who, updated: 'now' } : t)));
-    toast(`Assigned to ${who} (demo)`, { detail: id });
+
+  const taskCommand = async (task: HousekeepingTask, action: 'block' | 'cancel') => {
+    const reason = window.prompt(`${action === 'block' ? 'Reason for blocking' : 'Reason for cancelling'} task ${task.id}:`);
+    if (!reason?.trim()) return;
+    try {
+      if (action === 'block') await operationsApi.blockTask(task.id, reason.trim());
+      else await operationsApi.cancelTask(task.id, reason.trim());
+      resource.refresh();
+      toast(`Task ${action}led`, { detail: task.id, tone: 'success' });
+    } catch (error) { toast(`Could not ${action} task`, { detail: displayApiError(error), tone: 'danger' }); }
+  };
+
+  const flagMaintenance = async (task: HousekeepingTask) => {
+    if (!task.roomId) return toast('Could not flag maintenance', { detail: 'Room reference is missing.', tone: 'danger' });
+    try {
+      await operationsApi.createTicket({ title: `Housekeeping issue in room ${task.room}`, description: task.notes || task.task, roomId: task.roomId, category: 'OTHER', priority: task.priority === 'High' ? 'HIGH' : 'NORMAL' });
+      toast('Maintenance ticket created', { detail: `Room ${task.room} was sent to the maintenance queue.`, tone: 'success' });
+    } catch (error) { toast('Could not flag maintenance', { detail: displayApiError(error), tone: 'danger' }); }
+  };
+
+  const createTask = async () => {
+    if (!newRoomId) return toast('Choose a room', { detail: 'A housekeeping task needs a room.', tone: 'warning' });
+    try {
+      const created = await operationsApi.createTask({ roomId: newRoomId, type: newType, priority: newPriority, notes: newNotes || undefined });
+      setCreating(false);
+      setNewNotes('');
+      resource.refresh();
+      toast('Housekeeping task created', { detail: `Room ${created.roomNumber} · ${newType}.`, tone: 'success' });
+    } catch (error) { toast('Could not create task', { detail: displayApiError(error), tone: 'danger' }); }
+  };
+
+  const assign = async (task: HousekeepingTask, assignedToId: string) => {
+    try {
+      await operationsApi.assignTask(task.id, assignedToId || null);
+      resource.refresh();
+      toast('Housekeeping assignment updated', { detail: task.room, tone: 'success' });
+    } catch (error) { toast('Could not assign task', { detail: displayApiError(error), tone: 'danger' }); }
   };
 
   const cards: [string, number, string][] = [
@@ -87,12 +152,13 @@ export function Housekeeping() {
       <Card>
         <CardTitle
           title="Task list"
-          subtitle="Housekeeping + maintenance flags in one queue"
-          action={<Tabs label="Layout" tabs={[{ id: 'list', label: 'List' }, { id: 'board', label: 'Room board' }]} active={view} onChange={setView} />}
+          subtitle={resource.loading ? 'Loading housekeeping tasks…' : 'Live housekeeping tasks from the active property'}
+          action={<div className="flex flex-wrap items-center gap-2"><Tabs label="Layout" tabs={[{ id: 'list', label: 'List' }, { id: 'board', label: 'Room board' }]} active={view} onChange={setView} />{can('housekeeping.assign') ? <button type="button" className="pms-btn-primary px-3 py-2" onClick={() => { setNewRoomId(rooms[0]?.backendId ?? ''); setCreating(true); }}>+ New task</button> : null}</div>}
         />
+        {resource.error ? <p role="alert" className="pms-helper mb-3">Could not load housekeeping tasks: {resource.error}</p> : null}
         <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-4">
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Room or task ID…" aria-label="Search tasks" className={inputClass()} />
-          <select value={staff} onChange={(e) => setStaff(e.target.value)} aria-label="Filter by staff" className={inputClass()}>{STAFF.map((s) => <option key={s}>{s}</option>)}</select>
+          <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} aria-label="Filter by staff" className={inputClass()}>{staffOptions.map((s) => <option key={s}>{s}</option>)}</select>
           <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by task status">
             {['All', 'Pending', 'In progress', 'Done'].map((s) => <FilterChip key={s} active={status === s} onClick={() => setStatus(s)}>{s}</FilterChip>)}
           </div>
@@ -109,21 +175,21 @@ export function Housekeeping() {
                   <span className="tnum rounded-[8px] px-2.5 py-1.5 font-mono text-[13px] font-semibold" style={{ background: 'var(--color-muted-surface)', color: 'var(--color-ink)' }}>Rm {t.room}</span>
                   <div className="min-w-[160px] flex-1">
                     <p className="text-[13.5px] font-semibold" style={{ color: 'var(--color-ink)' }}>{t.task}</p>
-                    <p className="tnum text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{t.id} · {t.roomType} · {t.startTime} → {t.dueTime} · ~{t.durationMin} min · updated {t.updated}</p>
+                    <p className="tnum text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{t.id} · {t.roomType} · {t.startTime} → {t.dueTime}{t.durationMin ? ` · ~${t.durationMin} min` : ''} · updated {t.updated}</p>
                     {t.notes ? <p className="mt-0.5 text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{t.notes}</p> : null}
                   </div>
                   <Badge tone={priorityTone(t.priority)}>{t.priority}</Badge>
                   <Badge tone={statusTone(t.status)}>{t.status}</Badge>
                 </div>
                 <div className="mt-2.5 flex flex-wrap gap-1.5">
-                  <select value={t.assignee} onChange={(e) => assign(t.id, e.target.value)} aria-label={`Assign ${t.id}`} className={inputClass() + ' max-w-[170px] py-1.5 text-[12px]'}>
-                    {STAFF.filter((s) => s !== 'All').map((s) => <option key={s}>{s}</option>)}
-                  </select>
-                  {t.status === 'Pending' ? <button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => act(t.id, 'In progress', 'Cleaning started (demo)')}>Start cleaning</button> : null}
-                  {t.status === 'In progress' ? <button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => act(t.id, 'Done', 'Cleaning complete (demo)')}>Mark complete</button> : null}
-                  {t.status !== 'Done' && !t.task.toLowerCase().includes('inspect') ? <button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => toast('Inspection requested (demo)', { detail: `${t.id} sent to supervisor queue.` , tone: 'info' })}>Request inspection</button> : null}
-                  {t.status === 'Done' && t.task.toLowerCase().includes('inspect') ? <button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => toast('Marked inspected & ready (demo)', { detail: `${t.id} closed.` })}>Mark inspected</button> : null}
-                  <button type="button" className="px-3 py-1.5 text-[12px] font-semibold underline" style={{ color: 'var(--color-danger-text)' }} onClick={() => toast('Maintenance flagged (demo)', { detail: `${t.id} copied to the maintenance queue.`, tone: 'warning' })}>Flag maintenance</button>
+                  {can('housekeeping.assign') && staffUsers.length ? <select value={t.assignedToId ?? ''} onChange={(event) => void assign(t, event.target.value)} aria-label={`Assign ${t.id}`} className={inputClass() + ' max-w-[190px] py-1.5 text-[12px]'}>
+                    <option value="">Unassigned</option>{staffUsers.map((member) => <option key={member.userId} value={member.userId}>{member.fullName}</option>)}
+                  </select> : <span className="pms-helper px-2 py-1">Assigned: {t.assignee}</span>}
+                  {['TODO', 'IN_PROGRESS', 'CLEANED'].includes(t.backendStatus ?? '') ? <button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => void act(t)}>{t.backendStatus === 'TODO' ? 'Start cleaning' : t.backendStatus === 'IN_PROGRESS' ? 'Mark complete' : 'Request inspection'}</button> : null}
+                  {t.backendStatus === 'INSPECTION_REQUIRED' ? <><button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => void act(t, 'pass')}>Inspect & pass</button><button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => void act(t, 'fail')}>Fail inspection</button></> : null}
+                  {can('housekeeping.complete') && !['READY', 'CANCELLED'].includes(t.backendStatus ?? '') ? <button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => void taskCommand(t, 'block')}>Block</button> : null}
+                  {can('housekeeping.assign') && !['READY', 'CANCELLED'].includes(t.backendStatus ?? '') ? <button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => void taskCommand(t, 'cancel')}>Cancel</button> : null}
+                  <button type="button" className="px-3 py-1.5 text-[12px] font-semibold underline" style={{ color: 'var(--color-danger-text)' }} onClick={() => void flagMaintenance(t)}>Flag maintenance</button>
                 </div>
               </li>
             ))}
@@ -135,8 +201,8 @@ export function Housekeeping() {
               <button
                 key={t.id}
                 type="button"
-                onClick={() => { if (t.status === 'Pending') act(t.id, 'In progress', 'Cleaning started (demo)'); else if (t.status === 'In progress') act(t.id, 'Done', 'Cleaning complete (demo)'); }}
-                className="rounded-[10px] border p-3 text-center"
+                onClick={() => { void act(t); }}
+                className="min-w-0 rounded-[10px] border p-3 text-center"
                 style={{ borderColor: t.status === 'Done' ? 'var(--color-success-border)' : 'var(--color-border)', background: t.status === 'Done' ? 'var(--color-success-bg)' : 'var(--color-muted-surface)' }}
                 aria-label={`Room ${t.room}, ${t.status}. Activate to advance.`}
               >
@@ -148,6 +214,18 @@ export function Housekeeping() {
           </div>
         )}
       </Card>
+      <Modal open={creating} onClose={() => setCreating(false)} title="New housekeeping task" subtitle="One open task per room and type">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field label="Room"><select value={newRoomId} onChange={(event) => setNewRoomId(event.target.value)} className={inputClass()}>{rooms.map((room) => <option key={room.backendId} value={room.backendId}>{room.number} · {room.type} · {room.status}</option>)}</select></Field>
+          <Field label="Task type"><select value={newType} onChange={(event) => setNewType(event.target.value)} className={inputClass()}>{['CHECKOUT_CLEAN', 'STAYOVER_CLEAN', 'INSPECTION', 'TURNDOWN', 'LINEN_CHANGE', 'SPECIAL_REQUEST', 'OTHER'].map((type) => <option key={type} value={type}>{type}</option>)}</select></Field>
+          <Field label="Priority"><select value={newPriority} onChange={(event) => setNewPriority(event.target.value)} className={inputClass()}>{['LOW', 'NORMAL', 'HIGH', 'URGENT'].map((priority) => <option key={priority} value={priority}>{priority}</option>)}</select></Field>
+          <Field label="Notes"><input value={newNotes} onChange={(event) => setNewNotes(event.target.value)} className={inputClass()} placeholder="Optional task notes" /></Field>
+          <div className="flex gap-2 sm:col-span-2">
+            <button type="button" className="pms-btn-ghost flex-1 px-4 py-2.5" onClick={() => setCreating(false)}>Cancel</button>
+            <button type="button" className="pms-btn-primary flex-[2] px-4 py-2.5" onClick={() => void createTask()}>Create task</button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

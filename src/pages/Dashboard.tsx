@@ -1,8 +1,16 @@
-import { FOLIOS, NOTICES, PAYMENTS, RESERVATIONS, ROOMS, TASKS, TODAY, folioBalance, formatMoney } from '../data/mock';
+import { useCallback } from 'react';
+import { NOTICES } from '../data/mock';
+import type { Payment, ReservationStatus } from '../data/mock';
 import { Badge, Card, CardTitle, ProgressBar } from '../components/ui';
 import { paymentTone, reservationTone, roomTone } from '../components/status';
 import { StatCard } from '../components/controls';
 import type { NavTarget } from '../components/nav';
+import { folioApi, frontDeskApi, operationsApi, reportsApi, reservationApi } from '../lib/api/pms';
+import { paymentFromApi, reservationFromApi } from '../lib/api/adapters';
+import { useApiResource } from '../lib/api/useApiResource';
+import { useAuth } from '../features/auth/AuthContext';
+import type { DailyFlashRow, PaymentRow, ReservationRow, StayRow } from '../lib/api/pms';
+import { formatCurrency } from '../lib/api/format';
 
 const NOTICE_DOT: Record<string, string> = {
   warning: 'var(--color-warning-text)',
@@ -12,28 +20,75 @@ const NOTICE_DOT: Record<string, string> = {
 };
 
 export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
-  const arrivals = RESERVATIONS.filter((r) => r.checkIn === 'Oct 10' && (r.status === 'Confirmed' || r.status === 'Pending'));
-  const departures = RESERVATIONS.filter((r) => r.checkOut === 'Oct 10' && r.status !== 'Checked-out');
-  const hkDone = TASKS.filter((t) => t.status === 'Done').length;
-  const openFolios = FOLIOS.filter((f) => folioBalance(f) > 0);
+  const { can } = useAuth();
+  const loadDashboard = useCallback(async () => {
+    const [daily, housekeeping] = await Promise.all([reportsApi.dailyFlash(), operationsApi.housekeepingSummary()]);
+    const permissions = {
+      reservations: can('reservation.read'),
+      finance: can('report.read.financial'),
+      payments: can('payment.read'),
+    };
+    const [reservationPage, arrivalResult, departureResult, revenue, payments] = await Promise.all([
+      permissions.reservations ? reservationApi.list('', undefined, 1, 5) : Promise.resolve({ data: [] as ReservationRow[] }),
+      permissions.reservations ? frontDeskApi.arrivals() : Promise.resolve({ data: [] as StayRow[] }),
+      permissions.reservations ? frontDeskApi.departures() : Promise.resolve({ data: [] as StayRow[] }),
+      permissions.finance ? reportsApi.revenue(daily.businessDate, daily.businessDate) : Promise.resolve(null),
+      permissions.payments ? folioApi.listPayments() : Promise.resolve([] as PaymentRow[]),
+    ]);
+    return {
+      daily,
+      housekeeping,
+      reservations: reservationPage.data.map(reservationFromApi),
+      arrivals: (arrivalResult.data.length ? arrivalResult.data : daily.arrivals).map((row: StayRow | DailyFlashRow['arrivals'][number]) => ({
+        id: row.id ?? row.bookingCode,
+        bookingCode: row.bookingCode,
+        guest: row.guestName ?? 'Guest',
+        roomType: 'roomTypeName' in row ? row.roomTypeName ?? 'Room' : 'Room',
+        nights: 'nights' in row ? row.nights ?? '—' : '—',
+        status: 'Confirmed' as const,
+      })),
+      departures: (departureResult.data.length ? departureResult.data : daily.departures).map((row: StayRow | DailyFlashRow['departures'][number]) => ({
+        id: row.id ?? row.bookingCode,
+        guest: row.guestName ?? 'Guest',
+        room: 'roomNumber' in row && row.roomNumber ? `Room ${row.roomNumber}` : '—',
+        balance: 'balance' in row ? Number(row.balance ?? 0) : 0,
+        status: 'Checked-in' as const,
+      })),
+      revenue,
+      payments: payments.map(paymentFromApi),
+    };
+  }, [can]);
+  const resource = useApiResource(loadDashboard);
+  const data = resource.data;
+  const daily = data?.daily;
+  const rooms = daily?.rooms ?? { total: 0, ready: 0, dirty: 0, occupied: 0, outOfOrder: 0 };
+  const arrivals: { id: string; guest: string; roomType: string; nights: number | string; status: ReservationStatus }[] = data?.arrivals ?? [];
+  const departures: { id: string; guest: string; room: string; balance: number; status: ReservationStatus }[] = data?.departures ?? [];
+  const reservations = data?.reservations ?? [];
+  const payments: Payment[] = data?.payments ?? [];
+  const taskCounts = data?.housekeeping?.byStatus ?? {};
+  const hkDone = Number(taskCounts.READY ?? 0);
+  const taskTotal = Object.values(taskCounts).reduce((sum, count) => sum + Number(count), 0);
+  const occupancy = rooms.total ? Math.round((rooms.occupied / rooms.total) * 100) : 0;
 
   const stats: { label: string; value: string; hint?: string; spark?: readonly number[]; target?: NavTarget }[] = [
-    { label: 'Total rooms', value: String(TODAY.totalRooms), hint: '5 floors · 5 room types', target: { view: 'room-inventory' } },
-    { label: 'Available rooms', value: String(TODAY.available), hint: 'Ready to sell tonight', target: { view: 'room-overview' } },
-    { label: 'Occupied rooms', value: String(TODAY.occupied), hint: '124 in-house guests', target: { view: 'in-house' } },
-    { label: 'Dirty rooms', value: String(TODAY.dirty), hint: 'Awaiting turnover', target: { view: 'housekeeping' } },
-    { label: 'Out of service', value: String(TODAY.outOfService), hint: 'WO-118 · Suite 503', target: { view: 'maintenance' } },
-    { label: "Today's arrivals", value: String(TODAY.arrivals), hint: '6 VIP arrivals', target: { view: 'check-in' } },
-    { label: "Today's departures", value: String(TODAY.departures), hint: '2 late check-outs', target: { view: 'check-out' } },
-    { label: 'In-house guests', value: String(TODAY.inHouse), hint: 'Across 118 rooms', target: { view: 'in-house' } },
-    { label: 'Occupancy', value: `${TODAY.occupancyPct}%`, hint: '+4.2 pts vs last week', spark: [62, 70, 66, 74, 81, 78, 78], target: { view: 'occupancy-report' } },
-    { label: "Today's revenue", value: `$${formatMoney(TODAY.revenue)}`, hint: 'Rooms + extras', spark: [32, 38, 35, 44, 52, 48, 41], target: { view: 'revenue-report' } },
-    { label: 'Outstanding', value: `$${formatMoney(TODAY.outstanding)}`, hint: `${openFolios.length} open folios`, target: { view: 'folios' } },
-    { label: 'ADR', value: `$${TODAY.adr}`, hint: 'Avg daily rate', spark: [160, 168, 172, 165, 178, 182, 186], target: { view: 'revenue-report' } },
+    { label: 'Total rooms', value: String(rooms.total), hint: 'Active property inventory', target: { view: 'room-inventory' } },
+    { label: 'Available rooms', value: String(rooms.ready), hint: 'Ready to sell', target: { view: 'room-overview' } },
+    { label: 'Occupied rooms', value: String(rooms.occupied), hint: `${daily?.inHouseCount ?? 0} in-house stays`, target: { view: 'in-house' } },
+    { label: 'Dirty rooms', value: String(rooms.dirty), hint: 'Awaiting housekeeping', target: { view: 'housekeeping' } },
+    { label: 'Out of service', value: String(rooms.outOfOrder), hint: 'Maintenance unavailable', target: { view: 'maintenance' } },
+    { label: "Today's arrivals", value: String(arrivals.length), hint: daily?.businessDate ?? '', target: { view: 'check-in' } },
+    { label: "Today's departures", value: String(departures.length), hint: daily?.businessDate ?? '', target: { view: 'check-out' } },
+    { label: 'In-house guests', value: String(daily?.inHouseCount ?? 0), hint: 'Current checked-in stays', target: { view: 'in-house' } },
+    { label: 'Occupancy', value: `${occupancy}%`, hint: 'Current occupied room share', target: { view: 'occupancy-report' } },
+    { label: "Today's revenue", value: data?.revenue ? formatCurrency(Number(data.revenue.grossRevenue), data.revenue.currencyCode) : '—', hint: data?.revenue?.currencyCode ?? 'Not permitted / not reported', target: can('report.read.financial') ? { view: 'revenue-report' } : undefined },
+    { label: 'Outstanding', value: '—', hint: 'No outstanding-balance aggregate endpoint', target: can('folio.read') ? { view: 'folios' } : undefined },
+    { label: 'ADR', value: data?.revenue ? formatCurrency(Number(data.revenue.adr), data.revenue.currencyCode) : '—', hint: 'Average daily rate', target: can('report.read.financial') ? { view: 'revenue-report' } : undefined },
   ];
 
   return (
     <div className="flex flex-col gap-4 sm:gap-5">
+      {resource.error ? <p role="alert" className="pms-helper">Could not load dashboard data: {resource.error}</p> : null}
       <div className="pms-stagger grid grid-cols-1 gap-3 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
         {stats.map((s) => (
           <StatCard key={s.label} label={s.label} value={s.value} hint={s.hint} spark={s.spark} onClick={s.target ? () => go(s.target as NavTarget) : undefined} />
@@ -42,27 +97,27 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
       <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2 xl:grid-cols-5">
         <Card elevated className="lg:col-span-2 xl:col-span-3">
-          <CardTitle title="Recent reservations" subtitle="Latest bookings" action={<button type="button" onClick={() => go({ view: 'reservations' })} className="pms-btn-ghost px-3 py-2">View all</button>} />
+          <CardTitle title="Recent reservations" subtitle={resource.loading ? 'Loading bookings…' : 'Latest bookings'} action={can('reservation.read') ? <button type="button" onClick={() => go({ view: 'reservations' })} className="pms-btn-ghost px-3 py-2">View all</button> : undefined} />
           <div className="overflow-x-auto">
             <table className="pms-table min-w-[560px]">
               <thead><tr><th>Reference</th><th>Guest</th><th>Stay</th><th>Status</th><th className="text-right">Total</th></tr></thead>
               <tbody>
-                {RESERVATIONS.slice(0, 5).map((r) => (
+                {reservations.slice(0, 5).map((r) => (
                   <tr key={r.id}>
                     <td className="tnum font-mono font-semibold">{r.id}</td>
                     <td>{r.guest}</td>
                     <td className="tnum" style={{ color: 'var(--color-ink-secondary)' }}>{r.checkIn} → {r.checkOut}</td>
                     <td><Badge tone={reservationTone(r.status)}>{r.status}</Badge></td>
-                    <td className="tnum text-right font-semibold">${formatMoney(r.total)}</td>
+                     <td className="tnum text-right font-semibold">{formatCurrency(r.total, r.currencyCode)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </Card>
-        <div className="flex flex-col gap-4 sm:gap-5 lg:col-span-2 xl:col-span-2">
+        <div className="flex min-w-0 flex-col gap-4 sm:gap-5 lg:col-span-2 xl:col-span-2">
           <Card>
-            <CardTitle title="Pending check-ins" subtitle={`${arrivals.length} expected today`} action={<button type="button" onClick={() => go({ view: 'check-in' })} className="pms-btn-primary px-3 py-2">Check-in desk</button>} />
+            <CardTitle title="Pending check-ins" subtitle={`${arrivals.length} expected today`} action={can('stay.check-in') ? <button type="button" onClick={() => go({ view: 'check-in' })} className="pms-btn-primary px-3 py-2">Check-in desk</button> : undefined} />
             <ul className="flex flex-col gap-2">
               {arrivals.map((r) => (
                 <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-[10px] border px-3 py-2.5" style={{ borderColor: 'var(--color-border)' }}>
@@ -76,16 +131,16 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             </ul>
           </Card>
           <Card>
-            <CardTitle title="Pending check-outs" subtitle={`${departures.length} due out today`} action={<button type="button" onClick={() => go({ view: 'check-out' })} className="pms-btn-primary px-3 py-2">Check-out desk</button>} />
+            <CardTitle title="Pending check-outs" subtitle={`${departures.length} due out today`} action={can('stay.check-out') ? <button type="button" onClick={() => go({ view: 'check-out' })} className="pms-btn-primary px-3 py-2">Check-out desk</button> : undefined} />
             {departures.length === 0 ? (
               <p className="pms-helper py-4 text-center">No pending departures — all checked out.</p>
             ) : (
               <ul className="flex flex-col gap-2">
-                {departures.map((r) => (
+              {departures.map((r) => (
                   <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-[10px] border px-3 py-2.5" style={{ borderColor: 'var(--color-border)' }}>
                     <span>
                       <span className="block text-[13.5px] font-semibold" style={{ color: 'var(--color-ink)' }}>{r.guest}</span>
-                      <span className="tnum block text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{r.id} · {r.room} · ${formatMoney(r.total - r.paid)} due</span>
+                    <span className="tnum block text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{r.id} · {r.room} · {formatCurrency(r.balance, data?.revenue?.currencyCode)} due</span>
                     </span>
                     <Badge tone={reservationTone(r.status)}>{r.status}</Badge>
                   </li>
@@ -98,20 +153,20 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
         <Card className="xl:col-span-2">
-          <CardTitle title="Housekeeping progress" subtitle={`${hkDone} of ${TASKS.length} tasks complete`} />
+          <CardTitle title="Housekeeping progress" subtitle={`${hkDone} of ${taskTotal} tasks ready`} />
           <div className="mb-3">
             <div className="mb-1.5 flex items-baseline justify-between gap-2">
               <span className="tnum text-[22px] font-bold leading-none" style={{ color: 'var(--color-ink)' }}>
-                {TASKS.length > 0 ? Math.round((hkDone / TASKS.length) * 100) : 0}%
+                {taskTotal > 0 ? Math.round((hkDone / taskTotal) * 100) : 0}%
               </span>
               <span className="text-[11.5px] font-medium" style={{ color: 'var(--color-ink-secondary)' }}>tasks done</span>
             </div>
-            <ProgressBar value={TASKS.length > 0 ? (hkDone / TASKS.length) * 100 : 0} />
+            <ProgressBar value={taskTotal > 0 ? (hkDone / taskTotal) * 100 : 0} />
           </div>
           <ul className="flex flex-col gap-1.5">
             {(['Available', 'Occupied', 'Dirty', 'Cleaning', 'Inspected', 'Out-of-service'] as const).map((s) => {
-              const count = ROOMS.filter((r) => r.status === s).length;
-              const share = ROOMS.length > 0 ? (count / ROOMS.length) * 100 : 0;
+              const count = s === 'Available' ? rooms.ready : s === 'Occupied' ? rooms.occupied : s === 'Dirty' ? rooms.dirty : s === 'Out-of-service' ? rooms.outOfOrder : 0;
+              const share = rooms.total > 0 ? (count / rooms.total) * 100 : 0;
               const barColor =
                 roomTone(s) === 'success'
                   ? 'var(--color-success-text)'
@@ -160,18 +215,18 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
         <Card className="xl:col-span-5">
-          <CardTitle title="Recent payments" subtitle="Latest receipts" action={<button type="button" onClick={() => go({ view: 'payments' })} className="pms-btn-ghost px-3 py-2">Ledger</button>} />
+          <CardTitle title="Recent payments" subtitle="Latest receipts" action={can('payment.read') ? <button type="button" onClick={() => go({ view: 'payments' })} className="pms-btn-ghost px-3 py-2">Ledger</button> : undefined} />
           <div className="overflow-x-auto">
             <table className="pms-table min-w-[560px]">
               <thead><tr><th>Reference</th><th>Guest</th><th>Method</th><th>Status</th><th className="text-right">Amount</th></tr></thead>
               <tbody>
-                {PAYMENTS.slice(0, 4).map((p) => (
+                {payments.slice(0, 4).map((p) => (
                   <tr key={p.ref}>
                     <td className="tnum font-mono font-semibold">{p.ref}</td>
                     <td>{p.guest}</td>
                     <td className="tnum" style={{ color: 'var(--color-ink-secondary)' }}>{p.method}</td>
                     <td><Badge tone={paymentTone(p.status)}>{p.status}</Badge></td>
-                    <td className="tnum text-right font-semibold">${formatMoney(p.amount)}</td>
+                    <td className="tnum text-right font-semibold">{formatCurrency(p.amount, p.currencyCode)}</td>
                   </tr>
                 ))}
               </tbody>

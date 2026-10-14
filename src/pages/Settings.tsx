@@ -1,26 +1,88 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { PRESET_LIST } from '../theme/presets';
 import { useTheme } from '../theme/useTheme';
-import { PROPERTY } from '../data/mock';
 import { Card, CardTitle } from '../components/ui';
 import { Field, Tabs } from '../components/controls';
 import { inputClass } from '../components/inputClass';
 import { toast } from '../components/toastStore';
+import { adminApi, propertyApi } from '../lib/api/pms';
+import { useApiResource } from '../lib/api/useApiResource';
+import { displayApiError } from '../lib/api/client';
+import { useAuth } from '../features/auth/AuthContext';
+import type { TaxRuleRow } from '../lib/api/pms';
 
 export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
+  const { me, can } = useAuth();
+  const loadSettings = useCallback(async () => {
+    const [properties, taxRules] = await Promise.all([
+      can('property.read') ? propertyApi.list() : Promise.resolve([]),
+      can('invoice.read') ? adminApi.taxRules() : Promise.resolve([]),
+    ]);
+    return {
+      property: properties.find((property) => property.id === me?.activePropertyId) ?? null,
+      taxRules,
+    };
+  }, [can, me?.activePropertyId]);
+  const resource = useApiResource(loadSettings);
+  const [propertyOverrides, setPropertyOverrides] = useState<Partial<{ name: string; address: string; city: string; currency: string; timezone: string; checkIn: string; checkOut: string }>>({});
   const { preset, setPreset } = useTheme();
   const [tab, setTab] = useState<'property' | 'policies' | 'notifications' | 'appearance'>('property');
-  const [tax, setTax] = useState<number>(PROPERTY.taxRate);
-  const [checkIn, setCheckIn] = useState<string>(PROPERTY.checkInTime);
-  const [checkOut, setCheckOut] = useState<string>(PROPERTY.checkOutTime);
+  const [taxOverride, setTaxOverride] = useState<number | null>(null);
   const [email, setEmail] = useState(true);
   const [sms, setSms] = useState(false);
   const [hkAlerts, setHkAlerts] = useState(true);
 
-  const save = (what: string) => toast(`${what} saved (demo)`, { detail: 'Local demo change — backend configuration applies in the full build.' });
+  const [saving, setSaving] = useState(false);
+  const property = resource.data?.property;
+  const propertyName = propertyOverrides.name ?? property?.name ?? '';
+  const address = propertyOverrides.address ?? property?.addressLine1 ?? '';
+  const city = propertyOverrides.city ?? property?.city ?? '';
+  const currency = propertyOverrides.currency ?? property?.currencyCode ?? 'INR';
+  const timezone = propertyOverrides.timezone ?? property?.timezone ?? 'Asia/Kolkata';
+  const checkIn = propertyOverrides.checkIn ?? property?.checkInTime ?? '14:00';
+  const checkOut = propertyOverrides.checkOut ?? property?.checkOutTime ?? '11:00';
+  const activeTax = resource.data?.taxRules.find((rule) => rule.isActive);
+  const tax = taxOverride ?? Number(activeTax?.ratePercent ?? 0);
+
+  const saveProperty = async () => {
+    if (!me?.activePropertyId) return;
+    setSaving(true);
+    try {
+      await propertyApi.update(me.activePropertyId, { name: propertyName, addressLine1: address, city, currencyCode: currency, timezone, checkInTime: checkIn, checkOutTime: checkOut });
+      resource.refresh();
+      toast('Property settings saved', { detail: 'Supported property fields were updated.', tone: 'success' });
+    } catch (error) { toast('Could not save property settings', { detail: displayApiError(error), tone: 'danger' }); }
+    finally { setSaving(false); }
+  };
+
+  const saveTax = async () => {
+    const current = resource.data?.taxRules.find((rule: TaxRuleRow) => rule.isActive);
+    setSaving(true);
+    try {
+      if (current) await adminApi.updateTaxRule(current.id, { ratePercent: tax });
+      else await adminApi.createTaxRule({ code: 'PROPERTY_TAX', name: 'Property tax', ratePercent: tax, appliesTo: 'ALL', isInclusive: false });
+      resource.refresh();
+      toast('Tax rule saved', { detail: `${tax}% tax rule updated.`, tone: 'success' });
+    } catch (error) { toast('Could not save tax rule', { detail: displayApiError(error), tone: 'danger' }); }
+    finally { setSaving(false); }
+  };
+
+  const saveOperations = async () => {
+    if (!me?.activePropertyId) return;
+    setSaving(true);
+    try {
+      await propertyApi.update(me.activePropertyId, { currencyCode: currency, timezone, checkInTime: checkIn, checkOutTime: checkOut });
+      resource.refresh();
+      toast('Operations settings saved', { detail: 'Currency, time zone, and stay times were updated.', tone: 'success' });
+    } catch (error) { toast('Could not save operations settings', { detail: displayApiError(error), tone: 'danger' }); }
+    finally { setSaving(false); }
+  };
+
+  const save = (what: string) => toast(`${what} is not configurable in the current backend`, { detail: 'This control remains local because no matching API endpoint exists.', tone: 'info' });
 
   return (
     <div className="flex flex-col gap-4">
+      {resource.error ? <p role="alert" className="pms-helper">Could not load settings: {resource.error}</p> : null}
       <Tabs
         label="Settings sections"
         tabs={[
@@ -38,13 +100,13 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
           <Card>
             <CardTitle title="Property information" subtitle="Public details shown on folios and invoices" />
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="Property name"><input defaultValue={PROPERTY.name} className={inputClass()} aria-label="Property name" /></Field>
-              <Field label="Tagline"><input defaultValue={PROPERTY.tagline} className={inputClass()} aria-label="Tagline" /></Field>
-              <div className="sm:col-span-2"><Field label="Address"><input defaultValue={PROPERTY.address} className={inputClass()} aria-label="Address" /></Field></div>
-              <Field label="Phone"><input defaultValue={PROPERTY.phone} inputMode="tel" className={inputClass()} aria-label="Phone" /></Field>
-              <Field label="Email"><input defaultValue={PROPERTY.email} inputMode="email" className={inputClass()} aria-label="Email" /></Field>
+              <Field label="Property name"><input value={propertyName} onChange={(event) => setPropertyOverrides((old) => ({ ...old, name: event.target.value }))} className={inputClass()} aria-label="Property name" /></Field>
+              <Field label="Tagline" hint="Not available in the backend"><input disabled className={inputClass()} aria-label="Tagline" /></Field>
+              <div className="sm:col-span-2"><Field label="Address"><input value={address} onChange={(event) => setPropertyOverrides((old) => ({ ...old, address: event.target.value }))} className={inputClass()} aria-label="Address" /></Field></div>
+              <Field label="City"><input value={city} onChange={(event) => setPropertyOverrides((old) => ({ ...old, city: event.target.value }))} className={inputClass()} aria-label="City" /></Field>
+              <Field label="Contact details" hint="Phone and email are not stored by the backend"><input disabled value="Not configured" className={inputClass()} aria-label="Contact details" /></Field>
             </div>
-            <button type="button" className="pms-btn-primary mt-4 px-4 py-2.5" onClick={() => save('Property details')}>Save (demo)</button>
+            <button type="button" disabled={saving || !can('property.update')} className="pms-btn-primary mt-4 px-4 py-2.5 disabled:opacity-50" onClick={() => void saveProperty()}>Save property details</button>
           </Card>
           <Card>
             <CardTitle title="Invoice details" subtitle="Footer blocks for printed bills" />
@@ -63,26 +125,29 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
           <Card>
             <CardTitle title="Operations" subtitle="Times, currency and tax" />
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Check-in time"><input type="time" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} className={inputClass('tnum')} /></Field>
-              <Field label="Check-out time"><input type="time" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} className={inputClass('tnum')} /></Field>
+              <Field label="Check-in time"><input type="time" value={checkIn} onChange={(event) => setPropertyOverrides((old) => ({ ...old, checkIn: event.target.value }))} className={inputClass('tnum')} /></Field>
+              <Field label="Check-out time"><input type="time" value={checkOut} onChange={(event) => setPropertyOverrides((old) => ({ ...old, checkOut: event.target.value }))} className={inputClass('tnum')} /></Field>
               <Field label="Currency">
-                <select defaultValue="USD" className={inputClass()} aria-label="Currency">
+                <select value={currency} onChange={(event) => setPropertyOverrides((old) => ({ ...old, currency: event.target.value }))} className={inputClass()} aria-label="Currency">
                   {['USD', 'EUR', 'GBP', 'INR'].map((c) => <option key={c}>{c}</option>)}
                 </select>
               </Field>
               <Field label="Time zone">
-                <select defaultValue={PROPERTY.timezone} className={inputClass()} aria-label="Time zone">
-                  {['UTC−5', 'UTC+0', 'UTC+1', 'UTC+5:30'].map((z) => <option key={z}>{z}</option>)}
+                <select value={timezone} onChange={(event) => setPropertyOverrides((old) => ({ ...old, timezone: event.target.value }))} className={inputClass()} aria-label="Time zone">
+                  {[timezone, 'UTC', 'Asia/Kolkata', 'America/New_York', 'Europe/London'].filter((zone, index, list) => list.indexOf(zone) === index).map((zone) => <option key={zone}>{zone}</option>)}
                 </select>
               </Field>
-              <Field label="Tax rate (%)" hint="Applied in demo price math">
-                <input type="number" min={0} max={30} value={tax} onChange={(e) => setTax(Number(e.target.value))} className={inputClass('tnum')} />
+              <Field label="Tax rate (%)" hint="Updates the active backend tax rule">
+                <input type="number" min={0} max={30} value={tax} onChange={(event) => setTaxOverride(Number(event.target.value))} className={inputClass('tnum')} />
               </Field>
               <Field label="Rooms / floors" hint="Structural — managed with room config">
-                <input defaultValue={`${PROPERTY.rooms} rooms · ${PROPERTY.floors} floors`} readOnly aria-readonly className={inputClass()} style={{ background: 'var(--color-muted-surface)' }} />
+                <input value="Managed in Room Inventory" readOnly aria-readonly className={inputClass()} style={{ background: 'var(--color-muted-surface)' }} />
               </Field>
             </div>
-            <button type="button" className="pms-btn-primary mt-4 px-4 py-2.5" onClick={() => save('Operations')}>Save (demo)</button>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button type="button" disabled={saving || !can('property.update')} className="pms-btn-primary px-4 py-2.5 disabled:opacity-50" onClick={() => void saveOperations()}>Save operations</button>
+              <button type="button" disabled={saving || !can('role.manage')} className="pms-btn-ghost px-4 py-2.5 disabled:opacity-50" onClick={() => void saveTax()}>Save tax rule</button>
+            </div>
           </Card>
           <Card>
             <CardTitle title="Booking & cancellation policies" subtitle="Guest-facing terms" />
@@ -98,7 +163,8 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
 
       {tab === 'notifications' && (
         <Card>
-          <CardTitle title="Notifications" subtitle="Arrival, payment and maintenance alerts" />
+          <CardTitle title="Notifications" subtitle="Notification preferences are not exposed by the current backend API" />
+          <p className="pms-helper mb-2">These preferences are display-only until notification storage and delivery are implemented.</p>
           {[
             { label: 'Email digest at 07:00', hint: 'Occupancy, arrivals and revenue summary', value: email, set: setEmail },
             { label: 'SMS for overdue folios', hint: 'Instant text when a folio goes overdue', value: sms, set: setSms },
@@ -111,11 +177,11 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
               </div>
               <label className="flex cursor-pointer items-center gap-2">
                 <span className="sr-only">{row.label}</span>
-                <input type="checkbox" checked={row.value} onChange={(e) => row.set(e.target.checked)} className="h-5 w-5 accent-[var(--color-primary)]" />
+                 <input type="checkbox" checked={row.value} disabled onChange={(e) => row.set(e.target.checked)} className="h-5 w-5 accent-[var(--color-primary)]" />
               </label>
             </div>
           ))}
-          <button type="button" className="pms-btn-primary mt-4 px-4 py-2.5" onClick={() => save('Notification preferences')}>Save (demo)</button>
+          <button type="button" disabled className="pms-btn-primary mt-4 px-4 py-2.5 opacity-50">Not available in backend</button>
         </Card>
       )}
 
@@ -131,7 +197,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                 aria-checked={preset === p.id}
                 title={p.name}
                 onClick={() => setPreset(p.id)}
-                className="rounded-[10px] border p-2"
+                className="min-w-0 rounded-[10px] border p-2"
                 style={{
                   borderColor: preset === p.id ? 'var(--color-primary)' : 'var(--color-border)',
                   background: preset === p.id ? 'var(--color-hover-surface)' : 'var(--color-surface)',

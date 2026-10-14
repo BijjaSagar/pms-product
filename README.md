@@ -1,5 +1,19 @@
 # React + TypeScript + Vite
 
+## Connect to the PMS backend
+
+The frontend calls the backend at `/api/v1`. In development, Vite proxies that
+path to `http://localhost:3000`; set `VITE_API_BASE_URL` in `.env.local` if the
+API is hosted elsewhere. The backend's `FRONTEND_URL` must match the browser
+origin for credentialed requests.
+
+Start the backend with its configured PostgreSQL database before signing in.
+The backend session is held in an HttpOnly cookie; the frontend does not store
+session tokens in local storage.
+
+Expenses, rate plans, and notification preferences are not backed by current
+backend endpoints. Those sections are explicitly marked demo-only or unavailable.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

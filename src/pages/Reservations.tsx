@@ -1,5 +1,4 @@
-import { useMemo, useState } from 'react';
-import { PROPERTY, RESERVATIONS, formatMoney } from '../data/mock';
+import { useCallback, useMemo, useState } from 'react';
 import type { Reservation, ReservationStatus } from '../data/mock';
 import { Avatar, Badge, Card, CardTitle } from '../components/ui';
 import { reservationTone } from '../components/status';
@@ -8,17 +7,26 @@ import { inputClass } from '../components/inputClass';
 import { ConfirmDialog, Drawer } from '../components/overlays';
 import { toast } from '../components/toastStore';
 import type { NavTarget } from '../components/nav';
+import { reservationApi, frontDeskApi } from '../lib/api/pms';
+import { reservationFromApi } from '../lib/api/adapters';
+import { useApiResource } from '../lib/api/useApiResource';
+import { displayApiError } from '../lib/api/client';
+import { formatCurrency } from '../lib/api/format';
 
 const STATUS_FILTERS: ('All' | ReservationStatus)[] = ['All', 'Confirmed', 'Pending', 'Checked-in', 'Checked-out', 'Cancelled', 'No-show'];
 const PAGE_SIZE = 6;
-const DAYS = ['Oct 7', 'Oct 8', 'Oct 9', 'Oct 10', 'Oct 11', 'Oct 12', 'Oct 13'];
+const DAYS = Array.from({ length: 7 }, (_, index) => {
+  const date = new Date();
+  date.setDate(date.getDate() + index);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+});
 
 type SortKey = 'checkIn' | 'guest' | 'amount';
 
-function ReservationDrawer({ r, onClose, onStatus }: { r: Reservation; onClose: () => void; onStatus: (id: string, s: ReservationStatus) => void }) {
+function ReservationDrawer({ r, onClose, onStatus, onEdit, go }: { r: Reservation; onClose: () => void; onStatus: (id: string, s: ReservationStatus) => Promise<boolean>; onEdit: (id: string, patch: Record<string, unknown>) => Promise<boolean>; go: (target: NavTarget) => void }) {
   const [confirm, setConfirm] = useState<'cancel' | null>(null);
   const roomCharges = r.nightlyRate * r.nights;
-  const tax = Math.round(roomCharges * (PROPERTY.taxRate / 100));
+  const tax = Number(r.taxAmount ?? 0);
   const computed = roomCharges + tax;
   const balance = r.total - r.paid;
   return (
@@ -51,23 +59,23 @@ function ReservationDrawer({ r, onClose, onStatus }: { r: Reservation; onClose: 
       <h4 className="pms-label mb-2 mt-5">Nightly breakdown</h4>
       <ul className="rounded-[10px] border text-[13px]" style={{ borderColor: 'var(--color-border)' }}>
         {Array.from({ length: r.nights }, (_, i) => (
-          <li key={i} className="flex justify-between border-b px-3.5 py-2 last:border-0" style={{ borderColor: 'var(--color-divider)' }}>
-            <span style={{ color: 'var(--color-ink-secondary)' }}>Night {i + 1} · {r.roomType} @ ${r.nightlyRate}</span>
-            <span className="tnum font-semibold" style={{ color: 'var(--color-ink)' }}>${r.nightlyRate}</span>
+          <li key={i} className="pms-summary-row border-b px-3.5 py-2 last:border-0" style={{ borderColor: 'var(--color-divider)' }}>
+            <span style={{ color: 'var(--color-ink-secondary)' }}>Night {i + 1} · {r.roomType} @ {formatCurrency(r.nightlyRate, r.currencyCode)}</span>
+            <span className="tnum font-semibold" style={{ color: 'var(--color-ink)' }}>{formatCurrency(r.nightlyRate, r.currencyCode)}</span>
           </li>
         ))}
-        <li className="flex justify-between px-3.5 py-2" style={{ background: 'var(--color-muted-surface)' }}>
-          <span style={{ color: 'var(--color-ink-secondary)' }}>Taxes ({PROPERTY.taxRate}%)</span>
-          <span className="tnum font-semibold" style={{ color: 'var(--color-ink)' }}>${tax}</span>
+        <li className="pms-summary-row px-3.5 py-2" style={{ background: 'var(--color-muted-surface)' }}>
+          <span style={{ color: 'var(--color-ink-secondary)' }}>Taxes recorded on reservation</span>
+          <span className="tnum font-semibold" style={{ color: 'var(--color-ink)' }}>{formatCurrency(tax, r.currencyCode)}</span>
         </li>
-        <li className="flex justify-between px-3.5 py-2 font-semibold">
+        <li className="pms-summary-row px-3.5 py-2 font-semibold">
           <span style={{ color: 'var(--color-ink)' }}>Total{Math.abs(computed - r.total) > 1 ? ' (incl. extras)' : ''}</span>
-          <span className="tnum" style={{ color: 'var(--color-ink)' }}>${formatMoney(r.total)}</span>
+          <span className="tnum" style={{ color: 'var(--color-ink)' }}>{formatCurrency(r.total, r.currencyCode)}</span>
         </li>
-        <li className="flex justify-between px-3.5 py-2">
+        <li className="pms-summary-row px-3.5 py-2">
           <span style={{ color: 'var(--color-ink-secondary)' }}>Paid → balance due</span>
           <span className="tnum font-semibold" style={{ color: balance > 0 ? 'var(--color-danger-text)' : 'var(--color-success-text)' }}>
-            ${formatMoney(r.paid)} → ${formatMoney(balance)}
+            {formatCurrency(r.paid, r.currencyCode)} → {formatCurrency(balance, r.currencyCode)}
           </span>
         </li>
       </ul>
@@ -94,21 +102,25 @@ function ReservationDrawer({ r, onClose, onStatus }: { r: Reservation; onClose: 
 
       <div className="mt-5 flex flex-wrap gap-2">
         {(r.status === 'Confirmed' || r.status === 'Pending') && (
-          <button type="button" className="pms-btn-primary flex-1 px-3 py-2.5" onClick={() => { onStatus(r.id, 'Checked-in'); toast('Checked in (demo)', { detail: `${r.guest} marked checked-in on this screen.`, tone: 'success' }); onClose(); }}>
+          <button type="button" className="pms-btn-primary flex-1 px-3 py-2.5" onClick={() => { go({ view: 'check-in', query: r.id }); onClose(); }}>
             Check in
           </button>
         )}
         {r.status === 'Checked-in' && (
-          <button type="button" className="pms-btn-primary flex-1 px-3 py-2.5" onClick={() => { toast('Folio opened (demo)', { detail: 'Continue on the Check-out desk.', tone: 'info' }); onClose(); }}>
+          <button type="button" className="pms-btn-primary flex-1 px-3 py-2.5" onClick={() => { go({ view: 'check-out' }); onClose(); }}>
             Open folio
           </button>
         )}
-        <button type="button" className="pms-btn-ghost flex-1 px-3 py-2.5" onClick={() => toast('Edit reservation (demo)', { detail: 'Editing posts locally in the full build.', tone: 'info' })}>
+        {(r.status === 'Confirmed' || r.status === 'Pending') ? <button type="button" className="pms-btn-ghost flex-1 px-3 py-2.5" onClick={() => {
+          const checkInDate = window.prompt('New check-in date (YYYY-MM-DD):', r.checkInIso);
+          if (!checkInDate) return;
+          const checkOutDate = window.prompt('New check-out date (YYYY-MM-DD):', r.checkOutIso);
+          if (!checkOutDate) return;
+          void onEdit(r.backendId ?? r.id, { checkInDate, checkOutDate }).then((ok) => { if (ok) { toast('Reservation updated', { detail: r.id, tone: 'success' }); onClose(); } });
+        }}>
           Edit
-        </button>
-        <button type="button" className="pms-btn-ghost flex-1 px-3 py-2.5" onClick={() => toast('Payment recorded (demo)', { detail: 'Simulated — no charge processed.', tone: 'info' })}>
-          Take payment
-        </button>
+        </button> : null}
+        {r.status === 'Checked-in' ? <button type="button" className="pms-btn-ghost flex-1 px-3 py-2.5" onClick={() => go({ view: 'check-out' })}>Payments & checkout</button> : null}
         {(r.status === 'Confirmed' || r.status === 'Pending') && (
           <button type="button" className="pms-btn-ghost flex-1 px-3 py-2.5" style={{ color: 'var(--color-danger-text)' }} onClick={() => setConfirm('cancel')}>
             Cancel
@@ -118,7 +130,7 @@ function ReservationDrawer({ r, onClose, onStatus }: { r: Reservation; onClose: 
       <ConfirmDialog
         open={confirm === 'cancel'}
         onClose={() => setConfirm(null)}
-        onConfirm={() => { onStatus(r.id, 'Cancelled'); toast('Reservation cancelled (demo)', { detail: `${r.id} updated on this screen.`, tone: 'warning' }); onClose(); }}
+        onConfirm={() => { void onStatus(r.id, 'Cancelled').then((ok) => { if (ok) { toast('Reservation cancelled', { detail: r.id, tone: 'warning' }); onClose(); } }); }}
         title="Cancel reservation?"
         body={`${r.id} · ${r.guest} will be marked Cancelled.`}
         confirmLabel="Yes, cancel"
@@ -129,7 +141,12 @@ function ReservationDrawer({ r, onClose, onStatus }: { r: Reservation; onClose: 
 }
 
 export function Reservations({ initialQuery = '', focusId, go }: { initialQuery?: string; focusId?: string; go: (t: NavTarget) => void }) {
-  const [rows, setRows] = useState<Reservation[]>(RESERVATIONS);
+  const loadRows = useCallback(async () => {
+    const result = await reservationApi.list('', undefined, 1, 100);
+    return result.data.map(reservationFromApi);
+  }, []);
+  const resource = useApiResource(loadRows);
+  const rows = useMemo(() => resource.data ?? [], [resource.data]);
   const [q, setQ] = useState(initialQuery);
   const [status, setStatus] = useState<(typeof STATUS_FILTERS)[number]>('All');
   const [source, setSource] = useState('All');
@@ -138,7 +155,7 @@ export function Reservations({ initialQuery = '', focusId, go }: { initialQuery?
   const [view, setView] = useState<'table' | 'calendar'>('table');
   const [openId, setOpenId] = useState<string | null>(focusId ?? null);
 
-  const sources = useMemo(() => ['All', ...Array.from(new Set(RESERVATIONS.map((r) => r.channel)))], []);
+  const sources = useMemo(() => ['All', ...Array.from(new Set(rows.map((r) => r.channel)))], [rows]);
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     const list = rows.filter(
@@ -157,11 +174,28 @@ export function Reservations({ initialQuery = '', focusId, go }: { initialQuery?
   const slice = filtered.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
   const openRow = rows.find((r) => r.id === openId) ?? null;
 
-  const setRowStatus = (id: string, s: ReservationStatus) =>
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: s } : r)));
+  const setRowStatus = async (id: string, s: ReservationStatus): Promise<boolean> => {
+    const row = rows.find((item) => item.id === id);
+    if (!row?.backendId) return false;
+    try {
+      if (s === 'Checked-in') await frontDeskApi.checkIn(row.backendId);
+      else if (s === 'Cancelled') await reservationApi.cancel(row.backendId, 'Cancelled from reservation screen');
+      resource.refresh();
+      return true;
+    } catch (error) {
+      toast('Reservation action failed', { detail: displayApiError(error), tone: 'danger' });
+      return false;
+    }
+  };
+
+  const amendReservation = async (id: string, patch: Record<string, unknown>): Promise<boolean> => {
+    try { await reservationApi.update(id, patch); resource.refresh(); return true; }
+    catch (error) { toast('Reservation update failed', { detail: displayApiError(error), tone: 'danger' }); return false; }
+  };
 
   return (
     <div className="flex flex-col gap-4">
+      {resource.error ? <p role="alert" className="pms-helper">Could not load reservations: {resource.error}</p> : null}
       <Card>
         <CardTitle
           title="Booking calendar"
@@ -172,7 +206,7 @@ export function Reservations({ initialQuery = '', focusId, go }: { initialQuery?
           <div className="grid min-w-[560px] grid-cols-7 gap-1.5" role="list" aria-label="Arrival days">
           {DAYS.map((d) => {
             const count = rows.filter((r) => r.checkIn === d).length;
-            const active = d === 'Oct 10';
+            const active = d === DAYS[0];
             return (
               <div key={d} role="listitem" className="rounded-[10px] border px-1 py-2.5 text-center" style={{ borderColor: active ? 'var(--color-primary)' : 'var(--color-border)', background: active ? 'var(--color-hover-surface)' : 'var(--color-surface)' }}>
                 <p className="text-[11.5px] font-semibold" style={{ color: 'var(--color-ink)' }}>{d}</p>
@@ -187,7 +221,7 @@ export function Reservations({ initialQuery = '', focusId, go }: { initialQuery?
       <Card>
         <CardTitle
           title="Reservation list"
-          subtitle={`${filtered.length} of ${rows.length} reservations`}
+          subtitle={resource.loading ? 'Loading reservations…' : `${filtered.length} of ${rows.length} reservations`}
           action={
             <Tabs
               label="Layout"
@@ -232,7 +266,7 @@ export function Reservations({ initialQuery = '', focusId, go }: { initialQuery?
                       <td className="tnum" style={{ color: 'var(--color-ink-secondary)' }}>{r.adults + r.children}</td>
                       <td style={{ color: 'var(--color-ink-secondary)' }}>{r.channel}</td>
                       <td><Badge tone={reservationTone(r.status)}>{r.status}</Badge></td>
-                      <td className="tnum text-right font-semibold">${formatMoney(r.total)}</td>
+                      <td className="tnum text-right font-semibold">{formatCurrency(r.total, r.currencyCode)}</td>
                       <td><button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => setOpenId(r.id)} aria-label={`Open ${r.id}`}>Open</button></td>
                     </tr>
                   ))}
@@ -266,7 +300,7 @@ export function Reservations({ initialQuery = '', focusId, go }: { initialQuery?
       </Card>
 
       <Drawer open={openRow !== null} onClose={() => setOpenId(null)} title={openRow ? `Reservation ${openRow.id}` : ''} subtitle="Booking reference, stay, charges and actions">
-        {openRow ? <ReservationDrawer r={openRow} onClose={() => setOpenId(null)} onStatus={setRowStatus} /> : null}
+        {openRow ? <ReservationDrawer r={openRow} onClose={() => setOpenId(null)} onStatus={setRowStatus} onEdit={amendReservation} go={go} /> : null}
       </Drawer>
     </div>
   );

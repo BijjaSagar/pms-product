@@ -1,75 +1,71 @@
-import { useState } from 'react';
-import { TODAY } from '../data/mock';
+import { useCallback, useState } from 'react';
 import { Card, CardTitle } from '../components/ui';
 import { BarChart, DonutChart } from '../components/charts';
 import { Tabs } from '../components/controls';
+import { reportsApi } from '../lib/api/pms';
+import { useApiResource } from '../lib/api/useApiResource';
+import { downloadApiFile, displayApiError } from '../lib/api/client';
+import { toast } from '../components/toastStore';
+import { useAuth } from '../features/auth/AuthContext';
 
 const RANGES = ['7 days', '14 days', '30 days'] as const;
+const daysFor = (range: (typeof RANGES)[number]) => Number.parseInt(range, 10);
 
-const DATA: Record<(typeof RANGES)[number], number[]> = {
-  '7 days': [62, 70, 66, 74, 81, 78, 78],
-  '14 days': [58, 62, 70, 66, 74, 81, 78, 78, 72, 69, 75, 80, 77, 79],
-  '30 days': [55, 58, 62, 70, 66, 74, 81, 78, 78, 72, 69, 75, 80, 77, 79, 71, 68, 73, 76, 82, 78, 74, 70, 66, 72, 78, 81, 79, 83, 80],
-};
+function subtractDays(day: string, amount: number) {
+  const date = new Date(`${day}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() - amount);
+  return date.toISOString().slice(0, 10);
+}
 
 export function OccupancyReport() {
+  const { can } = useAuth();
   const [range, setRange] = useState<(typeof RANGES)[number]>('7 days');
-  const values = DATA[range];
-  const avg = Math.round(values.reduce((s, v) => s + v, 0) / values.length);
-  const labels = values.map((_, i) => `D${i + 1}`);
+  const load = useCallback(async () => {
+    const flash = await reportsApi.dailyFlash();
+    const from = subtractDays(flash.businessDate, daysFor(range) - 1);
+    const occupancy = await reportsApi.occupancy(from, flash.businessDate);
+    return { flash, occupancy };
+  }, [range]);
+  const resource = useApiResource(load, [range]);
+  const data = resource.data;
+  const occupancy = data?.occupancy;
 
   return (
     <div className="flex flex-col gap-4">
+      {resource.error ? <p role="alert" className="pms-helper">Could not load occupancy report: {resource.error}</p> : null}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
-          ['Average occupancy', `${avg}%`],
-          ['Peak night', `${Math.max(...values)}%`],
-          ['Rooms sold (7d)', '812'],
-          ['Available tonight', String(TODAY.available)],
-        ].map(([k, v]) => (
-          <section key={k} className="pms-card p-4">
-            <p className="pms-label">{k}</p>
-            <p className="pms-kpi-value tnum mt-1">{v}</p>
-          </section>
+          ['Occupancy', occupancy ? `${occupancy.occupancyPct}%` : '—'],
+          ['Room nights', occupancy?.nights ?? '—'],
+          ['Sold room nights', occupancy?.soldRoomNights ?? '—'],
+          ['Available tonight', data?.flash.rooms.ready ?? '—'],
+        ].map(([label, value]) => (
+          <section key={label} className="pms-card p-4"><p className="pms-label">{label}</p><p className="pms-kpi-value tnum mt-1">{value}</p></section>
         ))}
       </div>
       <Card>
-        <CardTitle
-          title="Occupancy trend"
-          subtitle="Demo sample — range updates the chart locally"
-          action={<Tabs label="Date range" tabs={RANGES.map((r) => ({ id: r, label: r }))} active={range} onChange={setRange} />}
-        />
-        <BarChart label={`Occupancy over ${range}`} data={values.map((v, i) => ({ label: labels[i], value: v, highlight: i === values.length - 3 }))} />
+        <CardTitle title="Occupancy trend" subtitle={occupancy ? `${occupancy.from} through ${occupancy.to}` : 'Loading occupancy data…'} action={<div className="flex flex-wrap items-center gap-2"><Tabs label="Date range" tabs={RANGES.map((item) => ({ id: item, label: item }))} active={range} onChange={setRange} />{can('report.export') ? <button type="button" disabled={!occupancy} className="pms-btn-ghost px-3 py-2 disabled:opacity-50" onClick={() => occupancy && void downloadApiFile(reportsApi.exportOccupancy(occupancy.from, occupancy.to), 'occupancy.csv').catch((error: unknown) => toast('Export failed', { detail: displayApiError(error), tone: 'danger' }))}>Export CSV</button> : null}</div>} />
+        {occupancy ? <BarChart label={`Occupancy over ${range}`} data={[{ label: range, value: Number(occupancy.occupancyPct), highlight: true }]} /> : null}
       </Card>
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Card>
-          <CardTitle title="Occupancy by segment" subtitle="Room-nights, last 7 days" />
-          <DonutChart
-            label="Room nights by segment"
-            slices={[
-              { label: 'Leisure', value: 412, color: 'var(--color-primary)' },
-              { label: 'Corporate', value: 268, color: 'var(--color-soft)' },
-              { label: 'Group', value: 132, color: 'var(--color-warning-text)' },
-            ]}
-          />
+          <CardTitle title="Sold vs unsold" subtitle="Room-night inventory in this range" />
+          {occupancy ? <DonutChart label="Sold versus unsold room nights" slices={[
+            { label: 'Sold', value: occupancy.soldRoomNights, color: 'var(--color-primary)' },
+            { label: 'Unsold', value: occupancy.unsoldRoomNights, color: 'var(--color-warning-text)' },
+          ]} /> : null}
         </Card>
         <Card>
-          <CardTitle title="Room performance" subtitle="Occupancy by type" />
-          <div className="overflow-x-auto">
-            <table className="pms-table min-w-[420px]">
-              <thead><tr><th>Type</th><th className="text-right">Rooms</th><th className="text-right">Occ %</th></tr></thead>
-              <tbody>
-                {[['Standard', 58, 82], ['Deluxe', 46, 79], ['Family', 24, 71], ['Suite', 22, 86], ['Penthouse', 9, 44]].map(([t, n, o]) => (
-                  <tr key={t as string}>
-                    <td className="font-medium">{t}</td>
-                    <td className="tnum text-right">{n}</td>
-                    <td className="tnum text-right font-semibold">{o}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="pms-helper mt-2">Figures are static samples, not live analytics.</p>
+          <CardTitle title="Inventory reconciliation" subtitle="Reservation expectations compared with allocated room nights" />
+          {occupancy ? <div className="flex flex-col gap-2 text-[13px]">
+            {[
+              ['Rooms in property', occupancy.rooms],
+              ['Overlapping reservations', occupancy.reconciliation.overlappingReservations],
+              ['Expected room nights', occupancy.reconciliation.expectedRoomNights],
+              ['Claimed room nights', occupancy.reconciliation.claimedRoomNights],
+              ['Reconciles', occupancy.reconciliation.matches ? 'Yes' : 'No'],
+            ].map(([label, value]) => <div key={label} className="pms-summary-row border-b py-2 last:border-0" style={{ borderColor: 'var(--color-divider)' }}><span className="pms-helper">{label}</span><span className="tnum font-semibold">{value}</span></div>)}
+          </div> : null}
         </Card>
       </div>
     </div>

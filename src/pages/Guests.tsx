@@ -1,15 +1,18 @@
-import { useMemo, useState } from 'react';
-import { GUESTS, INVOICES, PAYMENTS, RESERVATIONS, formatMoney } from '../data/mock';
+import { useCallback, useMemo, useState } from 'react';
+import { formatMoney } from '../data/mock';
 import type { BadgeTone } from '../components/status';
 import type { Guest } from '../data/mock';
 import { Avatar, Badge, Card, CardTitle } from '../components/ui';
-import { paymentTone, reservationTone } from '../components/status';
 import { FilterChip, Pagination, Tabs } from '../components/controls';
 import { inputClass } from '../components/inputClass';
 import { Field } from '../components/controls';
 import { Modal } from '../components/overlays';
 import { toast } from '../components/toastStore';
 import type { NavTarget } from '../components/nav';
+import { guestApi } from '../lib/api/pms';
+import { guestFromApi } from '../lib/api/adapters';
+import { useApiResource } from '../lib/api/useApiResource';
+import { displayApiError } from '../lib/api/client';
 
 const PAGE_SIZE = 6;
 
@@ -20,14 +23,11 @@ function tierTone(tier: string): BadgeTone {
   return 'neutral';
 }
 
-function GuestProfile({ g, onClose, go }: { g: Guest; onClose: () => void; go: (t: NavTarget) => void }) {
+function GuestProfile({ g, onClose, go, onSave }: { g: Guest; onClose: () => void; go: (t: NavTarget) => void; onSave: (patch: Record<string, unknown>) => Promise<void> }) {
   const [tab, setTab] = useState<'overview' | 'stays' | 'payments' | 'notes'>('overview');
   const [editing, setEditing] = useState(false);
   const [phone, setPhone] = useState(g.phone);
   const [prefs, setPrefs] = useState(g.preferences.join(', '));
-  const stays = RESERVATIONS.filter((r) => r.guestId === g.id);
-  const pays = PAYMENTS.filter((p) => p.guest === g.name);
-  const invs = INVOICES.filter((i) => i.guest === g.name);
 
   return (
     <div>
@@ -40,7 +40,7 @@ function GuestProfile({ g, onClose, go }: { g: Guest; onClose: () => void; go: (
         <Badge tone={tierTone(g.tier)}>{g.tier}</Badge>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        {[[String(g.stays), 'Stays'], [`$${formatMoney(g.spent)}`, 'Lifetime'], [`$${formatMoney(g.balance)}`, 'Balance']].map(([v, k]) => (
+        {[[String(g.stays), 'Stays'], [g.spent > 0 ? `$${formatMoney(g.spent)}` : '—', 'Lifetime'], [g.balance > 0 ? `$${formatMoney(g.balance)}` : '—', 'Balance']].map(([v, k]) => (
           <div key={k} className="rounded-[10px] border p-2.5" style={{ borderColor: 'var(--color-border)' }}>
             <p className="tnum text-[16px] font-semibold" style={{ color: 'var(--color-ink)' }}>{v}</p>
             <p className="pms-helper">{k}</p>
@@ -67,29 +67,12 @@ function GuestProfile({ g, onClose, go }: { g: Guest; onClose: () => void; go: (
         )}
         {tab === 'stays' && (
           <ul className="flex flex-col gap-2">
-            {stays.length === 0 ? <p className="pms-helper">No stays on record.</p> : stays.map((r) => (
-              <li key={r.id} className="flex items-center justify-between gap-2 rounded-[10px] border px-3 py-2.5" style={{ borderColor: 'var(--color-border)' }}>
-                <span>
-                  <span className="tnum block font-mono text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{r.id}</span>
-                  <span className="tnum block text-[13px]" style={{ color: 'var(--color-ink)' }}>{r.checkIn} → {r.checkOut} · {r.room}</span>
-                </span>
-                <Badge tone={reservationTone(r.status)}>{r.status}</Badge>
-              </li>
-            ))}
+            <p className="pms-helper">{g.stays ? `${g.stays} stay(s) on record; stay details are not included in the guest endpoint.` : 'No stays on record.'}</p>
           </ul>
         )}
         {tab === 'payments' && (
           <ul className="flex flex-col gap-2">
-            {pays.length === 0 ? <p className="pms-helper">No payments recorded.</p> : pays.map((p) => (
-              <li key={p.ref} className="flex items-center justify-between gap-2 rounded-[10px] border px-3 py-2.5" style={{ borderColor: 'var(--color-border)' }}>
-                <span className="tnum text-[13px]" style={{ color: 'var(--color-ink)' }}>{p.ref} · {p.method} · {p.date}</span>
-                <span className="flex items-center gap-2">
-                  <span className="tnum font-semibold" style={{ color: 'var(--color-ink)' }}>${formatMoney(p.amount)}</span>
-                  <Badge tone={paymentTone(p.status)}>{p.status}</Badge>
-                </span>
-              </li>
-            ))}
-            {invs.length > 0 ? <p className="pms-helper tnum">{invs.length} invoice(s): {invs.map((i) => i.id).join(', ')}</p> : null}
+            <p className="pms-helper">Guest-specific payment and invoice history is not exposed by the current API.</p>
           </ul>
         )}
         {tab === 'notes' && (
@@ -100,8 +83,11 @@ function GuestProfile({ g, onClose, go }: { g: Guest; onClose: () => void; go: (
         )}
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        <button type="button" className="pms-btn-ghost flex-1 px-3 py-2.5" onClick={() => { if (editing) toast('Guest updated (demo)', { detail: 'Changes apply to this screen only.' }); setEditing((e) => !e); }}>
-          {editing ? 'Save (demo)' : 'Edit guest'}
+        <button type="button" className="pms-btn-ghost flex-1 px-3 py-2.5" onClick={() => {
+          if (!editing) { setEditing(true); return; }
+          void onSave({ phone, preferences: prefs }).then(() => setEditing(false)).catch(() => undefined);
+        }}>
+          {editing ? 'Save guest' : 'Edit guest'}
         </button>
         <button type="button" className="pms-btn-ghost flex-1 px-3 py-2.5" onClick={() => go({ view: 'new-reservation' })}>New reservation</button>
         <button type="button" className="pms-btn-primary flex-1 px-3 py-2.5" onClick={() => go({ view: 'folios' })}>View folio</button>
@@ -112,7 +98,9 @@ function GuestProfile({ g, onClose, go }: { g: Guest; onClose: () => void; go: (
 }
 
 export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: string; focusId?: string; go: (t: NavTarget) => void }) {
-  const [all, setAll] = useState<Guest[]>(GUESTS);
+  const loadGuests = useCallback(async () => (await guestApi.list('', 1, 100)).data.map(guestFromApi), []);
+  const resource = useApiResource(loadGuests);
+  const all = useMemo(() => resource.data ?? [], [resource.data]);
   const [q, setQ] = useState(initialQuery);
   const [tier, setTier] = useState('All');
   const [sort, setSort] = useState<'name' | 'stays' | 'spent'>('name');
@@ -122,6 +110,9 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const loadProfile = useCallback(() => openId ? guestApi.get(openId).then(guestFromApi) : Promise.resolve(null), [openId]);
+  const profileResource = useApiResource(loadProfile, [openId]);
+  const profile = profileResource.data;
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -140,18 +131,38 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
       toast('Check the form', { detail: 'Name, valid email and phone are required.', tone: 'warning' });
       return;
     }
-    const g: Guest = { id: `G-${1031 + all.length}`, name: name.trim(), email: email.trim(), phone: phone.trim(), company: null, tier: 'New', category: 'Leisure', stays: 0, spent: 0, balance: 0, lastVisit: '—', preferences: [], notes: '' };
-    setAll((p) => [...p, g]);
-    setAdding(false);
-    setName(''); setEmail(''); setPhone('');
-    setOpenId(g.id);
-    toast('Guest added (demo)', { detail: `${g.name} appears in this directory only.` });
+    const parts = name.trim().split(/\s+/);
+    void guestApi.create({ firstName: parts[0], lastName: parts.slice(1).join(' ') || 'Guest', email: email.trim(), phone: phone.trim() })
+      .then((created) => {
+        const guest = guestFromApi(created);
+        setAdding(false);
+        setName(''); setEmail(''); setPhone('');
+        setOpenId(guest.id);
+        resource.refresh();
+        toast('Guest added', { detail: `${guest.name} was saved.`, tone: 'success' });
+      })
+      .catch((error: unknown) => toast('Could not add guest', { detail: displayApiError(error), tone: 'danger' }));
   };
 
-  if (openGuest) {
+  if (openGuest && !profile && profileResource.loading) {
+    return <Card><p className="pms-helper">Loading guest profile…</p></Card>;
+  }
+
+  if (openGuest && profile) {
     return (
       <Card>
-        <GuestProfile g={openGuest} onClose={() => setOpenId(null)} go={go} />
+        <GuestProfile g={profile} onClose={() => setOpenId(null)} go={go} onSave={async (patch) => {
+          try {
+            const updated = await guestApi.update(openGuest.id, patch);
+            void updated;
+            profileResource.refresh();
+            resource.refresh();
+            toast('Guest saved', { detail: 'Guest profile updated.', tone: 'success' });
+          } catch (error) {
+            toast('Could not update guest', { detail: displayApiError(error), tone: 'danger' });
+            throw error;
+          }
+        }} />
       </Card>
     );
   }
@@ -160,9 +171,10 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
     <Card>
       <CardTitle
         title="Guest directory"
-        subtitle={`${filtered.length} of ${all.length} guests · fictional sample data`}
+        subtitle={resource.loading ? 'Loading guest directory…' : `${filtered.length} of ${all.length} guests`}
         action={<button type="button" onClick={() => setAdding(true)} className="pms-btn-primary px-3.5 py-2.5">+ Add guest</button>}
       />
+      {resource.error ? <p role="alert" className="pms-helper">Could not load guests: {resource.error}</p> : null}
       <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-4">
         <input value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} placeholder="Name, ID or phone…" aria-label="Search guests" className={inputClass()} />
         <select value={sort} onChange={(e) => setSort(e.target.value as never)} aria-label="Sort guests" className={inputClass()}>
@@ -196,7 +208,7 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
                 <td style={{ color: 'var(--color-ink-secondary)' }}>{g.company ?? '—'}</td>
                 <td><Badge tone={tierTone(g.tier)}>{g.tier}</Badge></td>
                 <td className="tnum text-right">{g.stays}</td>
-                <td className="tnum text-right font-semibold">${formatMoney(g.balance)}</td>
+                <td className="tnum text-right font-semibold">{g.balance > 0 ? `$${formatMoney(g.balance)}` : '—'}</td>
                 <td style={{ color: 'var(--color-ink-secondary)' }}>{g.lastVisit}</td>
                 <td><button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => setOpenId(g.id)} aria-label={`Open ${g.name}`}>Details</button></td>
               </tr>
@@ -208,7 +220,7 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
       <div className="mt-3">
         <Pagination page={safe} totalPages={pages} onChange={setPage} summary={`Page ${safe + 1} of ${pages} · ${filtered.length} guests`} />
       </div>
-      <Modal open={adding} onClose={() => setAdding(false)} title="Add guest" subtitle="Demo only — stored on this screen">
+      <Modal open={adding} onClose={() => setAdding(false)} title="Add guest" subtitle="Saved to the guest directory">
         <div className="flex flex-col gap-3">
           <Field label="Full name"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Jordan Miles" className={inputClass()} /></Field>
           <Field label="Email"><input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jordan@mail.com" inputMode="email" className={inputClass()} /></Field>

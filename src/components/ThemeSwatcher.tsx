@@ -46,7 +46,7 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
           <div>
             <h2 className="pms-section-title">Appearance</h2>
             <p className="pms-helper mt-0.5">
-              Live preview · applies instantly · saved on this device
+              Live preview · preset saved to active property · custom accent stays on this device
               {customAccent ? ` · custom ${customAccent}` : ''}
             </p>
           </div>
@@ -92,9 +92,9 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                     </span>
                   </span>
                   <span className="mt-2.5 flex items-center gap-1.5" aria-hidden="true">
-                    {p.swatch.map((c) => (
+                    {p.swatch.map((c, index) => (
                       <span
-                        key={c}
+                        key={`${c}-${index}`}
                         className="h-6 flex-1 rounded-full border first:flex-[1.2]"
                         style={{ background: c, borderColor: 'rgb(0 0 0 / 0.12)' }}
                         title={c}

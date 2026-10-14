@@ -46,6 +46,7 @@ export function Expenses() {
 
   return (
     <div className="flex flex-col gap-4">
+      <p role="note" className="pms-helper">The backend has no expense ledger or approval endpoints. Entries and approvals below are local demo data only.</p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[['Approved spend', `$${formatMoney(totals.approved)}`, 'This month'], ['Pending approval', `$${formatMoney(totals.pending)}`, 'Awaiting sign-off'], ['Records', String(rows.length), 'Demo ledger']].map(([k, v, h]) => (
           <section key={k} className="pms-card p-4">

@@ -3,6 +3,35 @@ import { NAV_ITEMS, NAV_SECTIONS, sectionOf } from './nav';
 import type { NavTarget, ViewId } from './nav';
 import { NOTICES } from '../data/mock';
 import { toast } from './toastStore';
+import { useAuth } from '../features/auth/AuthContext';
+import { displayApiError } from '../lib/api/client';
+
+const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
+  dashboard: 'dashboard.read',
+  reservations: 'reservation.read',
+  'new-reservation': 'reservation.create',
+  'check-in': 'stay.check-in',
+  'check-out': 'stay.check-out',
+  'in-house': 'reservation.read',
+  guests: 'guest.read',
+  'walk-in': 'reservation.create',
+  'room-overview': 'room.read',
+  'room-types': 'room.read',
+  'room-inventory': 'room.read',
+  'status-board': 'room.read',
+  housekeeping: 'housekeeping.read',
+  maintenance: 'maintenance.read',
+  folios: 'folio.read',
+  payments: 'payment.read',
+  invoices: 'invoice.read',
+  reports: 'report.read.operations',
+  'occupancy-report': 'report.read.operations',
+  'revenue-report': 'report.read.financial',
+  'arrivals-departures': 'report.read.operations',
+  'staff-roles': 'user.read',
+  properties: 'property.read',
+  settings: 'theme.update',
+};
 
 function NavIcon({ id }: { id: ViewId }) {
   const common = 'h-[18px] w-[18px] flex-none';
@@ -182,7 +211,15 @@ export function Sidebar({
   mobileOpen: boolean;
   onClose: () => void;
 }) {
+  const { can } = useAuth();
   const [openSections, setOpenSections] = useState<string[]>(() => NAV_SECTIONS.map((s) => s.title));
+  const visibleSections = NAV_SECTIONS.map((section) => ({
+    ...section,
+    items: section.items.filter((item) => {
+      const permission = VIEW_PERMISSION[item.id];
+      return !permission || can(permission);
+    }),
+  })).filter((section) => section.items.length > 0);
 
   const toggleSection = (title: string) => {
     setOpenSections((prev) => (prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]));
@@ -216,7 +253,7 @@ export function Sidebar({
       </div>
       <nav className="min-h-0 flex-1 overflow-y-auto px-2.5 py-3" aria-label="Primary">
         <ul className="flex flex-col gap-0.5">
-          {NAV_SECTIONS.map((section) => {
+          {visibleSections.map((section) => {
             const open = openSections.includes(section.title);
             const containsActive = section.items.some((i) => i.id === active);
             if (section.title === 'Overview') {
@@ -334,11 +371,16 @@ export function Header({
   onOpenThemes: () => void;
   onGo: (t: NavTarget) => void;
 }) {
+  const { me, logout, switchProperty } = useAuth();
   const [panel, setPanel] = useState<'none' | 'notices' | 'profile'>('none');
   const [read, setRead] = useState<string[]>([]);
   const closePanels = () => setPanel('none');
   const dismissRef = useDismiss(closePanels);
   const unread = NOTICES.filter((n) => !read.includes(n.id)).length;
+  const activeMembership = me?.user.propertyMemberships.find((membership) => membership.propertyId === me.activePropertyId);
+  const fullName = me?.user.fullName ?? 'User';
+  const roleName = activeMembership?.role.name ?? 'Staff';
+  const initials = fullName.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase();
 
   const openNotice = (target: string, id: string) => {
     setRead((r) => (r.includes(id) ? r : [...r, id]));
@@ -399,7 +441,7 @@ export function Header({
               aria-label="Notifications"
             >
               <p className="px-4 pb-1 pt-3 text-[12px] font-semibold uppercase tracking-[0.1em]" style={{ color: 'var(--color-ink-secondary)' }}>
-                Operational alerts
+                Sample alerts · not server-backed
               </p>
               <ul>
                 {NOTICES.map((n) => (
@@ -452,14 +494,14 @@ export function Header({
               style={{ background: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
               aria-hidden="true"
             >
-              GM
+              {initials}
             </span>
             <span className="hidden text-left sm:block">
               <span className="block text-[12.5px] font-semibold leading-tight" style={{ color: 'var(--color-ink)' }}>
-                General Manager
+                {roleName}
               </span>
               <span className="block text-[11px] leading-tight" style={{ color: 'var(--color-ink-secondary)' }}>
-                Nora Bennett
+                {fullName}
               </span>
             </span>
           </button>
@@ -490,12 +532,27 @@ export function Header({
                   {item.label}
                 </button>
               ))}
+              {me?.user.propertyMemberships.filter((membership) => membership.isActive && membership.propertyId !== me.activePropertyId).map((membership) => (
+                <button
+                  key={membership.propertyId}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    closePanels();
+                    void switchProperty(membership.propertyId).catch((error: unknown) => toast('Property switch failed', { detail: displayApiError(error), tone: 'danger' }));
+                  }}
+                  className="block w-full border-t px-4 py-2.5 text-left text-[13px] font-medium"
+                  style={{ borderColor: 'var(--color-border)', color: 'var(--color-ink)' }}
+                >
+                  Switch to {membership.property.name}
+                </button>
+              ))}
               <button
                 type="button"
                 role="menuitem"
                 onClick={() => {
                   closePanels();
-                  toast('Signed out (demo)', { detail: 'Local mock action — session unchanged.', tone: 'info' });
+                  void logout().catch((error: unknown) => toast('Sign out failed', { detail: displayApiError(error), tone: 'danger' }));
                 }}
                 className="block w-full border-t px-4 py-2.5 text-left text-[13px] font-medium"
                 style={{ borderColor: 'var(--color-border)', color: 'var(--color-ink-secondary)' }}

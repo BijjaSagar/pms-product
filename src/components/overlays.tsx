@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import { snapshotToasts, subscribeToasts } from './toastStore';
 import type { ToastItem } from './toastStore';
@@ -11,6 +12,35 @@ function useEsc(onClose: () => void) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
+}
+
+/** Locks background scrolling while a dialog is open, restoring it on close. */
+function useScrollLock(locked: boolean) {
+  useEffect(() => {
+    if (!locked) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [locked]);
+}
+
+/**
+ * Focuses the dialog panel on open and restores focus to the trigger on close.
+ * The ref must be attached to an element with tabIndex={-1}.
+ */
+function useDialogFocus<T extends HTMLElement>(open: boolean) {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    if (!open) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    ref.current?.focus({ preventScroll: true });
+    return () => {
+      previouslyFocused?.focus?.({ preventScroll: true });
+    };
+  }, [open]);
+  return ref;
 }
 
 function Backdrop({ onClose, label }: { onClose: () => void; label: string }) {
@@ -31,6 +61,7 @@ export function Modal({
   title,
   subtitle,
   children,
+  footer,
   wide,
 }: {
   open: boolean;
@@ -38,15 +69,22 @@ export function Modal({
   title: string;
   subtitle?: string;
   children: ReactNode;
+  footer?: ReactNode;
   wide?: boolean;
 }) {
   useEsc(onClose);
+  useScrollLock(open);
+  const panelRef = useDialogFocus<HTMLDivElement>(open);
   if (!open) return null;
-  return (
+  // Portaled to document.body so no transformed or overflow-clipped ancestor
+  // (e.g. the animated main container) can reposition or clip the dialog.
+  return createPortal(
     <div className="pms-overlay-enter fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-0 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={title}>
       <Backdrop onClose={onClose} label="Close dialog" />
       <div
-        className={`pms-animate-pop relative my-auto flex max-h-[92dvh] w-full flex-col border ${wide ? 'sm:max-w-[780px]' : 'sm:max-w-[540px]'}`}
+        ref={panelRef}
+        tabIndex={-1}
+        className={`pms-animate-pop relative my-auto flex max-h-[92dvh] w-full max-w-[calc(100vw-2rem)] flex-col border ${wide ? 'sm:max-w-[780px]' : 'sm:max-w-[540px]'}`}
         style={{
           background: 'var(--color-surface)',
           borderColor: 'var(--color-border)',
@@ -66,8 +104,14 @@ export function Modal({
           </button>
         </div>
         <div className="overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
+        {footer ? (
+          <div className="flex justify-end gap-2 border-t px-4 py-3 sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
+            {footer}
+          </div>
+        ) : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -85,11 +129,15 @@ export function Drawer({
   children: ReactNode;
 }) {
   useEsc(onClose);
+  useScrollLock(open);
+  const panelRef = useDialogFocus<HTMLElement>(open);
   if (!open) return null;
-  return (
+  return createPortal(
     <div className="pms-overlay-enter fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={title}>
       <Backdrop onClose={onClose} label="Close panel" />
       <aside
+        ref={panelRef}
+        tabIndex={-1}
         className="absolute right-0 top-0 flex h-full w-full flex-col border-l sm:max-w-[520px]"
         style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)', boxShadow: 'var(--shadow-2xl)', maxWidth: 'min(520px, 100vw)' }}
       >
@@ -104,7 +152,8 @@ export function Drawer({
         </div>
         <div className="pms-safe-bottom flex-1 overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
       </aside>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -116,37 +165,50 @@ export function ConfirmDialog({
   body,
   confirmLabel,
   danger,
+  note,
+  busy,
+  autoClose = true,
 }: {
   open: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<unknown>;
   title: string;
   body: string;
   confirmLabel: string;
   danger?: boolean;
+  note?: string;
+  busy?: boolean;
+  autoClose?: boolean;
 }) {
   return (
-    <Modal open={open} onClose={onClose} title={title}>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={title}
+      footer={
+        <>
+          <button type="button" onClick={onClose} disabled={busy} className="pms-btn-ghost px-4 py-2.5 disabled:opacity-50">
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              void onConfirm();
+              if (autoClose) onClose();
+            }}
+            className={danger ? 'pms-btn-primary px-4 py-2.5 disabled:opacity-50' : 'pms-btn-primary px-4 py-2.5 disabled:opacity-50'}
+            style={danger ? { background: 'var(--color-danger-text)' } : undefined}
+          >
+            {confirmLabel}
+          </button>
+        </>
+      }
+    >
       <p className="text-[13.5px]" style={{ color: 'var(--color-ink-secondary)' }}>
         {body}
       </p>
-      <p className="pms-helper mt-2">Demo only — this updates the local screen, nothing is saved remotely.</p>
-      <div className="mt-4 flex justify-end gap-2">
-        <button type="button" onClick={onClose} className="pms-btn-ghost px-4 py-2.5">
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            onConfirm();
-            onClose();
-          }}
-          className={danger ? 'pms-btn-primary px-4 py-2.5' : 'pms-btn-primary px-4 py-2.5'}
-          style={danger ? { background: 'var(--color-danger-text)' } : undefined}
-        >
-          {confirmLabel}
-        </button>
-      </div>
+      {note ? <p className="pms-helper mt-2">{note}</p> : null}
     </Modal>
   );
 }

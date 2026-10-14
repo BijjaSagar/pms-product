@@ -36,7 +36,7 @@ export function roomTone(status: RoomStatus): BadgeTone {
   }
 }
 
-export function paymentTone(status: PaymentStatus): BadgeTone {
+export function paymentTone(status: PaymentStatus | 'Issued' | 'Draft' | 'Void' | 'Credited'): BadgeTone {
   switch (status) {
     case 'Paid':
       return 'success';
@@ -46,5 +46,16 @@ export function paymentTone(status: PaymentStatus): BadgeTone {
       return 'danger';
     case 'Failed':
       return 'danger';
+    case 'Refunded':
+      return 'neutral';
+    case 'Partially refunded':
+      return 'warning';
+    case 'Issued':
+      return 'success';
+    case 'Draft':
+      return 'warning';
+    case 'Void':
+    case 'Credited':
+      return 'neutral';
   }
 }
