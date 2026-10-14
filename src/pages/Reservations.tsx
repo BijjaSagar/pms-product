@@ -15,11 +15,15 @@ import { formatCurrency } from '../lib/api/format';
 
 const STATUS_FILTERS: ('All' | ReservationStatus)[] = ['All', 'Confirmed', 'Pending', 'Checked-in', 'Checked-out', 'Cancelled', 'No-show'];
 const PAGE_SIZE = 6;
-const DAYS = Array.from({ length: 7 }, (_, index) => {
+const DAY_ISOS = Array.from({ length: 7 }, (_, index) => {
   const date = new Date();
   date.setDate(date.getDate() + index);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 });
+
+// Display label only — matching always uses the ISO value, because formatted
+// day strings disagree on padding ("Oct 5" vs "Oct 05") and timezone.
+const dayLabel = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 
 type SortKey = 'checkIn' | 'guest' | 'amount';
 
@@ -172,7 +176,18 @@ export function Reservations({ initialQuery = '', focusId, go }: { initialQuery?
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pages - 1);
   const slice = filtered.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
-  const openRow = rows.find((r) => r.id === openId) ?? null;
+  const openListRow = rows.find((r) => r.id === openId) ?? null;
+  const openBackendId = openListRow?.backendId;
+  // The drawer needs room lines and the stored tax to break the stay down, but
+  // the list endpoint returns neither — so the open row is upgraded to the
+  // detail response, falling back to list figures while it loads or on error.
+  const detailResource = useApiResource(
+    () => openBackendId
+      ? reservationApi.get(openBackendId).then((detail) => reservationFromApi({ ...detail, roomTypeName: openListRow?.roomType ?? null }))
+      : Promise.resolve(null),
+    [openBackendId],
+  );
+  const openRow = detailResource.data ?? openListRow;
 
   const setRowStatus = async (id: string, s: ReservationStatus): Promise<boolean> => {
     const row = rows.find((item) => item.id === id);
@@ -204,12 +219,12 @@ export function Reservations({ initialQuery = '', focusId, go }: { initialQuery?
         />
         <div className="overflow-x-auto pb-1">
           <div className="grid min-w-[560px] grid-cols-7 gap-1.5" role="list" aria-label="Arrival days">
-          {DAYS.map((d) => {
-            const count = rows.filter((r) => r.checkIn === d).length;
-            const active = d === DAYS[0];
+          {DAY_ISOS.map((d) => {
+            const count = rows.filter((r) => r.checkInIso === d).length;
+            const active = d === DAY_ISOS[0];
             return (
               <div key={d} role="listitem" className="rounded-[10px] border px-1 py-2.5 text-center" style={{ borderColor: active ? 'var(--color-primary)' : 'var(--color-border)', background: active ? 'var(--color-hover-surface)' : 'var(--color-surface)' }}>
-                <p className="text-[11.5px] font-semibold" style={{ color: 'var(--color-ink)' }}>{d}</p>
+                <p className="text-[11.5px] font-semibold" style={{ color: 'var(--color-ink)' }}>{dayLabel(d)}</p>
                 <p className="tnum mt-0.5 text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{count} arr.</p>
               </div>
             );
@@ -280,19 +295,19 @@ export function Reservations({ initialQuery = '', focusId, go }: { initialQuery?
           </>
         ) : (
           <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-            {DAYS.map((d) => (
+            {DAY_ISOS.map((d) => (
               <div key={d} className="rounded-[10px] border p-3" style={{ borderColor: 'var(--color-border)' }}>
-                <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.08em]" style={{ color: 'var(--color-ink-secondary)' }}>{d}</p>
-                {rows.filter((r) => r.checkIn === d || r.checkOut === d).map((r) => (
+                <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.08em]" style={{ color: 'var(--color-ink-secondary)' }}>{dayLabel(d)}</p>
+                {rows.filter((r) => r.checkInIso === d || r.checkOutIso === d).map((r) => (
                   <button key={r.id} type="button" onClick={() => setOpenId(r.id)} className="mb-1.5 flex w-full items-center justify-between gap-2 rounded-[8px] border px-2.5 py-2 text-left" style={{ borderColor: 'var(--color-divider)', background: 'var(--color-muted-surface)' }}>
                     <span className="min-w-0">
                       <span className="block truncate text-[13px] font-semibold" style={{ color: 'var(--color-ink)' }}>{r.guest}</span>
-                      <span className="tnum block text-[11.5px]" style={{ color: 'var(--color-ink-secondary)' }}>{r.id} · {r.checkIn === d ? 'arrives' : 'departs'} · {r.roomType}</span>
+                      <span className="tnum block text-[11.5px]" style={{ color: 'var(--color-ink-secondary)' }}>{r.id} · {r.checkInIso === d ? 'arrives' : 'departs'} · {r.roomType}</span>
                     </span>
                     <Badge tone={reservationTone(r.status)}>{r.status}</Badge>
                   </button>
                 ))}
-                {rows.filter((r) => r.checkIn === d || r.checkOut === d).length === 0 ? <p className="pms-helper">No movement.</p> : null}
+                {rows.filter((r) => r.checkInIso === d || r.checkOutIso === d).length === 0 ? <p className="pms-helper">No movement.</p> : null}
               </div>
             ))}
           </div>
@@ -300,7 +315,16 @@ export function Reservations({ initialQuery = '', focusId, go }: { initialQuery?
       </Card>
 
       <Drawer open={openRow !== null} onClose={() => setOpenId(null)} title={openRow ? `Reservation ${openRow.id}` : ''} subtitle="Booking reference, stay, charges and actions">
-        {openRow ? <ReservationDrawer r={openRow} onClose={() => setOpenId(null)} onStatus={setRowStatus} onEdit={amendReservation} go={go} /> : null}
+        {openRow ? (
+          detailResource.loading && !detailResource.data && openBackendId ? (
+            <p className="pms-helper py-8 text-center">Loading reservation detail…</p>
+          ) : (
+            <>
+              {detailResource.error ? <p role="alert" className="pms-helper mb-2">Live detail unavailable — showing list figures: {detailResource.error}</p> : null}
+              <ReservationDrawer r={openRow} onClose={() => setOpenId(null)} onStatus={setRowStatus} onEdit={amendReservation} go={go} />
+            </>
+          )
+        ) : null}
       </Drawer>
     </div>
   );

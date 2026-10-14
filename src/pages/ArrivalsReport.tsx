@@ -17,6 +17,7 @@ export function ArrivalsReport() {
   const rows = useMemo(() => resource.data?.rows ?? [], [resource.data?.rows]);
   const arrivals = useMemo(() => rows.filter((row) => row.checkInDate === day), [rows, day]);
   const departures = useMemo(() => rows.filter((row) => row.checkOutDate === day), [rows, day]);
+  const net = arrivals.length - departures.length;
 
   return (
     <div className="flex flex-col gap-4">
@@ -25,7 +26,7 @@ export function ArrivalsReport() {
         {[
           ['Arrivals', String(arrivals.length)],
           ['Departures', String(departures.length)],
-          ['Net change', `+${arrivals.length - departures.length}`],
+          ['Net change', net >= 0 ? `+${net}` : `${net}`],
           ['Business date', day],
         ].map(([label, value]) => <section key={label} className="pms-card p-4"><p className="pms-label">{label}</p><p className="pms-kpi-value tnum mt-1">{value}</p></section>)}
       </div>
