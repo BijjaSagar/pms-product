@@ -17,14 +17,18 @@ function emit() {
   listeners.forEach((l) => l([...items]));
 }
 
+export function dismissToast(id: number) {
+  items = items.filter((t) => t.id !== id);
+  emit();
+}
+
 export function toast(title: string, opts?: { detail?: string; tone?: ToastItem['tone'] }) {
   const item: ToastItem = { id: seq++, title, detail: opts?.detail, tone: opts?.tone ?? 'success' };
   items = [...items.slice(-3), item];
   emit();
   window.setTimeout(() => {
-    items = items.filter((t) => t.id !== item.id);
-    emit();
-  }, 4200);
+    dismissToast(item.id);
+  }, 4500);
 }
 
 export function subscribeToasts(l: Listener): () => void {

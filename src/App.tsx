@@ -4,6 +4,7 @@ import type { NavTarget } from './components/nav';
 import { viewPermission } from './components/nav';
 import { ThemeSwatcher } from './components/ThemeSwatcher';
 import { AppCrashFallback, ErrorBoundary, PanelCrashFallback } from './components/ErrorBoundary';
+import { ForbiddenPage, NotFoundPage } from './components/ErrorPages';
 import { ThemeProvider } from './theme/ThemeContext';
 import { useTheme } from './theme/useTheme';
 import { THEME_PRESETS } from './theme/presets';
@@ -29,6 +30,8 @@ const PRESET_TO_THEME_KEY = Object.fromEntries(Object.entries(THEME_KEY_TO_PRESE
 
 const Reservations = lazy(() => import('./pages/Reservations').then((m) => ({ default: m.Reservations })));
 const NewReservation = lazy(() => import('./pages/NewReservation').then((m) => ({ default: m.NewReservation })));
+const RateManagement = lazy(() => import('./pages/RateManagement').then((m) => ({ default: m.RateManagement })));
+const ChannelManager = lazy(() => import('./pages/ChannelManager').then((m) => ({ default: m.ChannelManager })));
 const CheckIn = lazy(() => import('./pages/CheckIn').then((m) => ({ default: m.CheckIn })));
 const CheckOut = lazy(() => import('./pages/CheckOut').then((m) => ({ default: m.CheckOut })));
 const InHouse = lazy(() => import('./pages/InHouse').then((m) => ({ default: m.InHouse })));
@@ -90,12 +93,14 @@ function Shell() {
     // data calls would all come back 403.
     const required = viewPermission(view);
     if (required && !can(required)) {
+      const activeMembership = me?.user.propertyMemberships.find((m) => m.propertyId === me.activePropertyId);
       return (
-        <section className="pms-card mx-auto max-w-[560px] p-5" aria-label="No access">
-          <h1 className="pms-section-title">No access to this screen</h1>
-          <p className="pms-helper mt-2">Your role at this property does not include the {required} permission.</p>
-          <button className="pms-btn-primary mt-4 px-4 py-2.5" type="button" onClick={() => go({ view: 'dashboard' })}>Back to dashboard</button>
-        </section>
+        <ForbiddenPage
+          permission={required}
+          userRole={activeMembership?.role.name}
+          propertyName={activeMembership?.property.name}
+          onGo={go}
+        />
       );
     }
     switch (view) {
@@ -105,6 +110,10 @@ function Shell() {
         return <Reservations initialQuery={target.query} focusId={target.focusId} go={go} />;
       case 'new-reservation':
         return <NewReservation go={go} />;
+      case 'rate-management':
+        return <RateManagement />;
+      case 'channel-manager':
+        return <ChannelManager />;
       case 'check-in':
         return <CheckIn initialQuery={target.query} />;
       case 'check-out':
@@ -147,15 +156,23 @@ function Shell() {
         return <Properties />;
       case 'settings':
         return <Settings onOpenThemes={() => setSwatcherOpen(true)} />;
+      default:
+        return <NotFoundPage onGo={go} />;
     }
-  }, [view, target.query, target.focusId, go, can]);
+  }, [view, target.query, target.focusId, go, can, me]);
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
       <a href="#pms-main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[70] focus:rounded-control focus:border focus:px-4 focus:py-2 focus:text-[13px] focus:font-semibold" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)', color: 'var(--color-ink)' }}>
         Skip to main content
       </a>
-      <Sidebar active={view} onNavigate={(v) => go({ view: v })} mobileOpen={navOpen} onClose={() => setNavOpen(false)} />
+      <Sidebar
+        active={view}
+        onNavigate={(v) => go({ view: v })}
+        mobileOpen={navOpen}
+        onClose={() => setNavOpen(false)}
+        onOpenThemes={() => setSwatcherOpen(true)}
+      />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header
           onMenu={() => setNavOpen(true)}

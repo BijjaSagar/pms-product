@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
-import { snapshotToasts, subscribeToasts } from './toastStore';
+import * as Lucide from 'lucide-react';
+import { dismissToast, snapshotToasts, subscribeToasts } from './toastStore';
 import type { ToastItem } from './toastStore';
 
 function useEsc(onClose: () => void) {
@@ -110,8 +111,8 @@ export function Modal({
             <h2 className="pms-section-title truncate">{title}</h2>
             {subtitle ? <p className="pms-helper mt-0.5 text-pretty">{subtitle}</p> : null}
           </div>
-          <button type="button" onClick={onClose} className="pms-btn-ghost min-h-[38px] min-w-[38px] flex-none px-2.5 py-1.5" aria-label="Close dialog">
-            ✕
+          <button type="button" onClick={onClose} className="pms-btn-ghost flex h-9 w-9 items-center justify-center rounded-lg p-0" aria-label="Close dialog">
+            <Lucide.X size={18} />
           </button>
         </div>
         <div className="overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
@@ -157,8 +158,8 @@ export function Drawer({
             <h2 className="pms-section-title truncate">{title}</h2>
             {subtitle ? <p className="pms-helper mt-0.5 text-pretty">{subtitle}</p> : null}
           </div>
-          <button type="button" onClick={onClose} className="pms-btn-ghost min-h-[38px] min-w-[38px] flex-none px-2.5 py-1.5" aria-label="Close panel">
-            ✕
+          <button type="button" onClick={onClose} className="pms-btn-ghost flex h-9 w-9 items-center justify-center rounded-lg p-0" aria-label="Close panel">
+            <Lucide.X size={18} />
           </button>
         </div>
         <div className="pms-safe-bottom flex-1 overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
@@ -223,29 +224,212 @@ export function ConfirmDialog({
   );
 }
 
-const TOAST_TONE: Record<ToastItem['tone'], string> = {
-  success: 'bg-success-bg text-success-text border-success-border',
-  info: 'bg-info-bg text-info-text border-info-border',
-  warning: 'bg-warning-bg text-warning-text border-warning-border',
-  danger: 'bg-danger-bg text-danger-text border-danger-border',
+export function PromptDialog({
+  open,
+  onClose,
+  onSubmit,
+  title,
+  subtitle,
+  label,
+  defaultValue = '',
+  placeholder = '',
+  confirmLabel = 'Submit',
+  danger = false,
+  inputType = 'text',
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (value: string) => void | Promise<unknown>;
+  title: string;
+  subtitle?: string;
+  label?: string;
+  defaultValue?: string;
+  placeholder?: string;
+  confirmLabel?: string;
+  danger?: boolean;
+  inputType?: 'text' | 'number' | 'date';
+}) {
+  const [val, setVal] = useState(defaultValue);
+  useEffect(() => {
+    if (open) setVal(defaultValue);
+  }, [open, defaultValue]);
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={title}
+      subtitle={subtitle}
+      footer={
+        <>
+          <button type="button" onClick={onClose} className="pms-btn-ghost px-4 py-2.5">
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              void onSubmit(val);
+              onClose();
+            }}
+            className={`${danger ? 'pms-btn-danger' : 'pms-btn-primary'} px-4 py-2.5`}
+          >
+            {confirmLabel}
+          </button>
+        </>
+      }
+    >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void onSubmit(val);
+          onClose();
+        }}
+        className="flex flex-col gap-2"
+      >
+        {label ? <span className="pms-label">{label}</span> : null}
+        <input
+          type={inputType}
+          autoFocus
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          placeholder={placeholder}
+          className="pms-input w-full min-h-[42px] px-3.5 py-2.5"
+        />
+      </form>
+    </Modal>
+  );
+}
+
+const TOAST_CONFIG: Record<
+  ToastItem['tone'],
+  {
+    icon: Lucide.LucideIcon;
+    accentColor: string;
+    bgTint: string;
+    borderColor: string;
+    badgeBg: string;
+    badgeText: string;
+  }
+> = {
+  success: {
+    icon: Lucide.CheckCircle2,
+    accentColor: '#10b981',
+    bgTint: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), transparent 70%)',
+    borderColor: 'color-mix(in srgb, #10b981 35%, var(--color-border))',
+    badgeBg: 'rgba(16, 185, 129, 0.14)',
+    badgeText: '#059669',
+  },
+  danger: {
+    icon: Lucide.XCircle,
+    accentColor: '#ef4444',
+    bgTint: 'linear-gradient(135deg, rgba(239, 68, 68, 0.08), transparent 70%)',
+    borderColor: 'color-mix(in srgb, #ef4444 35%, var(--color-border))',
+    badgeBg: 'rgba(239, 68, 68, 0.14)',
+    badgeText: '#dc2626',
+  },
+  warning: {
+    icon: Lucide.AlertTriangle,
+    accentColor: '#f59e0b',
+    bgTint: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), transparent 70%)',
+    borderColor: 'color-mix(in srgb, #f59e0b 35%, var(--color-border))',
+    badgeBg: 'rgba(245, 158, 11, 0.14)',
+    badgeText: '#d97706',
+  },
+  info: {
+    icon: Lucide.Info,
+    accentColor: '#0ea5e9',
+    bgTint: 'linear-gradient(135deg, rgba(14, 165, 233, 0.08), transparent 70%)',
+    borderColor: 'color-mix(in srgb, #0ea5e9 35%, var(--color-border))',
+    badgeBg: 'rgba(14, 165, 233, 0.14)',
+    badgeText: '#0284c7',
+  },
 };
 
 export function Toaster() {
   const [list, setList] = useState<ToastItem[]>(() => snapshotToasts());
   useEffect(() => subscribeToasts(setList), []);
+
   if (list.length === 0) return null;
+
   return (
-    <div className="pms-safe-bottom fixed bottom-4 left-1/2 z-[60] flex w-full max-w-[440px] -translate-x-1/2 flex-col gap-2 px-4" role="status" aria-live="polite">
-      {list.map((t) => (
-        <div
-          key={t.id}
-          className={`pms-overlay-enter rounded-[14px] border px-4 py-3 backdrop-blur ${TOAST_TONE[t.tone]}`}
-          style={{ boxShadow: 'var(--shadow-popover)' }}
-        >
-          <p className="text-[13px] font-bold">{t.title}</p>
-          {t.detail ? <p className="mt-0.5 text-[12.5px] leading-snug opacity-90">{t.detail}</p> : null}
-        </div>
-      ))}
+    <div
+      className="fixed top-4 sm:top-5 right-4 sm:right-5 z-[9999] flex w-[calc(100vw-32px)] sm:w-[400px] flex-col gap-2.5 pointer-events-none"
+      role="status"
+      aria-live="polite"
+    >
+      {list.map((t) => {
+        const cfg = TOAST_CONFIG[t.tone] ?? TOAST_CONFIG.info;
+        const Icon = cfg.icon;
+
+        return (
+          <div
+            key={t.id}
+            className="pms-overlay-enter group pointer-events-auto relative flex overflow-hidden rounded-2xl border shadow-xl backdrop-blur-md transition-all duration-200 hover:shadow-2xl"
+            style={{
+              background: `var(--color-surface), ${cfg.bgTint}`,
+              borderColor: cfg.borderColor,
+              boxShadow: `0 12px 32px -4px rgba(0,0,0,0.12), 0 0 0 1px ${cfg.borderColor}`,
+            }}
+          >
+            {/* Left Accent Bar */}
+            <div
+              className="w-1.5 flex-none"
+              style={{ background: cfg.accentColor }}
+            />
+
+            {/* Toast Content Area */}
+            <div className="flex flex-1 items-start gap-3 p-3.5 pr-2">
+              {/* Circular Icon Badge */}
+              <span
+                className="flex h-9 w-9 flex-none items-center justify-center rounded-xl shadow-xs"
+                style={{
+                  background: cfg.badgeBg,
+                  color: cfg.badgeText,
+                }}
+              >
+                <Icon size={18} strokeWidth={2.2} />
+              </span>
+
+              {/* Text Information */}
+              <div className="min-w-0 flex-1 pt-0.5">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-[13px] font-bold tracking-tight text-ink">
+                    {t.title}
+                  </p>
+                  <span
+                    className="inline-block h-1.5 w-1.5 rounded-full"
+                    style={{ background: cfg.accentColor }}
+                  />
+                </div>
+                {t.detail ? (
+                  <p className="mt-1 text-[12px] leading-relaxed text-ink-secondary">
+                    {t.detail}
+                  </p>
+                ) : null}
+              </div>
+
+              {/* Dismiss Button */}
+              <button
+                type="button"
+                onClick={() => dismissToast(t.id)}
+                aria-label="Dismiss notice"
+                className="flex h-7 w-7 flex-none items-center justify-center rounded-lg text-ink-muted hover:text-ink hover:bg-hover-surface transition-colors"
+              >
+                <Lucide.X size={14} />
+              </button>
+            </div>
+
+            {/* Countdown animation progress bar */}
+            <div
+              className="absolute bottom-0 left-1.5 right-0 h-[2px] opacity-40"
+              style={{
+                background: cfg.accentColor,
+                animation: 'pmsToastProgress 4500ms linear forwards',
+              }}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }

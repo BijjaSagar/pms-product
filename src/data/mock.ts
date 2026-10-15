@@ -87,6 +87,9 @@ export interface Room {
   rate: number;
   active?: boolean;
   oosReason?: string | null;
+  maxOccupancy?: number;
+  bedType?: string;
+  notes?: string;
 }
 
 export interface Guest {

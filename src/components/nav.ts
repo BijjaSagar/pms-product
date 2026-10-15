@@ -22,6 +22,8 @@ export type ViewId =
   | 'arrivals-departures'
   | 'staff-roles'
   | 'properties'
+  | 'rate-management'
+  | 'channel-manager'
   | 'settings';
 
 export interface NavItem {
@@ -68,6 +70,13 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'status-board', label: 'Status Board', hint: 'Compact live board' },
       { id: 'housekeeping', label: 'Housekeeping', hint: 'Tasks & upkeep' },
       { id: 'maintenance', label: 'Maintenance', hint: 'Requests & work orders' },
+    ],
+  },
+  {
+    title: 'Rates & Distribution',
+    items: [
+      { id: 'rate-management', label: 'Rate Management', hint: 'Rates, restrictions & seasonal' },
+      { id: 'channel-manager', label: 'Channel Manager', hint: 'OTAs & rate sync' },
     ],
   },
   {
@@ -119,6 +128,8 @@ export const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
   dashboard: 'dashboard.read',
   reservations: 'reservation.read',
   'new-reservation': 'reservation.create',
+  'rate-management': 'reservation.read',
+  'channel-manager': 'reservation.read',
   'check-in': 'stay.check-in',
   'check-out': 'stay.check-out',
   'in-house': 'reservation.read',

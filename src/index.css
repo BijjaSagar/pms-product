@@ -197,25 +197,33 @@ body {
     box-shadow: var(--shadow-lg);
   }
   .pms-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 40px;
+    padding: 0.5rem 1.125rem;
     background: var(--color-primary);
     color: var(--color-primary-foreground);
     border: 1px solid color-mix(in srgb, var(--color-primary-active) 55%, transparent);
     border-radius: var(--radius-control);
-    font-weight: 650;
-    font-size: 13px;
+    font-weight: 600;
+    font-size: 13.5px;
     letter-spacing: 0.01em;
-    box-shadow: none;
+    box-shadow: var(--shadow-xs);
+    cursor: pointer;
     transition:
       box-shadow var(--transition-base),
       transform var(--transition-fast),
       filter var(--transition-fast),
+      background-color var(--transition-fast),
       border-color var(--transition-fast);
   }
   .pms-btn-primary:hover {
     background: var(--color-primary-hover);
-    box-shadow: none;
+    box-shadow: var(--shadow-sm);
     transform: translateY(-1px);
-    filter: brightness(1.06) saturate(1.04);
+    filter: brightness(1.04);
   }
   .pms-btn-primary:active {
     background: var(--color-primary-active);
@@ -224,20 +232,27 @@ body {
     filter: brightness(0.96);
   }
   .pms-btn-primary:disabled {
-    opacity: 0.55;
+    opacity: 0.5;
     transform: none;
     box-shadow: none;
     cursor: not-allowed;
   }
   .pms-btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 40px;
+    padding: 0.5rem 1.125rem;
     background: var(--color-danger-text);
     color: #fff;
     border: 1px solid color-mix(in srgb, var(--color-danger-text) 72%, black);
     border-radius: var(--radius-control);
-    font-weight: 650;
-    font-size: 13px;
+    font-weight: 600;
+    font-size: 13.5px;
     letter-spacing: 0.01em;
-    box-shadow: none;
+    box-shadow: var(--shadow-xs);
+    cursor: pointer;
     transition:
       box-shadow var(--transition-base),
       transform var(--transition-fast),
@@ -246,51 +261,59 @@ body {
   .pms-btn-danger:hover {
     filter: brightness(1.06) saturate(1.04);
     transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
   }
   .pms-btn-danger:active {
     transform: translateY(0) scale(0.99);
     filter: brightness(0.96);
   }
   .pms-btn-danger:disabled {
-    opacity: 0.55;
+    opacity: 0.5;
     transform: none;
     cursor: not-allowed;
   }
   .pms-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 40px;
+    padding: 0.5rem 0.875rem;
     background: var(--color-surface);
     color: var(--color-ink-secondary);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-control);
-    font-weight: 550;
-    font-size: 13px;
-    box-shadow: none;
+    font-weight: 600;
+    font-size: 13.5px;
+    box-shadow: var(--shadow-xs);
+    cursor: pointer;
     transition:
       color var(--transition-fast),
       box-shadow var(--transition-base),
       transform var(--transition-fast),
       border-color var(--transition-fast),
-      filter var(--transition-fast);
+      background-color var(--transition-fast);
   }
   .pms-btn-ghost:hover {
-    background: var(--color-surface);
+    background: var(--color-hover-surface);
     color: var(--color-ink);
-    box-shadow: none;
+    box-shadow: var(--shadow-sm);
     border-color: color-mix(in srgb, var(--color-primary) 32%, var(--color-border));
     transform: translateY(-1px);
-    filter: brightness(0.985);
   }
   .pms-btn-ghost:active {
     transform: translateY(0);
     box-shadow: none;
-    filter: brightness(0.97);
   }
   .pms-input {
+    min-height: 40px;
+    padding: 0.5rem 0.875rem;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-control);
     color: var(--color-ink);
-    font-size: 14px;
-    box-shadow: var(--shadow-xs), var(--shadow-inner);
+    font-size: 13.5px;
+    box-shadow: var(--shadow-xs);
     transition:
       border-color var(--transition-fast),
       box-shadow var(--transition-fast),
@@ -686,3 +709,13 @@ li .rounded-control.border {
     display: none !important;
   }
 }
+
+@keyframes pmsToastProgress {
+  0% {
+    width: 100%;
+  }
+  100% {
+    width: 0%;
+  }
+}
+

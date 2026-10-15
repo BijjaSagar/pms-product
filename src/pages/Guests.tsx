@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { formatMoney } from '../data/mock';
+import * as Lucide from 'lucide-react';
 import type { BadgeTone } from '../components/status';
 import type { Guest } from '../data/mock';
 import { Avatar, Badge, Card, CardTitle } from '../components/ui';
@@ -13,6 +13,7 @@ import { guestApi } from '../lib/api/pms';
 import { guestFromApi } from '../lib/api/adapters';
 import { useApiResource } from '../lib/api/useApiResource';
 import { displayApiError } from '../lib/api/client';
+import { formatCurrency } from '../lib/api/format';
 
 const PAGE_SIZE = 6;
 
@@ -40,7 +41,7 @@ function GuestProfile({ g, onClose, go, onSave }: { g: Guest; onClose: () => voi
         <Badge tone={tierTone(g.tier)}>{g.tier}</Badge>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        {[[String(g.stays), 'Stays'], [g.spent > 0 ? `$${formatMoney(g.spent)}` : '—', 'Lifetime'], [g.balance > 0 ? `$${formatMoney(g.balance)}` : '—', 'Balance']].map(([v, k]) => (
+        {[[String(g.stays), 'Stays'], [g.spent > 0 ? formatCurrency(g.spent, 'INR') : '—', 'Lifetime'], [g.balance > 0 ? formatCurrency(g.balance, 'INR') : '—', 'Balance']].map(([v, k]) => (
           <div key={k} className="rounded-control border p-2.5" style={{ borderColor: 'var(--color-border)' }}>
             <p className="tnum text-[16px] font-semibold" style={{ color: 'var(--color-ink)' }}>{v}</p>
             <p className="pms-helper">{k}</p>
@@ -168,12 +169,44 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
   }
 
   return (
-    <Card>
-      <CardTitle
-        title="Guest directory"
-        subtitle={resource.loading ? 'Loading guest directory…' : `${filtered.length} of ${all.length} guests`}
-        action={<button type="button" onClick={() => setAdding(true)} className="pms-btn-primary px-3.5 py-2.5">+ Add guest</button>}
-      />
+    <div className="flex flex-col gap-5">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
+            <Lucide.Users className="text-primary" size={26} />
+            <span>Guest Profiles & Directory</span>
+          </h1>
+          <p className="mt-1 text-sm text-ink-secondary">
+            Guest history, VIP tiers, contact preferences, and stay profiles
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => resource.refresh()}
+            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border"
+            title="Refresh directory"
+          >
+            <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : ''} />
+            <span>Refresh</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setAdding(true)}
+            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-bold rounded-xl"
+          >
+            <Lucide.Plus size={16} strokeWidth={2.4} />
+            <span>Add Guest</span>
+          </button>
+        </div>
+      </div>
+
+      <Card>
+        <CardTitle
+          title="Guest Directory"
+          subtitle={resource.loading ? 'Loading guest directory…' : `${filtered.length} of ${all.length} guests`}
+        />
       {resource.error ? <p role="alert" className="pms-helper">Could not load guests: {resource.error}</p> : null}
       <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-4">
         <input value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} placeholder="Name, ID or phone…" aria-label="Search guests" className={inputClass()} />
@@ -208,7 +241,7 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
                 <td style={{ color: 'var(--color-ink-secondary)' }}>{g.company ?? '—'}</td>
                 <td><Badge tone={tierTone(g.tier)}>{g.tier}</Badge></td>
                 <td className="tnum text-right">{g.stays}</td>
-                <td className="tnum text-right font-semibold">{g.balance > 0 ? `$${formatMoney(g.balance)}` : '—'}</td>
+                <td className="tnum text-right font-semibold">{g.balance > 0 ? formatCurrency(g.balance, 'INR') : '—'}</td>
                 <td style={{ color: 'var(--color-ink-secondary)' }}>{g.lastVisit}</td>
                 <td><button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => setOpenId(g.id)} aria-label={`Open ${g.name}`}>Details</button></td>
               </tr>
@@ -229,5 +262,6 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
         </div>
       </Modal>
     </Card>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import * as Lucide from 'lucide-react';
 import { Avatar, Badge, Card, CardTitle } from '../components/ui';
 import type { BadgeTone } from '../components/status';
 import { Field } from '../components/controls';
@@ -91,7 +92,46 @@ export function Staff() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
+            <Lucide.ShieldCheck className="text-primary" size={26} />
+            <span>Staff & Access Roles</span>
+          </h1>
+          <p className="mt-1 text-sm text-ink-secondary">
+            Manage team members, property permissions, invitations, and role assignments
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => resource.refresh()}
+            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border"
+            title="Refresh staff"
+          >
+            <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : ''} />
+            <span>Refresh</span>
+          </button>
+          {can('user.invite') ? (
+            <button
+              type="button"
+              className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-bold rounded-xl"
+              onClick={() => {
+                setIsNew(true);
+                setEmail('');
+                setFullName('');
+                setRoleKey(roles[0]?.key ?? 'FRONT_DESK');
+              }}
+            >
+              <Lucide.UserPlus size={16} strokeWidth={2.4} />
+              <span>Invite Staff</span>
+            </button>
+          ) : null}
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
           ['Active staff', rows.filter((row) => row.status === 'ACTIVE' && row.membershipActive).length],
