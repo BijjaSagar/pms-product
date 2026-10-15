@@ -94,18 +94,10 @@ function NavIcon({ id }: { id: ViewId }) {
         </svg>
       );
     case 'payments':
-    case 'expenses':
       return (
         <svg viewBox="0 0 24 24" className={common} {...stroke} aria-hidden="true">
           <rect x="3" y="6" width="18" height="13" rx="2" />
           <path d="M3 10.5h18M7 15h4" />
-        </svg>
-      );
-    case 'rate-management':
-      return (
-        <svg viewBox="0 0 24 24" className={common} {...stroke} aria-hidden="true">
-          <path d="M4 17l4.5-4.5 3 3L18 9" />
-          <path d="M14 9h4v4" />
         </svg>
       );
     case 'staff-roles':
@@ -147,25 +139,25 @@ function NavButton({
       type="button"
       onClick={onSelect}
       aria-current={selected ? 'page' : undefined}
-      className="flex min-h-[40px] w-full items-center gap-2.5 rounded-[10px] px-3 py-2 text-left text-[13.5px]"
+      className="flex min-h-[40px] w-full items-center gap-2.5 rounded-control px-3 py-2 text-left text-[13.5px]"
       style={
         selected
           ? {
-              background: '#FFFFFF',
-              color: '#075985',
-              border: '1px solid rgb(255 255 255 / 0.35)',
-              boxShadow: 'var(--shadow-xs), inset 3px 0 0 #075985',
+              background: 'var(--color-sidebar-active-bg)',
+              color: 'var(--color-sidebar-active-ink)',
+              border: '1px solid color-mix(in srgb, var(--color-sidebar-active-ink) 22%, transparent)',
+              boxShadow: 'var(--shadow-xs), inset 3px 0 0 var(--color-sidebar-active-ink)',
               fontWeight: 650,
             }
           : {
               background: 'transparent',
-              color: 'rgb(255 255 255 / 0.85)',
+              color: 'var(--color-sidebar-ink)',
               border: '1px solid transparent',
               fontWeight: 500,
             }
       }
     >
-      <span className="flex-none" style={{ color: selected ? '#075985' : 'inherit' }}>
+      <span className="flex-none" style={{ color: selected ? 'var(--color-sidebar-active-ink)' : 'inherit' }}>
         <NavIcon id={id} />
       </span>
       <span className="min-w-0 flex-1 truncate">{label}</span>
@@ -207,19 +199,19 @@ export function Sidebar({
 
   const panel = (
     <div className="flex h-full flex-col" style={{ background: 'var(--color-sidebar)' }}>
-      <div className="flex items-center gap-3 border-b px-4 pb-4 pt-5" style={{ borderColor: 'rgb(255 255 255 / 0.22)' }}>
+      <div className="flex items-center gap-3 border-b px-4 pb-4 pt-5" style={{ borderColor: 'var(--color-sidebar-border)' }}>
         <span
           className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-[19px] font-bold"
-          style={{ background: 'var(--color-dark-accent)', color: '#fff', boxShadow: 'var(--shadow-sm)' }}
+          style={{ background: 'var(--color-dark-accent)', color: 'var(--color-sidebar-ink-strong)', boxShadow: 'var(--shadow-sm)' }}
           aria-hidden="true"
         >
           T
         </span>
         <div className="min-w-0">
-          <p className="font-brand truncate text-[18px] font-bold leading-none tracking-tight" style={{ color: '#FFFFFF' }}>
+          <p className="font-brand truncate text-[18px] font-bold leading-none tracking-tight" style={{ color: 'var(--color-sidebar-ink-strong)' }}>
             TriponX
           </p>
-          <p className="mt-1 text-[10.5px] font-semibold uppercase tracking-[0.14em]" style={{ color: 'rgb(255 255 255 / 0.75)' }}>
+          <p className="mt-1 text-[10.5px] font-semibold uppercase tracking-[0.14em]" style={{ color: 'var(--color-sidebar-ink-muted)' }}>
             Hotel PMS
           </p>
         </div>
@@ -250,7 +242,7 @@ export function Sidebar({
                   aria-expanded={open}
                   className="flex min-h-[32px] w-full items-center justify-between rounded-[8px] px-3 py-1.5 text-left text-[11px] font-bold uppercase tracking-[0.12em]"
                   style={{
-                    color: containsActive ? '#FFFFFF' : 'rgb(255 255 255 / 0.72)',
+                    color: containsActive ? 'var(--color-sidebar-ink-strong)' : 'var(--color-sidebar-ink-muted)',
                     background: 'transparent',
                   }}
                 >
@@ -290,15 +282,15 @@ export function Sidebar({
             type="button"
             aria-label="Close navigation"
             className="pms-overlay-backdrop absolute inset-0 h-full w-full"
-            style={{ background: 'rgb(20 14 10 / 0.45)' }}
+            style={{ background: 'var(--color-scrim)' }}
             onClick={onClose}
           />
           <aside
             className="pms-overlay-enter absolute left-0 top-0 h-full w-[86vw] max-w-[320px] overflow-hidden rounded-r-[16px] border-r"
             style={{ borderColor: 'var(--color-border)', boxShadow: 'var(--shadow-2xl)', background: 'var(--color-sidebar)' }}
           >
-            <div className="flex items-center justify-between border-b px-4 py-3 lg:hidden" style={{ borderColor: 'rgb(255 255 255 / 0.22)' }}>
-              <span className="text-[12px] font-bold uppercase tracking-[0.12em]" style={{ color: 'rgb(255 255 255 / 0.75)' }}>Menu</span>
+            <div className="flex items-center justify-between border-b px-4 py-3 lg:hidden" style={{ borderColor: 'var(--color-sidebar-border)' }}>
+              <span className="text-[12px] font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--color-sidebar-ink-muted)' }}>Menu</span>
               <button type="button" onClick={onClose} aria-label="Close navigation" className="pms-btn-ghost min-h-[38px] min-w-[38px] px-2.5 py-1.5">✕</button>
             </div>
             <div className="h-[calc(100%-53px)]">{panel}</div>
@@ -416,7 +408,7 @@ export function Header({
           </button>
           {panel === 'notices' ? (
             <div
-              className="pms-animate-pop absolute right-0 top-full z-40 mt-2 max-h-[70dvh] w-[min(340px,86vw)] overflow-y-auto rounded-[16px] border"
+              className="pms-animate-pop absolute right-0 top-full z-40 mt-2 max-h-[70dvh] w-[min(340px,86vw)] overflow-y-auto rounded-card border"
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)', boxShadow: 'var(--shadow-popover)' }}
               role="dialog"
               aria-label="Notifications"

@@ -43,8 +43,6 @@ const Maintenance = lazy(() => import('./pages/Maintenance').then((m) => ({ defa
 const Billing = lazy(() => import('./pages/Billing').then((m) => ({ default: m.Billing })));
 const Payments = lazy(() => import('./pages/Payments').then((m) => ({ default: m.Payments })));
 const Invoices = lazy(() => import('./pages/Invoices').then((m) => ({ default: m.Invoices })));
-const Expenses = lazy(() => import('./pages/Expenses').then((m) => ({ default: m.Expenses })));
-const Rates = lazy(() => import('./pages/Rates').then((m) => ({ default: m.Rates })));
 const Reports = lazy(() => import('./pages/Reports').then((m) => ({ default: m.Reports })));
 const OccupancyReport = lazy(() => import('./pages/OccupancyReport').then((m) => ({ default: m.OccupancyReport })));
 const RevenueReport = lazy(() => import('./pages/RevenueReport').then((m) => ({ default: m.RevenueReport })));
@@ -135,10 +133,6 @@ function Shell() {
         return <Payments />;
       case 'invoices':
         return <Invoices />;
-      case 'expenses':
-        return <Expenses />;
-      case 'rate-management':
-        return <Rates />;
       case 'reports':
         return <Reports go={go} />;
       case 'occupancy-report':
@@ -158,7 +152,7 @@ function Shell() {
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
-      <a href="#pms-main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[70] focus:rounded-[10px] focus:border focus:px-4 focus:py-2 focus:text-[13px] focus:font-semibold" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)', color: 'var(--color-ink)' }}>
+      <a href="#pms-main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[70] focus:rounded-control focus:border focus:px-4 focus:py-2 focus:text-[13px] focus:font-semibold" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)', color: 'var(--color-ink)' }}>
         Skip to main content
       </a>
       <Sidebar active={view} onNavigate={(v) => go({ view: v })} mobileOpen={navOpen} onClose={() => setNavOpen(false)} />

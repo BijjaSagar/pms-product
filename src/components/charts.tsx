@@ -103,7 +103,7 @@ export function DonutChart({
         {slices.map((s) => (
           <li
             key={s.label}
-            className="flex items-center justify-between gap-2 rounded-[10px] border px-2.5 py-2 text-[12.5px]"
+            className="flex items-center justify-between gap-2 rounded-control border px-2.5 py-2 text-[12.5px]"
             style={{ borderColor: 'var(--color-divider)', background: 'color-mix(in srgb, var(--color-muted-surface) 42%, transparent)', boxShadow: 'var(--shadow-xs)' }}
           >
             <span className="flex min-w-0 items-center gap-2" style={{ color: 'var(--color-ink-secondary)' }}>

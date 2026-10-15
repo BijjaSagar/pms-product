@@ -157,7 +157,7 @@ export function Maintenance() {
             <p style={{ color: 'var(--color-ink)' }}>{open.description}</p>
             <dl className="grid grid-cols-2 gap-2">
               {[['Room / facility', open.room], ['Reported by', open.reportedBy], ['Created', open.created], ['Due', open.due]].map(([k, v]) => (
-                <div key={k} className="rounded-[10px] border p-2.5" style={{ borderColor: 'var(--color-border)' }}>
+                <div key={k} className="rounded-control border p-2.5" style={{ borderColor: 'var(--color-border)' }}>
                   <dt className="pms-helper">{k}</dt>
                   <dd className="font-semibold" style={{ color: 'var(--color-ink)' }}>{v}</dd>
                 </div>

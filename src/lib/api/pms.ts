@@ -41,6 +41,7 @@ export interface RoomTypeRow {
 export interface RoomRow {
   id: string; roomNumber: string; roomTypeId: string; roomTypeCode?: string | null; roomTypeName?: string | null;
   floor?: string | null; status: string; isActive: boolean; notes?: string | null; wing?: string | null; baseRate?: string;
+  outOfOrderReason?: string | null;
 }
 export interface GuestRow {
   id: string; firstName: string; lastName: string; email: string | null; phone: string | null;
@@ -144,6 +145,29 @@ export const authApi = {
   switchProperty: (propertyId: string) => api.post<void>('/auth/switch-property', { propertyId }),
 };
 
+export interface HoldResult {
+  holdId: string;
+  roomId: string;
+  nights: string[];
+  expiresAt: string;
+  /** Milliseconds until the hold lapses, from server time. */
+  remainingMs: number;
+}
+
+/**
+ * Selection-time room holds.
+ *
+ * Acquiring a hold the moment a room is picked is what stops a second user from
+ * choosing — and then losing — the same room-night. The hold expires on its own
+ * after ten minutes and is consumed by the reservation that uses it.
+ */
+export const holdApi = {
+  acquire: (roomId: string, checkIn: string, checkOut: string) =>
+    api.post<HoldResult>('/availability/hold', { roomId, checkIn, checkOut }),
+  refresh: (holdId: string) => api.post<HoldResult>(`/availability/holds/${holdId}/refresh`),
+  release: (holdId: string) => api.del<void>(`/availability/holds/${holdId}`),
+};
+
 export const propertyApi = {
   list: () => api.get<PropertyRow[]>('/properties'),
   update: (id: string, body: Record<string, unknown>) => api.patch(`/properties/${id}`, body),
@@ -222,6 +246,7 @@ export const operationsApi = {
   requestInspection: (id: string) => api.post(`/housekeeping/tasks/${id}/request-inspection`),
   inspectTask: (id: string, result: 'pass' | 'fail', notes?: string) => api.post(`/housekeeping/tasks/${id}/inspect`, { result, notes }),
   blockTask: (id: string, reason: string) => api.post(`/housekeeping/tasks/${id}/block`, { reason }),
+  unblockTask: (id: string) => api.post(`/housekeeping/tasks/${id}/unblock`),
   cancelTask: (id: string, reason: string) => api.post(`/housekeeping/tasks/${id}/cancel`, { reason }),
   maintenanceTickets: () => api.get<MaintenanceTicketRow[]>('/maintenance/tickets'),
   createTicket: (body: Record<string, unknown>) => api.post<{ id: string; ticketNo: string; status: string }>('/maintenance/tickets', body),

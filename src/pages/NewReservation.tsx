@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Badge, Card, CardTitle } from '../components/ui';
 import { Field } from '../components/controls';
 import { inputClass } from '../components/inputClass';
@@ -6,10 +6,11 @@ import { ConfirmDialog } from '../components/overlays';
 import { toast } from '../components/toastStore';
 import { roomTone } from '../components/status';
 import type { NavTarget } from '../components/nav';
-import { frontDeskApi, guestApi, inventoryApi, reservationApi } from '../lib/api/pms';
+import { frontDeskApi, guestApi, holdApi, inventoryApi, reservationApi } from '../lib/api/pms';
 import { guestFromApi, roomFromApi, roomTypeFromApi } from '../lib/api/adapters';
 import { useApiResource } from '../lib/api/useApiResource';
-import { displayApiError } from '../lib/api/client';
+import { useAvailabilityStream } from '../lib/api/availabilityStream';
+import { displayApiError, newIdempotencyKey } from '../lib/api/client';
 import { formatCurrency } from '../lib/api/format';
 import { useAuth } from '../features/auth/AuthContext';
 
@@ -26,6 +27,20 @@ const addNights = (day: string, nights: number) => {
   date.setUTCDate(date.getUTCDate() + nights);
   return date.toISOString().slice(0, 10);
 };
+
+/** The active selection-time hold on the picked room. */
+interface HoldState {
+  holdId: string;
+  roomId: string;
+  expiresAt: string;
+  /** Stable across retries of one booking so a double-submit cannot duplicate. */
+  idempotencyKey: string;
+}
+
+function formatHoldCountdown(ms: number): string {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+}
 
 export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
   const { me } = useAuth();
@@ -79,6 +94,11 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
   const [confirming, setConfirming] = useState(false);
   const [done, setDone] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // The selection-time hold on the picked room; converted by the reservation
+  // that uses it, or released when the user changes their mind.
+  const [hold, setHold] = useState<HoldState | null>(null);
+  const holdRef = useRef<HoldState | null>(null);
+  const [refreshTick, setRefreshTick] = useState(0);
 
   const roomTypes = useMemo(() => choices.data?.roomTypes ?? [], [choices.data?.roomTypes]);
   const guests = useMemo(() => choices.data?.guests ?? [], [choices.data?.guests]);
@@ -98,9 +118,48 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
   const loadAvailability = useCallback(() => roomTypeId && checkOut > checkIn
     ? inventoryApi.availability(checkIn, checkOut, roomTypeId)
     : Promise.resolve(null), [roomTypeId, checkIn, checkOut]);
-  const availabilityResource = useApiResource(loadAvailability, [roomTypeId, checkIn, checkOut]);
+  const availabilityResource = useApiResource(loadAvailability, [roomTypeId, checkIn, checkOut, refreshTick]);
   const availabilityResult = availabilityResource.data;
   const availabilityError = availabilityResource.error;
+
+  // Live availability: when another user holds or books a room, refresh the
+  // picker so the room drops out immediately rather than at submit time.
+  useAvailabilityStream((event) => {
+    if (event.type === 'ping') return;
+    if (event.userId && event.userId === me?.user.id) return;
+    setRefreshTick((t) => t + 1);
+  });
+
+  useEffect(() => { holdRef.current = hold; }, [hold]);
+
+  // Countdown for the active hold. A ticking clock keeps the remaining time out
+  // of render-time impurity and drives the expiring/expired states.
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNowMs(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const holdRemainingMs = hold ? new Date(hold.expiresAt).getTime() - nowMs : 0;
+  const holdExpired = hold !== null && holdRemainingMs <= 0;
+
+  // Release any hold when the page is left.
+  useEffect(() => () => {
+    const current = holdRef.current;
+    if (current) void holdApi.release(current.holdId).catch(() => undefined);
+  }, []);
+
+  const releaseHold = useCallback(async () => {
+    const current = holdRef.current;
+    if (!current) return;
+    holdRef.current = null;
+    setHold(null);
+    await holdApi.release(current.holdId).catch(() => undefined);
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedRooms([]);
+    void releaseHold();
+  }, [releaseHold]);
   const nights = useMemo(() => {
     const ms = new Date(checkOut).getTime() - new Date(checkIn).getTime();
     return Number.isFinite(ms) ? Math.max(0, Math.round(ms / 86400000)) : 0;
@@ -146,11 +205,31 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
     return [...groups.entries()].sort(([a], [b]) => a - b);
   }, [availableRoomList]);
   const toggleRoom = (no: string) => {
-    setSelectedRooms((prev) => {
-      if (prev.includes(no)) return prev.filter((x) => x !== no);
-      if (prev.length >= rooms) return prev;
-      return [...prev, no];
-    });
+    // One room per reservation: picking a new room replaces the current pick.
+    const next = selectedRooms.includes(no) ? [] : [no];
+    setSelectedRooms(next);
+    void (async () => {
+      await releaseHold();
+      if (next.length === 0) return;
+      const room = availableRoomList.find((r) => r.number === next[0]);
+      if (!room?.backendId) return;
+      try {
+        const acquired = await holdApi.acquire(room.backendId, checkIn, checkOut);
+        const held: HoldState = {
+          holdId: acquired.holdId,
+          roomId: acquired.roomId,
+          expiresAt: acquired.expiresAt,
+          idempotencyKey: newIdempotencyKey('reservation'),
+        };
+        holdRef.current = held;
+        setHold(held);
+      } catch (error) {
+        // Someone else got there first; refresh and let them pick again.
+        toast('Room just taken', { detail: displayApiError(error), tone: 'danger' });
+        setSelectedRooms([]);
+        setRefreshTick((t) => t + 1);
+      }
+    })();
   };
 
   const validate = () => {
@@ -170,6 +249,7 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
     if (availability <= 0) errs.push(availabilityError || 'No rooms are available for these dates.');
     if (selectedRooms.length !== 1) errs.push('Select one physical room that is available for this stay.');
     else if (!availableRoomList.some((room) => selectedRooms.includes(room.number))) errs.push('The selected room is no longer available for these dates. Pick another room.');
+    if (holdExpired) errs.push('Your hold expired. Select the room again to re-hold it.');
     if (deposit < 0 || deposit > total) errs.push('Deposit must be between $0 and the displayed estimate.');
     setErrors(errs);
     return errs.length === 0;
@@ -179,6 +259,10 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
 
   const createReservation = async () => {
     if (!type?.id) return;
+    if (!hold || holdExpired) {
+      setErrors(['Your hold expired. Select the room again to re-hold it.']);
+      return;
+    }
     if (effectiveGuestChoice === 'existing' && !selectedGuestId) {
       setErrors(['No guest is selected. Add a guest first or switch to New guest.']);
       return;
@@ -202,7 +286,12 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
         roomId: physicalRoom.backendId,
         source: ({ 'Walk-in': 'WALK_IN', OTA: 'OTA', Corporate: 'CORPORATE' } as Record<string, string>)[source] ?? 'DIRECT',
         specialRequests: requests,
+        holdId: hold.holdId,
+        idempotencyKey: hold.idempotencyKey,
       });
+      // The backend consumed the hold with the booking; drop it locally.
+      holdRef.current = null;
+      setHold(null);
       setDone(created.bookingCode ?? created.id);
       setConfirming(false);
       toast('Reservation created', { detail: `${created.bookingCode ?? 'Booking'} confirmed and inventory allocated.`, tone: 'success' });
@@ -266,8 +355,8 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
         <Card>
           <CardTitle title="Stay" subtitle="Dates, party and room choice" />
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Field label="Check-in"><input type="date" value={checkIn} onChange={(e) => { setCheckInOverride(e.target.value); setSelectedRooms([]); }} className={inputClass('tnum')} /></Field>
-            <Field label="Check-out"><input type="date" value={checkOut} onChange={(e) => { setCheckOutOverride(e.target.value); setSelectedRooms([]); }} className={inputClass('tnum')} /></Field>
+            <Field label="Check-in"><input type="date" value={checkIn} onChange={(e) => { setCheckInOverride(e.target.value); clearSelection(); }} className={inputClass('tnum')} /></Field>
+            <Field label="Check-out"><input type="date" value={checkOut} onChange={(e) => { setCheckOutOverride(e.target.value); clearSelection(); }} className={inputClass('tnum')} /></Field>
             <Field label="Adults"><input type="number" min={1} max={8} value={adults} onChange={(e) => setAdults(Number(e.target.value))} className={inputClass('tnum')} /></Field>
             <Field label="Children"><input type="number" min={0} max={6} value={children} onChange={(e) => setChildren(Number(e.target.value))} className={inputClass('tnum')} /></Field>
             <Field label="Room type">
@@ -275,7 +364,7 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
                 value={roomTypeId}
                 onChange={(e) => {
                   setSelectedRoomTypeId(e.target.value);
-                  setSelectedRooms([]);
+                  clearSelection();
                 }}
                 className={inputClass()}
               >
@@ -305,7 +394,7 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
               <input type="number" min={0} value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className={inputClass('tnum')} />
             </Field>
           </div>
-          <div className="mt-3 rounded-[10px] border p-3 text-[13px]" style={{ borderColor: 'var(--color-border)', background: availability > 0 ? 'var(--color-success-bg)' : 'var(--color-danger-bg)' }}>
+          <div className="mt-3 rounded-control border p-3 text-[13px]" style={{ borderColor: 'var(--color-border)', background: availability > 0 ? 'var(--color-success-bg)' : 'var(--color-danger-bg)' }}>
             <span className="font-semibold" style={{ color: availability > 0 ? 'var(--color-success-text)' : 'var(--color-danger-text)' }}>
               {availability > 0 ? `${availability} ${roomType} rooms available` : `No ${roomType} rooms left`} for {nights} night{nights === 1 ? '' : 's'}
             </span>
@@ -315,8 +404,18 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
           <div className="mt-4">
             <p className="pms-label mb-1">Choose rooms — mini blueprint</p>
             <p className="pms-helper mb-2">
-              {selectedRooms.length} of {rooms} picked{selectedRooms.length > 0 ? `: ${selectedRooms.join(', ')}` : ''} · rooms shown are available for these dates.
+              {selectedRooms.length} of {rooms} picked{selectedRooms.length > 0 ? `: ${selectedRooms.join(', ')}` : ''} · rooms shown are available for these dates.{hold && !holdExpired ? ` Held for you: ${formatHoldCountdown(holdRemainingMs)} left.` : ''}
             </p>
+            {hold && !holdExpired && holdRemainingMs < 120_000 ? (
+              <p className="pms-helper mb-2 font-semibold" role="alert" style={{ color: 'var(--color-warning-text)' }}>
+                Hold expiring in {formatHoldCountdown(holdRemainingMs)} — finish soon or the room will be released.
+              </p>
+            ) : null}
+            {holdExpired ? (
+              <p className="pms-helper mb-2 font-semibold" role="alert" style={{ color: 'var(--color-danger-text)' }}>
+                Your hold expired. Select the room again to continue.
+              </p>
+            ) : null}
             <div className="mb-2 flex flex-wrap gap-1.5" aria-label="Room status legend">
               {['Available', 'Inspected', 'Occupied', 'Dirty', 'Cleaning', 'Out-of-service'].map((s) => (
                 <Badge key={s} tone={roomTone(s as never)}>{s}</Badge>
@@ -326,7 +425,7 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
               {floorGroups.length === 0 ? <p className="pms-helper">No available rooms for this room type and date range.</p> : null}
               {floorGroups.map(([floor, floorRooms]) => {
                 return (
-                  <div key={floor} className="rounded-[10px] border p-2.5" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}>
+                  <div key={floor} className="rounded-control border p-2.5" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}>
                     <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em]" style={{ color: 'var(--color-ink-secondary)' }}>
                       {floor === 0 ? 'Floor unassigned' : `Floor ${floor}`} · {floorRooms.length} rooms available
                     </p>
@@ -343,7 +442,7 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
                             aria-pressed={picked}
                             title={`Room ${r.number} · ${r.type} · ${r.status}`}
                             onClick={() => toggleRoom(r.number)}
-                            className="min-w-0 rounded-[10px] border p-2 text-center transition-all duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                            className="min-w-0 rounded-control border p-2 text-center transition-all duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                             style={{
                               borderColor: picked ? 'var(--color-primary)' : oos ? 'var(--color-danger-border)' : 'var(--color-border)',
                               background: picked ? 'var(--color-primary)' : oos ? 'var(--color-danger-bg)' : pickable ? 'var(--color-surface)' : 'var(--color-muted-surface)',
@@ -368,7 +467,7 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
               })}
             </div>
             {selectedRooms.length > 0 ? (
-              <button type="button" onClick={() => setSelectedRooms([])} className="pms-btn-ghost mt-2 px-3 py-1.5">
+              <button type="button" onClick={clearSelection} className="pms-btn-ghost mt-2 px-3 py-1.5">
                 Clear picked rooms
               </button>
             ) : null}
@@ -443,7 +542,7 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
             </li>
           </ul>
           {errors.length > 0 ? (
-            <ul className="mt-3 rounded-[10px] border p-3 text-[12.5px] font-medium" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)', color: 'var(--color-danger-text)' }} role="alert">
+            <ul className="mt-3 rounded-control border p-3 text-[12.5px] font-medium" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)', color: 'var(--color-danger-text)' }} role="alert">
               {errors.map((e) => <li key={e}>• {e}</li>)}
             </ul>
           ) : null}

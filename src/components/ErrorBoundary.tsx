@@ -45,7 +45,7 @@ export class ErrorBoundary extends Component<BoundaryProps, BoundaryState> {
 export function PanelCrashFallback({ reset, onClose }: { reset: () => void; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50" role="alertdialog" aria-modal="true" aria-label="Appearance panel failed">
-      <div className="absolute inset-0" style={{ background: 'rgb(0 0 0 / 0.4)' }} />
+      <div className="absolute inset-0" style={{ background: 'var(--color-scrim)' }} />
       <aside
         className="absolute right-0 top-0 flex h-full w-full max-w-[440px] flex-col border-l p-5"
         style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}

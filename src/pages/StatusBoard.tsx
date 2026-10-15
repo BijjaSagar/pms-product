@@ -3,11 +3,10 @@ import { roomTone } from '../components/status';
 import { loadRoomInventory } from '../lib/api/loaders';
 import { useApiResource } from '../lib/api/useApiResource';
 
-const FLOORS = [1, 2, 3, 4, 5];
-
 export function StatusBoard() {
   const resource = useApiResource(() => loadRoomInventory());
-  const rooms = resource.data?.rooms ?? [];
+  const rooms = (resource.data?.rooms ?? []).filter((r) => r.active !== false);
+  const floors = Array.from(new Set(rooms.map((r) => r.floor))).sort((a, b) => a - b);
   return (
     <div className="flex flex-col gap-4 sm:gap-5">
       <Card elevated>
@@ -19,12 +18,11 @@ export function StatusBoard() {
           ))}
         </div>
       </Card>
-      {FLOORS.map((f) => {
+      {floors.map((f) => {
         const floorRooms = rooms.filter((r) => r.floor === f);
-        if (floorRooms.length === 0) return null;
         return (
           <Card key={f}>
-            <CardTitle title={`Floor ${f}`} subtitle={`${floorRooms.length} rooms`} />
+            <CardTitle title={f === 0 ? 'Unassigned floor' : `Floor ${f}`} subtitle={`${floorRooms.length} rooms`} />
             <div className="grid grid-cols-2 gap-2 xs:grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 2xl:grid-cols-8">
               {floorRooms.map((r) => {
                 const oos = r.status === 'Out-of-service';

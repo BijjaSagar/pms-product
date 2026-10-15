@@ -16,8 +16,6 @@ export type ViewId =
   | 'folios'
   | 'payments'
   | 'invoices'
-  | 'expenses'
-  | 'rate-management'
   | 'reports'
   | 'occupancy-report'
   | 'revenue-report'
@@ -78,8 +76,6 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'folios', label: 'Folios & Billing', hint: 'Guest folios' },
       { id: 'payments', label: 'Payments', hint: 'Ledger & receipts' },
       { id: 'invoices', label: 'Invoices', hint: 'Bills & previews' },
-      { id: 'expenses', label: 'Expenses', hint: 'Property spend' },
-      { id: 'rate-management', label: 'Rate Management', hint: 'Plans & calendar' },
     ],
   },
   {
@@ -118,11 +114,6 @@ export function labelOf(view: ViewId): string {
  * Permission that gates each view. The backend API is the real enforcement
  * boundary; this only decides what the shell shows. A view with no entry is
  * visible to every authenticated user.
- *
- * `expenses` and `rate-management` have no backend permission family yet, so
- * they borrow the nearest read gate: spend visibility follows payment read
- * access, pricing visibility follows reservation read access. Both screens are
- * local demos with no backend effect.
  */
 export const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
   dashboard: 'dashboard.read',
@@ -142,8 +133,6 @@ export const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
   folios: 'folio.read',
   payments: 'payment.read',
   invoices: 'invoice.read',
-  expenses: 'payment.read',
-  'rate-management': 'reservation.read',
   reports: 'report.read.operations',
   'occupancy-report': 'report.read.operations',
   'revenue-report': 'report.read.financial',

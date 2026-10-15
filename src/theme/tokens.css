@@ -51,6 +51,40 @@
   --color-neutral-bg: #edecea;
   --color-neutral-text: #4a5450;
   --color-neutral-border: #d5d8d5;
+
+  /* Fallback palette (Midnight Navy). Every preset below overrides these, so a
+     missing or unknown `data-preset` still renders a themed UI rather than one
+     with undefined colours. */
+  --color-primary: #1d4ed8;
+  --color-primary-hover: #1e40af;
+  --color-primary-active: #1e3a8a;
+  --color-primary-foreground: #ffffff;
+  --color-dark-accent: #12304a;
+  --color-soft: #60a5fa;
+  --color-page: #f8fafc;
+  --color-sidebar: #12304a;
+  --color-surface: #ffffff;
+  --color-elevated: #ffffff;
+  --color-hover-surface: #e8f0fe;
+  --color-muted-surface: #dbeafe;
+  --color-ink: #12304a;
+  --color-ink-secondary: #3e5a78;
+  --color-ink-muted: #7a93af;
+  --color-ink-disabled: #b4c6d9;
+  --color-border: #cbddf0;
+  --color-divider: #e4edf5;
+  --color-focus: #1d4ed8;
+  --color-selection: rgb(29 78 216 / 0.18);
+
+  /* Sidebar contrast + scrim, derived from the palette so navigation and every
+     overlay follow the active preset instead of a hardcoded colour. */
+  --color-sidebar-ink: rgb(255 255 255 / 0.85);
+  --color-sidebar-ink-strong: #ffffff;
+  --color-sidebar-ink-muted: rgb(255 255 255 / 0.72);
+  --color-sidebar-border: rgb(255 255 255 / 0.22);
+  --color-sidebar-active-bg: var(--color-surface);
+  --color-sidebar-active-ink: var(--color-dark-accent);
+  --color-scrim: rgb(20 14 10 / 0.45);
 }
 
 /* ================= Theme A — Sky Blue & White ================= */

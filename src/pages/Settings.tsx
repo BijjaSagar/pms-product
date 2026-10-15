@@ -197,7 +197,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                 aria-checked={preset === p.id}
                 title={p.name}
                 onClick={() => setPreset(p.id)}
-                className="min-w-0 rounded-[10px] border p-2"
+                className="min-w-0 rounded-control border p-2"
                 style={{
                   borderColor: preset === p.id ? 'var(--color-primary)' : 'var(--color-border)',
                   background: preset === p.id ? 'var(--color-hover-surface)' : 'var(--color-surface)',

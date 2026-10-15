@@ -102,7 +102,7 @@ export function CheckOut() {
                 type="button"
                 onClick={() => { setFolioId(f.id); setPayNow(folioBalance(f)); }}
                 aria-pressed={folioId === f.id}
-                className="flex w-full items-center gap-3 rounded-[10px] border p-3 text-left"
+                className="flex w-full items-center gap-3 rounded-control border p-3 text-left"
                 style={{ borderColor: folioId === f.id ? 'var(--color-primary)' : 'var(--color-border)', background: folioId === f.id ? 'var(--color-hover-surface)' : 'var(--color-surface)' }}
               >
                 <Avatar name={f.guest} />
@@ -117,7 +117,7 @@ export function CheckOut() {
           {list.length === 0 ? <p className="pms-helper py-4 text-center">No open folios match.</p> : null}
         </ul>
         {doneList.length > 0 ? (
-          <div className="mt-3 rounded-[10px] border p-3" style={{ borderColor: 'var(--color-success-border)', background: 'var(--color-success-bg)' }}>
+          <div className="mt-3 rounded-control border p-3" style={{ borderColor: 'var(--color-success-border)', background: 'var(--color-success-bg)' }}>
             <p className="text-[12.5px] font-semibold" style={{ color: 'var(--color-success-text)' }}>Completed this session (demo)</p>
             <ul className="mt-1 flex flex-col gap-1 text-[12px]" style={{ color: 'var(--color-success-text)' }}>
               {doneList.map((d) => <li key={d}>✓ {d}</li>)}

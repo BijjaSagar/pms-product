@@ -37,7 +37,7 @@ export function ArrivalsReport() {
             <p className="pms-label mb-2">Arrivals ({arrivals.length})</p>
             <ul className="flex flex-col gap-2">
               {arrivals.length === 0 ? <p className="pms-helper">No arrivals for this date.</p> : arrivals.map((row) => (
-                <li key={`${row.bookingCode}-arrival`} className="flex items-center gap-3 rounded-[10px] border p-3" style={{ borderColor: 'var(--color-border)' }}>
+                <li key={`${row.bookingCode}-arrival`} className="flex items-center gap-3 rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}>
                   <Avatar name={row.guestName ?? 'Guest'} />
                   <span className="min-w-0 flex-1"><span className="block truncate text-[13.5px] font-semibold">{row.guestName ?? 'Guest'}</span><span className="tnum block text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{row.bookingCode} · Room {row.roomNumber ?? 'unassigned'} · {row.nights}n</span></span>
                   <Badge tone={reservationTone(apiReservationStatus(row.status))}>{apiReservationStatus(row.status)}</Badge>
@@ -49,7 +49,7 @@ export function ArrivalsReport() {
             <p className="pms-label mb-2">Departures ({departures.length})</p>
             <ul className="flex flex-col gap-2">
               {departures.length === 0 ? <p className="pms-helper">No departures for this date.</p> : departures.map((row) => (
-                <li key={`${row.bookingCode}-departure`} className="flex items-center gap-3 rounded-[10px] border p-3" style={{ borderColor: 'var(--color-border)' }}>
+                <li key={`${row.bookingCode}-departure`} className="flex items-center gap-3 rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}>
                   <Avatar name={row.guestName ?? 'Guest'} />
                   <span className="min-w-0 flex-1"><span className="block truncate text-[13.5px] font-semibold">{row.guestName ?? 'Guest'}</span><span className="tnum block text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{row.bookingCode} · Room {row.roomNumber ?? 'unassigned'}</span></span>
                   <Badge tone={reservationTone(apiReservationStatus(row.status))}>{apiReservationStatus(row.status)}</Badge>

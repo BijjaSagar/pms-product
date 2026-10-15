@@ -15,7 +15,7 @@ import { displayApiError } from '../lib/api/client';
 import { formatCurrency } from '../lib/api/format';
 import { useAuth } from '../features/auth/AuthContext';
 
-const STATUS_FILTERS: ('All' | RoomStatus)[] = ['All', 'Available', 'Occupied', 'Dirty', 'Cleaning', 'Inspected', 'Out-of-service'];
+const STATUS_FILTERS: ('All' | RoomStatus)[] = ['All', 'Available', 'Occupied', 'Dirty', 'Inspected', 'Out-of-service'];
 
 function hkTone(hk: HkStatus): BadgeTone {
   if (hk === 'Clean') return 'success';
@@ -38,7 +38,7 @@ function RoomDetail({ room, hkHistory, mxHistory, currencyCode, onStatus }: { ro
         </span>
       </div>
       {room.guest ? (
-        <div className="flex items-center gap-3 rounded-[10px] border p-3" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="flex items-center gap-3 rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}>
           <Avatar name={room.guest} />
           <div>
             <p className="text-[13.5px] font-semibold" style={{ color: 'var(--color-ink)' }}>{room.guest}</p>
@@ -76,6 +76,7 @@ function RoomDetail({ room, hkHistory, mxHistory, currencyCode, onStatus }: { ro
       </div>
       <div>
         <p className="pms-label mb-2">Room service status</p>
+        {room.status === 'Out-of-service' ? <p className="pms-helper mb-2">Reason: {room.oosReason || 'no reason recorded'}</p> : null}
         <p className="pms-helper mb-2">Cleanliness status is changed by housekeeping workflows. Out-of-order changes require a reason.</p>
         <div className="flex flex-wrap gap-1.5">
           {room.status !== 'Out-of-service' && room.status !== 'Occupied' ? <button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => onStatus(room, 'Out-of-service')}>Take out of order</button> : null}
@@ -98,7 +99,7 @@ export function Rooms({ initialQuery = '', focusId }: { initialQuery?: string; f
     };
   }, []);
   const resource = useApiResource(loadData);
-  const all = useMemo(() => resource.data?.rooms ?? [], [resource.data?.rooms]);
+  const all = useMemo(() => (resource.data?.rooms ?? []).filter((r) => r.active !== false), [resource.data?.rooms]);
   const [q, setQ] = useState(initialQuery);
   const [status, setStatus] = useState<(typeof STATUS_FILTERS)[number]>('All');
   const [type, setType] = useState('All');
@@ -109,6 +110,10 @@ export function Rooms({ initialQuery = '', focusId }: { initialQuery?: string; f
   const hkTasks = useMemo(() => resource.data?.tasks ?? [], [resource.data?.tasks]);
   const mxTickets = useMemo(() => resource.data?.tickets ?? [], [resource.data?.tickets]);
   const types = useMemo(() => ['All', ...Array.from(new Set(all.map((r) => r.type)))], [all]);
+  const floorOptions = useMemo(
+    () => ['All', ...Array.from(new Set(all.map((r) => r.floor))).sort((a, b) => a - b).map(String)],
+    [all],
+  );
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return all.filter(
@@ -144,7 +149,7 @@ export function Rooms({ initialQuery = '', focusId }: { initialQuery?: string; f
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Room number or guest…" aria-label="Search rooms" className={inputClass()} />
           <select value={type} onChange={(e) => setType(e.target.value)} aria-label="Filter by room type" className={inputClass()}>{types.map((t) => <option key={t}>{t}</option>)}</select>
           <select value={floor} onChange={(e) => setFloor(e.target.value)} aria-label="Filter by floor" className={inputClass()}>
-            {['All', '1', '2', '3', '4', '5'].map((f) => <option key={f} value={f}>{f === 'All' ? 'All floors' : `Floor ${f}`}</option>)}
+            {floorOptions.map((f) => <option key={f} value={f}>{f === 'All' ? 'All floors' : f === '0' ? 'Unassigned floor' : `Floor ${f}`}</option>)}
           </select>
           <select value={hk} onChange={(e) => setHk(e.target.value)} aria-label="Filter by housekeeping status" className={inputClass()}>
             {['All', 'Clean', 'Dirty', 'Cleaning', 'Inspected'].map((h) => <option key={h} value={h}>{h === 'All' ? 'All housekeeping' : `HK: ${h}`}</option>)}
@@ -170,13 +175,11 @@ export function Rooms({ initialQuery = '', focusId }: { initialQuery?: string; f
               </span>
             </div>
             <p className="tnum mt-3 min-h-[20px] text-[12.5px]" style={{ color: 'var(--color-ink-secondary)' }}>
-              {room.guest ? `Guest: ${room.guest}${room.checkIn ? ` · ${room.checkIn} → ${room.checkOut}` : ''}` : room.status === 'Out-of-service' ? 'Blocked — see maintenance WO-118' : 'Ready to sell'}
+              {room.guest ? `Guest: ${room.guest}${room.checkIn ? ` · ${room.checkIn} → ${room.checkOut}` : ''}` : room.status === 'Out-of-service' ? `Blocked — ${room.oosReason || 'no reason recorded'}` : 'Ready to sell'}
             </p>
             <div className="mt-3 flex gap-2">
               <button type="button" className="pms-btn-ghost flex-1 px-3 py-2" onClick={() => setOpenNo(room.number)}>Details</button>
-              <button type="button" className="pms-btn-primary flex-1 px-3 py-2" onClick={() => setOpenNo(room.number)}>
-                {room.status === 'Available' || room.status === 'Inspected' ? 'Assign' : 'Update'}
-              </button>
+              <button type="button" className="pms-btn-primary flex-1 px-3 py-2" onClick={() => setOpenNo(room.number)}>Manage</button>
             </div>
           </article>
         ))}

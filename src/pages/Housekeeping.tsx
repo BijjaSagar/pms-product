@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { BadgeTone } from '../components/status';
 import { Badge, Card, CardTitle, ProgressBar } from '../components/ui';
 import { Field, FilterChip, Tabs } from '../components/controls';
@@ -14,11 +14,32 @@ import { useApiResource } from '../lib/api/useApiResource';
 import { displayApiError } from '../lib/api/client';
 import { useAuth } from '../features/auth/AuthContext';
 
-function statusTone(s: string): BadgeTone {
-  if (s === 'Done') return 'success';
-  if (s === 'In progress') return 'info';
+/** Display label for the raw backend task status, so blocked and cancelled
+ *  work is distinguishable rather than collapsed into "Pending". */
+const HK_STATUS_LABEL: Record<string, string> = {
+  TODO: 'Pending',
+  IN_PROGRESS: 'In progress',
+  CLEANED: 'Cleaned',
+  INSPECTION_REQUIRED: 'Awaiting inspection',
+  READY: 'Ready',
+  BLOCKED: 'Blocked',
+  CANCELLED: 'Cancelled',
+};
+
+function hkStatusLabel(status?: string): string {
+  return status ? HK_STATUS_LABEL[status] ?? status.replace(/_/g, ' ') : '—';
+}
+
+function statusTone(status?: string): BadgeTone {
+  if (status === 'READY') return 'success';
+  if (status === 'CANCELLED') return 'neutral';
+  if (status === 'BLOCKED') return 'danger';
+  if (status === 'IN_PROGRESS' || status === 'CLEANED' || status === 'INSPECTION_REQUIRED') return 'info';
   return 'warning';
 }
+
+/** Task types that count as a room turnover clean. */
+const TURNOVER_TYPES = ['CHECKOUT_CLEAN', 'STAYOVER_CLEAN', 'LINEN_CHANGE'];
 
 function priorityTone(p: string): BadgeTone {
   if (p === 'High') return 'danger';
@@ -51,26 +72,34 @@ export function Housekeeping() {
   const [priority, setPriority] = useState('All');
   const [staffFilter, setStaffFilter] = useState('All');
 
+  // A ticking clock so "overdue" recomputes without calling Date.now in render.
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
   const staffOptions = useMemo(() => ['All', ...Array.from(new Set(tasks.map((task) => task.assignee)))], [tasks]);
 
   const filtered = useMemo(() => {
     const needle = q.trim();
     return tasks.filter(
       (t) =>
-        (status === 'All' || t.status === status) &&
+        (status === 'All' || t.backendStatus === status) &&
         (priority === 'All' || t.priority === priority) &&
         (staffFilter === 'All' || t.assignee === staffFilter) &&
         (!needle || t.room.includes(needle) || t.id.toLowerCase().includes(needle.toLowerCase())),
     );
   }, [tasks, q, status, priority, staffFilter]);
 
+  const isOpen = (t: HousekeepingTask) => !['READY', 'CANCELLED'].includes(t.backendStatus ?? '');
   const counts = {
-    attention: tasks.filter((t) => !['READY', 'CANCELLED'].includes(t.backendStatus ?? '')).length,
-    dirty: tasks.filter((t) => t.task.toLowerCase().includes('turnover') || t.task.toLowerCase().includes('linen')).length,
+    attention: tasks.filter(isOpen).length,
+    turnover: tasks.filter((t) => isOpen(t) && TURNOVER_TYPES.includes(t.type ?? '')).length,
     inProgress: tasks.filter((t) => t.backendStatus === 'IN_PROGRESS').length,
     ready: tasks.filter((t) => t.backendStatus === 'READY').length,
     inspection: tasks.filter((t) => ['CLEANED', 'INSPECTION_REQUIRED'].includes(t.backendStatus ?? '')).length,
-    overdue: 0,
+    overdue: tasks.filter((t) => isOpen(t) && t.dueAtIso && new Date(t.dueAtIso).getTime() < nowMs).length,
   };
 
   const act = async (task: HousekeepingTask, inspectionResult: 'pass' | 'fail' = 'pass') => {
@@ -79,7 +108,7 @@ export function Housekeeping() {
       else if (task.backendStatus === 'IN_PROGRESS') await operationsApi.completeTask(task.id);
       else if (task.backendStatus === 'CLEANED') await operationsApi.requestInspection(task.id);
       else if (task.backendStatus === 'INSPECTION_REQUIRED') await operationsApi.inspectTask(task.id, inspectionResult);
-      else return;
+      else { toast('Nothing to advance', { detail: `This task is ${hkStatusLabel(task.backendStatus)}.`, tone: 'info' }); return; }
       resource.refresh();
       toast('Housekeeping task updated', { detail: `Room ${task.room} · ${task.task}.`, tone: 'success' });
     } catch (error) { toast('Task update failed', { detail: displayApiError(error), tone: 'danger' }); }
@@ -94,6 +123,14 @@ export function Housekeeping() {
       resource.refresh();
       toast(`Task ${action}led`, { detail: task.id, tone: 'success' });
     } catch (error) { toast(`Could not ${action} task`, { detail: displayApiError(error), tone: 'danger' }); }
+  };
+
+  const unblock = async (task: HousekeepingTask) => {
+    try {
+      await operationsApi.unblockTask(task.id);
+      resource.refresh();
+      toast('Task unblocked', { detail: `Room ${task.room} is back on the floor.`, tone: 'success' });
+    } catch (error) { toast('Could not unblock task', { detail: displayApiError(error), tone: 'danger' }); }
   };
 
   const flagMaintenance = async (task: HousekeepingTask) => {
@@ -125,7 +162,7 @@ export function Housekeeping() {
 
   const cards: [string, number, string][] = [
     ['Needs attention', counts.attention, 'Open + in-progress tasks'],
-    ['Turnover cleans', counts.dirty, 'Full cleans & linen'],
+    ['Turnover cleans', counts.turnover, 'Checkout, stayover & linen'],
     ['Cleaning now', counts.inProgress, 'Staff on the floor'],
     ['Ready rooms', counts.ready, 'Clean & inspected'],
     ['Awaiting inspection', counts.inspection, 'Supervisor queue'],
@@ -160,7 +197,7 @@ export function Housekeeping() {
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Room or task ID…" aria-label="Search tasks" className={inputClass()} />
           <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} aria-label="Filter by staff" className={inputClass()}>{staffOptions.map((s) => <option key={s}>{s}</option>)}</select>
           <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by task status">
-            {['All', 'Pending', 'In progress', 'Done'].map((s) => <FilterChip key={s} active={status === s} onClick={() => setStatus(s)}>{s}</FilterChip>)}
+            {[['All', 'All'], ['TODO', 'Pending'], ['IN_PROGRESS', 'In progress'], ['INSPECTION_REQUIRED', 'Inspection'], ['READY', 'Ready'], ['BLOCKED', 'Blocked']].map(([value, label]) => <FilterChip key={value} active={status === value} onClick={() => setStatus(value)}>{label}</FilterChip>)}
           </div>
           <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by priority">
             {['All', 'High', 'Medium', 'Low'].map((p) => <FilterChip key={p} active={priority === p} onClick={() => setPriority(p)}>{p}</FilterChip>)}
@@ -170,7 +207,7 @@ export function Housekeeping() {
         {view === 'list' ? (
           <ul className="flex flex-col gap-2.5">
             {filtered.map((t) => (
-              <li key={t.id} className="rounded-[10px] border p-3" style={{ borderColor: 'var(--color-border)', opacity: t.status === 'Done' ? 0.75 : 1 }}>
+              <li key={t.id} className="rounded-control border p-3" style={{ borderColor: 'var(--color-border)', opacity: t.status === 'Done' ? 0.75 : 1 }}>
                 <div className="flex flex-wrap items-center gap-2.5">
                   <span className="tnum rounded-[8px] px-2.5 py-1.5 font-mono text-[13px] font-semibold" style={{ background: 'var(--color-muted-surface)', color: 'var(--color-ink)' }}>Rm {t.room}</span>
                   <div className="min-w-[160px] flex-1">
@@ -179,7 +216,7 @@ export function Housekeeping() {
                     {t.notes ? <p className="mt-0.5 text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{t.notes}</p> : null}
                   </div>
                   <Badge tone={priorityTone(t.priority)}>{t.priority}</Badge>
-                  <Badge tone={statusTone(t.status)}>{t.status}</Badge>
+                  <Badge tone={statusTone(t.backendStatus)}>{hkStatusLabel(t.backendStatus)}</Badge>
                 </div>
                 <div className="mt-2.5 flex flex-wrap gap-1.5">
                   {can('housekeeping.assign') && staffUsers.length ? <select value={t.assignedToId ?? ''} onChange={(event) => void assign(t, event.target.value)} aria-label={`Assign ${t.id}`} className={inputClass() + ' max-w-[190px] py-1.5 text-[12px]'}>
@@ -188,8 +225,9 @@ export function Housekeeping() {
                   {['TODO', 'IN_PROGRESS', 'CLEANED'].includes(t.backendStatus ?? '') ? <button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => void act(t)}>{t.backendStatus === 'TODO' ? 'Start cleaning' : t.backendStatus === 'IN_PROGRESS' ? 'Mark complete' : 'Request inspection'}</button> : null}
                   {t.backendStatus === 'INSPECTION_REQUIRED' ? <><button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => void act(t, 'pass')}>Inspect & pass</button><button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => void act(t, 'fail')}>Fail inspection</button></> : null}
                   {can('housekeeping.complete') && !['READY', 'CANCELLED'].includes(t.backendStatus ?? '') ? <button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => void taskCommand(t, 'block')}>Block</button> : null}
+                  {t.backendStatus === 'BLOCKED' && can('housekeeping.complete') ? <button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => void unblock(t)}>Unblock</button> : null}
                   {can('housekeeping.assign') && !['READY', 'CANCELLED'].includes(t.backendStatus ?? '') ? <button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => void taskCommand(t, 'cancel')}>Cancel</button> : null}
-                  <button type="button" className="px-3 py-1.5 text-[12px] font-semibold underline" style={{ color: 'var(--color-danger-text)' }} onClick={() => void flagMaintenance(t)}>Flag maintenance</button>
+                  {can('maintenance.create') ? <button type="button" className="px-3 py-1.5 text-[12px] font-semibold underline" style={{ color: 'var(--color-danger-text)' }} onClick={() => void flagMaintenance(t)}>Flag maintenance</button> : null}
                 </div>
               </li>
             ))}
@@ -202,12 +240,12 @@ export function Housekeeping() {
                 key={t.id}
                 type="button"
                 onClick={() => { void act(t); }}
-                className="min-w-0 rounded-[10px] border p-3 text-center"
-                style={{ borderColor: t.status === 'Done' ? 'var(--color-success-border)' : 'var(--color-border)', background: t.status === 'Done' ? 'var(--color-success-bg)' : 'var(--color-muted-surface)' }}
-                aria-label={`Room ${t.room}, ${t.status}. Activate to advance.`}
+                className="min-w-0 rounded-control border p-3 text-center"
+                style={{ borderColor: t.backendStatus === 'READY' ? 'var(--color-success-border)' : 'var(--color-border)', background: t.backendStatus === 'READY' ? 'var(--color-success-bg)' : 'var(--color-muted-surface)' }}
+                aria-label={`Room ${t.room}, ${hkStatusLabel(t.backendStatus)}. Activate to advance.`}
               >
                 <span className="tnum block text-[17px] font-semibold" style={{ color: 'var(--color-ink)' }}>{t.room}</span>
-                <span className="mt-1 block"><Badge tone={statusTone(t.status)}>{t.status}</Badge></span>
+                <span className="mt-1 block"><Badge tone={statusTone(t.backendStatus)}>{hkStatusLabel(t.backendStatus)}</Badge></span>
                 <span className="mt-1 block truncate text-[11.5px]" style={{ color: 'var(--color-ink-secondary)' }}>{t.assignee} · {t.dueTime}</span>
               </button>
             ))}

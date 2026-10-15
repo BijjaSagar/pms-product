@@ -110,7 +110,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                 type="button"
                 onClick={() => pick(r)}
                 aria-pressed={resId === r.id}
-                className="flex w-full items-center gap-3 rounded-[10px] border p-3 text-left"
+                className="flex w-full items-center gap-3 rounded-control border p-3 text-left"
                 style={{ borderColor: resId === r.id ? 'var(--color-primary)' : 'var(--color-border)', background: resId === r.id ? 'var(--color-hover-surface)' : 'var(--color-surface)' }}
               >
                 <Avatar name={r.guest} />
@@ -152,7 +152,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                 <h3 className="pms-section-title mb-2">2 · Verify guest details</h3>
                 <div className="grid grid-cols-1 gap-2 text-[13.5px] sm:grid-cols-2">
                   {[['Guest', current.guest], ['Contact', 'On file — verify at desk'], ['Stay', `${current.checkIn} → ${current.checkOut} · ${current.nights}n`], ['Booked via', `${current.channel} · ${current.ratePlan}`]].map(([k, v]) => (
-                    <div key={k} className="rounded-[10px] border p-3" style={{ borderColor: 'var(--color-border)' }}>
+                    <div key={k} className="rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}>
                       <p className="pms-helper">{k}</p>
                       <p className="font-semibold" style={{ color: 'var(--color-ink)' }}>{v}</p>
                     </div>
@@ -180,13 +180,13 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                 <h3 className="pms-section-title mb-1">4 · Select a ready room</h3>
                 <p className="pms-helper mb-3">Only inspected or available {current.roomType} rooms are shown. Dirty, cleaning and out-of-service rooms are never offered.</p>
                 {options.length === 0 ? (
-                  <p className="rounded-[10px] border p-3 text-[13px] font-medium" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)', color: 'var(--color-danger-text)' }} role="alert">
+                  <p className="rounded-control border p-3 text-[13px] font-medium" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)', color: 'var(--color-danger-text)' }} role="alert">
                     No ready {current.roomType} rooms right now — escalate to a supervisor or offer an upgrade.
                   </p>
                 ) : (
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Ready rooms">
                     {options.map((r) => (
-                      <button key={r.number} type="button" role="radio" aria-checked={roomNo === r.number} onClick={() => setRoomNo(r.number)} className="min-w-0 rounded-[10px] border p-3 text-left" style={{ borderColor: roomNo === r.number ? 'var(--color-primary)' : 'var(--color-border)', background: roomNo === r.number ? 'var(--color-hover-surface)' : 'var(--color-surface)' }}>
+                      <button key={r.number} type="button" role="radio" aria-checked={roomNo === r.number} onClick={() => setRoomNo(r.number)} className="min-w-0 rounded-control border p-3 text-left" style={{ borderColor: roomNo === r.number ? 'var(--color-primary)' : 'var(--color-border)', background: roomNo === r.number ? 'var(--color-hover-surface)' : 'var(--color-surface)' }}>
                         <span className="tnum block text-[17px] font-semibold" style={{ color: 'var(--color-ink)' }}>{r.number}</span>
                         <span className="mt-1 block"><Badge tone={roomTone(r.status)}>{r.status}</Badge></span>
                         <span className="tnum mt-1 block text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{formatCurrency(r.rate, current.currencyCode)}/night</span>
@@ -221,7 +221,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                 <h3 className="pms-section-title mb-2">6 · Review registration</h3>
                 <dl className="grid grid-cols-1 gap-2 text-[13.5px] sm:grid-cols-2">
                   {[['Guest', current.guest], ['Party', `${adults} adult(s)${children ? `, ${children} child(ren)` : ''}`], ['Room', roomNo ? `${room?.type} ${roomNo}` : '— not selected —'], ['Dates', `${current.checkIn} → ${current.checkOut}`], ['Balance', formatCurrency(balance, current.currencyCode)], ['Requests', current.specialRequests || 'None']].map(([k, v]) => (
-                    <div key={k} className="rounded-[10px] border p-3" style={{ borderColor: 'var(--color-border)' }}>
+                    <div key={k} className="rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}>
                       <dt className="pms-helper">{k}</dt>
                       <dd className="font-semibold" style={{ color: 'var(--color-ink)' }}>{v}</dd>
                     </div>

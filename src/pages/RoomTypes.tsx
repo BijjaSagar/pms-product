@@ -12,7 +12,7 @@ import { useApiResource } from '../lib/api/useApiResource';
 import { displayApiError } from '../lib/api/client';
 import { useAuth } from '../features/auth/AuthContext';
 
-const EMPTY: RoomType = { id: '', name: '', description: '', count: 0, maxOccupancy: 2, beds: '', baseRate: 0, amenities: [], active: true };
+const EMPTY: RoomType = { id: '', name: '', description: '', count: 0, maxOccupancy: 2, maxAdults: 2, maxChildren: 0, beds: '', baseRate: 0, amenities: [], active: true };
 
 export function RoomTypes() {
   const { me } = useAuth();
@@ -34,9 +34,9 @@ export function RoomTypes() {
     try {
       if (editing.id.startsWith('RT-NEW')) {
         const code = editing.name.trim().toUpperCase().replace(/[^A-Z0-9]+/g, '-').slice(0, 40);
-        await inventoryApi.createRoomType({ code, name: editing.name.trim(), description: editing.description, maxAdults: Math.max(1, editing.maxOccupancy), maxChildren: 0, baseRate: editing.baseRate, amenities });
+        await inventoryApi.createRoomType({ code, name: editing.name.trim(), description: editing.description, maxAdults: Math.max(1, editing.maxAdults ?? editing.maxOccupancy), maxChildren: Math.max(0, editing.maxChildren ?? 0), baseRate: editing.baseRate, amenities });
       } else {
-        await inventoryApi.updateRoomType(editing.id, { name: editing.name.trim(), description: editing.description, maxAdults: Math.max(1, editing.maxOccupancy), baseRate: editing.baseRate, isActive: editing.active, amenities });
+        await inventoryApi.updateRoomType(editing.id, { name: editing.name.trim(), description: editing.description, maxAdults: Math.max(1, editing.maxAdults ?? editing.maxOccupancy), maxChildren: Math.max(0, editing.maxChildren ?? 0), baseRate: editing.baseRate, isActive: editing.active, amenities });
       }
       resource.refresh();
       toast('Room type saved', { detail: 'Room type configuration updated.', tone: 'success' });
@@ -51,7 +51,7 @@ export function RoomTypes() {
         {resource.error ? <p role="alert" className="pms-helper">Could not load room types: {resource.error}</p> : null}
         <div className="overflow-x-auto">
           <table className="pms-table min-w-[820px]">
-            <thead><tr><th>Type</th><th>Rooms</th><th>Sleeps</th><th>Beds</th><th className="text-right">Base rate</th><th>Amenities</th><th>Status</th><th><span className="sr-only">Edit</span></th></tr></thead>
+            <thead><tr><th>Type</th><th>Rooms</th><th>Sleeps</th><th className="text-right">Base rate</th><th>Amenities</th><th>Status</th><th><span className="sr-only">Edit</span></th></tr></thead>
             <tbody>
               {types.map((t) => (
                 <tr key={t.id}>
@@ -61,7 +61,6 @@ export function RoomTypes() {
                   </td>
                   <td className="tnum">{t.count}</td>
                   <td className="tnum">{t.maxOccupancy}</td>
-                  <td style={{ color: 'var(--color-ink-secondary)' }}>{t.beds}</td>
                   <td className="tnum text-right font-semibold">{formatCurrency(t.baseRate, currencyCode)}</td>
                   <td className="max-w-[220px] truncate" style={{ color: 'var(--color-ink-secondary)' }}>{t.amenities.join(' · ')}</td>
                   <td><Badge tone={t.active ? 'success' : 'neutral'}>{t.active ? 'Active' : 'Inactive'}</Badge></td>
@@ -73,14 +72,13 @@ export function RoomTypes() {
         </div>
       </Card>
 
-      <Modal open={editing !== null} onClose={() => setEditing(null)} title={editing?.id.startsWith('RT-NEW') ? 'Add room type' : `Edit ${editing?.name}`} subtitle="Beds and room count are derived/unsupported by the backend" wide>
+      <Modal open={editing !== null} onClose={() => setEditing(null)} title={editing?.id.startsWith('RT-NEW') ? 'Add room type' : `Edit ${editing?.name}`} subtitle="Room count is derived from the rooms assigned to this type" wide>
         {editing ? (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Name"><input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className={inputClass()} /></Field>
-            <Field label="Bed configuration"><input value={editing.beds} onChange={(e) => setEditing({ ...editing, beds: e.target.value })} placeholder="1 king bed" className={inputClass()} /></Field>
             <div className="sm:col-span-2"><Field label="Description"><input value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className={inputClass()} /></Field></div>
-            <Field label="Rooms"><input type="number" min={0} value={editing.count} onChange={(e) => setEditing({ ...editing, count: Number(e.target.value) })} className={inputClass('tnum')} /></Field>
-            <Field label="Max occupancy"><input type="number" min={1} max={8} value={editing.maxOccupancy} onChange={(e) => setEditing({ ...editing, maxOccupancy: Number(e.target.value) })} className={inputClass('tnum')} /></Field>
+            <Field label="Max adults"><input type="number" min={1} max={8} value={editing.maxAdults ?? editing.maxOccupancy} onChange={(e) => setEditing({ ...editing, maxAdults: Number(e.target.value) })} className={inputClass('tnum')} /></Field>
+            <Field label="Max children"><input type="number" min={0} max={6} value={editing.maxChildren ?? 0} onChange={(e) => setEditing({ ...editing, maxChildren: Number(e.target.value) })} className={inputClass('tnum')} /></Field>
             <Field label={`Base rate (${currencyCode})`}><input type="number" min={0} value={editing.baseRate} onChange={(e) => setEditing({ ...editing, baseRate: Number(e.target.value) })} className={inputClass('tnum')} /></Field>
             <Field label="Status">
               <select value={editing.active ? 'active' : 'inactive'} onChange={(e) => setEditing({ ...editing, active: e.target.value === 'active' })} className={inputClass()}>

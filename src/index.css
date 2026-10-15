@@ -71,6 +71,12 @@ body,
   overflow-x: clip;
 }
 
+/* Reserve the scrollbar gutter so locking the body (when a dialog opens) does
+   not remove the scrollbar and shift the whole layout sideways. */
+html {
+  scrollbar-gutter: stable;
+}
+
 img,
 svg,
 video,
@@ -221,6 +227,33 @@ body {
     opacity: 0.55;
     transform: none;
     box-shadow: none;
+    cursor: not-allowed;
+  }
+  .pms-btn-danger {
+    background: var(--color-danger-text);
+    color: #fff;
+    border: 1px solid color-mix(in srgb, var(--color-danger-text) 72%, black);
+    border-radius: var(--radius-control);
+    font-weight: 650;
+    font-size: 13px;
+    letter-spacing: 0.01em;
+    box-shadow: none;
+    transition:
+      box-shadow var(--transition-base),
+      transform var(--transition-fast),
+      filter var(--transition-fast);
+  }
+  .pms-btn-danger:hover {
+    filter: brightness(1.06) saturate(1.04);
+    transform: translateY(-1px);
+  }
+  .pms-btn-danger:active {
+    transform: translateY(0) scale(0.99);
+    filter: brightness(0.96);
+  }
+  .pms-btn-danger:disabled {
+    opacity: 0.55;
+    transform: none;
     cursor: not-allowed;
   }
   .pms-btn-ghost {
@@ -631,7 +664,7 @@ div.overflow-x-auto:has(> table) table.pms-table thead th:last-child {
 }
 
 /* Room / list rows used across pages */
-li .rounded-\[10px\].border {
+li .rounded-control.border {
   box-shadow: var(--shadow-xs);
 }
 

@@ -33,7 +33,7 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
         aria-label="Close appearance settings"
         onClick={onClose}
         className="pms-overlay-backdrop absolute inset-0 h-full w-full"
-        style={{ background: 'rgb(20 14 10 / 0.45)' }}
+        style={{ background: 'var(--color-scrim)' }}
       />
       <aside
         className="pms-overlay-enter absolute right-0 top-0 flex h-full w-full flex-col border-l"

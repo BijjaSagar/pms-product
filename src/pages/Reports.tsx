@@ -88,7 +88,7 @@ export function Reports({ go }: { go: (t: NavTarget) => void }) {
               ['In house', data.flash.inHouseCount],
               ['Open housekeeping tasks', data.flash.housekeeping.open],
               ['Open maintenance tickets', data.flash.maintenance.open],
-            ].map(([label, value]) => <li key={label} className="flex items-center justify-between rounded-[10px] border px-3 py-2.5" style={{ borderColor: 'var(--color-border)' }}><span className="text-[13px]">{label}</span><Badge tone="neutral">{value}</Badge></li>)}
+            ].map(([label, value]) => <li key={label} className="flex items-center justify-between rounded-control border px-3 py-2.5" style={{ borderColor: 'var(--color-border)' }}><span className="text-[13px]">{label}</span><Badge tone="neutral">{value}</Badge></li>)}
           </ul> : null}
         </Card>
         <Card>
@@ -113,7 +113,7 @@ export function Reports({ go }: { go: (t: NavTarget) => void }) {
             ['Completed', String(data.housekeeping.completed)],
             ['Blocked', String(data.housekeeping.blocked)],
             ['Rooms touched', `${data.housekeeping.roomsTouched}/${data.housekeeping.roomsTotal}`],
-          ].map(([label, value]) => <div key={label} className="rounded-[10px] border p-3" style={{ borderColor: 'var(--color-border)' }}><p className="pms-helper">{label}</p><p className="tnum text-[18px] font-semibold">{value}</p></div>)}
+          ].map(([label, value]) => <div key={label} className="rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}><p className="pms-helper">{label}</p><p className="tnum text-[18px] font-semibold">{value}</p></div>)}
         </div>
         <div className="mt-3 overflow-x-auto"><table className="pms-table min-w-[480px]">
           <thead><tr><th>Type</th><th className="text-right">Total</th><th className="text-right">Completed</th><th className="text-right">Blocked</th></tr></thead>

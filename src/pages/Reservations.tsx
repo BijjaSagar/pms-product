@@ -53,7 +53,7 @@ function ReservationDrawer({ r, onClose, onStatus, onEdit, go }: { r: Reservatio
           ['Room', r.room],
           ['Rate plan', r.ratePlan],
         ].map(([k, v]) => (
-          <div key={k} className="rounded-[10px] border p-2.5" style={{ borderColor: 'var(--color-border)' }}>
+          <div key={k} className="rounded-control border p-2.5" style={{ borderColor: 'var(--color-border)' }}>
             <p className="pms-helper">{k}</p>
             <p className="font-semibold" style={{ color: 'var(--color-ink)' }}>{v}</p>
           </div>
@@ -61,7 +61,7 @@ function ReservationDrawer({ r, onClose, onStatus, onEdit, go }: { r: Reservatio
       </div>
 
       <h4 className="pms-label mb-2 mt-5">Nightly breakdown</h4>
-      <ul className="rounded-[10px] border text-[13px]" style={{ borderColor: 'var(--color-border)' }}>
+      <ul className="rounded-control border text-[13px]" style={{ borderColor: 'var(--color-border)' }}>
         {Array.from({ length: r.nights }, (_, i) => (
           <li key={i} className="pms-summary-row border-b px-3.5 py-2 last:border-0" style={{ borderColor: 'var(--color-divider)' }}>
             <span style={{ color: 'var(--color-ink-secondary)' }}>Night {i + 1} · {r.roomType} @ {formatCurrency(r.nightlyRate, r.currencyCode)}</span>
@@ -85,13 +85,13 @@ function ReservationDrawer({ r, onClose, onStatus, onEdit, go }: { r: Reservatio
       </ul>
 
       {r.specialRequests ? (
-        <div className="mt-4 rounded-[10px] border p-3" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
+        <div className="mt-4 rounded-control border p-3" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
           <p className="pms-label">Special requests</p>
           <p className="mt-1 text-[13px]" style={{ color: 'var(--color-ink)' }}>{r.specialRequests}</p>
         </div>
       ) : null}
       {r.notes ? (
-        <div className="mt-2 rounded-[10px] border p-3" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="mt-2 rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}>
           <p className="pms-label">Internal notes</p>
           <p className="mt-1 text-[13px]" style={{ color: 'var(--color-ink-secondary)' }}>{r.notes}</p>
         </div>
@@ -223,7 +223,7 @@ export function Reservations({ initialQuery = '', focusId, go }: { initialQuery?
             const count = rows.filter((r) => r.checkInIso === d).length;
             const active = d === DAY_ISOS[0];
             return (
-              <div key={d} role="listitem" className="rounded-[10px] border px-1 py-2.5 text-center" style={{ borderColor: active ? 'var(--color-primary)' : 'var(--color-border)', background: active ? 'var(--color-hover-surface)' : 'var(--color-surface)' }}>
+              <div key={d} role="listitem" className="rounded-control border px-1 py-2.5 text-center" style={{ borderColor: active ? 'var(--color-primary)' : 'var(--color-border)', background: active ? 'var(--color-hover-surface)' : 'var(--color-surface)' }}>
                 <p className="text-[11.5px] font-semibold" style={{ color: 'var(--color-ink)' }}>{dayLabel(d)}</p>
                 <p className="tnum mt-0.5 text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{count} arr.</p>
               </div>
@@ -296,7 +296,7 @@ export function Reservations({ initialQuery = '', focusId, go }: { initialQuery?
         ) : (
           <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
             {DAY_ISOS.map((d) => (
-              <div key={d} className="rounded-[10px] border p-3" style={{ borderColor: 'var(--color-border)' }}>
+              <div key={d} className="rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}>
                 <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.08em]" style={{ color: 'var(--color-ink-secondary)' }}>{dayLabel(d)}</p>
                 {rows.filter((r) => r.checkInIso === d || r.checkOutIso === d).map((r) => (
                   <button key={r.id} type="button" onClick={() => setOpenId(r.id)} className="mb-1.5 flex w-full items-center justify-between gap-2 rounded-[8px] border px-2.5 py-2 text-left" style={{ borderColor: 'var(--color-divider)', background: 'var(--color-muted-surface)' }}>

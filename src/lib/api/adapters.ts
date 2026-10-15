@@ -91,6 +91,8 @@ export function roomFromApi(row: RoomRow, liveStays: StayRow[] = []): Room {
     checkIn: stay ? shortDate(stay.checkInDate) : null,
     checkOut: stay ? shortDate(stay.checkOutDate) : null,
     rate: Number(row.baseRate ?? 0),
+    active: row.isActive !== false,
+    oosReason: row.outOfOrderReason ?? null,
   };
 }
 
@@ -101,12 +103,16 @@ export function roomTypeFromApi(row: RoomTypeRow, rooms: RoomRow[]): RoomType {
     : row.amenities && typeof row.amenities === 'object'
       ? Object.keys(row.amenities).filter((key) => Boolean((row.amenities as Record<string, unknown>)[key]))
       : [];
+  const maxAdults = Number(row.maxAdults ?? 2);
+  const maxChildren = Number(row.maxChildren ?? 0);
   return {
     id: row.id,
     name: row.name,
     description: row.description ?? '',
     count: roomCount,
-    maxOccupancy: Number(row.maxAdults ?? 2) + Number(row.maxChildren ?? 0),
+    maxOccupancy: maxAdults + maxChildren,
+    maxAdults,
+    maxChildren,
     beds: '—',
     baseRate: Number(row.baseRate ?? 0),
     amenities,
@@ -141,6 +147,8 @@ export function housekeepingTaskFromApi(row: HousekeepingTaskRow): HousekeepingT
   return {
     id: row.id,
     backendStatus: row.status,
+    type: row.type,
+    dueAtIso: row.dueAt ?? null,
     roomId: row.roomId,
     assignedToId: row.assignedToId ?? null,
     room: String(row.roomNumber ?? '—'),

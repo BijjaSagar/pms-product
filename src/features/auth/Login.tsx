@@ -85,7 +85,7 @@ export function Login() {
               {!inviteToken ? <Field label="Email"><input autoComplete="username" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass()} /></Field> : null}
               <Field label={inviteToken ? 'New password' : 'Password'}><input autoComplete={inviteToken ? 'new-password' : 'current-password'} type="password" minLength={inviteToken ? 12 : undefined} required value={password} onChange={(event) => setPassword(event.target.value)} className={inputClass()} /></Field>
               {inviteToken ? <Field label="Confirm password"><input autoComplete="new-password" type="password" minLength={12} required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} className={inputClass()} /></Field> : null}
-              {error ? <p role="alert" className="rounded-[10px] border p-3 text-[13px]" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)', color: 'var(--color-danger-text)' }}>{error}</p> : null}
+              {error ? <p role="alert" className="rounded-control border p-3 text-[13px]" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)', color: 'var(--color-danger-text)' }}>{error}</p> : null}
               <button className="pms-btn-primary mt-2 flex min-h-[46px] items-center justify-center px-4 py-2.5" disabled={pending} type="submit">{pending ? 'Signing in…' : inviteToken ? 'Activate account' : 'Sign in'}</button>
             </form>
           </Card>

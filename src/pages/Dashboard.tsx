@@ -95,32 +95,40 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2 xl:grid-cols-5">
-        <Card elevated className="lg:col-span-2 xl:col-span-3">
+      <div className="grid grid-cols-1 items-start gap-4 sm:gap-5 xl:grid-cols-5">
+        <Card elevated className="xl:col-span-3">
           <CardTitle title="Recent reservations" subtitle={resource.loading ? 'Loading bookings…' : 'Latest bookings'} action={can('reservation.read') ? <button type="button" onClick={() => go({ view: 'reservations' })} className="pms-btn-ghost px-3 py-2">View all</button> : undefined} />
           <div className="overflow-x-auto">
-            <table className="pms-table min-w-[560px]">
+            <table className="pms-table min-w-[560px] table-fixed">
+              <colgroup>
+                <col className="w-[23%]" />
+                <col className="w-[20%]" />
+                <col className="w-[25%]" />
+                <col className="w-[17%]" />
+                <col className="w-[15%]" />
+              </colgroup>
               <thead><tr><th>Reference</th><th>Guest</th><th>Stay</th><th>Status</th><th className="text-right">Total</th></tr></thead>
               <tbody>
                 {reservations.slice(0, 5).map((r) => (
                   <tr key={r.id}>
-                    <td className="tnum font-mono font-semibold">{r.id}</td>
-                    <td>{r.guest}</td>
-                    <td className="tnum" style={{ color: 'var(--color-ink-secondary)' }}>{r.checkIn} → {r.checkOut}</td>
+                    <td className="max-w-0 truncate tnum font-mono font-semibold" title={r.id}>{r.id}</td>
+                    <td className="max-w-0 truncate" title={r.guest}>{r.guest}</td>
+                    <td className="max-w-0 truncate tnum" style={{ color: 'var(--color-ink-secondary)' }}>{r.checkIn} → {r.checkOut}</td>
                     <td><Badge tone={reservationTone(r.status)}>{r.status}</Badge></td>
-                     <td className="tnum text-right font-semibold">{formatCurrency(r.total, r.currencyCode)}</td>
+                    <td className="tnum whitespace-nowrap text-right font-semibold">{formatCurrency(r.total, r.currencyCode)}</td>
                   </tr>
                 ))}
+                {!resource.loading && reservations.length === 0 ? <tr><td colSpan={5} className="pms-helper py-8 text-center">No reservations found.</td></tr> : null}
               </tbody>
             </table>
           </div>
         </Card>
-        <div className="flex min-w-0 flex-col gap-4 sm:gap-5 lg:col-span-2 xl:col-span-2">
+        <div className="flex min-w-0 flex-col gap-4 sm:gap-5 xl:col-span-2">
           <Card>
             <CardTitle title="Pending check-ins" subtitle={`${arrivals.length} expected today`} action={can('stay.check-in') ? <button type="button" onClick={() => go({ view: 'check-in' })} className="pms-btn-primary px-3 py-2">Check-in desk</button> : undefined} />
             <ul className="flex flex-col gap-2">
-              {arrivals.map((r) => (
-                <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-[10px] border px-3 py-2.5" style={{ borderColor: 'var(--color-border)' }}>
+              {arrivals.slice(0, 3).map((r) => (
+                <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-control border px-3 py-2.5" style={{ borderColor: 'var(--color-border)' }}>
                   <span>
                     <span className="block text-[13.5px] font-semibold" style={{ color: 'var(--color-ink)' }}>{r.guest}</span>
                     <span className="tnum block text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{r.id} · {r.roomType} · {r.nights}n</span>
@@ -129,6 +137,11 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 </li>
               ))}
             </ul>
+            {arrivals.length > 3 ? (
+              <button type="button" onClick={() => go({ view: 'check-in' })} className="pms-helper mt-2 w-full text-center underline" style={{ color: 'var(--color-primary)' }}>
+                Showing 3 of {arrivals.length} · view all
+              </button>
+            ) : null}
           </Card>
           <Card>
             <CardTitle title="Pending check-outs" subtitle={`${departures.length} due out today`} action={can('stay.check-out') ? <button type="button" onClick={() => go({ view: 'check-out' })} className="pms-btn-primary px-3 py-2">Check-out desk</button> : undefined} />
@@ -136,8 +149,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
               <p className="pms-helper py-4 text-center">No pending departures — all checked out.</p>
             ) : (
               <ul className="flex flex-col gap-2">
-              {departures.map((r) => (
-                  <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-[10px] border px-3 py-2.5" style={{ borderColor: 'var(--color-border)' }}>
+              {departures.slice(0, 3).map((r) => (
+                  <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-control border px-3 py-2.5" style={{ borderColor: 'var(--color-border)' }}>
                     <span>
                       <span className="block text-[13.5px] font-semibold" style={{ color: 'var(--color-ink)' }}>{r.guest}</span>
                     <span className="tnum block text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{r.id} · {r.room} · {formatCurrency(r.balance, data?.revenue?.currencyCode)} due</span>
@@ -147,6 +160,11 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 ))}
               </ul>
             )}
+            {departures.length > 3 ? (
+              <button type="button" onClick={() => go({ view: 'check-out' })} className="pms-helper mt-2 w-full text-center underline" style={{ color: 'var(--color-primary)' }}>
+                Showing 3 of {departures.length} · view all
+              </button>
+            ) : null}
           </Card>
         </div>
       </div>
@@ -178,7 +196,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         ? 'var(--color-danger-text)'
                         : 'var(--color-neutral-text)';
               return (
-                <li key={s} className="rounded-[10px] border px-2.5 py-2" style={{ borderColor: 'var(--color-border)', background: 'color-mix(in srgb, var(--color-muted-surface) 45%, transparent)' }}>
+                <li key={s} className="rounded-control border px-2.5 py-2" style={{ borderColor: 'var(--color-border)', background: 'color-mix(in srgb, var(--color-muted-surface) 45%, transparent)' }}>
                   <span className="flex items-center justify-between gap-3 text-[13px]">
                     <Badge tone={roomTone(s)}>{s}</Badge>
                     <span className="tnum font-semibold" style={{ color: 'var(--color-ink)' }}>{count} rooms</span>
@@ -197,7 +215,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           <ul className="flex flex-col gap-1">
             {NOTICES.map((n) => (
               <li key={n.id}>
-                <button type="button" onClick={() => go({ view: (n.target as NavTarget['view']) })} className="flex w-full items-start gap-2.5 rounded-[10px] px-3 py-2.5 text-left">
+                <button type="button" onClick={() => go({ view: (n.target as NavTarget['view']) })} className="flex w-full items-start gap-2.5 rounded-control px-3 py-2.5 text-left">
                   <span className="mt-1.5 h-2 w-2 flex-none rounded-full" style={{ background: NOTICE_DOT[n.tone] }} aria-hidden="true" />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center justify-between gap-2">

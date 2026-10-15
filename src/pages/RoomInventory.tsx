@@ -32,6 +32,11 @@ export function RoomInventory() {
     );
   }, [q, floor, rooms]);
 
+  const floorOptions = useMemo(
+    () => ['All', ...Array.from(new Set(rooms.map((r) => r.floor))).sort((a, b) => a - b).map(String)],
+    [rooms],
+  );
+
   const updateRoom = async (roomBackendId: string | undefined, patch: Record<string, unknown>, message: string) => {
     if (!roomBackendId) return;
     try {
@@ -59,7 +64,7 @@ export function RoomInventory() {
       <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-3">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Number, type or guest…" aria-label="Search inventory" className={inputClass()} />
         <select value={floor} onChange={(e) => setFloor(e.target.value)} aria-label="Filter by floor" className={inputClass()}>
-          {['All', '1', '2', '3', '4', '5'].map((f) => <option key={f} value={f}>{f === 'All' ? 'All floors' : `Floor ${f}`}</option>)}
+          {floorOptions.map((f) => <option key={f} value={f}>{f === 'All' ? 'All floors' : f === '0' ? 'Unassigned floor' : `Floor ${f}`}</option>)}
         </select>
         <button type="button" className="pms-btn-ghost px-3 py-2.5" onClick={() => { setQ(''); setFloor('All'); }}>Clear</button>
       </div>
@@ -72,13 +77,15 @@ export function RoomInventory() {
                 <td className="tnum font-mono font-semibold">{r.number}</td>
                 <td>{r.type}</td>
                 <td className="tnum">{r.floor}</td>
-                <td><Badge tone={roomTone(r.status)}>{r.status}</Badge></td>
+                <td><div className="flex flex-wrap items-center gap-1.5"><Badge tone={roomTone(r.status)}>{r.status}</Badge>{r.active === false ? <Badge tone="neutral">Retired</Badge> : null}</div></td>
                 <td style={{ color: 'var(--color-ink-secondary)' }}>{r.hk}</td>
                 <td className="tnum" style={{ color: 'var(--color-ink-secondary)' }}>{r.guest ? `${r.guest} · ${r.reservationId}` : '—'}</td>
                 <td className="tnum text-right font-semibold">{formatCurrency(r.rate, currencyCode)}</td>
                 {can('room.update') ? <td><div className="flex gap-1.5">
                   <button type="button" className="pms-btn-ghost px-2.5 py-1.5" onClick={() => { const notes = window.prompt(`Notes for room ${r.number}:`); if (notes !== null) void updateRoom(r.backendId, { notes }, `Room ${r.number} notes saved.`); }}>Notes</button>
-                  <button type="button" className="pms-btn-ghost px-2.5 py-1.5" onClick={() => void updateRoom(r.backendId, { isActive: false }, `Room ${r.number} retired. History is preserved.`)}>Retire</button>
+                  {r.active === false
+                    ? <button type="button" className="pms-btn-ghost px-2.5 py-1.5" onClick={() => void updateRoom(r.backendId, { isActive: true }, `Room ${r.number} restored.`)}>Restore</button>
+                    : <button type="button" className="pms-btn-ghost px-2.5 py-1.5" onClick={() => { if (window.confirm(`Retire room ${r.number}? It stays in history but is hidden from the board.`)) void updateRoom(r.backendId, { isActive: false }, `Room ${r.number} retired. History is preserved.`); }}>Retire</button>}
                 </div></td> : null}
               </tr>
             ))}

@@ -41,7 +41,7 @@ function GuestProfile({ g, onClose, go, onSave }: { g: Guest; onClose: () => voi
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
         {[[String(g.stays), 'Stays'], [g.spent > 0 ? `$${formatMoney(g.spent)}` : '—', 'Lifetime'], [g.balance > 0 ? `$${formatMoney(g.balance)}` : '—', 'Balance']].map(([v, k]) => (
-          <div key={k} className="rounded-[10px] border p-2.5" style={{ borderColor: 'var(--color-border)' }}>
+          <div key={k} className="rounded-control border p-2.5" style={{ borderColor: 'var(--color-border)' }}>
             <p className="tnum text-[16px] font-semibold" style={{ color: 'var(--color-ink)' }}>{v}</p>
             <p className="pms-helper">{k}</p>
           </div>
@@ -54,7 +54,7 @@ function GuestProfile({ g, onClose, go, onSave }: { g: Guest; onClose: () => voi
         {tab === 'overview' && (
           <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {[['Email', g.email], ['Phone', editing ? '' : phone], ['Company', g.company ?? '—'], ['Last visit', g.lastVisit], ['Preferences', editing ? '' : (prefs || '—')]].map(([k, v]) => (
-              <div key={k} className="rounded-[10px] border p-3" style={{ borderColor: 'var(--color-border)' }}>
+              <div key={k} className="rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}>
                 <dt className="pms-helper">{k}</dt>
                 <dd className="font-semibold" style={{ color: 'var(--color-ink)' }}>
                   {editing && (k === 'Phone' || k === 'Preferences') ? (
@@ -76,7 +76,7 @@ function GuestProfile({ g, onClose, go, onSave }: { g: Guest; onClose: () => voi
           </ul>
         )}
         {tab === 'notes' && (
-          <div className="rounded-[10px] border p-3" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
+          <div className="rounded-control border p-3" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
             <p className="text-[13px]" style={{ color: 'var(--color-ink)' }}>{g.notes || 'No notes yet.'}</p>
             <p className="pms-helper mt-1">Communication history appears here in the connected build.</p>
           </div>

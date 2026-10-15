@@ -14,14 +14,25 @@ function useEsc(onClose: () => void) {
   }, [onClose]);
 }
 
-/** Locks background scrolling while a dialog is open, restoring it on close. */
+/**
+ * Locks background scrolling while a dialog is open, restoring it on close.
+ *
+ * Locks both the root element and the body: with `overflow-x: clip` on `html`
+ * the root element can be the scroller, so locking only the body would leave the
+ * page scrollable behind the dialog. `html { scrollbar-gutter: stable }` keeps
+ * the scrollbar space reserved, so nothing shifts when the bar disappears.
+ */
 function useScrollLock(locked: boolean) {
   useEffect(() => {
     if (!locked) return;
-    const previous = document.body.style.overflow;
+    const root = document.documentElement;
+    const previousRoot = root.style.overflow;
+    const previousBody = document.body.style.overflow;
+    root.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = previous;
+      root.style.overflow = previousRoot;
+      document.body.style.overflow = previousBody;
     };
   }, [locked]);
 }
@@ -50,7 +61,7 @@ function Backdrop({ onClose, label }: { onClose: () => void; label: string }) {
       aria-label={label}
       onClick={onClose}
       className="pms-overlay-backdrop absolute inset-0 h-full w-full"
-      style={{ background: 'rgb(0 0 0 / 0.4)' }}
+      style={{ background: 'var(--color-scrim)' }}
     />
   );
 }
@@ -197,8 +208,7 @@ export function ConfirmDialog({
               void onConfirm();
               if (autoClose) onClose();
             }}
-            className={danger ? 'pms-btn-primary px-4 py-2.5 disabled:opacity-50' : 'pms-btn-primary px-4 py-2.5 disabled:opacity-50'}
-            style={danger ? { background: 'var(--color-danger-text)' } : undefined}
+            className={`${danger ? 'pms-btn-danger' : 'pms-btn-primary'} px-4 py-2.5 disabled:opacity-50`}
           >
             {confirmLabel}
           </button>

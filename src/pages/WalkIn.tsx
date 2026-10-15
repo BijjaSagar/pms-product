@@ -1,16 +1,30 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Card, CardTitle } from '../components/ui';
 import { Field } from '../components/controls';
 import { inputClass } from '../components/inputClass';
 import { ConfirmDialog } from '../components/overlays';
 import { toast } from '../components/toastStore';
 import type { NavTarget } from '../components/nav';
-import { frontDeskApi, guestApi, inventoryApi, reservationApi } from '../lib/api/pms';
+import { frontDeskApi, guestApi, holdApi, inventoryApi, reservationApi } from '../lib/api/pms';
 import { roomFromApi, roomTypeFromApi } from '../lib/api/adapters';
 import { useApiResource } from '../lib/api/useApiResource';
-import { displayApiError } from '../lib/api/client';
+import { useAvailabilityStream } from '../lib/api/availabilityStream';
+import { displayApiError, newIdempotencyKey } from '../lib/api/client';
 import { formatCurrency } from '../lib/api/format';
 import { useAuth } from '../features/auth/AuthContext';
+
+/** The active selection-time hold on the chosen ready room. */
+interface HoldState {
+  holdId: string;
+  roomId: string;
+  expiresAt: string;
+  idempotencyKey: string;
+}
+
+function formatHoldCountdown(ms: number): string {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+}
 
 export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
   const { me } = useAuth();
@@ -34,6 +48,10 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [bookingCode, setBookingCode] = useState('');
+  // The selection-time hold on the chosen ready room.
+  const [hold, setHold] = useState<HoldState | null>(null);
+  const holdRef = useRef<HoldState | null>(null);
+  const [refreshTick, setRefreshTick] = useState(0);
 
   const roomTypes = useMemo(() => choices.data?.roomTypes ?? [], [choices.data?.roomTypes]);
   const allRooms = useMemo(() => choices.data?.rooms ?? [], [choices.data?.rooms]);
@@ -42,14 +60,73 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
   const type = roomTypes.find((item) => item.id === roomTypeId) ?? roomTypes[0] ?? { id: '', name: 'Room type', baseRate: 0, maxOccupancy: 2, count: 0, active: false, description: '', beds: '', amenities: [] };
   const roomType = type.name;
   const currencyCode = me?.user.propertyMemberships.find((membership) => membership.propertyId === me.activePropertyId)?.property.currencyCode ?? 'INR';
+  const checkOutIso = useMemo(() => {
+    if (!businessDate) return '';
+    const d = new Date(`${businessDate}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + nights);
+    return d.toISOString().slice(0, 10);
+  }, [businessDate, nights]);
   const loadAvailability = useCallback(() => {
-    if (!roomTypeId || !businessDate) return Promise.resolve(null);
-    const checkOut = new Date(`${businessDate}T12:00:00Z`);
-    checkOut.setUTCDate(checkOut.getUTCDate() + nights);
-    return inventoryApi.availability(businessDate, checkOut.toISOString().slice(0, 10), roomTypeId);
-  }, [roomTypeId, nights, businessDate]);
-  const availabilityResource = useApiResource(loadAvailability, [roomTypeId, nights, businessDate]);
+    if (!roomTypeId || !businessDate || !checkOutIso) return Promise.resolve(null);
+    return inventoryApi.availability(businessDate, checkOutIso, roomTypeId);
+  }, [roomTypeId, businessDate, checkOutIso]);
+  const availabilityResource = useApiResource(loadAvailability, [roomTypeId, businessDate, checkOutIso, refreshTick]);
   const availability = availabilityResource.data;
+
+  // Live availability: another user's hold or booking drops the room at once.
+  useAvailabilityStream((event) => {
+    if (event.type === 'ping') return;
+    if (event.userId && event.userId === me?.user.id) return;
+    setRefreshTick((t) => t + 1);
+  });
+
+  useEffect(() => { holdRef.current = hold; }, [hold]);
+
+  // Countdown for the active hold.
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNowMs(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const holdRemainingMs = hold ? new Date(hold.expiresAt).getTime() - nowMs : 0;
+  const holdExpired = hold !== null && holdRemainingMs <= 0;
+
+  useEffect(() => () => {
+    const current = holdRef.current;
+    if (current) void holdApi.release(current.holdId).catch(() => undefined);
+  }, []);
+
+  const releaseHold = useCallback(async () => {
+    const current = holdRef.current;
+    if (!current) return;
+    holdRef.current = null;
+    setHold(null);
+    await holdApi.release(current.holdId).catch(() => undefined);
+  }, []);
+
+  const selectRoom = (candidate: { number: string; backendId?: string }) => {
+    const next = roomNo === candidate.number ? null : candidate;
+    setRoomNo(next?.number ?? null);
+    void (async () => {
+      await releaseHold();
+      if (!next?.backendId || !businessDate || !checkOutIso) return;
+      try {
+        const acquired = await holdApi.acquire(next.backendId, businessDate, checkOutIso);
+        const held: HoldState = {
+          holdId: acquired.holdId,
+          roomId: acquired.roomId,
+          expiresAt: acquired.expiresAt,
+          idempotencyKey: newIdempotencyKey('reservation'),
+        };
+        holdRef.current = held;
+        setHold(held);
+      } catch (error) {
+        toast('Room just taken', { detail: displayApiError(error), tone: 'danger' });
+        setRoomNo(null);
+        setRefreshTick((t) => t + 1);
+      }
+    })();
+  };
   const ready = useMemo(() => (availability?.available ?? []).map((availableRoom) => {
     const room = allRooms.find((item) => item.backendId === availableRoom.id);
     return room ? { ...room, number: availableRoom.roomNumber } : { number: availableRoom.roomNumber, backendId: availableRoom.id, type: roomType, rate: type.baseRate, status: 'Available' as const, floor: 0, hk: 'Clean' as const, guest: null, guestId: null, reservationId: null, checkIn: null, checkOut: null };
@@ -67,6 +144,7 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
     if (nights < 1) errs.push('Stay must be at least 1 night.');
     if (adults + children > type.maxOccupancy) errs.push(`${type.name} holds max ${type.maxOccupancy} guests.`);
     if (!room) errs.push('Select an available ready room.');
+    if (holdExpired) errs.push('Your hold expired. Select the room again to re-hold it.');
     if (deposit < 0 || deposit > total) errs.push('Deposit must be between $0 and the total.');
     setErrors(errs);
     return errs.length === 0;
@@ -74,6 +152,10 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
 
   const createWalkIn = async () => {
     if (!choices.data?.businessDate || !room?.backendId) return;
+    if (!hold || holdExpired) {
+      toast('Hold expired', { detail: 'Select the room again to re-hold it.', tone: 'warning' });
+      return;
+    }
     setSubmitting(true);
     try {
       const parts = name.trim().split(/\s+/);
@@ -90,7 +172,12 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
         roomId: room.backendId,
         source: 'WALK_IN',
         specialRequests: requests,
+        holdId: hold.holdId,
+        idempotencyKey: hold.idempotencyKey,
       });
+      // The backend consumed the hold with the booking.
+      holdRef.current = null;
+      setHold(null);
       setBookingCode(created.bookingCode ?? created.id);
       setDone(true);
       toast('Walk-in reservation created', { detail: `${created.bookingCode} · Continue at the check-in desk.`, tone: 'success' });
@@ -119,7 +206,7 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Full name"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Jordan Miles" className={inputClass()} /></Field>
             <Field label="Phone"><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 010 2030" inputMode="tel" className={inputClass()} /></Field>
-            <Field label="Nights"><input type="number" min={1} max={14} value={nights} onChange={(e) => setNights(Number(e.target.value))} className={inputClass('tnum')} /></Field>
+            <Field label="Nights"><input type="number" min={1} max={14} value={nights} onChange={(e) => { setNights(Number(e.target.value)); setRoomNo(null); void releaseHold(); }} className={inputClass('tnum')} /></Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Adults"><input type="number" min={1} max={6} value={adults} onChange={(e) => setAdults(Number(e.target.value))} className={inputClass('tnum')} /></Field>
               <Field label="Children"><input type="number" min={0} max={4} value={children} onChange={(e) => setChildren(Number(e.target.value))} className={inputClass('tnum')} /></Field>
@@ -131,7 +218,7 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
           {choices.error ? <p role="alert" className="pms-helper mb-3">Could not load room inventory: {choices.error}</p> : null}
           <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup" aria-label="Room type">
             {roomTypes.filter((t) => t.active).map((t) => (
-              <button key={t.id} type="button" role="radio" aria-checked={roomTypeId === t.id} onClick={() => { setSelectedRoomTypeId(t.id); setRoomNo(null); }} className="min-w-0 rounded-[10px] border p-2.5 text-left" style={{ borderColor: roomTypeId === t.id ? 'var(--color-primary)' : 'var(--color-border)', background: roomTypeId === t.id ? 'var(--color-hover-surface)' : 'var(--color-surface)' }}>
+              <button key={t.id} type="button" role="radio" aria-checked={roomTypeId === t.id} onClick={() => { setSelectedRoomTypeId(t.id); setRoomNo(null); void releaseHold(); }} className="min-w-0 rounded-control border p-2.5 text-left" style={{ borderColor: roomTypeId === t.id ? 'var(--color-primary)' : 'var(--color-border)', background: roomTypeId === t.id ? 'var(--color-hover-surface)' : 'var(--color-surface)' }}>
                 <span className="block text-[13px] font-semibold" style={{ color: 'var(--color-ink)' }}>{t.name}</span>
                 <span className="tnum block text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{formatCurrency(t.baseRate, currencyCode)}/night</span>
               </button>
@@ -139,7 +226,7 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup" aria-label="Ready rooms">
             {ready.map((r) => (
-              <button key={r.number} type="button" role="radio" aria-checked={roomNo === r.number} onClick={() => setRoomNo(r.number)} className="min-w-0 rounded-[10px] border p-3 text-left" style={{ borderColor: roomNo === r.number ? 'var(--color-primary)' : 'var(--color-border)', background: roomNo === r.number ? 'var(--color-hover-surface)' : 'var(--color-surface)' }}>
+              <button key={r.number} type="button" role="radio" aria-checked={roomNo === r.number} onClick={() => selectRoom({ number: r.number, backendId: r.backendId })} className="min-w-0 rounded-control border p-3 text-left" style={{ borderColor: roomNo === r.number ? 'var(--color-primary)' : 'var(--color-border)', background: roomNo === r.number ? 'var(--color-hover-surface)' : 'var(--color-surface)' }}>
                 <span className="tnum block text-[17px] font-semibold" style={{ color: 'var(--color-ink)' }}>{r.number}</span>
                 <span className="tnum block text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{formatCurrency(r.rate, currencyCode)}/night · ready</span>
               </button>
@@ -175,8 +262,18 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
             <li className="pms-summary-row py-2.5"><span className="font-semibold" style={{ color: 'var(--color-ink)' }}>Room estimate</span><span className="tnum text-[18px] font-semibold" style={{ color: 'var(--color-ink)' }}>{formatCurrency(total, currencyCode)}</span></li>
             <li className="pms-summary-row"><span style={{ color: 'var(--color-ink-secondary)' }}>Deposit → balance estimate</span><span className="tnum font-semibold" style={{ color: 'var(--color-ink)' }}>{formatCurrency(Math.min(deposit, total), currencyCode)} → {formatCurrency(balance, currencyCode)}</span></li>
           </ul>
+          {hold && !holdExpired ? (
+            <p className="pms-helper mt-2 font-semibold" style={{ color: holdRemainingMs < 120_000 ? 'var(--color-warning-text)' : 'var(--color-ink-secondary)' }}>
+              Held for you: {formatHoldCountdown(holdRemainingMs)} left
+            </p>
+          ) : null}
+          {holdExpired ? (
+            <p className="pms-helper mt-2 font-semibold" role="alert" style={{ color: 'var(--color-danger-text)' }}>
+              Your hold expired. Select the room again to continue.
+            </p>
+          ) : null}
           {errors.length > 0 ? (
-            <ul className="mt-3 rounded-[10px] border p-3 text-[12.5px] font-medium" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)', color: 'var(--color-danger-text)' }} role="alert">
+            <ul className="mt-3 rounded-control border p-3 text-[12.5px] font-medium" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)', color: 'var(--color-danger-text)' }} role="alert">
               {errors.map((e) => <li key={e}>• {e}</li>)}
             </ul>
           ) : null}
