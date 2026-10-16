@@ -12,47 +12,66 @@ import { Avatar, Badge, TableActionBtn, TableContainer } from '../components/ui'
 
 // ================= DEMO FALLBACK DATA MATCHING REFERENCE IMAGE =================
 
-const DEMO_TIMELINE = [
+interface ActivityItem {
+  id: string;
+  time: string;
+  type: 'arrival' | 'departure' | 'in-house';
+  icon: Lucide.LucideIcon;
+  iconBg: string;
+  title: string;
+  subtitle: string;
+  room?: string;
+  status: string;
+  statusTone: string;
+  actionLabel: string;
+  actionTone: string;
+  target: NavTarget;
+}
+
+const DEMO_TIMELINE: ActivityItem[] = [
   {
     id: 't-1',
     time: '10:00 AM',
     type: 'arrival',
-    icon: Lucide.BedDouble,
-    iconBg: 'bg-emerald-50 text-emerald-600',
-    title: 'Check-in',
-    detail: 'Rohan Singh • RSV-DM-0013 • Room 201',
+    icon: Lucide.DoorOpen,
+    iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
+    title: 'Rohan Singh',
+    subtitle: 'RSV-DM-0013 • Deluxe King',
+    room: 'Room 201',
     status: 'Arriving',
-    statusTone: 'bg-sky-50 text-sky-700 border-sky-200/60',
+    statusTone: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
     actionLabel: 'Check in',
-    actionTone: 'text-[var(--color-primary)] border-slate-200 bg-white hover:bg-slate-50',
+    actionTone: 'text-emerald-700 bg-emerald-50/80 hover:bg-emerald-100 border-emerald-200',
     target: { view: 'check-in' } as NavTarget,
   },
   {
     id: 't-2',
     time: '11:30 AM',
     type: 'arrival',
-    icon: Lucide.ArrowUpRight,
-    iconBg: 'bg-[var(--color-muted-surface)] text-[var(--color-primary)]',
-    title: 'Arrival',
-    detail: 'Priya Mehta • RSV-DM-0014 • 2 rooms',
-    status: 'VIP',
-    statusTone: 'bg-sky-50 text-sky-700 border-sky-200/60',
+    icon: Lucide.Sparkles,
+    iconBg: 'bg-purple-50 text-purple-600 border border-purple-100',
+    title: 'Priya Mehta',
+    subtitle: 'RSV-DM-0014 • VIP Welcome Amenity',
+    room: 'Room 302',
+    status: 'VIP Elite',
+    statusTone: 'bg-purple-50 text-purple-700 border-purple-200/60',
     actionLabel: 'Check in',
-    actionTone: 'text-[var(--color-primary)] border-slate-200 bg-white hover:bg-slate-50',
+    actionTone: 'text-purple-700 bg-purple-50/80 hover:bg-purple-100 border-purple-200',
     target: { view: 'check-in' } as NavTarget,
   },
   {
     id: 't-3',
     time: '12:00 PM',
     type: 'departure',
-    icon: Lucide.LogOut,
-    iconBg: 'bg-amber-50 text-amber-600',
-    title: 'Check-out',
-    detail: 'Rahul Lal • Room 103',
-    status: 'Due',
+    icon: Lucide.DoorClosed,
+    iconBg: 'bg-amber-50 text-amber-600 border border-amber-100',
+    title: 'Rahul Lal',
+    subtitle: 'RSV-DM-0010 • Folio Settled',
+    room: 'Room 103',
+    status: 'Due Out',
     statusTone: 'bg-amber-50 text-amber-700 border-amber-200/60',
     actionLabel: 'Check out',
-    actionTone: 'text-rose-600 border-rose-200 bg-white hover:bg-rose-50',
+    actionTone: 'text-amber-800 bg-amber-50/80 hover:bg-amber-100 border-amber-200',
     target: { view: 'check-out' } as NavTarget,
   },
   {
@@ -60,13 +79,14 @@ const DEMO_TIMELINE = [
     time: '02:00 PM',
     type: 'in-house',
     icon: Lucide.Sparkles,
-    iconBg: 'bg-purple-50 text-purple-600',
-    title: 'Housekeeping',
-    detail: 'Room 204 • Deep cleaning',
-    status: 'Scheduled',
+    iconBg: 'bg-sky-50 text-sky-600 border border-sky-100',
+    title: 'Deep Cleaning & Sanitization',
+    subtitle: 'Assigned: Anita S. • Due 02:45 PM',
+    room: 'Room 204',
+    status: 'Cleaning',
     statusTone: 'bg-sky-50 text-sky-700 border-sky-200/60',
-    actionLabel: 'Mark complete',
-    actionTone: 'text-slate-700 border-slate-200 bg-white hover:bg-slate-50',
+    actionLabel: 'Mark Done',
+    actionTone: 'text-slate-700 bg-slate-50 hover:bg-slate-100 border-slate-200',
     target: { view: 'housekeeping' } as NavTarget,
   },
   {
@@ -74,28 +94,163 @@ const DEMO_TIMELINE = [
     time: '03:00 PM',
     type: 'in-house',
     icon: Lucide.Wrench,
-    iconBg: 'bg-rose-50 text-rose-600',
-    title: 'Maintenance',
-    detail: 'AC not working • Room 305',
-    status: 'High',
+    iconBg: 'bg-rose-50 text-rose-600 border border-rose-100',
+    title: 'AC Thermostat Calibration',
+    subtitle: 'Reported by Guest • Priority Urgent',
+    room: 'Room 305',
+    status: 'High Priority',
     statusTone: 'bg-rose-50 text-rose-700 border-rose-200/60',
-    actionLabel: 'View task',
-    actionTone: 'text-[var(--color-primary)] border-slate-200 bg-white hover:bg-slate-50',
+    actionLabel: 'Assign Tech',
+    actionTone: 'text-rose-700 bg-rose-50/80 hover:bg-rose-100 border-rose-200',
     target: { view: 'maintenance' } as NavTarget,
   },
+];
+
+const DEMO_PENDING_CHECKINS = [
   {
-    id: 't-6',
-    time: '06:00 PM',
-    type: 'arrival',
-    icon: Lucide.User,
-    iconBg: 'bg-[var(--color-muted-surface)] text-[var(--color-primary)]',
-    title: 'Arrival',
-    detail: 'Walk-in Guest • 1 room',
-    status: 'Walk-in',
-    statusTone: 'bg-sky-50 text-sky-700 border-sky-200/60',
-    actionLabel: 'Create booking',
-    actionTone: 'text-[var(--color-primary)] border-slate-200 bg-white hover:bg-slate-50',
-    target: { view: 'new-reservation' } as NavTarget,
+    id: 'RSV-DM-0013',
+    bookingCode: 'RSV-DM-0013',
+    guest: 'Rohan Singh',
+    isVip: false,
+    room: '201',
+    roomType: 'Deluxe King',
+    roomReady: true,
+    eta: '10:00 AM',
+    dates: 'Oct 14 – 16',
+    nights: 2,
+    total: 12980,
+    balance: 0,
+    status: 'Guaranteed',
+  },
+  {
+    id: 'RSV-DM-0014',
+    bookingCode: 'RSV-DM-0014',
+    guest: 'Priya Mehta',
+    isVip: true,
+    vipTier: 'VIP Elite',
+    room: '302',
+    roomType: 'Executive Suite',
+    roomReady: true,
+    eta: '11:30 AM',
+    dates: 'Oct 14 – 17',
+    nights: 3,
+    total: 25600,
+    balance: 0,
+    status: 'Confirmed',
+  },
+  {
+    id: 'RSV-DM-0018',
+    bookingCode: 'RSV-DM-0018',
+    guest: 'Kavita Nair',
+    isVip: false,
+    room: '205',
+    roomType: 'Deluxe Queen',
+    roomReady: false,
+    eta: '01:15 PM',
+    dates: 'Oct 14 – 15',
+    nights: 1,
+    total: 6490,
+    balance: 6490,
+    status: 'Pending Deposit',
+  },
+  {
+    id: 'RSV-DM-0019',
+    bookingCode: 'RSV-DM-0019',
+    guest: 'Arjun Verma',
+    isVip: false,
+    room: 'Unassigned',
+    roomType: 'Superior Twin',
+    roomReady: false,
+    eta: '03:00 PM',
+    dates: 'Oct 14 – 18',
+    nights: 4,
+    total: 21800,
+    balance: 0,
+    status: 'Guaranteed',
+  },
+  {
+    id: 'RSV-DM-0020',
+    bookingCode: 'RSV-DM-0020',
+    guest: 'Sameer Sen',
+    isVip: true,
+    vipTier: 'VIP Diamond',
+    room: '404',
+    roomType: 'Presidential Suite',
+    roomReady: true,
+    eta: '04:30 PM',
+    dates: 'Oct 14 – 16',
+    nights: 2,
+    total: 38400,
+    balance: 10000,
+    status: 'Confirmed',
+  },
+];
+
+const DEMO_PENDING_CHECKOUTS = [
+  {
+    id: 'RSV-DM-0010',
+    bookingCode: 'RSV-DM-0010',
+    guest: 'Rahul Lal',
+    room: '103',
+    roomType: 'Standard Queen',
+    outTime: '11:00 AM',
+    isLateCheckout: false,
+    dates: 'Oct 12 – 14',
+    nights: 2,
+    folioBalance: 0,
+    status: 'Due Out' as const,
+  },
+  {
+    id: 'RSV-DM-0008',
+    bookingCode: 'RSV-DM-0008',
+    guest: 'Aditya Nanda',
+    room: '202',
+    roomType: 'Deluxe King',
+    outTime: '11:30 AM',
+    isLateCheckout: false,
+    dates: 'Oct 11 – 14',
+    nights: 3,
+    folioBalance: 1850,
+    status: 'Due Out' as const,
+  },
+  {
+    id: 'RSV-DM-0006',
+    bookingCode: 'RSV-DM-0006',
+    guest: 'Sunita Menon',
+    room: '305',
+    roomType: 'Executive Suite',
+    outTime: '02:00 PM',
+    isLateCheckout: true,
+    dates: 'Oct 10 – 14',
+    nights: 4,
+    folioBalance: 0,
+    status: 'Late Checkout' as const,
+  },
+  {
+    id: 'RSV-DM-0005',
+    bookingCode: 'RSV-DM-0005',
+    guest: 'Manish Gupta',
+    room: '107',
+    roomType: 'Superior Twin',
+    outTime: '12:00 PM',
+    isLateCheckout: false,
+    dates: 'Oct 13 – 14',
+    nights: 1,
+    folioBalance: 4200,
+    status: 'Due Out' as const,
+  },
+  {
+    id: 'RSV-DM-0004',
+    bookingCode: 'RSV-DM-0004',
+    guest: 'Elena Reddy',
+    room: '401',
+    roomType: 'Deluxe King',
+    outTime: '11:00 AM',
+    isLateCheckout: false,
+    dates: 'Oct 12 – 14',
+    nights: 2,
+    folioBalance: 0,
+    status: 'Inspected' as const,
   },
 ];
 
@@ -193,7 +348,13 @@ const OCCUPANCY_CHART_DATA = [
   { day: '18 Oct', occ: 70, adr: 4800 },
   { day: '19 Oct', occ: 60, adr: 5900 },
   { day: '20 Oct', occ: 78, adr: 6200 },
-  { day: '21 Oct', occ: 36, adr: 6000 },
+  { day: '21 Oct', occ: 55, adr: 5200 },
+  { day: '22 Oct', occ: 68, adr: 5500 },
+  { day: '23 Oct', occ: 74, adr: 5800 },
+  { day: '24 Oct', occ: 95, adr: 6500 },
+  { day: '25 Oct', occ: 88, adr: 6400 },
+  { day: '26 Oct', occ: 72, adr: 5700 },
+  { day: '27 Oct', occ: 58, adr: 5300 },
 ];
 
 export function Dashboard({
@@ -242,22 +403,6 @@ export function Dashboard({
 
   const resource = useApiResource(loadDashboard);
 
-  // Safe data extraction from live API resource, with fallbacks to match the screenshot
-  const daily = resource.data?.daily;
-  const rooms = daily?.rooms;
-  const occupiedRooms = rooms?.occupied ?? 34;
-  const totalRooms = rooms?.total ?? 50;
-  const occupancyPct = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 68;
-  const arrivalsCount = resource.data?.arrivals?.length || 8;
-  const departuresCount = resource.data?.departures?.length || 5;
-  const inHouseCount = daily?.inHouseCount || 32;
-  const totalRevenue = resource.data?.revenue?.grossRevenue ? Number(resource.data.revenue.grossRevenue) : 124680;
-  const adr = resource.data?.revenue?.adr ? Number(resource.data.revenue.adr) : 4452;
-  const pendingPaymentsCount = resource.data?.payments?.filter((p) => p.status === 'Pending').length || 3;
-  const pendingAmount = resource.data?.payments
-    ?.filter((p) => p.status === 'Pending')
-    .reduce((s, p) => s + Number(p.amount), 0) || 28160;
-
   // Filtered timeline items
   const filteredTimeline = useMemo(() => {
     if (timelineTab === 'arrivals') return DEMO_TIMELINE.filter((i) => i.type === 'arrival');
@@ -265,6 +410,47 @@ export function Dashboard({
     if (timelineTab === 'in-house') return DEMO_TIMELINE.filter((i) => i.type === 'in-house');
     return DEMO_TIMELINE;
   }, [timelineTab]);
+
+  const pendingCheckins = useMemo(() => {
+    if (resource.data?.arrivals && resource.data.arrivals.length > 0) {
+      return resource.data.arrivals.slice(0, 5).map((a) => ({
+        id: a.id,
+        bookingCode: a.bookingCode || a.id,
+        guest: a.guestName || 'Registered Guest',
+        isVip: false,
+        vipTier: undefined as string | undefined,
+        room: a.roomNumber || 'Unassigned',
+        roomType: a.roomTypeName || 'Standard Room',
+        roomReady: a.roomReady ?? true,
+        eta: '12:00 PM',
+        dates: `${a.checkInDate} – ${a.checkOutDate}`,
+        nights: a.nights ?? 1,
+        total: parseFloat(a.totalAmount || '0') || 7500,
+        balance: parseFloat(a.balance || '0') || 0,
+        status: (a.status as any) || 'Confirmed',
+      }));
+    }
+    return DEMO_PENDING_CHECKINS;
+  }, [resource.data?.arrivals]);
+
+  const pendingCheckouts = useMemo(() => {
+    if (resource.data?.departures && resource.data.departures.length > 0) {
+      return resource.data.departures.slice(0, 5).map((d) => ({
+        id: d.id,
+        bookingCode: d.bookingCode || d.id,
+        guest: d.guestName || 'In-House Guest',
+        room: d.roomNumber || '101',
+        roomType: d.roomTypeName || 'Standard Room',
+        outTime: '11:00 AM',
+        isLateCheckout: false,
+        dates: `${d.checkInDate} – ${d.checkOutDate}`,
+        nights: d.nights ?? 1,
+        folioBalance: parseFloat(d.balance || '0') || 0,
+        status: 'Due Out' as const,
+      }));
+    }
+    return DEMO_PENDING_CHECKOUTS;
+  }, [resource.data?.departures]);
 
   const recentReservations = useMemo(() => {
     if (resource.data?.reservations && resource.data.reservations.length > 0) {
@@ -293,6 +479,17 @@ export function Dashboard({
     }
     return DEMO_PAYMENTS;
   }, [resource.data?.payments]);
+
+  const adrPoints = useMemo(() => {
+    const minAdr = 3500;
+    const maxAdr = 7000;
+    return OCCUPANCY_CHART_DATA.map((item, idx) => {
+      const x = 40 + (idx / (OCCUPANCY_CHART_DATA.length - 1)) * 920;
+      const norm = Math.max(0, Math.min(1, (item.adr - minAdr) / (maxAdr - minAdr)));
+      const y = 120 - norm * 85;
+      return { x: Math.round(x), y: Math.round(y) };
+    });
+  }, []);
 
   return (
     <div className="w-full text-slate-900 font-sans pb-8 flex flex-col gap-3.5">
@@ -410,380 +607,146 @@ export function Dashboard({
         </div>
       </div>
 
-      {/* ================= 2. TOP METRIC KPI CARDS ================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
-        {/* KPI 1: Occupancy */}
-        <div
-          onClick={() => go({ view: 'occupancy-report' })}
-          className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] hover:shadow-md transition-all cursor-pointer"
-        >
+      {/* ================= 2. PERFORMANCE & INVENTORY: OCCUPANCY (col-8) & ROOM STATUS (col-4) ================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        {/* Card: Occupancy (Next 14 Days) - col-8 */}
+        <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between h-full">
           <div>
-            <div className="flex items-center justify-between">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--color-muted-surface)] text-[var(--color-primary)]">
-                <Lucide.BedDouble size={18} />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 text-sky-600 border border-sky-200/70 shadow-2xs">
+                  <Lucide.BarChart3 size={18} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-slate-900 tracking-tight">Occupancy (Next 14 Days)</h2>
+                  <p className="text-[11px] text-slate-400">Demand forecast and Average Daily Rate (ADR) projection</p>
+                </div>
               </div>
-              <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-600">
-                <span>▲</span> +12%
-              </span>
-            </div>
-            <div className="mt-2.5">
-              <p className="text-xs font-medium text-slate-500">Occupancy</p>
-              <h3 className="text-2xl font-bold tracking-tight text-slate-900 mt-0.5">{occupancyPct}%</h3>
-              <p className="text-[11.5px] text-slate-400 mt-0.5">{occupiedRooms} of {totalRooms} rooms</p>
-            </div>
-          </div>
-          {/* Progress bar */}
-          <div className="mt-3.5 h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
-            <div className="h-full rounded-full bg-[var(--color-primary)]" style={{ width: `${occupancyPct}%` }} />
-          </div>
-        </div>
 
-        {/* KPI 2: Today's Arrivals */}
-        <div
-          onClick={() => go({ view: 'check-in' })}
-          className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] hover:shadow-md transition-all cursor-pointer"
-        >
-          <div>
-            <div className="flex items-center justify-between">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                <Lucide.ArrowUpRight size={18} />
-              </div>
-              <span className="inline-flex items-center rounded-full bg-[var(--color-muted-surface)] px-2 py-0.5 text-[11px] font-bold text-[var(--color-primary)]">
-                2 VIP
-              </span>
-            </div>
-            <div className="mt-2.5">
-              <p className="text-xs font-medium text-slate-500">Today&apos;s Arrivals</p>
-              <h3 className="text-2xl font-bold tracking-tight text-slate-900 mt-0.5">{arrivalsCount}</h3>
-              <p className="text-[11.5px] text-slate-400 mt-0.5">+3 vs yesterday</p>
-            </div>
-          </div>
-          {/* Mini Sparkline Bar Chart */}
-          <div className="mt-3.5 flex items-end gap-1 h-5">
-            {[4, 5, 3, 6, 8, 7, 8].map((h, i) => (
-              <div
-                key={i}
-                className="flex-1 rounded-sm bg-blue-100 hover:bg-blue-300 transition-colors"
-                style={{ height: `${(h / 8) * 100}%` }}
-              />
-            ))}
-          </div>
-        </div>
+              {/* Legend & Action */}
+              <div className="flex items-center gap-3 self-start sm:self-auto">
+                <div className="flex items-center gap-3 text-xs text-slate-500 bg-slate-50 px-3 py-1 rounded-lg border border-slate-200/60">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <span className="h-2.5 w-2.5 rounded-xs bg-[var(--color-primary)]" />
+                    <span>Occupancy %</span>
+                  </span>
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <span className="h-2 w-2 rounded-full border-2 border-sky-400 bg-white" />
+                    <span>ADR (₹)</span>
+                  </span>
+                </div>
 
-        {/* KPI 3: Today's Departures */}
-        <div
-          onClick={() => go({ view: 'check-out' })}
-          className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] hover:shadow-md transition-all cursor-pointer"
-        >
-          <div>
-            <div className="flex items-center justify-between">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-                <Lucide.ArrowUpRight size={18} />
+                <button
+                  type="button"
+                  onClick={() => go({ view: 'occupancy-report' })}
+                  className="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                >
+                  <span>Report</span>
+                  <Lucide.ArrowRight size={12} className="text-slate-400" />
+                </button>
               </div>
             </div>
-            <div className="mt-2.5">
-              <p className="text-xs font-medium text-slate-500">Today&apos;s Departures</p>
-              <h3 className="text-2xl font-bold tracking-tight text-slate-900 mt-0.5">{departuresCount}</h3>
-              <p className="text-[11.5px] text-slate-400 mt-0.5">-1 vs yesterday</p>
-            </div>
-          </div>
-          {/* Mini Sparkline Bar Chart (Amber) */}
-          <div className="mt-3.5 flex items-end gap-1 h-5">
-            {[6, 4, 7, 5, 3, 6, 5].map((h, i) => (
-              <div
-                key={i}
-                className="flex-1 rounded-sm bg-amber-200 hover:bg-amber-300 transition-colors"
-                style={{ height: `${(h / 7) * 100}%` }}
-              />
-            ))}
-          </div>
-        </div>
 
-        {/* KPI 4: In-house Guests */}
-        <div
-          onClick={() => go({ view: 'in-house' })}
-          className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] hover:shadow-md transition-all cursor-pointer"
-        >
-          <div>
-            <div className="flex items-center justify-between">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
-                <Lucide.Users size={18} />
+            {/* Bar + Line Combo Chart */}
+            <div className="relative h-48 w-full flex items-end pt-3">
+              {/* Y-axis left lines */}
+              <div className="absolute inset-0 flex flex-col justify-between text-[9.5px] text-slate-400 pointer-events-none select-none">
+                <div className="border-b border-dashed border-slate-100 pb-0.5">100%</div>
+                <div className="border-b border-dashed border-slate-100 pb-0.5">80%</div>
+                <div className="border-b border-dashed border-slate-100 pb-0.5">60%</div>
+                <div className="border-b border-dashed border-slate-100 pb-0.5">40%</div>
+                <div className="border-b border-dashed border-slate-100 pb-0.5">20%</div>
+                <div className="border-b border-slate-200 pb-0.5">0%</div>
               </div>
-            </div>
-            <div className="mt-2.5">
-              <p className="text-xs font-medium text-slate-500">In-house Guests</p>
-              <h3 className="text-2xl font-bold tracking-tight text-slate-900 mt-0.5">{inHouseCount}</h3>
-              <p className="text-[11.5px] text-slate-400 mt-0.5">28 rooms • 4 extra guests</p>
-            </div>
-          </div>
-          {/* Mini Sparkline Bar Chart (Purple) */}
-          <div className="mt-3.5 flex items-end gap-1 h-5">
-            {[24, 26, 28, 30, 29, 31, 32].map((h, i) => (
-              <div
-                key={i}
-                className="flex-1 rounded-sm bg-purple-200 hover:bg-purple-300 transition-colors"
-                style={{ height: `${(h / 32) * 100}%` }}
-              />
-            ))}
-          </div>
-        </div>
 
-        {/* KPI 5: Total Revenue (Today) */}
-        <div
-          onClick={() => go({ view: 'revenue-report' })}
-          className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] hover:shadow-md transition-all cursor-pointer"
-        >
-          <div>
-            <div className="flex items-center justify-between">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                <Lucide.CreditCard size={18} />
+              {/* Y-axis right labels */}
+              <div className="absolute right-0 inset-y-0 flex flex-col justify-between text-[9.5px] text-slate-400 pointer-events-none select-none text-right">
+                <div>₹7K</div>
+                <div>₹6K</div>
+                <div>₹5K</div>
+                <div>₹4K</div>
+                <div>₹3K</div>
+                <div>₹0</div>
               </div>
-            </div>
-            <div className="mt-2.5">
-              <p className="text-xs font-medium text-slate-500">Total Revenue (Today)</p>
-              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mt-0.5">
-                ₹{totalRevenue.toLocaleString('en-IN')}
-              </h3>
-              <p className="text-[11px] text-emerald-600 font-semibold mt-0.5 flex items-center gap-1">
-                <span>▲ +18%</span>
-                <span className="text-slate-400 font-normal">ADR: ₹{adr.toLocaleString('en-IN')}</span>
-              </p>
-            </div>
-          </div>
-          {/* Mini Sparkline Bar Chart (Green) */}
-          <div className="mt-3.5 flex items-end gap-1 h-5">
-            {[70, 85, 60, 95, 80, 110, 124].map((h, i) => (
-              <div
-                key={i}
-                className="flex-1 rounded-sm bg-emerald-200 hover:bg-emerald-300 transition-colors"
-                style={{ height: `${(h / 124) * 100}%` }}
-              />
-            ))}
-          </div>
-        </div>
 
-        {/* KPI 6: Pending Payments */}
-        <div
-          onClick={() => go({ view: 'payments' })}
-          className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] hover:shadow-md transition-all cursor-pointer group"
-        >
-          <div>
-            <div className="flex items-center justify-between">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
-                <Lucide.AlertCircle size={18} />
-              </div>
-              <Lucide.ChevronRight size={16} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-            </div>
-            <div className="mt-2.5">
-              <p className="text-xs font-medium text-slate-500">Pending Payments</p>
-              <h3 className="text-2xl font-bold tracking-tight text-slate-900 mt-0.5">{pendingPaymentsCount}</h3>
-              <p className="text-[11.5px] text-slate-400 mt-0.5">₹{pendingAmount.toLocaleString('en-IN')} outstanding</p>
-            </div>
-          </div>
-          <div className="mt-3.5 text-[11px] font-semibold text-[var(--color-primary)] hover:underline flex items-center gap-1">
-            <span>Review folios</span>
-            <Lucide.ArrowRight size={12} />
-          </div>
-        </div>
-      </div>
-
-      {/* ================= 3. MIDDLE SECTION (3-COLUMN GRID) ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* ================= COLUMN 1: Today's Activity Timeline (lg:col-span-5) ================= */}
-        <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between h-full">
-          <div>
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-slate-900 tracking-tight">Today&apos;s Activity Timeline</h2>
-              <button
-                type="button"
-                onClick={() => go({ view: 'reservations' })}
-                className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs"
-              >
-                View all
-              </button>
-            </div>
-
-            {/* Filter Tabs */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 mb-5 no-scrollbar">
-              <button
-                type="button"
-                onClick={() => setTimelineTab('all')}
-                className={`px-3 py-1 text-xs font-semibold rounded-full transition-all cursor-pointer whitespace-nowrap ${
-                  timelineTab === 'all'
-                    ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                    : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                All (13)
-              </button>
-              <button
-                type="button"
-                onClick={() => setTimelineTab('arrivals')}
-                className={`flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full transition-all cursor-pointer whitespace-nowrap ${
-                  timelineTab === 'arrivals'
-                    ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                    : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                <span>Arrivals (8)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setTimelineTab('departures')}
-                className={`flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full transition-all cursor-pointer whitespace-nowrap ${
-                  timelineTab === 'departures'
-                    ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                    : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                <span>Departures (5)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setTimelineTab('in-house')}
-                className={`flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full transition-all cursor-pointer whitespace-nowrap ${
-                  timelineTab === 'in-house'
-                    ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                    : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                <span>In-house (32)</span>
-              </button>
-            </div>
-
-            {/* Timeline Stream */}
-            <div className="relative flex flex-col gap-4">
-              {/* Vertical connector line */}
-              <div className="absolute left-[88px] top-4 bottom-4 w-px border-l-2 border-dashed border-slate-200" />
-
-              {filteredTimeline.map((item) => {
-                const ItemIcon = item.icon;
-                return (
-                  <div key={item.id} className="relative flex items-center justify-between gap-3 group">
-                    {/* Time */}
-                    <div className="w-[68px] flex-none text-[11px] font-semibold text-slate-400">
-                      {item.time}
+              {/* 14 Day Bars */}
+              <div className="relative z-10 w-full pl-7 pr-8 flex items-end justify-between h-40">
+                {OCCUPANCY_CHART_DATA.map((item, idx) => (
+                  <div key={idx} className="flex flex-col items-center flex-1 h-full justify-end group relative">
+                    {/* Tooltip on hover */}
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5 text-[9.5px] font-bold bg-slate-900 text-white rounded px-1.5 py-0.5 pointer-events-none z-30 whitespace-nowrap shadow-md">
+                      {item.day}: {item.occ}% · ₹{item.adr}
                     </div>
-
-                    {/* Node Icon */}
-                    <div className={`relative z-10 flex h-7 w-7 flex-none items-center justify-center rounded-full shadow-2xs ${item.iconBg}`}>
-                      <ItemIcon size={14} />
-                    </div>
-
-                    {/* Detail Information */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-800">{item.title}</span>
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold border ${item.statusTone}`}>
-                          {item.status}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 truncate mt-0.5 font-normal">
-                        {item.detail}
-                      </p>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-1 flex-none">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (item.actionLabel === 'Mark complete') {
-                            toast('Housekeeping task updated', { detail: 'Room 204 marked clean.', tone: 'success' });
-                          } else {
-                            go(item.target);
-                          }
-                        }}
-                        className={`rounded-md px-2.5 py-1 text-xs font-semibold border shadow-2xs transition-colors cursor-pointer ${item.actionTone}`}
-                      >
-                        {item.actionLabel}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => go(item.target)}
-                        className="flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
-                        aria-label="More"
-                      >
-                        <Lucide.MoreVertical size={14} />
-                      </button>
-                    </div>
+                    {/* The bar */}
+                    <div
+                      className="w-3.5 sm:w-5 md:w-6 rounded-t bg-[var(--color-primary)] group-hover:bg-[var(--color-primary-hover)] transition-all cursor-pointer shadow-2xs"
+                      style={{ height: `${item.occ}%` }}
+                    />
+                    <span className="text-[10px] text-slate-500 mt-2 leading-tight text-center font-medium">
+                      {item.day.split(' ')[0]}<br />
+                      <span className="text-slate-400 text-[9px]">{item.day.split(' ')[1]}</span>
+                    </span>
                   </div>
-                );
-              })}
+                ))}
+
+                {/* Simulated ADR Trend Line (SVG Overlay) */}
+                <svg className="absolute inset-0 h-40 w-full pointer-events-none overflow-visible pl-7 pr-8" viewBox="0 0 1000 140" preserveAspectRatio="none">
+                  <polyline
+                    fill="none"
+                    stroke="#38bdf8"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    points={adrPoints.map((p) => `${p.x},${p.y}`).join(' ')}
+                  />
+                  {adrPoints.map((p, i) => (
+                    <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="#ffffff" stroke="#0284c7" strokeWidth="2" />
+                  ))}
+                </svg>
+              </div>
             </div>
+          </div>
+
+          <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span className="text-[11.5px] text-slate-400">Peak demand: 24 Oct (95% Occupancy · ₹6,500 ADR)</span>
+            <button
+              type="button"
+              onClick={() => go({ view: 'occupancy-report' })}
+              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>14-day projection report</span>
+              <Lucide.ArrowRight size={12} />
+            </button>
           </div>
         </div>
 
-        {/* ================= COLUMN 2: Room Status Overview & Housekeeping (lg:col-span-3) ================= */}
-        <div className="lg:col-span-3 flex flex-col gap-5">
-          {/* Card: Room Status Overview */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)]">
-            <h2 className="text-base font-bold text-slate-900 tracking-tight mb-4">Room Status Overview</h2>
+        {/* Card: Room Status Overview - col-4 (rest col) */}
+        <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between h-full">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 shadow-2xs">
+                  <Lucide.BedDouble size={18} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-slate-900 tracking-tight">Room Status Overview</h2>
+                  <p className="text-[11px] text-slate-400">Current live inventory distribution</p>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/60">
+                50 Rooms
+              </span>
+            </div>
 
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-4 py-2">
               {/* SVG Donut Chart */}
               <div className="relative h-32 w-32 flex-none flex items-center justify-center">
                 <svg viewBox="0 0 160 160" className="h-full w-full -rotate-90">
-                  {/* Total 50 rooms. Circumference = 2 * PI * 60 = 376.99 */}
-                  {/* Occupied: 34 (68%) -> dash 256.35 */}
-                  <circle
-                    cx="80"
-                    cy="80"
-                    r="60"
-                    fill="none"
-                    stroke="var(--color-primary)"
-                    strokeWidth="18"
-                    strokeDasharray="256.35 376.99"
-                    strokeDashoffset="0"
-                  />
-                  {/* Available: 10 (20%) -> dash 75.40 */}
-                  <circle
-                    cx="80"
-                    cy="80"
-                    r="60"
-                    fill="none"
-                    stroke="#10b981"
-                    strokeWidth="18"
-                    strokeDasharray="75.40 376.99"
-                    strokeDashoffset="-256.35"
-                  />
-                  {/* Dirty: 4 (8%) -> dash 30.16 */}
-                  <circle
-                    cx="80"
-                    cy="80"
-                    r="60"
-                    fill="none"
-                    stroke="#f59e0b"
-                    strokeWidth="18"
-                    strokeDasharray="30.16 376.99"
-                    strokeDashoffset="-331.75"
-                  />
-                  {/* Cleaning: 1 (2%) -> dash 7.54 */}
-                  <circle
-                    cx="80"
-                    cy="80"
-                    r="60"
-                    fill="none"
-                    stroke="#0ea5e9"
-                    strokeWidth="18"
-                    strokeDasharray="7.54 376.99"
-                    strokeDashoffset="-361.91"
-                  />
-                  {/* Out of service: 1 (2%) -> dash 7.54 */}
-                  <circle
-                    cx="80"
-                    cy="80"
-                    r="60"
-                    fill="none"
-                    stroke="#ef4444"
-                    strokeWidth="18"
-                    strokeDasharray="7.54 376.99"
-                    strokeDashoffset="-369.45"
-                  />
+                  <circle cx="80" cy="80" r="60" fill="none" stroke="var(--color-primary)" strokeWidth="18" strokeDasharray="256.35 376.99" strokeDashoffset="0" />
+                  <circle cx="80" cy="80" r="60" fill="none" stroke="#10b981" strokeWidth="18" strokeDasharray="75.40 376.99" strokeDashoffset="-256.35" />
+                  <circle cx="80" cy="80" r="60" fill="none" stroke="#f59e0b" strokeWidth="18" strokeDasharray="30.16 376.99" strokeDashoffset="-331.75" />
+                  <circle cx="80" cy="80" r="60" fill="none" stroke="#0ea5e9" strokeWidth="18" strokeDasharray="7.54 376.99" strokeDashoffset="-361.91" />
+                  <circle cx="80" cy="80" r="60" fill="none" stroke="#ef4444" strokeWidth="18" strokeDasharray="7.54 376.99" strokeDashoffset="-369.45" />
                 </svg>
 
                 {/* Center Label */}
@@ -796,63 +759,228 @@ export function Dashboard({
               {/* Legend List */}
               <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-600 truncate">
+                  <span className="flex items-center gap-1.5 text-slate-700 truncate">
                     <span className="h-2 w-2 rounded-full bg-[var(--color-primary)] flex-none" />
-                    <span>34 Occupied</span>
+                    <span className="font-medium">34 Occupied</span>
                   </span>
-                  <span className="font-semibold text-slate-400">68%</span>
+                  <span className="font-bold text-slate-800">68%</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-600 truncate">
+                  <span className="flex items-center gap-1.5 text-slate-700 truncate">
                     <span className="h-2 w-2 rounded-full bg-[#10b981] flex-none" />
-                    <span>10 Available</span>
+                    <span className="font-medium">10 Available</span>
                   </span>
-                  <span className="font-semibold text-slate-400">20%</span>
+                  <span className="font-bold text-slate-800">20%</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-600 truncate">
+                  <span className="flex items-center gap-1.5 text-slate-700 truncate">
                     <span className="h-2 w-2 rounded-full bg-[#f59e0b] flex-none" />
-                    <span>4 Dirty</span>
+                    <span className="font-medium">4 Dirty</span>
                   </span>
-                  <span className="font-semibold text-slate-400">8%</span>
+                  <span className="font-bold text-slate-800">8%</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-600 truncate">
+                  <span className="flex items-center gap-1.5 text-slate-700 truncate">
                     <span className="h-2 w-2 rounded-full bg-[#0ea5e9] flex-none" />
-                    <span>1 Cleaning</span>
+                    <span className="font-medium">1 Cleaning</span>
                   </span>
-                  <span className="font-semibold text-slate-400">2%</span>
+                  <span className="font-bold text-slate-800">2%</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-600 truncate">
+                  <span className="flex items-center gap-1.5 text-slate-700 truncate">
                     <span className="h-2 w-2 rounded-full bg-[#ef4444] flex-none" />
-                    <span>1 Out of service</span>
+                    <span className="font-medium">1 Out of order</span>
                   </span>
-                  <span className="font-semibold text-slate-400">2%</span>
+                  <span className="font-bold text-slate-800">2%</span>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Bottom inventory link */}
+          <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span className="text-[11.5px] text-slate-400">Available to sell: 10 units</span>
             <button
               type="button"
               onClick={() => go({ view: 'room-inventory' })}
-              className="mt-4 w-full text-center text-xs font-semibold text-[var(--color-primary)] hover:underline cursor-pointer"
+              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
-              View room inventory
+              <span>Room inventory</span>
+              <Lucide.ArrowRight size={12} />
             </button>
           </div>
+        </div>
+      </div>
 
+      {/* ================= 3. OPERATIONAL TIMELINE & DEPARTMENT TASKS ================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Today's Activity Timeline (lg:col-span-7) */}
+        <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between h-full">
+          <div>
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+                  <Lucide.Clock size={17} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">Today&apos;s Activity Timeline</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                      </span>
+                      Live Feed
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Real-time guest movements & operations</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => go({ view: 'arrivals-departures' })}
+                className="text-xs font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+              >
+                <span>Front Desk</span>
+                <Lucide.ArrowRight size={13} />
+              </button>
+            </div>
+
+            {/* Filter Tabs (Segmented Control) */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100/80 mb-4 overflow-x-auto no-scrollbar">
+              {[
+                { key: 'all' as const, label: 'All (5)' },
+                { key: 'arrivals' as const, label: 'Arrivals (2)' },
+                { key: 'departures' as const, label: 'Departures (1)' },
+                { key: 'in-house' as const, label: 'In-House (2)' },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setTimelineTab(tab.key)}
+                  className={`flex-1 min-w-[70px] py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer text-center ${
+                    timelineTab === tab.key
+                      ? 'bg-white text-slate-900 shadow-2xs font-bold border border-slate-200/50'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* True Timeline Stream with Connected Spine (Strictly limited to 5 records) */}
+            <div className="flex flex-col">
+              {filteredTimeline.slice(0, 5).map((item, index, arr) => {
+                const ItemIcon = item.icon;
+                const isLast = index === arr.length - 1;
+
+                return (
+                  <div key={item.id} className="relative flex items-start gap-3 group">
+                    {/* Timeline spine track */}
+                    <div className="flex flex-col items-center flex-none">
+                      {/* Node squarcle */}
+                      <div className={`flex h-8 w-8 items-center justify-center rounded-xl shadow-2xs transition-all duration-200 group-hover:scale-105 ${item.iconBg}`}>
+                        <ItemIcon size={15} strokeWidth={2.2} />
+                      </div>
+                      {/* Connecting vertical rail */}
+                      {!isLast && (
+                        <div className="w-[2px] flex-1 my-1.5 bg-gradient-to-b from-slate-200 via-slate-200 to-slate-100 min-h-[34px]" />
+                      )}
+                    </div>
+
+                    {/* Event Card */}
+                    <div className={`flex-1 min-w-0 ${isLast ? 'pb-1' : 'pb-3.5'}`}>
+                      <div className="p-3 rounded-xl border border-slate-200/70 bg-white hover:border-slate-300 hover:bg-slate-50/50 hover:shadow-2xs transition-all duration-200">
+                        {/* Meta Row: Time, Room, Status, Action */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                            <span className="font-mono text-[11px] font-bold text-slate-700 bg-slate-100/90 border border-slate-200/60 px-2 py-0.5 rounded-md shadow-2xs">
+                              {item.time}
+                            </span>
+                            {item.room && (
+                              <span className="text-[11px] font-semibold text-slate-700 bg-slate-100/80 px-2 py-0.5 rounded-md">
+                                {item.room}
+                              </span>
+                            )}
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${item.statusTone}`}>
+                              {item.status}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (item.actionLabel === 'Mark Done' || item.actionLabel === 'Mark Clean') {
+                                toast('Housekeeping task updated', { detail: 'Room 204 marked clean.', tone: 'success' });
+                              } else {
+                                go(item.target);
+                              }
+                            }}
+                            className={`flex-none text-xs font-semibold px-2.5 py-1 rounded-lg border shadow-2xs transition-all cursor-pointer hover:shadow-xs active:scale-95 flex items-center gap-1 ${item.actionTone}`}
+                          >
+                            <span>{item.actionLabel}</span>
+                            <Lucide.ArrowRight size={12} />
+                          </button>
+                        </div>
+
+                        {/* Title & Detail */}
+                        <div className="mt-1.5">
+                          <h4 className="text-[13px] font-bold text-slate-900 group-hover:text-[var(--color-primary)] transition-colors">
+                            {item.title}
+                          </h4>
+                          <p className="text-[11.5px] text-slate-500 mt-0.5 truncate">
+                            {item.subtitle}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Footer Timeline Summary */}
+          <div className="pt-3.5 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="text-[11.5px] text-slate-500 font-medium">
+                Showing {filteredTimeline.slice(0, 5).length} of 5 operational activities
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => go({ view: 'arrivals-departures' })}
+              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>Movement report</span>
+              <Lucide.ArrowRight size={12} />
+            </button>
+          </div>
+        </div>
+
+        {/* Housekeeping & Department Tasks (lg:col-span-5) */}
+        <div className="lg:col-span-5 flex flex-col gap-5">
           {/* Card: Housekeeping Progress */}
           <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)]">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-bold text-slate-900 tracking-tight">Housekeeping Progress</h2>
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-600 border border-sky-200/60 shadow-2xs">
+                  <Lucide.Sparkles size={16} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-slate-900 tracking-tight">Housekeeping Progress</h2>
+                  <p className="text-[11px] text-slate-400">Turnaround status & inspection</p>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => go({ view: 'housekeeping' })}
                 className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs"
               >
-                View details
+                View all
               </button>
             </div>
 
@@ -886,105 +1014,19 @@ export function Dashboard({
               </div>
             </div>
           </div>
-        </div>
-
-        {/* ================= COLUMN 3: Occupancy Chart & Department Tasks (lg:col-span-4) ================= */}
-        <div className="lg:col-span-4 flex flex-col gap-5">
-          {/* Card: Occupancy (Next 14 Days) */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)]">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-base font-bold text-slate-900 tracking-tight">Occupancy (Next 14 Days)</h2>
-              <button
-                type="button"
-                onClick={() => go({ view: 'occupancy-report' })}
-                className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs"
-              >
-                View all
-              </button>
-            </div>
-
-            {/* Legend */}
-            <div className="flex items-center justify-end gap-3 text-[11px] text-slate-500 mb-3">
-              <span className="flex items-center gap-1.5 font-medium">
-                <span className="h-2 w-2 rounded-sm bg-[var(--color-primary)]" /> Occupancy %
-              </span>
-              <span className="flex items-center gap-1.5 font-medium">
-                <span className="h-1.5 w-1.5 rounded-full border-2 border-sky-400 bg-white" /> ADR (₹)
-              </span>
-            </div>
-
-            {/* Bar + Line Combo Chart */}
-            <div className="relative h-44 w-full flex items-end">
-              {/* Y-axis left lines */}
-              <div className="absolute inset-0 flex flex-col justify-between text-[9.5px] text-slate-400 pointer-events-none select-none">
-                <div className="border-b border-dashed border-slate-100 pb-0.5">100%</div>
-                <div className="border-b border-dashed border-slate-100 pb-0.5">80%</div>
-                <div className="border-b border-dashed border-slate-100 pb-0.5">60%</div>
-                <div className="border-b border-dashed border-slate-100 pb-0.5">40%</div>
-                <div className="border-b border-dashed border-slate-100 pb-0.5">20%</div>
-                <div className="border-b border-slate-200 pb-0.5">0%</div>
-              </div>
-
-              {/* Y-axis right labels */}
-              <div className="absolute right-0 inset-y-0 flex flex-col justify-between text-[9.5px] text-slate-400 pointer-events-none select-none text-right">
-                <div>₹8K</div>
-                <div>₹6K</div>
-                <div>₹4K</div>
-                <div>₹2K</div>
-                <div>₹0</div>
-              </div>
-
-              {/* Day Bars */}
-              <div className="relative z-10 w-full pl-7 pr-7 flex items-end justify-between h-36">
-                {OCCUPANCY_CHART_DATA.map((item, idx) => (
-                  <div key={idx} className="flex flex-col items-center flex-1 h-full justify-end group">
-                    {/* Tooltip on hover */}
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-4 text-[9px] font-bold bg-slate-900 text-white rounded px-1 py-0.5 pointer-events-none z-20">
-                      {item.occ}% · ₹{item.adr}
-                    </div>
-                    {/* The bar */}
-                    <div
-                      className="w-4 sm:w-5 rounded-t bg-[var(--color-primary)] group-hover:bg-[var(--color-primary-hover)] transition-all cursor-pointer"
-                      style={{ height: `${item.occ}%` }}
-                    />
-                    <span className="text-[10px] text-slate-400 mt-1.5 leading-tight text-center">
-                      {item.day.split(' ')[0]}<br />{item.day.split(' ')[1]}
-                    </span>
-                  </div>
-                ))}
-
-                {/* Simulated ADR Trend Line (SVG Overlay) */}
-                <svg className="absolute inset-0 h-36 w-full pointer-events-none overflow-visible" preserveAspectRatio="none">
-                  <polyline
-                    fill="none"
-                    stroke="#38bdf8"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    points="38,62 82,75 125,50 168,44 211,58 254,34 297,28 340,32"
-                  />
-                  {/* Dots on line */}
-                  {[
-                    [38, 62],
-                    [82, 75],
-                    [125, 50],
-                    [168, 44],
-                    [211, 58],
-                    [254, 34],
-                    [297, 28],
-                    [340, 32],
-                  ].map(([cx, cy], i) => (
-                    <circle key={i} cx={cx} cy={cy} r="3.5" fill="#ffffff" stroke="#0284c7" strokeWidth="2" />
-                  ))}
-                </svg>
-              </div>
-            </div>
-          </div>
 
           {/* Card: Department Tasks */}
           <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)]">
             <div className="flex items-center justify-between mb-3.5">
-              <h2 className="text-base font-bold text-slate-900 tracking-tight">Department Tasks</h2>
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200/60 shadow-2xs">
+                  <Lucide.ClipboardList size={16} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-slate-900 tracking-tight">Department Tasks</h2>
+                  <p className="text-[11px] text-slate-400">Operational follow-ups & alerts</p>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => go({ view: 'maintenance' })}
@@ -1055,27 +1097,315 @@ export function Dashboard({
         </div>
       </div>
 
-      {/* ================= 4. BOTTOM SECTION: 2 TABLES SIDE BY SIDE ================= */}
+      {/* ================= 4. FRONT DESK MOVEMENT: PENDING CHECK-INS & CHECK-OUTS ================= */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 min-w-0">
-        {/* Table 1: Recent Reservations */}
+        {/* Table 1: Pending Check-ins */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div className="min-w-0">
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <Lucide.CalendarDays className="text-[var(--color-primary)]" size={18} />
-                <h2 className="text-base font-bold text-slate-900 tracking-tight">Recent Reservations</h2>
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 shadow-2xs">
+                  <Lucide.DoorOpen size={18} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-bold text-slate-900 tracking-tight">Pending Check-ins</h2>
+                    <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      {pendingCheckins.length} Expected
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Today&apos;s arrivals awaiting front desk check-in</p>
+                </div>
               </div>
+
               <button
                 type="button"
-                onClick={() => go({ view: 'reservations' })}
-                className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs"
+                onClick={() => go({ view: 'check-in' })}
+                className="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                title="Open Check-in Terminal"
               >
-                View all
+                <span>Terminal</span>
+                <Lucide.ArrowUpRight size={13} className="text-slate-400" />
               </button>
             </div>
 
+            {/* Table Container */}
             <TableContainer>
-              <table className="pms-table w-full text-xs [&_th]:px-2.5 [&_th]:py-2.5 [&_td]:px-2.5 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
+              <table className="pms-table w-full text-xs min-w-[580px] [&_th]:px-2.5 [&_th]:py-2.5 [&_td]:px-2.5 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
+                <thead>
+                  <tr>
+                    <th className="w-8 text-center whitespace-nowrap">#</th>
+                    <th className="whitespace-nowrap">GUEST & BOOKING</th>
+                    <th className="whitespace-nowrap">ASSIGNED ROOM</th>
+                    <th className="whitespace-nowrap">ETA & STAY</th>
+                    <th className="whitespace-nowrap">FOLIO / TOTAL</th>
+                    <th className="text-right whitespace-nowrap pr-3.5">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingCheckins.map((r, idx) => (
+                    <tr key={r.id}>
+                      <td className="text-center font-medium text-slate-400 text-xs whitespace-nowrap">
+                        {idx + 1}
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <Avatar name={r.guest} size={30} />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-semibold text-slate-900 text-xs truncate max-w-[125px]">{r.guest}</span>
+                              {r.isVip && (
+                                <span className="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                  VIP
+                                </span>
+                              )}
+                            </div>
+                            <span className="font-mono text-[10.5px] text-slate-400 block">{r.bookingCode}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`font-bold text-xs px-2 py-0.5 rounded-md border ${
+                            r.room === 'Unassigned'
+                              ? 'text-amber-800 bg-amber-50 border-amber-200/80'
+                              : 'text-slate-800 bg-slate-100 border-slate-200/60'
+                          }`}>
+                            {r.room === 'Unassigned' ? 'Unassigned' : `Room ${r.room}`}
+                          </span>
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-medium ${r.roomReady ? 'text-emerald-600' : 'text-amber-600'}`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${r.roomReady ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                            {r.roomReady ? 'Ready' : 'Cleaning'}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-400 block mt-0.5">{r.roomType}</span>
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <span className="font-mono font-bold text-slate-700 text-xs block">{r.eta}</span>
+                        <span className="text-[11px] text-slate-400 block">{r.dates} ({r.nights}n)</span>
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <span className="font-bold text-slate-900 text-xs font-mono block">
+                          ₹{r.total.toLocaleString('en-IN')}.00
+                        </span>
+                        {r.balance === 0 ? (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                            <Lucide.CheckCircle2 size={10} /> Paid
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                            Due ₹{r.balance.toLocaleString('en-IN')}
+                          </span>
+                        )}
+                      </td>
+                      <td className="text-right whitespace-nowrap pr-3.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            toast('Check-in Initiated', { detail: `Ready to check in ${r.guest} for Room ${r.room}.`, tone: 'success' });
+                            go({ view: 'check-in' });
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                        >
+                          <Lucide.DoorOpen size={13} />
+                          <span>Check in</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </TableContainer>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs text-slate-500">
+            <span>Showing {pendingCheckins.length} expected arrivals today</span>
+            <button
+              type="button"
+              onClick={() => go({ view: 'check-in' })}
+              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>Open Check-in Terminal</span>
+              <Lucide.ArrowRight size={13} />
+            </button>
+          </div>
+        </div>
+
+        {/* Table 2: Pending Check-outs */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] p-4 sm:p-5 flex flex-col justify-between min-w-0">
+          <div className="min-w-0">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-200/70 shadow-2xs">
+                  <Lucide.DoorClosed size={18} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-bold text-slate-900 tracking-tight">Pending Check-outs</h2>
+                    <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200/60">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      {pendingCheckouts.length} Due Out
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Departures scheduled today awaiting key return & folio balance</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => go({ view: 'check-out' })}
+                className="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                title="Open Check-out Terminal"
+              >
+                <span>Terminal</span>
+                <Lucide.ArrowUpRight size={13} className="text-slate-400" />
+              </button>
+            </div>
+
+            {/* Table Container */}
+            <TableContainer>
+              <table className="pms-table w-full text-xs min-w-[580px] [&_th]:px-2.5 [&_th]:py-2.5 [&_td]:px-2.5 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
+                <thead>
+                  <tr>
+                    <th className="w-8 text-center whitespace-nowrap">#</th>
+                    <th className="whitespace-nowrap">GUEST & ROOM</th>
+                    <th className="whitespace-nowrap">OUT TIME & STAY</th>
+                    <th className="whitespace-nowrap">FOLIO BALANCE</th>
+                    <th className="whitespace-nowrap text-center">STATUS</th>
+                    <th className="text-right whitespace-nowrap pr-3.5">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingCheckouts.map((d, idx) => (
+                    <tr key={d.id}>
+                      <td className="text-center font-medium text-slate-400 text-xs whitespace-nowrap">
+                        {idx + 1}
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <Avatar name={d.guest} size={30} />
+                          <div className="min-w-0">
+                            <span className="font-semibold text-slate-900 text-xs block truncate max-w-[130px]">{d.guest}</span>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="font-bold text-slate-800 text-[11px] bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200/60">
+                                Room {d.room}
+                              </span>
+                              <span className="text-[11px] text-slate-400 truncate max-w-[110px]">{d.roomType}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <div className="flex items-center gap-1">
+                          <span className="font-mono font-bold text-slate-700 text-xs block">{d.outTime}</span>
+                          {d.isLateCheckout && (
+                            <span className="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                              Late
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-slate-400 block mt-0.5">{d.dates} ({d.nights}n)</span>
+                      </td>
+                      <td className="whitespace-nowrap">
+                        {d.folioBalance === 0 ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/80">
+                            <Lucide.CheckCircle2 size={12} />
+                            <span>Settled (₹0)</span>
+                          </span>
+                        ) : (
+                          <div>
+                            <span className="font-bold text-rose-600 text-xs font-mono block">
+                              ₹{d.folioBalance.toLocaleString('en-IN')}.00
+                            </span>
+                            <span className="text-[10px] text-rose-600 font-semibold flex items-center gap-0.5">
+                              <Lucide.AlertCircle size={10} /> Pending balance
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="whitespace-nowrap text-center">
+                        <Badge tone={d.status === 'Inspected' ? 'success' : d.status === 'Late Checkout' ? 'info' : 'warning'}>
+                          {d.status}
+                        </Badge>
+                      </td>
+                      <td className="text-right whitespace-nowrap pr-3.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (d.folioBalance > 0) {
+                              toast('Folio Balance Pending', { detail: `Collect ₹${d.folioBalance.toLocaleString('en-IN')} from ${d.guest} before closing folio.`, tone: 'warning' });
+                            } else {
+                              toast('Check-out Completed', { detail: `${d.guest} checked out from Room ${d.room}. Housekeeping alerted.`, tone: 'success' });
+                            }
+                            go({ view: 'check-out' });
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                        >
+                          <Lucide.DoorClosed size={13} />
+                          <span>Check out</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </TableContainer>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs text-slate-500">
+            <span>Showing {pendingCheckouts.length} departures pending today</span>
+            <button
+              type="button"
+              onClick={() => go({ view: 'check-out' })}
+              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>Open Check-out Terminal</span>
+              <Lucide.ArrowRight size={13} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= 5. RECENT ACTIVITY: RECENT RESERVATIONS & RECENT TRANSACTIONS ================= */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 min-w-0">
+        {/* Table 3: Recent Reservations */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] p-4 sm:p-5 flex flex-col justify-between min-w-0">
+          <div className="min-w-0">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-200/70 shadow-2xs">
+                  <Lucide.CalendarDays size={18} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-bold text-slate-900 tracking-tight">Recent Reservations</h2>
+                    <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-200/60">
+                      {recentReservations.length} Bookings
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Latest confirmed bookings & stays across property</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => go({ view: 'reservations' })}
+                className="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+              >
+                <span>View all</span>
+                <Lucide.ArrowRight size={13} className="text-slate-400" />
+              </button>
+            </div>
+
+            {/* Table Container */}
+            <TableContainer>
+              <table className="pms-table w-full text-xs min-w-[580px] [&_th]:px-2.5 [&_th]:py-2.5 [&_td]:px-2.5 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
                 <thead>
                   <tr>
                     <th className="w-8 text-center whitespace-nowrap">#</th>
@@ -1083,7 +1413,7 @@ export function Dashboard({
                     <th className="whitespace-nowrap">ROOM & DATES</th>
                     <th className="whitespace-nowrap text-center">STATUS</th>
                     <th className="text-right whitespace-nowrap">TOTAL</th>
-                    <th className="text-right w-12 whitespace-nowrap">ACTION</th>
+                    <th className="text-right w-12 whitespace-nowrap pr-3.5">ACTION</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1113,7 +1443,7 @@ export function Dashboard({
                       <td className="text-right font-bold text-slate-900 text-xs font-mono whitespace-nowrap">
                         ₹{r.total.toLocaleString('en-IN')}.00
                       </td>
-                      <td className="text-right whitespace-nowrap">
+                      <td className="text-right whitespace-nowrap pr-3.5">
                         <div className="flex items-center justify-end">
                           <TableActionBtn
                             icon={Lucide.Eye}
@@ -1128,6 +1458,8 @@ export function Dashboard({
               </table>
             </TableContainer>
           </div>
+
+          {/* Footer */}
           <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs text-slate-500">
             <span>Showing {recentReservations.length} recent bookings</span>
             <button
@@ -1135,31 +1467,45 @@ export function Dashboard({
               onClick={() => go({ view: 'reservations' })}
               className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
-              <span>Manage all</span>
+              <span>Manage all reservations</span>
               <Lucide.ArrowRight size={13} />
             </button>
           </div>
         </div>
 
-        {/* Table 2: Recent Payments */}
+        {/* Table 4: Recent Transactions */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div className="min-w-0">
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <Lucide.CreditCard className="text-[var(--color-primary)]" size={18} />
-                <h2 className="text-base font-bold text-slate-900 tracking-tight">Recent Payments</h2>
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-purple-600 border border-purple-200/70 shadow-2xs">
+                  <Lucide.ReceiptText size={18} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-bold text-slate-900 tracking-tight">Recent Transactions</h2>
+                    <span className="rounded-full bg-purple-50 px-2.5 py-0.5 text-[10px] font-bold text-purple-700 border border-purple-200/60">
+                      {recentPayments.length} Settlements
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Latest settled folios, payments & guest transactions</p>
+                </div>
               </div>
+
               <button
                 type="button"
                 onClick={() => go({ view: 'payments' })}
-                className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs"
+                className="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
               >
-                View all
+                <span>View all</span>
+                <Lucide.ArrowRight size={13} className="text-slate-400" />
               </button>
             </div>
 
+            {/* Table Container */}
             <TableContainer>
-              <table className="pms-table w-full text-xs [&_th]:px-2.5 [&_th]:py-2.5 [&_td]:px-2.5 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
+              <table className="pms-table w-full text-xs min-w-[580px] [&_th]:px-2.5 [&_th]:py-2.5 [&_td]:px-2.5 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
                 <thead>
                   <tr>
                     <th className="w-8 text-center whitespace-nowrap">#</th>
@@ -1167,7 +1513,7 @@ export function Dashboard({
                     <th className="whitespace-nowrap">DATE & METHOD</th>
                     <th className="whitespace-nowrap text-center">STATUS</th>
                     <th className="text-right whitespace-nowrap">AMOUNT</th>
-                    <th className="text-right w-12 whitespace-nowrap">ACTION</th>
+                    <th className="text-right w-12 whitespace-nowrap pr-3.5">ACTION</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1197,11 +1543,11 @@ export function Dashboard({
                       <td className="text-right font-bold text-slate-900 text-xs font-mono whitespace-nowrap">
                         ₹{p.amount.toLocaleString('en-IN')}.00
                       </td>
-                      <td className="text-right whitespace-nowrap">
+                      <td className="text-right whitespace-nowrap pr-3.5">
                         <div className="flex items-center justify-end">
                           <TableActionBtn
                             icon={Lucide.FileText}
-                            title="View payments"
+                            title="View transaction"
                             onClick={() => go({ view: 'payments' })}
                           />
                         </div>
@@ -1212,6 +1558,8 @@ export function Dashboard({
               </table>
             </TableContainer>
           </div>
+
+          {/* Footer */}
           <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs text-slate-500">
             <span>Showing {recentPayments.length} recent settlements</span>
             <button
@@ -1219,7 +1567,7 @@ export function Dashboard({
               onClick={() => go({ view: 'payments' })}
               className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
-              <span>Manage all</span>
+              <span>Manage all transactions</span>
               <Lucide.ArrowRight size={13} />
             </button>
           </div>
