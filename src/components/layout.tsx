@@ -39,121 +39,9 @@ const NAV_ICONS: Record<ViewId, Lucide.LucideIcon> = {
   settings: Lucide.Settings,
 };
 
-function NavIcon({ id }: { id: ViewId }) {
-  const common = 'h-[18px] w-[18px] flex-none';
-  const stroke = {
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 1.7,
-    strokeLinecap: 'round',
-    strokeLinejoin: 'round',
-  } as const;
-  switch (id) {
-    case 'dashboard':
-      return (
-        <svg viewBox="0 0 24 24" className={common} {...stroke} aria-hidden="true">
-          <rect x="3" y="3" width="7.5" height="7.5" rx="1.5" />
-          <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" />
-          <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" />
-          <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" />
-        </svg>
-      );
-    case 'reservations':
-    case 'occupancy-report':
-    case 'revenue-report':
-    case 'arrivals-departures':
-    case 'reports':
-      return (
-        <svg viewBox="0 0 24 24" className={common} {...stroke} aria-hidden="true">
-          <path d="M4 20h16" />
-          <path d="M7 16v-5M12 16V7M17 16v-8" />
-        </svg>
-      );
-    case 'new-reservation':
-      return (
-        <svg viewBox="0 0 24 24" className={common} {...stroke} aria-hidden="true">
-          <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
-          <path d="M3.5 10h17M8 3v4M16 3v4M12 13v5M9.5 15.5h5" />
-        </svg>
-      );
-    case 'room-overview':
-    case 'room-inventory':
-    case 'status-board':
-    case 'room-types':
-      return (
-        <svg viewBox="0 0 24 24" className={common} {...stroke} aria-hidden="true">
-          <path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6" />
-          <path d="M3 18h18M5 10V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3" />
-        </svg>
-      );
-    case 'check-in':
-    case 'check-out':
-      return (
-        <svg viewBox="0 0 24 24" className={common} {...stroke} aria-hidden="true">
-          <path d="M4 20h16M6 20v-9h12v9M9 11V8h6v3" />
-          <path d="M12 5V3.5" />
-        </svg>
-      );
-    case 'guests':
-    case 'in-house':
-    case 'walk-in':
-      return (
-        <svg viewBox="0 0 24 24" className={common} {...stroke} aria-hidden="true">
-          <circle cx="9" cy="8" r="3.2" />
-          <path d="M3.5 20c.6-3.4 2.8-5 5.5-5s4.9 1.6 5.5 5" />
-          <circle cx="17" cy="9" r="2.4" />
-          <path d="M15.5 14.6c2.9.1 4.4 1.7 5 4.4" />
-        </svg>
-      );
-    case 'housekeeping':
-      return (
-        <svg viewBox="0 0 24 24" className={common} {...stroke} aria-hidden="true">
-          <path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15.5l-1.9-4.6L5.5 9l4.6-1.4z" />
-          <path d="M18.5 15.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z" />
-        </svg>
-      );
-    case 'maintenance':
-      return (
-        <svg viewBox="0 0 24 24" className={common} {...stroke} aria-hidden="true">
-          <path d="M14.5 6.5a4 4 0 0 0-5.6 5L4 16.4V20h3.6l4.9-4.9a4 4 0 0 0 5-5.6l-2.8 2.8-2.4-2.4z" />
-        </svg>
-      );
-    case 'folios':
-    case 'invoices':
-      return (
-        <svg viewBox="0 0 24 24" className={common} {...stroke} aria-hidden="true">
-          <path d="M6 3.5h12v17l-2.6-1.8L12.8 20.5l-2.6-1.8L7.6 20.5 6 19.2z" />
-          <path d="M9.5 8h5M9.5 11.5h5" />
-        </svg>
-      );
-    case 'payments':
-      return (
-        <svg viewBox="0 0 24 24" className={common} {...stroke} aria-hidden="true">
-          <rect x="3" y="6" width="18" height="13" rx="2" />
-          <path d="M3 10.5h18M7 15h4" />
-        </svg>
-      );
-    case 'staff-roles':
-      return (
-        <svg viewBox="0 0 24 24" className={common} {...stroke} aria-hidden="true">
-          <circle cx="8" cy="8" r="3" />
-          <path d="M3 20c.5-3 2.4-4.5 5-4.5 1.4 0 2.7.4 3.6 1.2M15 4.5a3 3 0 0 1 0 7M17.5 15.7c1.7.7 2.7 2 3 4.3" />
-        </svg>
-      );
-    case 'properties':
-      return (
-        <svg viewBox="0 0 24 24" className={common} {...stroke} aria-hidden="true">
-          <path d="M4 10l8-6 8 6v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z" />
-        </svg>
-      );
-    default:
-      return (
-        <svg viewBox="0 0 24 24" className={common} {...stroke} aria-hidden="true">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
-        </svg>
-      );
-  }
+function NavIcon({ id, className = 'h-[18px] w-[18px] flex-none' }: { id: ViewId; className?: string }) {
+  const Icon = NAV_ICONS[id] || Lucide.CircleDot;
+  return <Icon className={className} size={18} strokeWidth={1.8} aria-hidden="true" />;
 }
 
 function NavButton({
@@ -512,9 +400,9 @@ export function Sidebar({
       {/* 2. Middle Icon Navigation Rail */}
       <nav className="flex-1 w-full overflow-y-auto px-2 py-3.5 flex flex-col items-center gap-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Icon Navigation">
         {visibleSections.map((section) => {
-          const Icon = SECTION_ICONS[section.title] || Lucide.Layers;
           const isDirectItem = section.items.length === 1;
           const directItem = isDirectItem ? section.items[0] : null;
+          const Icon = isDirectItem && directItem ? (NAV_ICONS[directItem.id] || Lucide.LayoutDashboard) : (SECTION_ICONS[section.title] || Lucide.Layers);
           const isSectionActive = section.items.some((i) => i.id === active);
           const isFlyoutOpen = flyout?.sectionTitle === section.title;
 

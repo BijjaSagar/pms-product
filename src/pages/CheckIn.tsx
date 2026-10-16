@@ -108,7 +108,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3.5">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -137,7 +137,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3.5 xl:grid-cols-5">
         {resource.error ? (
           <div className="xl:col-span-5 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             <Lucide.AlertCircle size={18} />

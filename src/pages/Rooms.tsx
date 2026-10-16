@@ -235,7 +235,7 @@ export function Rooms({ initialQuery, focusId }: { initialQuery?: string; focusI
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3.5">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -336,7 +336,7 @@ export function Rooms({ initialQuery, focusId }: { initialQuery?: string; focusI
         {filtered.map((room) => (
           <article
             key={room.number}
-            className="pms-card pms-card-hover p-4 sm:p-5 flex flex-col justify-between transition-all duration-200"
+            className="pms-card pms-card-hover p-3.5 sm:p-4 flex flex-col justify-between transition-all duration-200"
           >
             <div>
               <div className="flex items-start justify-between gap-2">

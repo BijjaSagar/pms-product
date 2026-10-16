@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import type { BadgeTone } from '../components/status';
 import type { Guest } from '../data/mock';
-import { Avatar, Badge, Card, CardTitle } from '../components/ui';
+import { Avatar, Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../components/ui';
 import { FilterChip, Pagination, Tabs } from '../components/controls';
 import { inputClass } from '../components/inputClass';
 import { Field } from '../components/controls';
@@ -169,7 +169,7 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3.5">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -222,36 +222,77 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
         </div>
         <button type="button" className="pms-btn-ghost px-3 py-2.5" onClick={() => { setQ(''); setTier('All'); setSort('name'); setPage(0); }}>Clear</button>
       </div>
-      <div className="overflow-x-auto">
+      <TableContainer>
         <table className="pms-table min-w-[760px]">
-          <thead><tr><th>Guest</th><th>Contact</th><th>Company</th><th>Tier</th><th className="text-right">Stays</th><th className="text-right">Balance</th><th>Last visit</th><th><span className="sr-only">Open</span></th></tr></thead>
+          <thead>
+            <tr>
+              <th className="w-12 text-center">#</th>
+              <th>GUEST NAME</th>
+              <th>CONTACT</th>
+              <th>COMPANY</th>
+              <th>TIER</th>
+              <th className="text-right">STAYS</th>
+              <th className="text-right">BALANCE</th>
+              <th>LAST VISIT</th>
+              <th className="text-right">ACTIONS</th>
+            </tr>
+          </thead>
           <tbody>
-            {slice.map((g) => (
+            {slice.map((g, idx) => (
               <tr key={g.id}>
-                <td>
-                  <span className="flex items-center gap-2.5">
-                    <Avatar name={g.name} />
-                    <span>
-                      <span className="block font-semibold">{g.name}</span>
-                      <span className="tnum block font-mono text-[11.5px]" style={{ color: 'var(--color-ink-muted)' }}>{g.id}</span>
-                    </span>
-                  </span>
+                <td className="text-center font-medium text-slate-400 text-xs">
+                  {safe * PAGE_SIZE + idx + 1}
                 </td>
-                <td style={{ color: 'var(--color-ink-secondary)' }}><span className="block">{g.email}</span><span className="tnum block text-[12px]">{g.phone}</span></td>
-                <td style={{ color: 'var(--color-ink-secondary)' }}>{g.company ?? '—'}</td>
-                <td><Badge tone={tierTone(g.tier)}>{g.tier}</Badge></td>
-                <td className="tnum text-right">{g.stays}</td>
-                <td className="tnum text-right font-semibold">{g.balance > 0 ? formatCurrency(g.balance, 'INR') : '—'}</td>
-                <td style={{ color: 'var(--color-ink-secondary)' }}>{g.lastVisit}</td>
-                <td><button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => setOpenId(g.id)} aria-label={`Open ${g.name}`}>Details</button></td>
+                <td>
+                  <div className="flex items-center gap-3">
+                    <Avatar name={g.name} size={36} />
+                    <div>
+                      <span className="block font-semibold text-slate-900 text-sm">{g.name}</span>
+                      <span className="tnum block font-mono text-[11px] text-slate-400">{g.id}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span className="block text-slate-700 text-sm">{g.email}</span>
+                  <span className="tnum block text-[12px] text-slate-400">{g.phone}</span>
+                </td>
+                <td>
+                  <span className="text-slate-600 text-sm">{g.company ?? '—'}</span>
+                </td>
+                <td>
+                  <Badge tone={tierTone(g.tier)}>{g.tier}</Badge>
+                </td>
+                <td className="tnum text-right font-medium text-slate-700 text-sm">
+                  {g.stays}
+                </td>
+                <td className="tnum text-right font-bold text-slate-900 text-sm">
+                  {g.balance > 0 ? formatCurrency(g.balance, 'INR') : '—'}
+                </td>
+                <td>
+                  <span className="text-slate-500 text-sm">{g.lastVisit}</span>
+                </td>
+                <td className="text-right">
+                  <div className="flex items-center justify-end gap-1.5">
+                    <TableActionBtn
+                      icon={Lucide.Eye}
+                      title={`View details for ${g.name}`}
+                      onClick={() => setOpenId(g.id)}
+                    />
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {slice.length === 0 ? <p className="pms-helper py-6 text-center">No guests match.</p> : null}
-      </div>
-      <div className="mt-3">
-        <Pagination page={safe} totalPages={pages} onChange={setPage} summary={`Page ${safe + 1} of ${pages} · ${filtered.length} guests`} />
+        {slice.length === 0 ? <p className="pms-helper py-8 text-center text-slate-400">No guests match.</p> : null}
+      </TableContainer>
+      <div className="mt-4 pt-1">
+        <Pagination
+          page={safe}
+          totalPages={pages}
+          onChange={setPage}
+          summary={`Showing ${filtered.length > 0 ? safe * PAGE_SIZE + 1 : 0} to ${Math.min((safe + 1) * PAGE_SIZE, filtered.length)} of ${filtered.length} guests`}
+        />
       </div>
       <Modal open={adding} onClose={() => setAdding(false)} title="Add guest" subtitle="Saved to the guest directory">
         <div className="flex flex-col gap-3">

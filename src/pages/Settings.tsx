@@ -199,7 +199,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
   ];
 
   return (
-    <div className="flex flex-col gap-6 pms-animate-fade-in pb-12">
+    <div className="flex flex-col gap-3.5 pms-animate-fade-in pb-8">
       {/* ================= PAGE HEADER ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>

@@ -508,7 +508,7 @@ export function StatusBoard() {
   };
 
   return (
-    <div className="flex flex-col gap-5 pms-animate-fade-in pb-12">
+    <div className="flex flex-col gap-3.5 pms-animate-fade-in pb-8">
       {/* ================= PAGE HEADER & TOOLBAR ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

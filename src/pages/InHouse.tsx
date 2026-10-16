@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { Avatar, Badge, Card, CardTitle } from '../components/ui';
+import { Avatar, Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../components/ui';
 import { reservationTone } from '../components/status';
 import { FilterChip } from '../components/controls';
 import { inputClass } from '../components/inputClass';
@@ -45,7 +45,7 @@ export function InHouse({ go }: { go: (t: NavTarget) => void }) {
   }, [q, floor, stays]);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3.5">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -117,68 +117,74 @@ export function InHouse({ go }: { go: (t: NavTarget) => void }) {
         )}
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="pms-table min-w-[680px]">
+      <TableContainer>
+        <table className="pms-table min-w-[760px]">
           <thead>
             <tr>
-              <th>Guest name</th>
-              <th>Assigned room</th>
-              <th>Stay duration</th>
-              <th>Guests</th>
-              <th>Status</th>
-              <th className="text-right">Outstanding balance</th>
-              <th><span className="sr-only">Actions</span></th>
+              <th className="w-12 text-center">#</th>
+              <th>GUEST NAME</th>
+              <th>ASSIGNED ROOM</th>
+              <th>STAY DURATION</th>
+              <th>GUESTS</th>
+              <th>STATUS</th>
+              <th className="text-right">OUTSTANDING BALANCE</th>
+              <th className="text-right">ACTIONS</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => (
+            {rows.map((r, idx) => (
               <tr key={r.id}>
-                <td>
-                  <span className="flex items-center gap-2.5">
-                    <Avatar name={r.guest} size={32} />
-                    <span className="font-semibold text-ink">{r.guest}</span>
-                  </span>
+                <td className="text-center font-medium text-slate-400 text-xs">
+                  {idx + 1}
                 </td>
-                <td className="tnum font-medium">
+                <td>
+                  <div className="flex items-center gap-3">
+                    <Avatar name={r.guest} size={36} />
+                    <div>
+                      <span className="font-semibold text-slate-900 text-sm block">{r.guest}</span>
+                      <span className="text-[11px] font-mono text-slate-400 block">{r.id}</span>
+                    </div>
+                  </div>
+                </td>
+                <td className="tnum font-medium text-slate-800 text-sm">
                   <span className="inline-flex items-center gap-1.5">
-                    <Lucide.BedDouble size={14} className="text-ink-muted" />
+                    <Lucide.BedDouble size={14} className="text-slate-400" />
                     <span>{r.roomNumber ?? r.roomType}</span>
                   </span>
                 </td>
-                <td className="tnum text-ink-secondary text-[13px]">
+                <td className="tnum text-slate-600 text-xs">
                   <span className="inline-flex items-center gap-1.5">
                     <span>{r.checkIn}</span>
-                    <Lucide.ArrowRight size={12} className="text-ink-muted" />
+                    <Lucide.ArrowRight size={12} className="text-slate-400" />
                     <span>{r.checkOut}</span>
-                    <span className="rounded bg-muted px-1.5 py-0.5 text-[11px] font-mono">{r.nights}n</span>
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-mono text-slate-700">{r.nights}n</span>
                   </span>
                 </td>
-                <td className="tnum text-ink-secondary">
-                  <span className="inline-flex items-center gap-1 text-[13px]">
-                    <Lucide.Users size={13} className="text-ink-muted" />
+                <td className="tnum text-slate-600 text-xs">
+                  <span className="inline-flex items-center gap-1">
+                    <Lucide.Users size={13} className="text-slate-400" />
                     <span>{r.adults + r.children}</span>
                   </span>
                 </td>
                 <td><Badge tone={reservationTone(r.status)}>{r.status}</Badge></td>
-                <td className="tnum text-right font-semibold text-ink">
+                <td className="tnum text-right font-bold text-slate-900 text-sm">
                   {formatCurrency(r.total - r.paid, r.currencyCode)}
                 </td>
-                <td>
-                  <button
-                    type="button"
-                    className="pms-btn-ghost flex items-center gap-1 px-3 py-1.5"
-                    onClick={() => go({ view: 'guests', focusId: r.guestId })}
-                  >
-                    <Lucide.User size={13} />
-                    <span>Profile</span>
-                  </button>
+                <td className="text-right">
+                  <div className="flex items-center justify-end gap-1.5">
+                    <TableActionBtn
+                      icon={Lucide.User}
+                      title={`Open profile for ${r.guest}`}
+                      onClick={() => go({ view: 'guests', focusId: r.guestId })}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {rows.length === 0 ? <p className="pms-helper py-6 text-center">No in-house guests match your search or filter.</p> : null}
-      </div>
+        {rows.length === 0 ? <p className="pms-helper py-8 text-center text-slate-400">No in-house guests match your search or filter.</p> : null}
+      </TableContainer>
     </Card>
     </div>
   );

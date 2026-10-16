@@ -81,33 +81,43 @@ export function Pagination({
   onChange: (p: number) => void;
   summary: string;
 }) {
-  if (totalPages <= 1) return <p className="pms-helper">{summary}</p>;
+  if (totalPages <= 1) return <p className="text-sm text-slate-500">{summary}</p>;
   const windowPages = Array.from({ length: totalPages }, (_, i) => i).filter(
     (i) => i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1,
   );
   return (
-    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-      <p className="pms-helper">{summary}</p>
-      <div className="flex max-w-full items-center gap-1.5 overflow-x-auto pb-1" role="navigation" aria-label="Pagination">
-        <button type="button" disabled={page === 0} onClick={() => onChange(page - 1)} className="pms-btn-ghost min-h-[36px] flex-none px-3 py-1.5 disabled:opacity-40" aria-label="Previous page">
-          ←
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-slate-500">
+      <p className="text-sm text-slate-500 font-normal">{summary}</p>
+      <div className="flex max-w-full items-center gap-1.5 overflow-x-auto pb-0.5" role="navigation" aria-label="Pagination">
+        <button
+          type="button"
+          disabled={page === 0}
+          onClick={() => onChange(page - 1)}
+          className="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          aria-label="Previous page"
+        >
+          ‹
         </button>
         {windowPages.map((i, idx) => {
           const showEllipsis = idx > 0 && i - windowPages[idx - 1] > 1;
+          const isCurrent = i === page;
           return (
             <span key={i} className="flex flex-none items-center gap-1.5">
-              {showEllipsis ? <span className="px-0.5" style={{ color: 'var(--color-ink-muted)' }}>…</span> : null}
+              {showEllipsis ? <span className="px-1 text-slate-400">…</span> : null}
               <button
                 type="button"
                 onClick={() => onChange(i)}
-                aria-current={i === page ? 'page' : undefined}
+                aria-current={isCurrent ? 'page' : undefined}
                 aria-label={`Page ${i + 1}`}
-                className="tnum min-h-[36px] min-w-[38px] rounded-[9px] border px-3 py-1.5 text-[12.5px] font-bold"
+                className={`flex h-8 w-8 flex-none items-center justify-center rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  isCurrent
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                }`}
                 style={{
-                  borderColor: i === page ? 'var(--color-primary)' : 'var(--color-border)',
-                  background: i === page ? 'var(--color-primary)' : 'var(--color-surface)',
-                  color: i === page ? 'var(--color-primary-foreground)' : 'var(--color-ink-secondary)',
-                  boxShadow: i === page ? 'var(--shadow-primary)' : 'var(--shadow-xs)',
+                  background: isCurrent ? 'var(--color-primary)' : '#ffffff',
+                  borderColor: isCurrent ? 'var(--color-primary)' : '#e2e8f0',
+                  color: isCurrent ? '#ffffff' : '#334155',
                 }}
               >
                 {i + 1}
@@ -115,8 +125,14 @@ export function Pagination({
             </span>
           );
         })}
-        <button type="button" disabled={page === totalPages - 1} onClick={() => onChange(page + 1)} className="pms-btn-ghost min-h-[36px] flex-none px-3 py-1.5 disabled:opacity-40" aria-label="Next page">
-          →
+        <button
+          type="button"
+          disabled={page === totalPages - 1}
+          onClick={() => onChange(page + 1)}
+          className="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          aria-label="Next page"
+        >
+          ›
         </button>
       </div>
     </div>

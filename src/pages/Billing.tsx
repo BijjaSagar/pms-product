@@ -1106,7 +1106,7 @@ export function Billing() {
   };
 
   return (
-    <div className="flex flex-col gap-5 pb-12">
+    <div className="flex flex-col gap-3.5 pb-8">
       {/* 1. TOP HEADER & GUEST SELECTOR */}
       <div className="flex flex-col gap-4">
         {/* Title & Action Buttons Row */}
@@ -1443,10 +1443,10 @@ export function Billing() {
                 <table className="w-full text-left border-collapse min-w-[700px]">
                   <thead>
                     <tr
-                      className="border-b text-[11px] font-bold uppercase tracking-wider text-ink-muted"
-                      style={{ background: 'var(--color-page)', borderColor: 'var(--color-divider)' }}
+                      className="border-b text-[11px] font-bold uppercase tracking-wider text-ink-muted bg-slate-50/90"
+                      style={{ borderColor: 'var(--color-divider)' }}
                     >
-                      <th className="py-3 px-3.5 w-10 text-center">
+                      <th className="py-2.5 px-3 w-10 text-center">
                         <input
                           type="checkbox"
                           onChange={handleSelectAll}
@@ -1457,13 +1457,13 @@ export function Billing() {
                           className="rounded border-border text-primary focus:ring-primary cursor-pointer"
                         />
                       </th>
-                      <th className="py-3 px-3 font-bold">Date</th>
-                      <th className="py-3 px-3 font-bold">Description</th>
-                      <th className="py-3 px-3 font-bold">Reference</th>
-                      <th className="py-3 px-3 font-bold text-right">Charges ({currentGuest.currency})</th>
-                      <th className="py-3 px-3 font-bold text-right">Credits ({currentGuest.currency})</th>
-                      <th className="py-3 px-3 font-bold text-right">Balance ({currentGuest.currency})</th>
-                      <th className="py-3 px-3 font-bold text-center w-12">Actions</th>
+                      <th className="py-2.5 px-3 font-bold">Date</th>
+                      <th className="py-2.5 px-3 font-bold">Description</th>
+                      <th className="py-2.5 px-3 font-bold">Reference</th>
+                      <th className="py-2.5 px-3 font-bold text-right">Charges ({currentGuest.currency})</th>
+                      <th className="py-2.5 px-3 font-bold text-right">Credits ({currentGuest.currency})</th>
+                      <th className="py-2.5 px-3 font-bold text-right">Balance ({currentGuest.currency})</th>
+                      <th className="py-2.5 px-3 font-bold text-center w-12">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y text-xs text-ink" style={{ borderColor: 'var(--color-divider)' }}>
@@ -1476,7 +1476,7 @@ export function Billing() {
                             isSelected ? 'bg-primary/5' : ''
                           }`}
                         >
-                          <td className="py-3 px-3.5 text-center">
+                          <td className="py-2.5 px-3 text-center">
                             <input
                               type="checkbox"
                               checked={isSelected}
@@ -1486,13 +1486,13 @@ export function Billing() {
                           </td>
 
                           {/* Date & Time */}
-                          <td className="py-3 px-3 whitespace-nowrap">
+                          <td className="py-2.5 px-3 whitespace-nowrap">
                             <div className="font-semibold text-ink text-[12.5px]">{tx.date}</div>
                             <div className="text-[11px] text-ink-muted font-medium">{tx.time}</div>
                           </td>
 
                           {/* Description with Icon */}
-                          <td className="py-3 px-3">
+                          <td className="py-2.5 px-3">
                             <div className="flex items-center gap-3">
                               {renderItemIcon(tx.iconType)}
                               <div>
@@ -1503,29 +1503,29 @@ export function Billing() {
                           </td>
 
                           {/* Reference */}
-                          <td className="py-3 px-3 whitespace-nowrap">
+                          <td className="py-2.5 px-3 whitespace-nowrap">
                             <span className="font-mono text-xs font-semibold text-ink-secondary bg-muted-surface border border-border/40 px-2 py-0.5 rounded">
                               {tx.reference}
                             </span>
                           </td>
 
                           {/* Charges */}
-                          <td className="py-3 px-3 text-right whitespace-nowrap font-semibold text-ink text-[13px]">
+                          <td className="py-2.5 px-3 text-right whitespace-nowrap font-semibold text-ink text-[13px]">
                             {tx.charge > 0 ? formatNumber(tx.charge) : '—'}
                           </td>
 
                           {/* Credits */}
-                          <td className="py-3 px-3 text-right whitespace-nowrap font-semibold text-emerald-600 text-[13px]">
+                          <td className="py-2.5 px-3 text-right whitespace-nowrap font-semibold text-emerald-600 text-[13px]">
                             {tx.credit > 0 ? formatNumber(tx.credit) : '—'}
                           </td>
 
                           {/* Running Balance */}
-                          <td className="py-3 px-3 text-right whitespace-nowrap font-bold text-ink text-[13px]">
+                          <td className="py-2.5 px-3 text-right whitespace-nowrap font-bold text-ink text-[13px]">
                             {formatNumber(tx.balance)}
                           </td>
 
                           {/* Actions */}
-                          <td className="py-3 px-3 text-center whitespace-nowrap">
+                          <td className="py-2.5 px-3 text-center whitespace-nowrap">
                             <div className="relative inline-block text-left group">
                               <button
                                 type="button"

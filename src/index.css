@@ -69,6 +69,7 @@ body,
 #root {
   min-height: 100%;
   overflow-x: clip;
+  background-color: var(--color-page);
 }
 
 /* Reserve the scrollbar gutter so locking the body (when a dialog opens) does
@@ -372,64 +373,64 @@ textarea {
 
   .pms-table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+    border-collapse: collapse;
     font-size: 13.5px;
     min-width: 0;
+    background: #ffffff;
   }
 
-  .pms-table thead th {
+  .pms-table thead tr,
+  div.overflow-x-auto > table thead tr {
+    background: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+
+  .pms-table thead th,
+  div.overflow-x-auto > table thead th {
     position: sticky;
     top: 0;
     z-index: 2;
     text-align: left;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--color-ink-secondary);
-    padding: 11px 14px;
-    border-bottom: 1px solid var(--color-border);
-    background: color-mix(in srgb, var(--color-muted-surface) 92%, white);
-    backdrop-filter: blur(6px);
+    color: #64748b;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
     white-space: nowrap;
-    box-shadow: 0 1px 0 var(--color-border);
   }
 
-  .pms-table thead th:first-child {
-    border-top-left-radius: var(--radius-card);
-  }
-
-  .pms-table thead th:last-child {
-    border-top-right-radius: var(--radius-card);
-  }
-
-  .pms-table tbody td {
-    padding: 12px 14px;
-    border-bottom: 1px solid var(--color-divider);
-    color: var(--color-ink);
+  .pms-table tbody td,
+  div.overflow-x-auto > table tbody td {
+    padding: 13px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
     vertical-align: middle;
+    font-size: 13.5px;
+    background: #ffffff;
   }
 
-  .pms-table tbody tr:last-child td {
-    border-bottom: none;
+  .pms-table tbody tr:last-child td,
+  div.overflow-x-auto > table tbody tr:last-child td {
+    border-bottom: none !important;
   }
 
-  .pms-table tbody tr {
-    transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
+  .pms-table tbody tr,
+  div.overflow-x-auto > table tbody tr {
+    background: #ffffff;
+    transition: background-color 150ms ease;
   }
 
-  .pms-table tbody tr:hover {
-    background: color-mix(in srgb, var(--color-hover-surface) 88%, white);
-    box-shadow: inset 3px 0 0 color-mix(in srgb, var(--color-primary) 62%, transparent);
+  .pms-table tbody tr:hover,
+  div.overflow-x-auto > table tbody tr:hover {
+    background: #f8fafc !important;
   }
 
-  .pms-table tbody tr:nth-child(even) {
-    background: color-mix(in srgb, var(--color-muted-surface) 26%, transparent);
-  }
-
-  .pms-table tbody tr:nth-child(even):hover {
-    background: color-mix(in srgb, var(--color-hover-surface) 92%, white);
+  .pms-table tbody tr:hover td,
+  div.overflow-x-auto > table tbody tr:hover td {
+    background: #f8fafc !important;
   }
 
   .pms-badge {
@@ -763,26 +764,56 @@ aside nav button:not([aria-current='page']):hover {
 main {
   min-width: 0;
   overflow-x: clip;
+  background-color: var(--color-page);
 }
 
-/* Legacy table scroll wrappers (used across all pages) get card elevation automatically */
+/* Table scroll wrappers - framed neatly like the reference image */
+.pms-table-container,
 div.overflow-x-auto:has(> table.pms-table),
 div.overflow-x-auto:has(> table) {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
   scrollbar-gutter: stable;
 }
 
-div.overflow-x-auto:has(> table.pms-table) table.pms-table thead th:first-child,
-div.overflow-x-auto:has(> table) table.pms-table thead th:first-child {
-  border-top-left-radius: 0;
+/* Ensure horizontal scrolling is always enabled and visibly styled for tables */
+div.overflow-x-auto {
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
 }
 
-div.overflow-x-auto:has(> table.pms-table) table.pms-table thead th:last-child,
-div.overflow-x-auto:has(> table) table.pms-table thead th:last-child {
-  border-top-right-radius: 0;
+div.overflow-x-auto::-webkit-scrollbar {
+  height: 7px;
+}
+
+div.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 9999px;
+}
+
+div.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+  border: 1.5px solid #f8fafc;
+}
+
+div.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.pms-table-container table thead th:first-child,
+div.overflow-x-auto > table thead th:first-child {
+  border-top-left-radius: 11px;
+}
+
+.pms-table-container table thead th:last-child,
+div.overflow-x-auto > table thead th:last-child {
+  border-top-right-radius: 11px;
 }
 
 /* Room / list rows used across pages */

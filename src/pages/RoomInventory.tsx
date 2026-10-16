@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { Badge, Card, CardTitle } from '../components/ui';
+import { Badge, Card, CardTitle, TableContainer } from '../components/ui';
 import { roomTone } from '../components/status';
 import { inputClass } from '../components/inputClass';
 import { loadRoomInventory } from '../lib/api/loaders';
@@ -92,7 +92,7 @@ export function RoomInventory() {
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3.5">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -174,41 +174,45 @@ export function RoomInventory() {
           </button>
         </div>
 
-        <div className="overflow-x-auto">
+        <TableContainer>
           <table className="pms-table min-w-[760px]">
             <thead>
               <tr>
-                <th>Room</th>
-                <th>Type</th>
-                <th>Floor</th>
-                <th>Status</th>
-                <th>Housekeeping</th>
-                <th>Occupant</th>
-                <th className="text-right">Base rate</th>
-                {can('room.update') ? <th className="text-right">Actions</th> : null}
+                <th className="w-12 text-center">#</th>
+                <th>ROOM</th>
+                <th>ROOM TYPE</th>
+                <th>FLOOR</th>
+                <th>STATUS</th>
+                <th>HOUSEKEEPING</th>
+                <th>OCCUPANT</th>
+                <th className="text-right">BASE RATE</th>
+                {can('room.update') ? <th className="text-right">ACTIONS</th> : null}
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
-                <tr key={r.number} className="transition-colors hover:bg-black/[0.01]">
-                  <td className="tnum font-mono font-semibold text-primary">Room {r.number}</td>
-                  <td className="font-medium text-ink">{r.type}</td>
-                  <td className="tnum text-ink-secondary">{r.floor}</td>
+              {rows.map((r, idx) => (
+                <tr key={r.number} className="transition-colors hover:bg-slate-50/70">
+                  <td className="text-center font-medium text-slate-400 text-xs">
+                    {idx + 1}
+                  </td>
+                  <td className="tnum font-mono font-bold text-slate-900 text-sm">Room {r.number}</td>
+                  <td className="font-semibold text-slate-800 text-sm">{r.type}</td>
+                  <td className="tnum text-slate-600 text-xs">{r.floor}</td>
                   <td>
                     <div className="flex flex-wrap items-center gap-1.5">
                       <Badge tone={roomTone(r.status)}>{r.status}</Badge>
                       {r.active === false ? <Badge tone="neutral">Retired</Badge> : null}
                     </div>
                   </td>
-                  <td className="text-ink-secondary">{r.hk}</td>
-                  <td className="tnum text-ink-secondary">{r.guest ? `${r.guest} · ${r.reservationId}` : '—'}</td>
-                  <td className="tnum text-right font-semibold">{formatCurrency(r.rate, currencyCode)}</td>
+                  <td className="text-slate-600 text-xs">{r.hk}</td>
+                  <td className="tnum text-slate-500 text-xs">{r.guest ? `${r.guest} · ${r.reservationId}` : '—'}</td>
+                  <td className="tnum text-right font-bold text-slate-900 text-sm">{formatCurrency(r.rate, currencyCode)}</td>
                   {can('room.update') ? (
                     <td className="text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"
-                          className="pms-btn-ghost px-2.5 py-1 text-xs"
+                          className="pms-btn-ghost px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200"
                           onClick={() => setNotesModal({ room: r, notes: r.notes || '' })}
                         >
                           Notes
@@ -216,7 +220,7 @@ export function RoomInventory() {
                         {r.active === false ? (
                           <button
                             type="button"
-                            className="pms-btn-ghost px-2.5 py-1 text-xs text-primary"
+                            className="pms-btn-ghost px-2.5 py-1 text-xs text-blue-600 border border-blue-200 rounded-lg font-semibold hover:bg-blue-50"
                             onClick={() =>
                               void updateRoom(r.backendId, { isActive: true }, `Room ${r.number} restored.`)
                             }
@@ -226,7 +230,7 @@ export function RoomInventory() {
                         ) : (
                           <button
                             type="button"
-                            className="pms-btn-ghost px-2.5 py-1 text-xs text-danger"
+                            className="pms-btn-ghost px-2.5 py-1 text-xs text-rose-600 border border-rose-200 rounded-lg font-semibold hover:bg-rose-50"
                             onClick={() => setRetireConfirm(r)}
                           >
                             Retire
@@ -239,8 +243,8 @@ export function RoomInventory() {
               ))}
             </tbody>
           </table>
-          {rows.length === 0 ? <p className="pms-helper py-8 text-center">No rooms match these filters.</p> : null}
-        </div>
+          {rows.length === 0 ? <p className="pms-helper py-8 text-center text-slate-400">No rooms match these filters.</p> : null}
+        </TableContainer>
       </Card>
 
       {/* Add Room Modal */}

@@ -84,7 +84,7 @@ export function Reports({ go }: { go: (t: NavTarget) => void }) {
   ];
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3.5">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -123,7 +123,7 @@ export function Reports({ go }: { go: (t: NavTarget) => void }) {
             key={tile.title}
             type="button"
             onClick={() => go(tile.target)}
-            className="pms-card pms-card-hover p-5 text-left flex flex-col justify-between transition-all duration-200"
+            className="pms-card pms-card-hover p-3.5 sm:p-4 text-left flex flex-col justify-between transition-all duration-200"
           >
             <div>
               <div className="flex items-center justify-between mb-3">

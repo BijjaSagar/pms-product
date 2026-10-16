@@ -1,8 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { Avatar, Badge, Card, CardTitle } from '../components/ui';
-import type { BadgeTone } from '../components/status';
-import { Field } from '../components/controls';
+import { Avatar, Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../components/ui';
+import { Field, Pagination } from '../components/controls';
 import { inputClass } from '../components/inputClass';
 import { Modal } from '../components/overlays';
 import { toast } from '../components/toastStore';
@@ -24,8 +23,28 @@ type StaffRow = {
   membershipActive: boolean;
 };
 
-function staffTone(status: StaffRow['status']): BadgeTone {
-  return status === 'ACTIVE' ? 'success' : status === 'INVITED' ? 'warning' : 'neutral';
+function roleBadge(role: string) {
+  const r = (role || '').toLowerCase();
+  if (r.includes('admin') || r.includes('owner')) {
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">Admin</span>;
+  }
+  if (r.includes('editor') || r.includes('desk') || r.includes('front')) {
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">{role || 'Editor'}</span>;
+  }
+  if (r.includes('manager')) {
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">{role}</span>;
+  }
+  return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">{role || 'Viewer'}</span>;
+}
+
+function statusBadge(status: StaffRow['status']) {
+  if (status === 'ACTIVE') {
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Active</span>;
+  }
+  if (status === 'INVITED') {
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Pending</span>;
+  }
+  return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">Inactive</span>;
 }
 
 export function Staff() {
@@ -41,6 +60,8 @@ export function Staff() {
   const resource = useApiResource(load);
   const rows = useMemo(() => resource.data?.staff ?? [], [resource.data?.staff]);
   const [q, setQ] = useState('');
+  const [page, setPage] = useState(0);
+  const pageSize = 5;
   const [editing, setEditing] = useState<StaffRow | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [email, setEmail] = useState('');
@@ -52,6 +73,10 @@ export function Staff() {
     const needle = q.trim().toLowerCase();
     return rows.filter((staff) => !needle || staff.fullName.toLowerCase().includes(needle) || staff.email.toLowerCase().includes(needle) || staff.roleName.toLowerCase().includes(needle));
   }, [rows, q]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(page, totalPages - 1);
+  const paginatedSlice = filtered.slice(safePage * pageSize, safePage * pageSize + pageSize);
 
   const save = async () => {
     try {
@@ -92,7 +117,7 @@ export function Staff() {
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3.5">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -141,27 +166,146 @@ export function Staff() {
         ].map(([label, value]) => <section key={label} className="pms-card p-4"><p className="pms-label">{label}</p><p className="pms-kpi-value tnum mt-1">{value}</p></section>)}
       </div>
       <Card>
-        <CardTitle title="Staff directory" subtitle={resource.loading ? 'Loading staff…' : `${filtered.length} members at the active property`} action={can('user.invite') ? <button type="button" onClick={() => { setIsNew(true); setFullName(''); setEmail(''); setRoleKey(roles[0]?.key ?? 'FRONT_DESK'); }} className="pms-btn-primary px-3.5 py-2.5">+ Invite staff</button> : undefined} />
-        {resource.error ? <p role="alert" className="pms-helper mb-3">Could not load staff: {resource.error}</p> : null}
-        <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-2">
-          <input value={q} onChange={(event) => setQ(event.target.value)} placeholder="Name, email or role…" aria-label="Search staff" className={inputClass()} />
-          <button type="button" className="pms-btn-ghost px-3 py-2.5" onClick={() => setQ('')}>Clear</button>
+        <CardTitle
+          title="User Management"
+          subtitle={resource.loading ? 'Loading users…' : 'A list of all registered users in the system.'}
+          action={
+            can('user.invite') ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsNew(true);
+                  setFullName('');
+                  setEmail('');
+                  setRoleKey(roles[0]?.key ?? 'FRONT_DESK');
+                }}
+                className="pms-btn-primary px-4 py-2 text-sm font-semibold flex items-center gap-1.5 rounded-xl shadow-xs"
+              >
+                <Lucide.Plus size={16} />
+                <span>Add User</span>
+              </button>
+            ) : undefined
+          }
+        />
+        {resource.error ? <p role="alert" className="pms-helper mb-3 text-rose-600">Could not load users: {resource.error}</p> : null}
+        
+        <div className="mb-4 flex flex-col sm:flex-row items-center gap-2.5">
+          <div className="relative flex-1 w-full">
+            <Lucide.Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <input
+              value={q}
+              onChange={(event) => {
+                setQ(event.target.value);
+                setPage(0);
+              }}
+              placeholder="Search by name, email or role…"
+              aria-label="Search users"
+              className={`${inputClass()} pl-9.5 w-full`}
+            />
+          </div>
+          {q ? (
+            <button
+              type="button"
+              className="pms-btn-ghost px-3.5 py-2 text-xs font-semibold"
+              onClick={() => {
+                setQ('');
+                setPage(0);
+              }}
+            >
+              Clear
+            </button>
+          ) : null}
         </div>
-        <div className="overflow-x-auto">
+
+        <TableContainer>
           <table className="pms-table min-w-[760px]">
-            <thead><tr><th>Staff</th><th>Role</th><th>Email</th><th>Status</th><th>Invite</th><th><span className="sr-only">Edit</span></th></tr></thead>
-            <tbody>{filtered.map((staff) => (
-              <tr key={staff.userId}>
-                <td><span className="flex items-center gap-2.5"><Avatar name={staff.fullName} /><span><span className="block font-semibold">{staff.fullName}</span><span className="block font-mono text-[11px]" style={{ color: 'var(--color-ink-muted)' }}>{staff.userId}</span></span></span></td>
-                <td>{staff.roleName || staff.roleKey}</td>
-                <td>{staff.email}</td>
-                <td><Badge tone={staffTone(staff.status)}>{staff.status}</Badge></td>
-                <td>{staff.invitePending ? <Badge tone="warning">Pending</Badge> : staff.inviteExpired ? <Badge tone="danger">Expired</Badge> : '—'}</td>
-                <td>{can('user.update') || can('role.assign') || can('user.deactivate') ? <button type="button" className="pms-btn-ghost px-3 py-1.5" onClick={() => { setEditing({ ...staff }); setIsNew(false); }}>Manage</button> : null}</td>
+            <thead>
+              <tr>
+                <th className="w-12 text-center">#</th>
+                <th>NAME</th>
+                <th>EMAIL</th>
+                <th>ROLE</th>
+                <th>STATUS</th>
+                <th>INVITE STATUS</th>
+                <th className="text-right">ACTIONS</th>
               </tr>
-            ))}</tbody>
+            </thead>
+            <tbody>
+              {paginatedSlice.map((staff, idx) => (
+                <tr key={staff.userId}>
+                  <td className="text-center font-medium text-slate-400 text-xs">
+                    {safePage * pageSize + idx + 1}
+                  </td>
+                  <td>
+                    <div className="flex items-center gap-3">
+                      <Avatar name={staff.fullName} size={36} />
+                      <div>
+                        <span className="block font-semibold text-slate-900 text-sm">{staff.fullName}</span>
+                        <span className="block font-mono text-[11px] text-slate-400">{staff.userId}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="text-slate-600 text-sm">{staff.email}</span>
+                  </td>
+                  <td>
+                    {roleBadge(staff.roleName || staff.roleKey)}
+                  </td>
+                  <td>
+                    {statusBadge(staff.status)}
+                  </td>
+                  <td>
+                    {staff.invitePending ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">
+                        Pending
+                      </span>
+                    ) : staff.inviteExpired ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200/60">
+                        Expired
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 text-xs">—</span>
+                    )}
+                  </td>
+                  <td className="text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      {can('user.update') || can('role.assign') ? (
+                        <TableActionBtn
+                          icon={Lucide.Pencil}
+                          title="Edit user"
+                          onClick={() => {
+                            setEditing({ ...staff });
+                            setIsNew(false);
+                          }}
+                        />
+                      ) : null}
+                      {can('user.deactivate') ? (
+                        <TableActionBtn
+                          icon={Lucide.Trash2}
+                          variant="danger"
+                          title="Deactivate user"
+                          onClick={() => {
+                            setEditing({ ...staff });
+                            setIsNew(false);
+                          }}
+                        />
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
-          {filtered.length === 0 ? <p className="pms-helper py-6 text-center">No staff match.</p> : null}
+          {filtered.length === 0 ? <p className="pms-helper py-8 text-center text-slate-400">No registered users match your query.</p> : null}
+        </TableContainer>
+
+        <div className="mt-4 pt-1">
+          <Pagination
+            page={safePage}
+            totalPages={totalPages}
+            onChange={setPage}
+            summary={`Showing ${filtered.length > 0 ? safePage * pageSize + 1 : 0} to ${Math.min((safePage + 1) * pageSize, filtered.length)} of ${filtered.length} users`}
+          />
         </div>
       </Card>
       {resource.data?.matrix ? <Card>

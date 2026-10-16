@@ -404,7 +404,7 @@ export function ChannelManager() {
   };
 
   return (
-    <div className="flex flex-col gap-6 pb-12 w-full">
+    <div className="flex flex-col gap-3.5 pb-8 w-full">
       {/* 1. TOP HEADER & MAIN CONTROLS */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

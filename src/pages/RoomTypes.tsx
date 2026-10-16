@@ -2,7 +2,7 @@ import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { formatCurrency } from '../lib/api/format';
 import type { RoomType } from '../data/mock';
-import { Badge, Card, CardTitle } from '../components/ui';
+import { Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../components/ui';
 import { Field } from '../components/controls';
 import { inputClass } from '../components/inputClass';
 import { Modal } from '../components/overlays';
@@ -96,7 +96,7 @@ export function RoomTypes() {
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3.5">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -145,41 +145,43 @@ export function RoomTypes() {
           </div>
         ) : null}
 
-        <div className="overflow-x-auto mt-2">
+        <TableContainer className="mt-2">
           <table className="pms-table min-w-[820px]">
             <thead>
               <tr>
-                <th>Category</th>
-                <th>Rooms</th>
-                <th>Capacity</th>
-                <th className="text-right">Base rate</th>
-                <th>Amenities</th>
-                <th>Status</th>
-                <th className="text-right">
-                  <span className="sr-only">Edit</span>
-                </th>
+                <th className="w-12 text-center">#</th>
+                <th>CATEGORY</th>
+                <th>ROOMS</th>
+                <th>CAPACITY</th>
+                <th className="text-right">BASE RATE</th>
+                <th>AMENITIES</th>
+                <th>STATUS</th>
+                <th className="text-right">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
-              {types.map((t) => (
-                <tr key={t.id} className="transition-colors hover:bg-black/[0.01]">
+              {types.map((t, idx) => (
+                <tr key={t.id} className="transition-colors hover:bg-slate-50/70">
+                  <td className="text-center font-medium text-slate-400 text-xs">
+                    {idx + 1}
+                  </td>
                   <td>
-                    <span className="block font-bold text-ink">{t.name}</span>
-                    <span className="block max-w-[280px] truncate text-[12px] text-ink-secondary mt-0.5">
+                    <span className="block font-bold text-slate-900 text-sm">{t.name}</span>
+                    <span className="block max-w-[280px] truncate text-xs text-slate-400 mt-0.5">
                       {t.description || 'Standard room category'}
                     </span>
                   </td>
-                  <td className="tnum font-semibold">{t.count}</td>
-                  <td className="tnum text-ink-secondary">
+                  <td className="tnum font-semibold text-slate-800 text-sm">{t.count}</td>
+                  <td className="tnum text-slate-600 text-xs">
                     <span className="inline-flex items-center gap-1">
-                      <Lucide.Users size={13} className="text-ink-muted" />
+                      <Lucide.Users size={13} className="text-slate-400" />
                       <span>{t.maxOccupancy} max</span>
                     </span>
                   </td>
-                  <td className="tnum text-right font-bold text-ink">
+                  <td className="tnum text-right font-bold text-slate-900 text-sm">
                     {formatCurrency(t.baseRate, currencyCode)}
                   </td>
-                  <td className="max-w-[220px] truncate text-xs text-ink-secondary">
+                  <td className="max-w-[220px] truncate text-xs text-slate-500">
                     {t.amenities.length > 0 ? t.amenities.join(' · ') : '—'}
                   </td>
                   <td>
@@ -188,21 +190,20 @@ export function RoomTypes() {
                     </Badge>
                   </td>
                   <td className="text-right">
-                    <button
-                      type="button"
-                      className="pms-btn-ghost px-3 py-1 text-xs font-medium"
-                      onClick={() => openEdit(t)}
-                      aria-label={`Edit ${t.name}`}
-                    >
-                      Edit
-                    </button>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <TableActionBtn
+                        icon={Lucide.Pencil}
+                        title={`Edit ${t.name}`}
+                        onClick={() => openEdit(t)}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {types.length === 0 ? <p className="pms-helper py-8 text-center">No room types configured yet.</p> : null}
-        </div>
+          {types.length === 0 ? <p className="pms-helper py-8 text-center text-slate-400">No room types configured yet.</p> : null}
+        </TableContainer>
       </Card>
 
       {/* Edit / Add Room Type Modal */}

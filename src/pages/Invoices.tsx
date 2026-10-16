@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { formatCurrency } from '../lib/api/format';
 import type { Invoice } from '../data/mock';
-import { Badge, Card, CardTitle } from '../components/ui';
+import { Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../components/ui';
 import { paymentTone } from '../components/status';
 import { FilterChip } from '../components/controls';
 import { inputClass } from '../components/inputClass';
@@ -52,7 +52,7 @@ export function Invoices() {
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3.5">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -136,57 +136,58 @@ export function Invoices() {
           </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="pms-table min-w-[680px]">
+        <TableContainer>
+          <table className="pms-table min-w-[760px]">
             <thead>
               <tr>
-                <th>Invoice</th>
-                <th>Guest · Room</th>
-                <th>Due</th>
-                <th>Method</th>
-                <th>Status</th>
-                <th className="text-right">Amount</th>
-                <th className="text-right">
-                  <span className="sr-only">Open</span>
-                </th>
+                <th className="w-12 text-center">#</th>
+                <th>INVOICE</th>
+                <th>GUEST & ROOM</th>
+                <th>DUE DATE</th>
+                <th>PAYMENT METHOD</th>
+                <th>STATUS</th>
+                <th className="text-right">AMOUNT</th>
+                <th className="text-right">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((i) => (
-                <tr key={i.id} className="transition-colors hover:bg-black/[0.01]">
-                  <td className="tnum font-mono font-semibold text-primary">{i.id}</td>
-                  <td>
-                    <span className="block font-semibold text-ink">{i.guest}</span>
-                    <span className="tnum block text-[12px] text-ink-secondary">Room {i.room}</span>
+              {rows.map((i, idx) => (
+                <tr key={i.id} className="transition-colors hover:bg-slate-50/70">
+                  <td className="text-center font-medium text-slate-400 text-xs">
+                    {idx + 1}
                   </td>
-                  <td className="tnum text-xs text-ink-secondary">{i.due}</td>
+                  <td className="tnum font-mono font-bold text-slate-900 text-xs">{i.id}</td>
                   <td>
-                    <span className="inline-flex items-center gap-1 rounded-md bg-black/[0.04] px-2 py-0.5 text-xs font-medium">
+                    <span className="block font-semibold text-slate-900 text-sm">{i.guest}</span>
+                    <span className="tnum block text-xs text-slate-400">Room {i.room}</span>
+                  </td>
+                  <td className="tnum text-xs text-slate-500">{i.due}</td>
+                  <td>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
                       {i.method}
                     </span>
                   </td>
                   <td>
                     <Badge tone={paymentTone(i.status)}>{i.status}</Badge>
                   </td>
-                  <td className="tnum text-right font-semibold">
+                  <td className="tnum text-right font-bold text-slate-900 text-sm">
                     {formatCurrency(i.amount, i.currencyCode)}
                   </td>
                   <td className="text-right">
-                    <button
-                      type="button"
-                      className="pms-btn-ghost px-3 py-1.5 text-xs font-medium"
-                      onClick={() => setOpenId(i.id)}
-                      aria-label={`Preview ${i.id}`}
-                    >
-                      Preview
-                    </button>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <TableActionBtn
+                        icon={Lucide.FileText}
+                        title={`Preview invoice ${i.id}`}
+                        onClick={() => setOpenId(i.id)}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {rows.length === 0 ? <p className="pms-helper py-8 text-center">No invoices match.</p> : null}
-        </div>
+          {rows.length === 0 ? <p className="pms-helper py-8 text-center text-slate-400">No invoices match.</p> : null}
+        </TableContainer>
       </Card>
 
       {/* Invoice Drawer Preview */}

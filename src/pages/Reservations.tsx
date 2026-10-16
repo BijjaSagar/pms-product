@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { ConfirmDialog, Drawer, Modal } from '../components/overlays';
+import { Avatar } from '../components/ui';
 import { toast } from '../components/toastStore';
 import type { NavTarget } from '../components/nav';
 import { frontDeskApi, reservationApi } from '../lib/api/pms';
@@ -776,7 +777,7 @@ export function Reservations({
   };
 
   return (
-    <div className="w-full text-slate-900 font-sans pb-12 flex flex-col gap-5">
+    <div className="w-full text-slate-900 font-sans pb-8 flex flex-col gap-3.5">
       {resource.error && (
         <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-700">
           <Lucide.AlertCircle size={16} />
@@ -1076,8 +1077,8 @@ export function Reservations({
           <table className="w-full text-left text-xs border-collapse">
             {/* Table Header */}
             <thead>
-              <tr className="bg-[#f0f4f9] border-b border-slate-200 text-[11px] font-semibold text-slate-600 tracking-wider">
-                <th className="py-3 px-3.5 w-10">
+              <tr className="bg-slate-50/90 border-b border-slate-200 text-[11px] font-bold text-slate-500 tracking-wider">
+                <th className="py-2.5 px-3 w-10">
                   <input
                     type="checkbox"
                     checked={slice.length > 0 && selectedRowIds.length === slice.length}
@@ -1142,7 +1143,7 @@ export function Reservations({
                     }`}
                   >
                     {/* Checkbox */}
-                    <td className="py-3.5 px-3.5">
+                    <td className="py-2.5 px-3">
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -1153,7 +1154,7 @@ export function Reservations({
                     </td>
 
                     {/* Reference & Created Time */}
-                    <td className="py-3.5 px-3">
+                    <td className="py-2.5 px-3">
                       <div className="font-bold text-slate-900 tracking-tight text-xs font-mono">
                         {r.id}
                       </div>
@@ -1164,13 +1165,11 @@ export function Reservations({
 
                     {/* Guest Name & Phone */}
                     <td className="py-3.5 px-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-400">
-                          <Lucide.MessageSquare size={14} />
-                        </span>
+                      <div className="flex items-center gap-3">
+                        <Avatar name={r.guest} size={36} />
                         <div>
-                          <p className="font-semibold text-slate-900 text-xs">{r.guest}</p>
-                          <p className="text-[11px] text-slate-500">
+                          <p className="font-semibold text-slate-900 text-sm leading-tight">{r.guest}</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">
                             {r.guest === 'Rahul Sharma'
                               ? '+91 91234 56789'
                               : r.guest === 'Priya Mehta'

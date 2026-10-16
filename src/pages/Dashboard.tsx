@@ -8,6 +8,7 @@ import { useAuth } from '../features/auth/AuthContext';
 import type { PaymentRow, ReservationRow, StayRow } from '../lib/api/pms';
 import { toast } from '../components/toastStore';
 import { ThemeSwatcher } from '../components/ThemeSwatcher';
+import { Avatar, Badge, TableActionBtn, TableContainer } from '../components/ui';
 
 // ================= DEMO FALLBACK DATA MATCHING REFERENCE IMAGE =================
 
@@ -265,10 +266,38 @@ export function Dashboard({
     return DEMO_TIMELINE;
   }, [timelineTab]);
 
+  const recentReservations = useMemo(() => {
+    if (resource.data?.reservations && resource.data.reservations.length > 0) {
+      return resource.data.reservations.slice(0, 5).map((r) => ({
+        id: r.bookingCode || r.id,
+        guest: r.guest,
+        dates: `${r.checkIn} – ${r.checkOut}`,
+        room: r.room || 'Unassigned',
+        status: r.status,
+        total: r.total,
+      }));
+    }
+    return DEMO_RESERVATIONS;
+  }, [resource.data?.reservations]);
+
+  const recentPayments = useMemo(() => {
+    if (resource.data?.payments && resource.data.payments.length > 0) {
+      return resource.data.payments.slice(0, 5).map((p) => ({
+        date: p.date,
+        ref: p.ref,
+        guest: p.guest,
+        method: p.method,
+        amount: p.amount,
+        status: p.status,
+      }));
+    }
+    return DEMO_PAYMENTS;
+  }, [resource.data?.payments]);
+
   return (
-    <div className="w-full text-slate-900 font-sans pb-16 flex flex-col gap-6">
+    <div className="w-full text-slate-900 font-sans pb-8 flex flex-col gap-3.5">
       {/* ================= 1. PAGE HEADER ================= */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Left Welcome Title */}
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-amber-50 text-amber-500 shadow-2xs mt-0.5">
@@ -1027,159 +1056,172 @@ export function Dashboard({
       </div>
 
       {/* ================= 4. BOTTOM SECTION: 2 TABLES SIDE BY SIDE ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 min-w-0">
         {/* Table 1: Recent Reservations */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] overflow-hidden">
-          <div className="flex items-center justify-between p-4 border-b border-slate-100">
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">Recent Reservations</h2>
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] p-4 sm:p-5 flex flex-col justify-between min-w-0">
+          <div className="min-w-0">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Lucide.CalendarDays className="text-[var(--color-primary)]" size={18} />
+                <h2 className="text-base font-bold text-slate-900 tracking-tight">Recent Reservations</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => go({ view: 'reservations' })}
+                className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs"
+              >
+                View all
+              </button>
+            </div>
+
+            <TableContainer>
+              <table className="pms-table w-full text-xs [&_th]:px-2.5 [&_th]:py-2.5 [&_td]:px-2.5 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
+                <thead>
+                  <tr>
+                    <th className="w-8 text-center whitespace-nowrap">#</th>
+                    <th className="whitespace-nowrap">GUEST & BOOKING</th>
+                    <th className="whitespace-nowrap">ROOM & DATES</th>
+                    <th className="whitespace-nowrap text-center">STATUS</th>
+                    <th className="text-right whitespace-nowrap">TOTAL</th>
+                    <th className="text-right w-12 whitespace-nowrap">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentReservations.map((r, idx) => (
+                    <tr key={r.id}>
+                      <td className="text-center font-medium text-slate-400 text-xs whitespace-nowrap">
+                        {idx + 1}
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <Avatar name={r.guest} size={30} />
+                          <div className="min-w-0">
+                            <span className="font-semibold text-slate-900 text-xs block truncate max-w-[130px]">{r.guest}</span>
+                            <span className="font-mono text-[10.5px] text-slate-400 block">{r.id}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <span className="font-medium text-slate-800 text-xs block">{r.room}</span>
+                        <span className="text-[11px] text-slate-400 block">{r.dates}</span>
+                      </td>
+                      <td className="whitespace-nowrap text-center">
+                        <Badge tone={r.status === 'Confirmed' ? 'success' : r.status === 'Pending' ? 'warning' : 'neutral'}>
+                          {r.status}
+                        </Badge>
+                      </td>
+                      <td className="text-right font-bold text-slate-900 text-xs font-mono whitespace-nowrap">
+                        ₹{r.total.toLocaleString('en-IN')}.00
+                      </td>
+                      <td className="text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end">
+                          <TableActionBtn
+                            icon={Lucide.Eye}
+                            title="Open reservation"
+                            onClick={() => go({ view: 'reservations', focusId: r.id })}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </TableContainer>
+          </div>
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs text-slate-500">
+            <span>Showing {recentReservations.length} recent bookings</span>
             <button
               type="button"
               onClick={() => go({ view: 'reservations' })}
-              className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs"
+              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
-              View all
+              <span>Manage all</span>
+              <Lucide.ArrowRight size={13} />
             </button>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-[#f0f4f9] text-[11px] font-semibold text-slate-600 border-b border-slate-200 tracking-wider">
-                  <th className="py-2.5 px-3.5">REFERENCE</th>
-                  <th className="py-2.5 px-3">GUEST</th>
-                  <th className="py-2.5 px-3">STAY DATES</th>
-                  <th className="py-2.5 px-2.5">ROOM</th>
-                  <th className="py-2.5 px-2.5">STATUS</th>
-                  <th className="py-2.5 px-3 text-right">TOTAL</th>
-                  <th className="py-2.5 px-3 text-right">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {DEMO_RESERVATIONS.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-3 px-3.5 font-bold text-slate-900 whitespace-nowrap">
-                      {r.id}
-                    </td>
-                    <td className="py-3 px-3 font-medium text-slate-800 whitespace-nowrap">
-                      {r.guest}
-                    </td>
-                    <td className="py-3 px-3 text-slate-500 whitespace-nowrap">
-                      {r.dates}
-                    </td>
-                    <td className="py-3 px-2.5 text-slate-700 whitespace-nowrap">
-                      {r.room}
-                    </td>
-                    <td className="py-3 px-2.5 whitespace-nowrap">
-                      {r.status === 'Confirmed' && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10.5px] font-bold text-emerald-700 border border-emerald-200/60">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Confirmed
-                        </span>
-                      )}
-                      {r.status === 'Pending' && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10.5px] font-bold text-amber-700 border border-amber-200/60">
-                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> Pending
-                        </span>
-                      )}
-                      {r.status === 'Checked-out' && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10.5px] font-bold text-slate-700 border border-slate-200/60">
-                          <span className="h-1.5 w-1.5 rounded-full bg-slate-500" /> Checked-out
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-3 text-right font-bold text-slate-900 whitespace-nowrap">
-                      ₹{r.total.toLocaleString('en-IN')}.00
-                    </td>
-                    <td className="py-3 px-3 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          type="button"
-                          onClick={() => go({ view: 'reservations', focusId: r.id })}
-                          className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer shadow-2xs"
-                        >
-                          Open
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => go({ view: 'reservations', focusId: r.id })}
-                          className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
-                          aria-label="More"
-                        >
-                          <Lucide.MoreVertical size={13} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
 
         {/* Table 2: Recent Payments */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] overflow-hidden">
-          <div className="flex items-center justify-between p-4 border-b border-slate-100">
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">Recent Payments</h2>
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] p-4 sm:p-5 flex flex-col justify-between min-w-0">
+          <div className="min-w-0">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Lucide.CreditCard className="text-[var(--color-primary)]" size={18} />
+                <h2 className="text-base font-bold text-slate-900 tracking-tight">Recent Payments</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => go({ view: 'payments' })}
+                className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs"
+              >
+                View all
+              </button>
+            </div>
+
+            <TableContainer>
+              <table className="pms-table w-full text-xs [&_th]:px-2.5 [&_th]:py-2.5 [&_td]:px-2.5 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
+                <thead>
+                  <tr>
+                    <th className="w-8 text-center whitespace-nowrap">#</th>
+                    <th className="whitespace-nowrap">GUEST & REFERENCE</th>
+                    <th className="whitespace-nowrap">DATE & METHOD</th>
+                    <th className="whitespace-nowrap text-center">STATUS</th>
+                    <th className="text-right whitespace-nowrap">AMOUNT</th>
+                    <th className="text-right w-12 whitespace-nowrap">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentPayments.map((p, idx) => (
+                    <tr key={p.ref}>
+                      <td className="text-center font-medium text-slate-400 text-xs whitespace-nowrap">
+                        {idx + 1}
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <Avatar name={p.guest} size={30} />
+                          <div className="min-w-0">
+                            <span className="font-semibold text-slate-900 text-xs block truncate max-w-[130px]">{p.guest}</span>
+                            <span className="font-mono text-[10.5px] text-slate-400 block">{p.ref}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <span className="font-medium text-slate-800 text-xs block">{p.date}</span>
+                        <span className="text-[11px] text-slate-400 block">{p.method}</span>
+                      </td>
+                      <td className="whitespace-nowrap text-center">
+                        <Badge tone={p.status === 'Paid' ? 'success' : 'warning'}>
+                          {p.status}
+                        </Badge>
+                      </td>
+                      <td className="text-right font-bold text-slate-900 text-xs font-mono whitespace-nowrap">
+                        ₹{p.amount.toLocaleString('en-IN')}.00
+                      </td>
+                      <td className="text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end">
+                          <TableActionBtn
+                            icon={Lucide.FileText}
+                            title="View payments"
+                            onClick={() => go({ view: 'payments' })}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </TableContainer>
+          </div>
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs text-slate-500">
+            <span>Showing {recentPayments.length} recent settlements</span>
             <button
               type="button"
               onClick={() => go({ view: 'payments' })}
-              className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs"
+              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
-              View all
+              <span>Manage all</span>
+              <Lucide.ArrowRight size={13} />
             </button>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-[#f0f4f9] text-[11px] font-semibold text-slate-600 border-b border-slate-200 tracking-wider">
-                  <th className="py-2.5 px-3.5">DATE</th>
-                  <th className="py-2.5 px-3">REFERENCE</th>
-                  <th className="py-2.5 px-3">GUEST</th>
-                  <th className="py-2.5 px-2.5">METHOD</th>
-                  <th className="py-2.5 px-3 text-right">AMOUNT</th>
-                  <th className="py-2.5 px-2.5">STATUS</th>
-                  <th className="py-2.5 px-3 text-right"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {DEMO_PAYMENTS.map((p) => (
-                  <tr key={p.ref} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-3 px-3.5 text-slate-500 whitespace-nowrap font-medium">
-                      {p.date}
-                    </td>
-                    <td className="py-3 px-3 font-semibold text-slate-800 whitespace-nowrap">
-                      {p.ref}
-                    </td>
-                    <td className="py-3 px-3 font-medium text-slate-800 whitespace-nowrap">
-                      {p.guest}
-                    </td>
-                    <td className="py-3 px-2.5 whitespace-nowrap">
-                      <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
-                        {p.method}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-right font-bold text-slate-900 whitespace-nowrap">
-                      ₹{p.amount.toLocaleString('en-IN')}.00
-                    </td>
-                    <td className="py-3 px-2.5 whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10.5px] font-bold text-emerald-700 border border-emerald-200/60">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Paid
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-right whitespace-nowrap">
-                      <button
-                        type="button"
-                        onClick={() => go({ view: 'payments' })}
-                        className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer ml-auto"
-                        aria-label="More"
-                      >
-                        <Lucide.MoreVertical size={13} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       </div>

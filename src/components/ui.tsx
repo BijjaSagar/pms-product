@@ -2,17 +2,25 @@ import type { ReactNode } from 'react';
 import type { BadgeTone } from './status';
 
 const TONE_CLASSES: Record<BadgeTone, string> = {
-  success: 'bg-success-bg text-success-text border-success-border',
-  info: 'bg-info-bg text-info-text border-info-border',
-  warning: 'bg-warning-bg text-warning-text border-warning-border',
-  danger: 'bg-danger-bg text-danger-text border-danger-border',
-  neutral: 'bg-neutral-bg text-neutral-text border-neutral-border',
+  success: 'bg-emerald-100/90 text-emerald-800 border-emerald-200/60',
+  info: 'bg-blue-100/90 text-blue-800 border-blue-200/60',
+  warning: 'bg-amber-100/90 text-amber-800 border-amber-200/60',
+  danger: 'bg-rose-100/90 text-rose-800 border-rose-200/60',
+  neutral: 'bg-slate-100 text-slate-700 border-slate-200/60',
 };
 
-export function Badge({ tone, children }: { tone: BadgeTone; children: ReactNode }) {
+export function Badge({
+  tone,
+  children,
+  dot = false,
+}: {
+  tone: BadgeTone;
+  children: ReactNode;
+  dot?: boolean;
+}) {
   return (
-    <span className={`pms-badge border ${TONE_CLASSES[tone]}`}>
-      <span className="pms-badge-dot" aria-hidden="true" />
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${TONE_CLASSES[tone]}`}>
+      {dot ? <span className="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true" /> : null}
       {children}
     </span>
   );
@@ -31,22 +39,75 @@ export function Card({
 }) {
   return (
     <section
-      className={`pms-card min-w-0 p-4 sm:p-5 ${hover ? 'pms-card-hover pms-card-interactive' : ''} ${elevated ? 'pms-card-elevated' : ''} ${className}`}
+      className={`pms-card min-w-0 p-5 sm:p-6 ${hover ? 'pms-card-hover pms-card-interactive' : ''} ${elevated ? 'pms-card-elevated' : ''} ${className}`}
     >
       {children}
     </section>
   );
 }
 
-export function CardTitle({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
+export function CardTitle({
+  title,
+  subtitle,
+  action,
+}: {
+  title: string;
+  subtitle?: string;
+  action?: ReactNode;
+}) {
   return (
-    <div className="mb-4 flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+    <div className="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
       <div className="min-w-0 flex-1 basis-48">
-        <h3 className="pms-section-title text-balance">{title}</h3>
-        {subtitle ? <p className="pms-helper mt-1 text-pretty">{subtitle}</p> : null}
+        <h3 className="text-xl font-bold tracking-tight text-slate-900 text-balance">{title}</h3>
+        {subtitle ? <p className="text-sm text-slate-500 mt-0.5 text-pretty">{subtitle}</p> : null}
       </div>
       {action ? <div className="flex flex-none flex-wrap items-center gap-2">{action}</div> : null}
     </div>
+  );
+}
+
+export function TableContainer({
+  children,
+  className = '',
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`pms-table-container border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-xs min-w-0 w-full ${className}`}>
+      <div className="overflow-x-auto w-full min-w-0">{children}</div>
+    </div>
+  );
+}
+
+export function TableActionBtn({
+  icon: Icon,
+  onClick,
+  title,
+  variant = 'default',
+}: {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  onClick?: () => void;
+  title?: string;
+  variant?: 'default' | 'danger' | 'primary';
+}) {
+  const variantClass =
+    variant === 'danger'
+      ? 'text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100'
+      : variant === 'primary'
+      ? 'text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100'
+      : 'text-slate-500 hover:text-slate-700 bg-slate-100/80 hover:bg-slate-200/80';
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      aria-label={title}
+      className={`w-8 h-8 rounded-lg inline-flex items-center justify-center transition-colors cursor-pointer ${variantClass}`}
+    >
+      <Icon size={15} />
+    </button>
   );
 }
 
@@ -104,23 +165,45 @@ export function ProgressBar({ value }: { value: number }) {
   );
 }
 
-export function Avatar({ name, size = 32 }: { name: string; size?: number }) {
+const AVATAR_PALETTES = [
+  { bg: '#EFF6FF', text: '#2563EB', border: '#DBEAFE' }, // Soft Blue (JD)
+  { bg: '#F3E8FF', text: '#7C3AED', border: '#E9D5FF' }, // Soft Purple (JS)
+  { bg: '#FFE4E6', text: '#E11D48', border: '#FECDD3' }, // Soft Rose (MJ)
+  { bg: '#DCFCE7', text: '#15803D', border: '#BBF7D0' }, // Soft Green (EW)
+  { bg: '#FEF3C7', text: '#B45309', border: '#FDE68A' }, // Soft Amber (DC)
+  { bg: '#E0F2FE', text: '#0284C7', border: '#BAE6FD' }, // Soft Sky
+  { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0' }, // Soft Slate
+];
+
+function getAvatarPalette(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % AVATAR_PALETTES.length;
+  return AVATAR_PALETTES[index];
+}
+
+export function Avatar({ name, size = 36 }: { name: string; size?: number }) {
   const initials = name
-    .split(' ')
+    .trim()
+    .split(/\s+/)
     .map((p) => p[0])
     .slice(0, 2)
     .join('')
-    .toUpperCase();
+    .toUpperCase() || 'U';
+
+  const palette = getAvatarPalette(name);
+
   return (
     <span
-      className="inline-flex flex-none items-center justify-center rounded-full text-[12px] font-bold"
+      className="inline-flex flex-none items-center justify-center rounded-full text-xs font-bold transition-transform hover:scale-105"
       style={{
         width: size,
         height: size,
-        background: 'linear-gradient(135deg, var(--color-soft), color-mix(in srgb, var(--color-soft) 60%, white))',
-        color: 'var(--color-dark-accent)',
-        boxShadow: 'var(--shadow-sm), inset 0 1px 0 rgb(255 255 255 / 0.6)',
-        border: '1px solid color-mix(in srgb, var(--color-dark-accent) 18%, transparent)',
+        backgroundColor: palette.bg,
+        color: palette.text,
+        border: `1px solid ${palette.border}`,
       }}
       aria-hidden="true"
     >

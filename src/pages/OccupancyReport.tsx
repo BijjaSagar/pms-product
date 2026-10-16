@@ -32,7 +32,7 @@ export function OccupancyReport() {
   const occupancy = data?.occupancy;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3.5">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

@@ -475,9 +475,9 @@ export function NewReservation({ go, onOpenThemes }: { go: (t: NavTarget) => voi
   }
 
   return (
-    <div className="w-full text-slate-900 font-sans pb-12">
+    <div className="w-full text-slate-900 font-sans pb-8">
       {/* ================= TOP BREADCRUMB & HEADER ================= */}
-      <div className="mb-6">
+      <div className="mb-3.5">
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
@@ -569,11 +569,11 @@ export function NewReservation({ go, onOpenThemes }: { go: (t: NavTarget) => voi
       </div>
 
       {/* ================= MAIN 2-COLUMN LAYOUT ================= */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] 2xl:grid-cols-[1fr_420px] gap-6 items-start w-full">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] 2xl:grid-cols-[1fr_420px] gap-3.5 items-start w-full">
         {/* ================= LEFT MAIN FORM ================= */}
-        <div className="flex flex-col gap-6 w-full">
+        <div className="flex flex-col gap-3.5 w-full">
           {/* ================= SECTION 1: GUEST DETAILS ================= */}
-          <section className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] p-6 lg:p-7">
+          <section className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] p-4 sm:p-5">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
@@ -780,7 +780,7 @@ export function NewReservation({ go, onOpenThemes }: { go: (t: NavTarget) => voi
           </section>
 
           {/* ================= SECTION 2: STAY & ROOM SELECTION ================= */}
-          <section className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] p-6 lg:p-7">
+          <section className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] p-4 sm:p-5">
             {/* Header */}
             <div className="flex items-center gap-2.5 mb-4">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-primary)] text-white font-bold text-xs shrink-0">
@@ -1183,7 +1183,7 @@ export function NewReservation({ go, onOpenThemes }: { go: (t: NavTarget) => voi
           </section>
 
           {/* ================= SECTION 3: SERVICES, DISCOUNTS & PAYMENT ================= */}
-          <section className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] p-6 lg:p-7">
+          <section className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] p-4 sm:p-5">
             {/* Header */}
             <div className="flex items-center gap-2.5 mb-4">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-primary)] text-white font-bold text-xs shrink-0">

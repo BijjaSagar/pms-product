@@ -174,13 +174,13 @@ function Shell() {
         onClose={() => setNavOpen(false)}
         onOpenThemes={() => setSwatcherOpen(true)}
       />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col" style={{ background: 'var(--color-page)' }}>
         <Header
           onMenu={() => setNavOpen(true)}
           onOpenThemes={() => setSwatcherOpen(true)}
           onGo={go}
         />
-        <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}`} className={`pms-animate-fade-up mx-auto w-full flex-1 px-3 py-4 sm:px-5 sm:py-6 lg:px-8 ${view === 'dashboard' || view === 'new-reservation' || view === 'reservations' || view === 'status-board' ? 'max-w-[1600px] 2xl:max-w-[1760px]' : 'max-w-[1280px] 2xl:max-w-[1440px]'}`}>
+        <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}`} className={`pms-animate-fade-up mx-auto w-full flex-1 px-2.5 py-3 sm:px-4 sm:py-3.5 lg:px-6 lg:py-4 ${view === 'dashboard' || view === 'new-reservation' || view === 'reservations' || view === 'status-board' ? 'max-w-[1600px] 2xl:max-w-[1760px]' : 'max-w-[1280px] 2xl:max-w-[1440px]'}`} style={{ background: 'var(--color-page)' }}>
           <Suspense fallback={<PageFallback />}>{page}</Suspense>
         </main>
         <footer

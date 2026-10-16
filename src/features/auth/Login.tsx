@@ -75,7 +75,7 @@ export function Login() {
   };
 
   return (
-    <main className="relative flex min-h-screen w-full bg-[#f8fafc] text-slate-900 font-sans antialiased overflow-x-hidden">
+    <main className="relative flex min-h-screen w-full bg-[#f2f2f2] text-slate-900 font-sans antialiased overflow-x-hidden">
       {/* 2-Column Responsive Layout: Left showcase, Right login */}
       <div className="flex flex-col lg:flex-row w-full min-h-screen">
         {/* ================= LEFT COLUMN: HERO SHOWCASE ================= */}
@@ -207,7 +207,7 @@ export function Login() {
         </div>
 
         {/* ================= RIGHT COLUMN: SIGN-IN FORM ================= */}
-        <div className="flex flex-1 flex-col justify-between p-6 sm:p-10 lg:p-12 xl:p-16 bg-[#f8fafc] min-h-screen">
+        <div className="flex flex-1 flex-col justify-between p-6 sm:p-10 lg:p-12 xl:p-16 bg-[#f2f2f2] min-h-screen">
           {/* Top Bar: Language Dropdown & Theme Settings */}
           <div className="flex items-center justify-between sm:justify-end gap-3 w-full max-w-[440px] mx-auto lg:max-w-none">
             {/* Mobile Brand (only visible on mobile screens) */}

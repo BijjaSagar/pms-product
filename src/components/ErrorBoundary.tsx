@@ -114,7 +114,7 @@ export function AppCrashFallback({ reset }: { reset: () => void }) {
   return (
     <div
       className="relative flex min-h-screen items-center justify-center p-4 sm:p-6 pms-animate-fade-in"
-      style={{ background: 'var(--color-page, #f8fafc)' }}
+      style={{ background: 'var(--color-page, #f2f2f2)' }}
     >
       {/* Ambient Radial Background */}
       <div

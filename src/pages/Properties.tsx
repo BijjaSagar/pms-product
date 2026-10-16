@@ -53,13 +53,13 @@ export function Properties() {
         />
         {resource.error ? <p role="alert" className="pms-helper">Could not load properties: {resource.error}</p> : null}
         
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 mt-1">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 mt-1">
           {properties.map((property) => {
             const current = property.id === me?.activePropertyId;
             return (
               <article
                 key={property.id}
-                className="rounded-[14px] border p-5 transition-all duration-200 hover:-translate-y-0.5"
+                className="rounded-xl border p-3.5 sm:p-4 transition-all duration-200 hover:-translate-y-0.5"
                 style={{
                   borderColor: current ? 'var(--color-primary)' : 'var(--color-border)',
                   background: current ? 'var(--color-hover-surface)' : 'var(--color-surface)',

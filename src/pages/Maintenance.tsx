@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import type { BadgeTone } from '../components/status';
 import type { MaintenanceRequest, MaintenanceStatus } from '../data/mock';
-import { Badge, Card, CardTitle } from '../components/ui';
+import { Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../components/ui';
 import { Field, FilterChip } from '../components/controls';
 import { inputClass } from '../components/inputClass';
 import { Drawer, Modal, PromptDialog } from '../components/overlays';
@@ -146,7 +146,7 @@ export function Maintenance() {
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3.5">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -246,52 +246,53 @@ export function Maintenance() {
           </button>
         </div>
 
-        <div className="overflow-x-auto">
+        <TableContainer>
           <table className="pms-table min-w-[820px]">
             <thead>
               <tr>
-                <th>Request</th>
-                <th>Room</th>
-                <th>Issue</th>
-                <th>Priority</th>
-                <th>Assignee</th>
-                <th>Due</th>
-                <th>Status</th>
-                <th className="text-right">
-                  <span className="sr-only">Open</span>
-                </th>
+                <th className="w-12 text-center">#</th>
+                <th>REQUEST</th>
+                <th>ROOM</th>
+                <th>ISSUE</th>
+                <th>PRIORITY</th>
+                <th>ASSIGNEE</th>
+                <th>DUE DATE</th>
+                <th>STATUS</th>
+                <th className="text-right">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((r) => (
-                <tr key={r.id} className="transition-colors hover:bg-black/[0.01]">
-                  <td className="tnum font-mono font-semibold text-primary">{r.id}</td>
-                  <td className="tnum font-semibold text-ink">{r.room}</td>
-                  <td className="max-w-[280px] truncate text-ink-secondary">{r.description}</td>
+              {filtered.map((r, idx) => (
+                <tr key={r.id} className="transition-colors hover:bg-slate-50/70">
+                  <td className="text-center font-medium text-slate-400 text-xs">
+                    {idx + 1}
+                  </td>
+                  <td className="tnum font-mono font-bold text-slate-900 text-xs">{r.id}</td>
+                  <td className="tnum font-semibold text-slate-900 text-sm">{r.room}</td>
+                  <td className="max-w-[280px] truncate text-slate-600 text-sm font-medium">{r.description}</td>
                   <td>
                     <Badge tone={priorityTone(r.priority)}>{r.priority}</Badge>
                   </td>
-                  <td className="text-ink-secondary">{r.assignee}</td>
-                  <td className="tnum text-xs text-ink-secondary">{r.due}</td>
+                  <td className="text-slate-600 text-sm">{r.assignee}</td>
+                  <td className="tnum text-xs text-slate-500">{r.due}</td>
                   <td>
                     <Badge tone={statusTone(r.status)}>{r.status}</Badge>
                   </td>
                   <td className="text-right">
-                    <button
-                      type="button"
-                      className="pms-btn-ghost px-3 py-1.5 text-xs font-medium"
-                      onClick={() => setOpenId(r.id)}
-                      aria-label={`Open ${r.id}`}
-                    >
-                      Details
-                    </button>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <TableActionBtn
+                        icon={Lucide.Wrench}
+                        title={`Open ticket ${r.id}`}
+                        onClick={() => setOpenId(r.id)}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {filtered.length === 0 ? <p className="pms-helper py-8 text-center">No maintenance requests match.</p> : null}
-        </div>
+          {filtered.length === 0 ? <p className="pms-helper py-8 text-center text-slate-400">No maintenance requests match.</p> : null}
+        </TableContainer>
       </Card>
 
       {/* Ticket Details Drawer */}

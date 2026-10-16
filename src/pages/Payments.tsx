@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { formatCurrency } from '../lib/api/format';
 import type { Payment } from '../data/mock';
-import { Badge, Card, CardTitle } from '../components/ui';
+import { Avatar, Badge, Card, CardTitle, TableContainer } from '../components/ui';
 import { paymentTone } from '../components/status';
 import { FilterChip, Pagination } from '../components/controls';
 import { Field } from '../components/controls';
@@ -76,7 +76,7 @@ export function Payments() {
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3.5">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -169,41 +169,50 @@ export function Payments() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
+        <TableContainer>
           <table className="pms-table min-w-[760px]">
             <thead>
               <tr>
-                <th>Reference</th>
-                <th>Guest</th>
-                <th>Folio</th>
-                <th>Date</th>
-                <th>Method</th>
-                <th>Status</th>
-                <th className="text-right">Amount</th>
-                {can('payment.refund') ? <th className="text-right">Action</th> : null}
+                <th className="w-12 text-center">#</th>
+                <th>REFERENCE</th>
+                <th>GUEST</th>
+                <th>FOLIO</th>
+                <th>DATE</th>
+                <th>METHOD</th>
+                <th>STATUS</th>
+                <th className="text-right">AMOUNT</th>
+                {can('payment.refund') ? <th className="text-right">ACTION</th> : null}
               </tr>
             </thead>
             <tbody>
-              {slice.map((p) => (
-                <tr key={p.ref} className="transition-colors hover:bg-black/[0.01]">
-                  <td className="tnum font-mono font-semibold text-primary">
+              {slice.map((p, idx) => (
+                <tr key={p.ref} className="transition-colors hover:bg-slate-50/70">
+                  <td className="text-center font-medium text-slate-400 text-xs">
+                    {safe * PAGE_SIZE + idx + 1}
+                  </td>
+                  <td className="tnum font-mono font-bold text-slate-900 text-xs">
                     {p.ref}
-                    <span className="tnum block font-mono text-[11.5px] text-ink-muted font-normal">
+                    <span className="tnum block font-mono text-[11px] text-slate-400 font-normal">
                       {p.txn}
                     </span>
                   </td>
-                  <td className="font-semibold text-ink">{p.guest}</td>
-                  <td className="tnum font-mono text-ink-secondary">{p.bookingId}</td>
-                  <td className="tnum text-xs text-ink-secondary">{p.date}</td>
                   <td>
-                    <span className="inline-flex items-center gap-1 rounded-md bg-black/[0.04] px-2 py-0.5 text-xs font-medium">
+                    <div className="flex items-center gap-3">
+                      <Avatar name={p.guest} size={36} />
+                      <span className="font-semibold text-slate-900 text-sm">{p.guest}</span>
+                    </div>
+                  </td>
+                  <td className="tnum font-mono text-slate-500 text-xs">{p.bookingId}</td>
+                  <td className="tnum text-xs text-slate-500">{p.date}</td>
+                  <td>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
                       {p.method}
                     </span>
                   </td>
                   <td>
                     <Badge tone={paymentTone(p.status)}>{p.status}</Badge>
                   </td>
-                  <td className="tnum text-right font-semibold">
+                  <td className="tnum text-right font-bold text-slate-900 text-sm">
                     {formatCurrency(p.amount, p.currencyCode)}
                   </td>
                   {can('payment.refund') ? (
@@ -211,7 +220,7 @@ export function Payments() {
                       {['Paid', 'Partially refunded'].includes(p.status) ? (
                         <button
                           type="button"
-                          className="pms-btn-ghost px-2.5 py-1 text-xs text-danger hover:bg-red-50"
+                          className="pms-btn-ghost px-3 py-1 text-xs text-rose-600 hover:bg-rose-50 border border-rose-200/60 rounded-lg font-semibold"
                           onClick={() =>
                             setRefundModal({
                               payment: p,
@@ -222,22 +231,24 @@ export function Payments() {
                         >
                           Refund
                         </button>
-                      ) : null}
+                      ) : (
+                        <span className="text-slate-400 text-xs">—</span>
+                      )}
                     </td>
                   ) : null}
                 </tr>
               ))}
             </tbody>
           </table>
-          {slice.length === 0 ? <p className="pms-helper py-8 text-center">No payment transactions match.</p> : null}
-        </div>
+          {slice.length === 0 ? <p className="pms-helper py-8 text-center text-slate-400">No payment transactions match.</p> : null}
+        </TableContainer>
 
-        <div className="mt-4 pt-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="mt-4 pt-1">
           <Pagination
             page={safe}
             totalPages={pages}
             onChange={setPage}
-            summary={`Page ${safe + 1} of ${pages} · ${filtered.length} payments`}
+            summary={`Showing ${filtered.length > 0 ? safe * PAGE_SIZE + 1 : 0} to ${Math.min((safe + 1) * PAGE_SIZE, filtered.length)} of ${filtered.length} payments`}
           />
         </div>
       </Card>
