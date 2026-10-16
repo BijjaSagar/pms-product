@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import type { Reservation } from '../data/mock';
+import type { Reservation } from '../types';
 import { Avatar, Badge, Card, CardTitle } from '../components/ui';
 import { reservationTone, roomTone } from '../components/status';
 import { Field } from '../components/controls';

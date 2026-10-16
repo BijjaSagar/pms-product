@@ -411,9 +411,14 @@ export function Dashboard({
     return DEMO_TIMELINE;
   }, [timelineTab]);
 
+  const arrivals = resource.data?.arrivals;
+  const departures = resource.data?.departures;
+  const reservations = resource.data?.reservations;
+  const payments = resource.data?.payments;
+
   const pendingCheckins = useMemo(() => {
-    if (resource.data?.arrivals && resource.data.arrivals.length > 0) {
-      return resource.data.arrivals.slice(0, 5).map((a) => ({
+    if (arrivals && arrivals.length > 0) {
+      return arrivals.slice(0, 5).map((a) => ({
         id: a.id,
         bookingCode: a.bookingCode || a.id,
         guest: a.guestName || 'Registered Guest',
@@ -427,15 +432,15 @@ export function Dashboard({
         nights: a.nights ?? 1,
         total: parseFloat(a.totalAmount || '0') || 7500,
         balance: parseFloat(a.balance || '0') || 0,
-        status: (a.status as any) || 'Confirmed',
+        status: (a.status as 'Confirmed' | 'Pending' | 'Checked-in' | 'Checked-out' | 'Cancelled' | 'No-show') || 'Confirmed',
       }));
     }
     return DEMO_PENDING_CHECKINS;
-  }, [resource.data?.arrivals]);
+  }, [arrivals]);
 
   const pendingCheckouts = useMemo(() => {
-    if (resource.data?.departures && resource.data.departures.length > 0) {
-      return resource.data.departures.slice(0, 5).map((d) => ({
+    if (departures && departures.length > 0) {
+      return departures.slice(0, 5).map((d) => ({
         id: d.id,
         bookingCode: d.bookingCode || d.id,
         guest: d.guestName || 'In-House Guest',
@@ -450,11 +455,11 @@ export function Dashboard({
       }));
     }
     return DEMO_PENDING_CHECKOUTS;
-  }, [resource.data?.departures]);
+  }, [departures]);
 
   const recentReservations = useMemo(() => {
-    if (resource.data?.reservations && resource.data.reservations.length > 0) {
-      return resource.data.reservations.slice(0, 5).map((r) => ({
+    if (reservations && reservations.length > 0) {
+      return reservations.slice(0, 5).map((r) => ({
         id: r.bookingCode || r.id,
         guest: r.guest,
         dates: `${r.checkIn} – ${r.checkOut}`,
@@ -464,11 +469,11 @@ export function Dashboard({
       }));
     }
     return DEMO_RESERVATIONS;
-  }, [resource.data?.reservations]);
+  }, [reservations]);
 
   const recentPayments = useMemo(() => {
-    if (resource.data?.payments && resource.data.payments.length > 0) {
-      return resource.data.payments.slice(0, 5).map((p) => ({
+    if (payments && payments.length > 0) {
+      return payments.slice(0, 5).map((p) => ({
         date: p.date,
         ref: p.ref,
         guest: p.guest,
@@ -478,7 +483,7 @@ export function Dashboard({
       }));
     }
     return DEMO_PAYMENTS;
-  }, [resource.data?.payments]);
+  }, [payments]);
 
   const adrPoints = useMemo(() => {
     const minAdr = 3500;

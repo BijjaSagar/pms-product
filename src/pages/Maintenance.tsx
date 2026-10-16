@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import type { BadgeTone } from '../components/status';
-import type { MaintenanceRequest, MaintenanceStatus } from '../data/mock';
+import type { MaintenanceRequest, MaintenanceStatus } from '../types';
 import { Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../components/ui';
 import { Field, FilterChip } from '../components/controls';
 import { inputClass } from '../components/inputClass';

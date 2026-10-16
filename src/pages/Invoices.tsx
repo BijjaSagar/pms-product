@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { formatCurrency } from '../lib/api/format';
-import type { Invoice } from '../data/mock';
+import type { Invoice } from '../types';
 import { Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../components/ui';
 import { paymentTone } from '../components/status';
 import { FilterChip } from '../components/controls';

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import type { HkStatus, HousekeepingTask, MaintenanceRequest, Room, RoomStatus } from '../data/mock';
+import type { HkStatus, HousekeepingTask, MaintenanceRequest, Room, RoomStatus } from '../types';
 import { Avatar, Badge, Card, CardTitle } from '../components/ui';
 import { roomTone } from '../components/status';
 import type { BadgeTone } from '../components/status';

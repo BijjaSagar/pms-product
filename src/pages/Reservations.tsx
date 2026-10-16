@@ -9,7 +9,7 @@ import { reservationFromApi } from '../lib/api/adapters';
 import { useApiResource } from '../lib/api/useApiResource';
 import { displayApiError } from '../lib/api/client';
 import { ThemeSwatcher } from '../components/ThemeSwatcher';
-import type { Reservation, ReservationStatus } from '../data/mock';
+import type { Reservation, ReservationStatus } from '../types';
 
 const STATUS_FILTERS: (ReservationStatus | 'All')[] = [
   'All',

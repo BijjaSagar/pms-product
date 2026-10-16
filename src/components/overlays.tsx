@@ -249,10 +249,15 @@ export function PromptDialog({
   danger?: boolean;
   inputType?: 'text' | 'number' | 'date';
 }) {
+  const [prevTrack, setPrevTrack] = useState({ open, defaultValue });
   const [val, setVal] = useState(defaultValue);
-  useEffect(() => {
-    if (open) setVal(defaultValue);
-  }, [open, defaultValue]);
+
+  if (prevTrack.open !== open || prevTrack.defaultValue !== defaultValue) {
+    setPrevTrack({ open, defaultValue });
+    if (open) {
+      setVal(defaultValue);
+    }
+  }
 
   return (
     <Modal

@@ -1,9 +1,10 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import * as Lucide from 'lucide-react';
 import { Modal } from '../components/overlays';
 import { toast } from '../components/toastStore';
 import { folioApi, frontDeskApi } from '../lib/api/pms';
 import { useApiResource } from '../lib/api/useApiResource';
+import { formatINR, formatNumber } from '../utils';
 
 // Types
 export interface BillingTransaction {
@@ -550,68 +551,70 @@ export function Billing() {
   const [selectedGuestId, setSelectedGuestId] = useState<string>('aarav-iyer');
 
   // Synchronize backend in-house stays if available
-  useEffect(() => {
+  const [prevStays, setPrevStays] = useState(resource.data);
+  if (resource.data !== prevStays) {
+    setPrevStays(resource.data);
     const stays = resource.data;
     if (stays && stays.length > 0) {
-      setGuests((prev) => {
-        const existingCodes = new Set(prev.map((g) => g.reservationCode));
-        const backendGuests: GuestBillingData[] = stays
-          .filter((stay) => stay.folioId && !existingCodes.has(stay.bookingCode || stay.id))
-          .map((stay) => {
-            const initials = stay.guestName
-              ? stay.guestName
-                  .split(' ')
-                  .map((n) => n[0])
-                  .join('')
-                  .slice(0, 2)
-                  .toUpperCase()
-              : 'GH';
-            return {
-              id: stay.id,
-              guestId: stay.guestId || `G-${stay.id.slice(0, 4)}`,
-              name: stay.guestName || 'In-House Guest',
-              avatarInitials: initials,
-              status: 'In-house',
-              phone: '+91 98765 00000',
-              email: 'guest@example.com',
-              stayDates: `${stay.checkInDate} → ${stay.checkOutDate}`,
-              fromDate: stay.checkInDate,
-              toDate: stay.checkOutDate,
-              nights: 1,
-              room: `Room ${stay.roomNumber || '—'}`,
-              roomNumber: stay.roomNumber || '—',
-              roomType: 'Deluxe',
-              occupancy: '1 Adult • 0 Children',
-              adults: 1,
-              children: 0,
-              reservationCode: stay.bookingCode || stay.id,
-              reservationStatus: 'Confirmed',
-              folioStatus: 'Open',
-              currency: '₹',
-              currencyCode: 'INR',
-              transactions: [],
-              payments: [],
-              summary: {
-                roomCharges: 0,
-                extraServices: 0,
-                foodBeverage: 0,
-                otherCharges: 0,
-                subtotal: 0,
-                discount: 0,
-                taxesAndFees: 0,
-                gstAmount: 0,
-                occupancyTax: 0,
-                totalAmount: 0,
-                paymentsReceived: 0,
-                outstandingBalance: 0,
-              },
-              backendFolioId: stay.folioId || undefined,
-            };
-          });
-        return [...prev, ...backendGuests];
-      });
+      const existingCodes = new Set(guests.map((g) => g.reservationCode));
+      const backendGuests: GuestBillingData[] = stays
+        .filter((stay) => stay.folioId && !existingCodes.has(stay.bookingCode || stay.id))
+        .map((stay) => {
+          const initials = stay.guestName
+            ? stay.guestName
+                .split(' ')
+                .map((n) => n[0])
+                .join('')
+                .slice(0, 2)
+                .toUpperCase()
+            : 'GH';
+          return {
+            id: stay.id,
+            guestId: stay.guestId || `G-${stay.id.slice(0, 4)}`,
+            name: stay.guestName || 'In-House Guest',
+            avatarInitials: initials,
+            status: 'In-house',
+            phone: '+91 98765 00000',
+            email: 'guest@example.com',
+            stayDates: `${stay.checkInDate} → ${stay.checkOutDate}`,
+            fromDate: stay.checkInDate,
+            toDate: stay.checkOutDate,
+            nights: 1,
+            room: `Room ${stay.roomNumber || '—'}`,
+            roomNumber: stay.roomNumber || '—',
+            roomType: 'Deluxe',
+            occupancy: '1 Adult • 0 Children',
+            adults: 1,
+            children: 0,
+            reservationCode: stay.bookingCode || stay.id,
+            reservationStatus: 'Confirmed',
+            folioStatus: 'Open',
+            currency: '₹',
+            currencyCode: 'INR',
+            transactions: [],
+            payments: [],
+            summary: {
+              roomCharges: 0,
+              extraServices: 0,
+              foodBeverage: 0,
+              otherCharges: 0,
+              subtotal: 0,
+              discount: 0,
+              taxesAndFees: 0,
+              gstAmount: 0,
+              occupancyTax: 0,
+              totalAmount: 0,
+              paymentsReceived: 0,
+              outstandingBalance: 0,
+            },
+            backendFolioId: stay.folioId || undefined,
+          };
+        });
+      if (backendGuests.length > 0) {
+        setGuests((prev) => [...prev, ...backendGuests]);
+      }
     }
-  }, [resource.data]);
+  }
 
   // Currently active guest
   const currentGuest = useMemo(() => {
@@ -647,7 +650,7 @@ export function Billing() {
   const [paymentData, setPaymentData] = useState({
     amount: '',
     method: 'Card (VISA **** 4242)',
-    ref: `PAY-${Math.floor(1000 + Math.random() * 9000)}`,
+    ref: 'PAY-1001',
   });
 
   const [discountModalOpen, setDiscountModalOpen] = useState(false);
@@ -669,14 +672,7 @@ export function Billing() {
   const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Helper format currency with Indian Rupee symbol
-  const formatINR = useCallback((val: number) => {
-    return `₹${val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }, []);
 
-  const formatNumber = useCallback((val: number) => {
-    return val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }, []);
 
   // Filter transactions
   const filteredTransactions = useMemo(() => {

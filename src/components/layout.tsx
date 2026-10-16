@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
 import { NAV_ITEMS, NAV_SECTIONS, sectionOf, viewPermission } from './nav';
 import type { NavTarget, ViewId } from './nav';
-import { NOTICES } from '../data/mock';
+import { NOTICES } from '../constants/notices';
 import { toast } from './toastStore';
 import { useAuth } from '../features/auth/AuthContext';
 import { displayApiError } from '../lib/api/client';
@@ -31,6 +31,7 @@ const NAV_ICONS: Record<ViewId, Lucide.LucideIcon> = {
   folios: Lucide.ReceiptText,
   invoices: Lucide.FileText,
   payments: Lucide.CreditCard,
+  'night-audit': Lucide.MoonStar,
   reports: Lucide.BarChart3,
   'occupancy-report': Lucide.Percent,
   'revenue-report': Lucide.TrendingUp,
@@ -763,6 +764,7 @@ const SEARCH_KEYWORDS: Record<ViewId, string[]> = {
   folios: ['billing', 'charges', 'invoice', 'guest bill', 'account', 'tab', 'ledger', 'balance', 'guest folio'],
   payments: ['cash', 'card', 'credit', 'payment ledger', 'transactions', 'receipt', 'settlement', 'refund'],
   invoices: ['tax invoice', 'bills', 'printable bill', 'pdf invoice', 'corporate billing', 'receipts'],
+  'night-audit': ['night audit', 'day close', 'end of day', 'eod', 'post room charges', 'rollover', 'audit summary', 'pre-audit checks', 'close day', 'audit logs'],
   reports: ['analytics', 'metrics', 'audit', 'daily report', 'financials', 'manager report', 'summary report'],
   'occupancy-report': ['occupancy', 'percentage', 'fill rate', 'room nights', 'adr', 'capacity'],
   'revenue-report': ['income', 'earnings', 'revpar', 'adr', 'sales', 'financial performance', 'money made'],
@@ -890,22 +892,25 @@ export function Header({
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  const [prevSearchOpen, setPrevSearchOpen] = useState(searchOpen);
+  if (prevSearchOpen !== searchOpen) {
+    setPrevSearchOpen(searchOpen);
+    if (!searchOpen) {
+      setSearchQuery('');
+      setSelectedIndex(0);
+    }
+  }
+
   useEffect(() => {
     if (searchOpen) {
-      setTimeout(() => {
+      const timer = window.setTimeout(() => {
         searchInputRef.current?.focus();
         searchInputRef.current?.select();
+        setSelectedIndex(0);
       }, 50);
-      setSelectedIndex(0);
-    } else {
-      setSearchQuery('');
+      return () => window.clearTimeout(timer);
     }
   }, [searchOpen]);
-
-  // Reset selected index when query changes
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [searchQuery]);
 
   // Notices filtering & permissions
   const visibleNotices = NOTICES.filter((notice) => {
@@ -1694,14 +1699,20 @@ export function Header({
                 ref={searchInputRef}
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setSelectedIndex(0);
+                }}
                 placeholder="Type anything to search (e.g., 'reservations', 'check in', 'cleaning', 'rooms', 'bills')..."
                 className="w-full bg-transparent text-[16px] font-semibold text-ink placeholder:text-ink-muted focus:outline-none"
               />
               {searchQuery ? (
                 <button
                   type="button"
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedIndex(0);
+                  }}
                   className="rounded-lg p-1 text-ink-muted hover:text-ink hover:bg-black/[0.05]"
                   title="Clear input"
                 >

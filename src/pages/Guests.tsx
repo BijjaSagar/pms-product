@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import type { BadgeTone } from '../components/status';
-import type { Guest } from '../data/mock';
+import type { Guest } from '../types';
 import { Avatar, Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../components/ui';
 import { FilterChip, Pagination, Tabs } from '../components/controls';
 import { inputClass } from '../components/inputClass';

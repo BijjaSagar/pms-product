@@ -13,7 +13,7 @@ import { Toaster } from './components/overlays';
 import { Dashboard } from './pages/Dashboard';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { Login } from './features/auth/Login';
-import { themeApi } from './lib/api/phase3';
+import { themeApi } from './lib/api/themeApi';
 import type { ThemeKey } from './types';
 
 const THEME_KEY_TO_PRESET: Record<ThemeKey, ThemePresetId> = {
@@ -47,6 +47,7 @@ const Maintenance = lazy(() => import('./pages/Maintenance').then((m) => ({ defa
 const Billing = lazy(() => import('./pages/Billing').then((m) => ({ default: m.Billing })));
 const Payments = lazy(() => import('./pages/Payments').then((m) => ({ default: m.Payments })));
 const Invoices = lazy(() => import('./pages/Invoices').then((m) => ({ default: m.Invoices })));
+const NightAudit = lazy(() => import('./pages/NightAudit').then((m) => ({ default: m.NightAudit })));
 const Reports = lazy(() => import('./pages/Reports').then((m) => ({ default: m.Reports })));
 const OccupancyReport = lazy(() => import('./pages/OccupancyReport').then((m) => ({ default: m.OccupancyReport })));
 const RevenueReport = lazy(() => import('./pages/RevenueReport').then((m) => ({ default: m.RevenueReport })));
@@ -143,6 +144,8 @@ function Shell() {
         return <Payments />;
       case 'invoices':
         return <Invoices />;
+      case 'night-audit':
+        return <NightAudit go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'reports':
         return <Reports go={go} />;
       case 'occupancy-report':

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { formatCurrency } from '../lib/api/format';
-import type { RoomType } from '../data/mock';
+import type { RoomType } from '../types';
 import { Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../components/ui';
 import { Field } from '../components/controls';
 import { inputClass } from '../components/inputClass';

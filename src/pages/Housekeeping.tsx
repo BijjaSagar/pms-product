@@ -9,7 +9,7 @@ import { toast } from '../components/toastStore';
 import { adminApi, operationsApi } from '../lib/api/pms';
 import { loadRoomInventory } from '../lib/api/loaders';
 import type { UserRow } from '../lib/api/pms';
-import type { HousekeepingTask } from '../data/mock';
+import type { HousekeepingTask } from '../types';
 import { housekeepingTaskFromApi } from '../lib/api/adapters';
 import { useApiResource } from '../lib/api/useApiResource';
 import { displayApiError } from '../lib/api/client';

@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { folioBalance, folioPaid, folioTotal } from '../data/mock';
-import type { Folio } from '../data/mock';
+import type { Folio } from '../types';
+import { folioBalance, folioPaid, folioTotal } from '../utils';
 import { Avatar, Badge, Card, CardTitle } from '../components/ui';
 import { paymentTone } from '../components/status';
 import { Field } from '../components/controls';

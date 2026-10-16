@@ -1,12 +1,15 @@
 import type {
+  Folio,
   Guest,
   HousekeepingTask,
+  Invoice,
   MaintenanceRequest,
+  Payment,
   Reservation,
   ReservationStatus,
   Room,
   RoomType,
-} from '../../data/mock';
+} from '../../types';
 import type {
   FolioDetailRow,
   GuestRow,
@@ -188,7 +191,7 @@ export function maintenanceFromApi(row: MaintenanceTicketRow): MaintenanceReques
   };
 }
 
-export function folioFromApi(row: FolioDetailRow, stay: StayRow): import('../../data/mock').Folio {
+export function folioFromApi(row: FolioDetailRow, stay: StayRow): Folio {
   const charges = (row.items ?? []).filter((item) => !item.isVoided && item.type !== 'REVERSAL' && item.type !== 'TAX').map((item) => ({
     backendId: item.id,
     label: item.description,
@@ -225,7 +228,7 @@ export function paymentMethodFromApi(value: string): string {
   return ({ CARD_TERMINAL: 'Card', CASH: 'Cash', BANK_TRANSFER: 'Transfer', UPI: 'UPI', PAYMENT_LINK: 'Payment link', CORPORATE_ACCOUNT: 'Invoice' } as Record<string, string>)[value] ?? value;
 }
 
-export function paymentFromApi(row: PaymentRow): import('../../data/mock').Payment {
+export function paymentFromApi(row: PaymentRow): Payment {
   const status = row.status === 'SUCCEEDED' ? 'Paid'
     : row.status === 'PENDING' ? 'Pending'
       : row.status === 'REFUNDED' ? 'Refunded'
@@ -244,8 +247,8 @@ export function paymentFromApi(row: PaymentRow): import('../../data/mock').Payme
   };
 }
 
-export function invoiceFromApi(row: InvoiceRow): import('../../data/mock').Invoice {
-  const status = ({ DRAFT: 'Draft', ISSUED: 'Issued', VOID: 'Void', CREDITED: 'Credited' } as Record<string, import('../../data/mock').Invoice['status']>)[row.status] ?? 'Draft';
+export function invoiceFromApi(row: InvoiceRow): Invoice {
+  const status = ({ DRAFT: 'Draft', ISSUED: 'Issued', VOID: 'Void', CREDITED: 'Credited' } as Record<string, Invoice['status']>)[row.status] ?? 'Draft';
   return {
     id: row.invoiceNo ?? row.id,
     backendId: row.id,

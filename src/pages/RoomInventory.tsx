@@ -12,7 +12,7 @@ import { ConfirmDialog, Modal, PromptDialog } from '../components/overlays';
 import { toast } from '../components/toastStore';
 import { displayApiError } from '../lib/api/client';
 import { formatCurrency } from '../lib/api/format';
-import type { Room } from '../data/mock';
+import type { Room } from '../types';
 
 export function RoomInventory() {
   const resource = useApiResource(() => loadRoomInventory());

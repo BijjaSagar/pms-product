@@ -10,7 +10,7 @@ import { useAvailabilityStream } from '../lib/api/availabilityStream';
 import { newIdempotencyKey } from '../lib/api/client';
 import { useAuth } from '../features/auth/AuthContext';
 import { ThemeSwatcher } from '../components/ThemeSwatcher';
-import type { Guest } from '../data/mock';
+import type { Guest } from '../types';
 
 const SOURCES = ['Direct', 'OTA', 'Corporate', 'Walk-in', 'Travel agent'];
 const RATE_PLANS = [
@@ -313,8 +313,8 @@ export function NewReservation({ go, onOpenThemes }: { go: (t: NavTarget) => voi
 
     servicesList.forEach((s) => {
       if (!s.selected) return;
-      let calculatedAmount = 0;
-      let formulaText = '';
+      let calculatedAmount: number;
+      let formulaText: string;
 
       if (s.id === 'breakfast') {
         const guestCount = s.quantity || adults || 1;
