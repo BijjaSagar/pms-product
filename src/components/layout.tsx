@@ -64,7 +64,7 @@ function NavButton({
       type="button"
       onClick={onSelect}
       aria-current={selected ? 'page' : undefined}
-      className="flex min-h-[40px] w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13.5px] transition-all cursor-pointer hover:bg-slate-100/70"
+      className="flex min-h-[40px] w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-all cursor-pointer hover:bg-slate-100/70"
       style={
         selected
           ? {
@@ -1071,10 +1071,10 @@ export function Header({
                 <Lucide.BedDouble size={14} strokeWidth={2.2} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Occupancy</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Occupancy</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] font-black tnum text-slate-900 dark:text-white">{kpi.occupancyPct}%</span>
-                  <span className="text-[9.5px] font-bold text-emerald-600 bg-emerald-500/10 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-md leading-tight">
+                  <span className="text-sm font-bold tnum text-slate-900 dark:text-white">{kpi.occupancyPct}%</span>
+                  <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-md leading-tight">
                     +12%
                   </span>
                 </div>
@@ -1094,10 +1094,10 @@ export function Header({
                 <Lucide.ArrowUpRight size={14} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Arrivals</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Arrivals</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] font-black tnum text-slate-900 dark:text-white">{kpi.arrivalsCount}</span>
-                  <span className="text-[9.5px] font-bold text-amber-700 bg-amber-500/15 dark:bg-amber-500/20 px-1.5 py-0.5 rounded-md leading-tight">
+                  <span className="text-sm font-bold tnum text-slate-900 dark:text-white">{kpi.arrivalsCount}</span>
+                  <span className="text-xs font-bold text-amber-700 bg-amber-500/15 dark:bg-amber-500/20 px-1.5 py-0.5 rounded-md leading-tight">
                     2 VIP
                   </span>
                 </div>
@@ -1117,10 +1117,10 @@ export function Header({
                 <Lucide.ArrowDownRight size={14} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Departures</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Departures</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] font-black tnum text-slate-900 dark:text-white">{kpi.departuresCount}</span>
-                  <span className="text-[9.5px] font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md leading-tight">
+                  <span className="text-sm font-bold tnum text-slate-900 dark:text-white">{kpi.departuresCount}</span>
+                  <span className="text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md leading-tight">
                     7 sched
                   </span>
                 </div>
@@ -1140,10 +1140,10 @@ export function Header({
                 <Lucide.Users size={14} strokeWidth={2.2} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">In-House</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">In-House</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] font-black tnum text-slate-900 dark:text-white">{kpi.inHouseCount}</span>
-                  <span className="text-[9.5px] font-semibold text-purple-700 bg-purple-500/15 dark:bg-purple-500/20 px-1.5 py-0.5 rounded-md leading-tight">
+                  <span className="text-sm font-bold tnum text-slate-900 dark:text-white">{kpi.inHouseCount}</span>
+                  <span className="text-xs font-semibold text-purple-700 bg-purple-500/15 dark:bg-purple-500/20 px-1.5 py-0.5 rounded-md leading-tight">
                     Active
                   </span>
                 </div>
@@ -1163,10 +1163,10 @@ export function Header({
                 <Lucide.CreditCard size={14} strokeWidth={2.2} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Revenue</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Revenue</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] font-black tnum text-emerald-600 dark:text-emerald-400">₹{kpi.totalRevenue.toLocaleString('en-IN')}</span>
-                  <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-500/15 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-md leading-tight">
+                  <span className="text-sm font-bold tnum text-emerald-600 dark:text-emerald-400">₹{kpi.totalRevenue.toLocaleString('en-IN')}</span>
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-500/15 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-md leading-tight">
                     Today
                   </span>
                 </div>
@@ -1186,10 +1186,10 @@ export function Header({
                 <Lucide.AlertCircle size={14} strokeWidth={2.3} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Pending</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Pending</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] font-black tnum text-rose-600 dark:text-rose-400">{kpi.pendingPaymentsCount}</span>
-                  <span className="text-[9.5px] font-bold text-rose-700 bg-rose-500/15 dark:bg-rose-500/20 px-1.5 py-0.5 rounded-md leading-tight">
+                  <span className="text-sm font-bold tnum text-rose-600 dark:text-rose-400">{kpi.pendingPaymentsCount}</span>
+                  <span className="text-xs font-bold text-rose-700 bg-rose-500/15 dark:bg-rose-500/20 px-1.5 py-0.5 rounded-md leading-tight">
                     Due
                   </span>
                 </div>
@@ -1206,7 +1206,7 @@ export function Header({
               <button
                 type="button"
                 onClick={() => onGo({ view: 'new-reservation' })}
-                className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-bold rounded-xl shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-xl shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 title="Create a new reservation"
               >
                 <Lucide.Plus size={16} strokeWidth={2.6} />

@@ -32,15 +32,15 @@ export function OccupancyReport() {
   const occupancy = data?.occupancy;
 
   return (
-    <div className="flex flex-col gap-3.5">
+    <div className="flex flex-col gap-4">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.BedDouble className="text-primary" size={26} />
+          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
+            <Lucide.BedDouble className="text-primary" size={28} />
             <span>Occupancy Report</span>
           </h1>
-          <p className="mt-1 text-sm text-ink-secondary">
+          <p className="mt-1 text-xs text-ink-secondary">
             Track sold room nights, occupancy percentages, and inventory availability forecasts
           </p>
         </div>
@@ -48,7 +48,7 @@ export function OccupancyReport() {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border"
+            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3.5 py-2 rounded-xl border border-border"
             title="Refresh occupancy"
           >
             <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : ''} />
@@ -59,19 +59,19 @@ export function OccupancyReport() {
 
       {resource.error ? <p role="alert" className="pms-helper">Could not load occupancy report: {resource.error}</p> : null}
       
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
         {[
           { label: 'Occupancy rate', value: occupancy ? `${occupancy.occupancyPct}%` : '—', icon: Lucide.TrendingUp, color: 'var(--color-primary)' },
           { label: 'Total room nights', value: occupancy?.nights ?? '—', icon: Lucide.Moon, color: 'var(--color-ink)' },
           { label: 'Sold room nights', value: occupancy?.soldRoomNights ?? '—', icon: Lucide.CalendarCheck, color: 'var(--color-primary)' },
           { label: 'Available tonight', value: data?.flash.rooms.ready ?? '—', icon: Lucide.BedDouble, color: 'var(--color-success-text)' },
         ].map((item) => (
-          <section key={item.label} className="pms-card p-4 transition-all duration-200 hover:-translate-y-0.5" style={{ boxShadow: 'var(--shadow-sm)' }}>
+          <section key={item.label} className="pms-card p-3 sm:p-3.5 transition-all duration-200 hover:-translate-y-0.5" style={{ boxShadow: 'var(--shadow-sm)' }}>
             <div className="flex items-center justify-between">
               <p className="pms-label">{item.label}</p>
               <item.icon size={16} style={{ color: item.color }} />
             </div>
-            <p className="pms-kpi-value tnum mt-1.5">{item.value}</p>
+            <p className="pms-kpi-value tnum mt-1 text-2xl font-bold">{item.value}</p>
           </section>
         ))}
       </div>

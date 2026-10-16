@@ -76,15 +76,15 @@ export function Payments() {
   };
 
   return (
-    <div className="flex flex-col gap-3.5">
+    <div className="flex flex-col gap-4">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.CreditCard className="text-primary" size={26} />
+          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
+            <Lucide.CreditCard className="text-primary" size={28} />
             <span>Payments & Transactions</span>
           </h1>
-          <p className="mt-1 text-sm text-ink-secondary">
+          <p className="mt-1 text-xs text-ink-secondary">
             Track payment gateway transactions, process refunds, and review payment settlements
           </p>
         </div>
@@ -92,7 +92,7 @@ export function Payments() {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border"
+            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3.5 py-2 rounded-xl border border-border"
             title="Refresh payments"
           >
             <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : ''} />
@@ -102,13 +102,13 @@ export function Payments() {
       </div>
 
       {/* Top Summary Cards */}
-      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         {[
           { label: 'Settled Payments', val: formatCurrency(collected, rows[0]?.currencyCode), sub: 'Collected revenue', Icon: Lucide.CheckCircle2 },
           { label: 'Pending Authorizations', val: formatCurrency(pendingAmount, rows[0]?.currencyCode), sub: 'Awaiting settlement', Icon: Lucide.Clock },
           { label: 'Exceptions / Failed', val: String(rows.filter((p) => p.status === 'Failed' || p.status === 'Overdue').length), sub: 'Requires staff follow-up', Icon: Lucide.AlertCircle },
         ].map(({ label, val, sub, Icon }) => (
-          <section key={label} className="pms-card p-4 flex items-start justify-between">
+          <section key={label} className="pms-card p-3 sm:p-3.5 flex items-start justify-between">
             <div>
               <p className="pms-label">{label}</p>
               <p className="pms-kpi-value tnum mt-1 text-2xl font-bold">{val}</p>

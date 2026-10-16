@@ -202,15 +202,15 @@ export function Housekeeping() {
   ];
 
   return (
-    <div className="flex flex-col gap-3.5">
+    <div className="flex flex-col gap-4">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.Sparkles className="text-primary" size={26} />
+          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
+            <Lucide.Sparkles className="text-primary" size={28} />
             <span>Housekeeping Operations</span>
           </h1>
-          <p className="mt-1 text-sm text-ink-secondary">
+          <p className="mt-1 text-xs text-ink-secondary">
             Track room turnarounds, staff assignments, linen service, and supervisor inspections
           </p>
         </div>
@@ -218,7 +218,7 @@ export function Housekeeping() {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border"
+            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3.5 py-2 rounded-xl border border-border"
             title="Refresh tasks"
           >
             <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : ''} />
@@ -227,7 +227,7 @@ export function Housekeeping() {
           {can('housekeeping.assign') ? (
             <button
               type="button"
-              className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-bold rounded-xl"
+              className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-xl"
               onClick={() => {
                 setNewRoomId(rooms[0]?.backendId ?? '');
                 setCreating(true);
@@ -241,9 +241,9 @@ export function Housekeeping() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
         {cards.map(({ label, val, hint, Icon }) => (
-          <section key={label} className="pms-card p-4 flex flex-col justify-between">
+          <section key={label} className="pms-card p-3 sm:p-3.5 flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <p className="pms-label">{label}</p>
               <Icon size={16} className="text-ink-muted" />

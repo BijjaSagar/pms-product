@@ -497,7 +497,7 @@ export function Dashboard({
   }, []);
 
   return (
-    <div className="w-full text-slate-900 font-sans pb-8 flex flex-col gap-3.5">
+    <div className="w-full text-slate-900 font-sans pb-8 flex flex-col gap-4">
       {/* ================= 1. PAGE HEADER ================= */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Left Welcome Title */}
@@ -506,24 +506,24 @@ export function Dashboard({
             <Lucide.Sun size={24} className="animate-pulse" />
           </div>
           <div>
-            <h1 className="text-[25px] font-bold tracking-tight text-slate-900 leading-tight">
+            <h1 className="text-[28px] font-bold tracking-tight text-slate-900 leading-tight">
               Good morning, {me?.user.fullName ? me.user.fullName.split(' ')[0] : 'Admin'}
             </h1>
-            <p className="text-xs sm:text-[13px] text-slate-500 mt-0.5 font-normal">
+            <p className="text-xs text-slate-500 mt-1 font-normal">
               Here&apos;s what&apos;s happening at your hotel today <span className="text-slate-400">•</span> October 14, 2026
             </p>
           </div>
         </div>
 
         {/* Right Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           {/* + New Reservation */}
           <button
             type="button"
             onClick={() => go({ view: 'new-reservation' })}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-md bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-white shadow-sm transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-md bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-white shadow-sm transition-all cursor-pointer"
           >
-            <Lucide.Plus size={15} strokeWidth={2.5} />
+            <Lucide.Plus size={16} strokeWidth={2.5} />
             <span>New Reservation</span>
           </button>
 
@@ -531,9 +531,9 @@ export function Dashboard({
           <button
             type="button"
             onClick={() => go({ view: 'walk-in' })}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors cursor-pointer"
           >
-            <Lucide.Footprints size={15} className="text-slate-500" />
+            <Lucide.Footprints size={16} className="text-slate-500" />
             <span>Walk-in Guest</span>
           </button>
 
@@ -541,9 +541,9 @@ export function Dashboard({
           <button
             type="button"
             onClick={() => go({ view: 'check-in' })}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-md border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 text-emerald-800 shadow-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-md border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 text-emerald-800 shadow-xs transition-colors cursor-pointer"
           >
-            <Lucide.DoorOpen size={15} className="text-emerald-600" />
+            <Lucide.DoorOpen size={16} className="text-emerald-600" />
             <span>Check-in</span>
           </button>
 
@@ -551,9 +551,9 @@ export function Dashboard({
           <button
             type="button"
             onClick={() => go({ view: 'check-out' })}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-md border border-amber-200 bg-amber-50/50 hover:bg-amber-50 text-amber-800 shadow-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-md border border-amber-200 bg-amber-50/50 hover:bg-amber-50 text-amber-800 shadow-xs transition-colors cursor-pointer"
           >
-            <Lucide.DoorClosed size={15} className="text-amber-600" />
+            <Lucide.DoorClosed size={16} className="text-amber-600" />
             <span>Check-out</span>
           </button>
 
@@ -562,7 +562,7 @@ export function Dashboard({
             <button
               type="button"
               onClick={() => setMoreMenuOpen((prev) => !prev)}
-              className="flex items-center gap-1 px-3 py-2 text-xs font-semibold rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors cursor-pointer"
               aria-label="More options"
             >
               <span>••• More</span>
@@ -1103,56 +1103,56 @@ export function Dashboard({
       </div>
 
       {/* ================= 4. FRONT DESK MOVEMENT: PENDING CHECK-INS & CHECK-OUTS ================= */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 min-w-0">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 min-w-0">
         {/* Table 1: Pending Check-ins */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] p-4 sm:p-5 flex flex-col justify-between min-w-0">
+        <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div className="min-w-0">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-border/70">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 shadow-2xs">
                   <Lucide.DoorOpen size={18} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-base font-bold text-slate-900 tracking-tight">Pending Check-ins</h2>
-                    <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                    <h2 className="text-base font-semibold text-ink tracking-tight">Pending Check-ins</h2>
+                    <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200/60">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       {pendingCheckins.length} Expected
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Today&apos;s arrivals awaiting front desk check-in</p>
+                  <p className="text-xs text-ink-secondary mt-0.5">Today&apos;s arrivals awaiting front desk check-in</p>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => go({ view: 'check-in' })}
-                className="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-sm font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
                 title="Open Check-in Terminal"
               >
                 <span>Terminal</span>
-                <Lucide.ArrowUpRight size={13} className="text-slate-400" />
+                <Lucide.ArrowUpRight size={14} className="text-ink-secondary" />
               </button>
             </div>
 
             {/* Table Container */}
             <TableContainer>
-              <table className="pms-table w-full text-xs min-w-[580px] [&_th]:px-2.5 [&_th]:py-2.5 [&_td]:px-2.5 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
+              <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
                 <thead>
                   <tr>
-                    <th className="w-8 text-center whitespace-nowrap">#</th>
-                    <th className="whitespace-nowrap">GUEST & BOOKING</th>
-                    <th className="whitespace-nowrap">ASSIGNED ROOM</th>
-                    <th className="whitespace-nowrap">ETA & STAY</th>
-                    <th className="whitespace-nowrap">FOLIO / TOTAL</th>
-                    <th className="text-right whitespace-nowrap pr-3.5">ACTION</th>
+                    <th className="w-8 text-center whitespace-nowrap text-xs font-semibold">#</th>
+                    <th className="whitespace-nowrap text-xs font-semibold">GUEST & BOOKING</th>
+                    <th className="whitespace-nowrap text-xs font-semibold">ASSIGNED ROOM</th>
+                    <th className="whitespace-nowrap text-xs font-semibold">ETA & STAY</th>
+                    <th className="whitespace-nowrap text-xs font-semibold">FOLIO / TOTAL</th>
+                    <th className="text-right whitespace-nowrap pr-3.5 text-xs font-semibold">ACTION</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pendingCheckins.map((r, idx) => (
                     <tr key={r.id}>
-                      <td className="text-center font-medium text-slate-400 text-xs whitespace-nowrap">
+                      <td className="text-center font-medium text-ink-secondary text-xs whitespace-nowrap">
                         {idx + 1}
                       </td>
                       <td className="whitespace-nowrap">
@@ -1160,14 +1160,14 @@ export function Dashboard({
                           <Avatar name={r.guest} size={30} />
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="font-semibold text-slate-900 text-xs truncate max-w-[125px]">{r.guest}</span>
+                              <span className="font-semibold text-ink text-sm truncate max-w-[130px]">{r.guest}</span>
                               {r.isVip && (
-                                <span className="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                <span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
                                   VIP
                                 </span>
                               )}
                             </div>
-                            <span className="font-mono text-[10.5px] text-slate-400 block">{r.bookingCode}</span>
+                            <span className="font-mono text-xs text-ink-secondary block">{r.bookingCode}</span>
                           </div>
                         </div>
                       </td>
@@ -1180,27 +1180,27 @@ export function Dashboard({
                           }`}>
                             {r.room === 'Unassigned' ? 'Unassigned' : `Room ${r.room}`}
                           </span>
-                          <span className={`inline-flex items-center gap-1 text-[10px] font-medium ${r.roomReady ? 'text-emerald-600' : 'text-amber-600'}`}>
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium ${r.roomReady ? 'text-emerald-600' : 'text-amber-600'}`}>
                             <span className={`h-1.5 w-1.5 rounded-full ${r.roomReady ? 'bg-emerald-500' : 'bg-amber-500'}`} />
                             {r.roomReady ? 'Ready' : 'Cleaning'}
                           </span>
                         </div>
-                        <span className="text-[11px] text-slate-400 block mt-0.5">{r.roomType}</span>
+                        <span className="text-xs text-ink-secondary block mt-0.5">{r.roomType}</span>
                       </td>
                       <td className="whitespace-nowrap">
-                        <span className="font-mono font-bold text-slate-700 text-xs block">{r.eta}</span>
-                        <span className="text-[11px] text-slate-400 block">{r.dates} ({r.nights}n)</span>
+                        <span className="font-mono font-bold text-ink text-sm block">{r.eta}</span>
+                        <span className="text-xs text-ink-secondary block">{r.dates} ({r.nights}n)</span>
                       </td>
                       <td className="whitespace-nowrap">
-                        <span className="font-bold text-slate-900 text-xs font-mono block">
+                        <span className="font-bold text-ink text-sm font-mono block">
                           ₹{r.total.toLocaleString('en-IN')}.00
                         </span>
                         {r.balance === 0 ? (
-                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
-                            <Lucide.CheckCircle2 size={10} /> Paid
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                            <Lucide.CheckCircle2 size={12} /> Paid
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
                             Due ₹{r.balance.toLocaleString('en-IN')}
                           </span>
                         )}
@@ -1212,9 +1212,9 @@ export function Dashboard({
                             toast('Check-in Initiated', { detail: `Ready to check in ${r.guest} for Room ${r.room}.`, tone: 'success' });
                             go({ view: 'check-in' });
                           }}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
                         >
-                          <Lucide.DoorOpen size={13} />
+                          <Lucide.DoorOpen size={14} />
                           <span>Check in</span>
                         </button>
                       </td>
@@ -1226,12 +1226,12 @@ export function Dashboard({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs text-slate-500">
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-xs text-ink-secondary">
             <span>Showing {pendingCheckins.length} expected arrivals today</span>
             <button
               type="button"
               onClick={() => go({ view: 'check-in' })}
-              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+              className="font-semibold text-xs text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Open Check-in Terminal</span>
               <Lucide.ArrowRight size={13} />
@@ -1240,102 +1240,113 @@ export function Dashboard({
         </div>
 
         {/* Table 2: Pending Check-outs */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] p-4 sm:p-5 flex flex-col justify-between min-w-0">
+        <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div className="min-w-0">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-border/70">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-200/70 shadow-2xs">
                   <Lucide.DoorClosed size={18} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-base font-bold text-slate-900 tracking-tight">Pending Check-outs</h2>
-                    <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200/60">
+                    <h2 className="text-base font-semibold text-ink tracking-tight">Pending Check-outs</h2>
+                    <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 border border-amber-200/60">
                       <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
                       {pendingCheckouts.length} Due Out
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Departures scheduled today awaiting key return & folio balance</p>
+                  <p className="text-xs text-ink-secondary mt-0.5">Departures scheduled today awaiting key return & folio balance</p>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => go({ view: 'check-out' })}
-                className="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-sm font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
                 title="Open Check-out Terminal"
               >
                 <span>Terminal</span>
-                <Lucide.ArrowUpRight size={13} className="text-slate-400" />
+                <Lucide.ArrowUpRight size={14} className="text-ink-secondary" />
               </button>
             </div>
 
             {/* Table Container */}
             <TableContainer>
-              <table className="pms-table w-full text-xs min-w-[580px] [&_th]:px-2.5 [&_th]:py-2.5 [&_td]:px-2.5 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
+              <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
                 <thead>
                   <tr>
-                    <th className="w-8 text-center whitespace-nowrap">#</th>
-                    <th className="whitespace-nowrap">GUEST & ROOM</th>
-                    <th className="whitespace-nowrap">OUT TIME & STAY</th>
-                    <th className="whitespace-nowrap">FOLIO BALANCE</th>
-                    <th className="whitespace-nowrap text-center">STATUS</th>
-                    <th className="text-right whitespace-nowrap pr-3.5">ACTION</th>
+                    <th className="w-8 text-center whitespace-nowrap text-xs font-semibold">#</th>
+                    <th className="whitespace-nowrap text-xs font-semibold">GUEST & BOOKING</th>
+                    <th className="whitespace-nowrap text-xs font-semibold">ASSIGNED ROOM</th>
+                    <th className="whitespace-nowrap text-xs font-semibold">OUT TIME & STAY</th>
+                    <th className="whitespace-nowrap text-xs font-semibold">FOLIO BALANCE</th>
+                    <th className="text-right whitespace-nowrap pr-3.5 text-xs font-semibold">ACTION</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pendingCheckouts.map((d, idx) => (
                     <tr key={d.id}>
-                      <td className="text-center font-medium text-slate-400 text-xs whitespace-nowrap">
+                      <td className="text-center font-medium text-ink-secondary text-xs whitespace-nowrap">
                         {idx + 1}
                       </td>
                       <td className="whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Avatar name={d.guest} size={30} />
                           <div className="min-w-0">
-                            <span className="font-semibold text-slate-900 text-xs block truncate max-w-[130px]">{d.guest}</span>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="font-bold text-slate-800 text-[11px] bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200/60">
-                                Room {d.room}
-                              </span>
-                              <span className="text-[11px] text-slate-400 truncate max-w-[110px]">{d.roomType}</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-semibold text-ink text-sm truncate max-w-[130px]">{d.guest}</span>
+                              {d.isLateCheckout && (
+                                <span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                  Late
+                                </span>
+                              )}
                             </div>
+                            <span className="font-mono text-xs text-ink-secondary block">{d.bookingCode}</span>
                           </div>
                         </div>
                       </td>
                       <td className="whitespace-nowrap">
-                        <div className="flex items-center gap-1">
-                          <span className="font-mono font-bold text-slate-700 text-xs block">{d.outTime}</span>
-                          {d.isLateCheckout && (
-                            <span className="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                              Late
-                            </span>
-                          )}
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-xs px-2 py-0.5 rounded-md border text-slate-800 bg-slate-100 border-slate-200/60">
+                            Room {d.room}
+                          </span>
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium ${
+                            d.status === 'Inspected'
+                              ? 'text-emerald-600'
+                              : d.status === 'Late Checkout'
+                              ? 'text-purple-600'
+                              : 'text-amber-600'
+                          }`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${
+                              d.status === 'Inspected'
+                                ? 'bg-emerald-500'
+                                : d.status === 'Late Checkout'
+                                ? 'bg-purple-500'
+                                : 'bg-amber-500'
+                            }`} />
+                            {d.status}
+                          </span>
                         </div>
-                        <span className="text-[11px] text-slate-400 block mt-0.5">{d.dates} ({d.nights}n)</span>
+                        <span className="text-xs text-ink-secondary block mt-0.5">{d.roomType}</span>
                       </td>
                       <td className="whitespace-nowrap">
+                        <span className="font-mono font-bold text-ink text-sm block">{d.outTime}</span>
+                        <span className="text-xs text-ink-secondary block">{d.dates} ({d.nights}n)</span>
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <span className={`font-bold text-sm font-mono block ${d.folioBalance === 0 ? 'text-ink' : 'text-rose-600'}`}>
+                          ₹{d.folioBalance.toLocaleString('en-IN')}.00
+                        </span>
                         {d.folioBalance === 0 ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/80">
-                            <Lucide.CheckCircle2 size={12} />
-                            <span>Settled (₹0)</span>
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                            <Lucide.CheckCircle2 size={12} /> Settled
                           </span>
                         ) : (
-                          <div>
-                            <span className="font-bold text-rose-600 text-xs font-mono block">
-                              ₹{d.folioBalance.toLocaleString('en-IN')}.00
-                            </span>
-                            <span className="text-[10px] text-rose-600 font-semibold flex items-center gap-0.5">
-                              <Lucide.AlertCircle size={10} /> Pending balance
-                            </span>
-                          </div>
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
+                            Due ₹{d.folioBalance.toLocaleString('en-IN')}
+                          </span>
                         )}
-                      </td>
-                      <td className="whitespace-nowrap text-center">
-                        <Badge tone={d.status === 'Inspected' ? 'success' : d.status === 'Late Checkout' ? 'info' : 'warning'}>
-                          {d.status}
-                        </Badge>
                       </td>
                       <td className="text-right whitespace-nowrap pr-3.5">
                         <button
@@ -1348,9 +1359,9 @@ export function Dashboard({
                             }
                             go({ view: 'check-out' });
                           }}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
                         >
-                          <Lucide.DoorClosed size={13} />
+                          <Lucide.DoorClosed size={14} />
                           <span>Check out</span>
                         </button>
                       </td>
@@ -1362,12 +1373,12 @@ export function Dashboard({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs text-slate-500">
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-xs text-ink-secondary">
             <span>Showing {pendingCheckouts.length} departures pending today</span>
             <button
               type="button"
               onClick={() => go({ view: 'check-out' })}
-              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+              className="font-semibold text-xs text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Open Check-out Terminal</span>
               <Lucide.ArrowRight size={13} />
@@ -1377,75 +1388,77 @@ export function Dashboard({
       </div>
 
       {/* ================= 5. RECENT ACTIVITY: RECENT RESERVATIONS & RECENT TRANSACTIONS ================= */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 min-w-0">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 min-w-0">
         {/* Table 3: Recent Reservations */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] p-4 sm:p-5 flex flex-col justify-between min-w-0">
+        <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div className="min-w-0">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-border/70">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-200/70 shadow-2xs">
                   <Lucide.CalendarDays size={18} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-base font-bold text-slate-900 tracking-tight">Recent Reservations</h2>
-                    <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-200/60">
+                    <h2 className="text-base font-semibold text-ink tracking-tight">Recent Reservations</h2>
+                    <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 border border-blue-200/60">
+                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
                       {recentReservations.length} Bookings
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Latest confirmed bookings & stays across property</p>
+                  <p className="text-xs text-ink-secondary mt-0.5">Latest confirmed bookings & stays across property</p>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => go({ view: 'reservations' })}
-                className="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-sm font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                title="View all reservations"
               >
                 <span>View all</span>
-                <Lucide.ArrowRight size={13} className="text-slate-400" />
+                <Lucide.ArrowRight size={14} className="text-ink-secondary" />
               </button>
             </div>
 
             {/* Table Container */}
             <TableContainer>
-              <table className="pms-table w-full text-xs min-w-[580px] [&_th]:px-2.5 [&_th]:py-2.5 [&_td]:px-2.5 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
+              <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
                 <thead>
                   <tr>
-                    <th className="w-8 text-center whitespace-nowrap">#</th>
-                    <th className="whitespace-nowrap">GUEST & BOOKING</th>
-                    <th className="whitespace-nowrap">ROOM & DATES</th>
-                    <th className="whitespace-nowrap text-center">STATUS</th>
-                    <th className="text-right whitespace-nowrap">TOTAL</th>
-                    <th className="text-right w-12 whitespace-nowrap pr-3.5">ACTION</th>
+                    <th className="w-8 text-center whitespace-nowrap text-xs font-semibold">#</th>
+                    <th className="whitespace-nowrap text-xs font-semibold">GUEST & BOOKING</th>
+                    <th className="whitespace-nowrap text-xs font-semibold">ROOM & DATES</th>
+                    <th className="whitespace-nowrap text-center text-xs font-semibold">STATUS</th>
+                    <th className="text-right whitespace-nowrap text-xs font-semibold">TOTAL</th>
+                    <th className="text-right w-12 whitespace-nowrap pr-3.5 text-xs font-semibold">ACTION</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentReservations.map((r, idx) => (
                     <tr key={r.id}>
-                      <td className="text-center font-medium text-slate-400 text-xs whitespace-nowrap">
+                      <td className="text-center font-medium text-ink-secondary text-xs whitespace-nowrap">
                         {idx + 1}
                       </td>
                       <td className="whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Avatar name={r.guest} size={30} />
                           <div className="min-w-0">
-                            <span className="font-semibold text-slate-900 text-xs block truncate max-w-[130px]">{r.guest}</span>
-                            <span className="font-mono text-[10.5px] text-slate-400 block">{r.id}</span>
+                            <span className="font-semibold text-ink text-sm block truncate max-w-[130px]">{r.guest}</span>
+                            <span className="font-mono text-xs text-ink-secondary block">{r.id}</span>
                           </div>
                         </div>
                       </td>
                       <td className="whitespace-nowrap">
-                        <span className="font-medium text-slate-800 text-xs block">{r.room}</span>
-                        <span className="text-[11px] text-slate-400 block">{r.dates}</span>
+                        <span className="font-medium text-ink text-sm block">{r.room}</span>
+                        <span className="text-xs text-ink-secondary block">{r.dates}</span>
                       </td>
                       <td className="whitespace-nowrap text-center">
                         <Badge tone={r.status === 'Confirmed' ? 'success' : r.status === 'Pending' ? 'warning' : 'neutral'}>
                           {r.status}
                         </Badge>
                       </td>
-                      <td className="text-right font-bold text-slate-900 text-xs font-mono whitespace-nowrap">
+                      <td className="text-right font-bold text-ink text-sm font-mono whitespace-nowrap">
                         ₹{r.total.toLocaleString('en-IN')}.00
                       </td>
                       <td className="text-right whitespace-nowrap pr-3.5">
@@ -1465,12 +1478,12 @@ export function Dashboard({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs text-slate-500">
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-xs text-ink-secondary">
             <span>Showing {recentReservations.length} recent bookings</span>
             <button
               type="button"
               onClick={() => go({ view: 'reservations' })}
-              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+              className="font-semibold text-xs text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Manage all reservations</span>
               <Lucide.ArrowRight size={13} />
@@ -1479,73 +1492,75 @@ export function Dashboard({
         </div>
 
         {/* Table 4: Recent Transactions */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] p-4 sm:p-5 flex flex-col justify-between min-w-0">
+        <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div className="min-w-0">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-border/70">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-purple-600 border border-purple-200/70 shadow-2xs">
                   <Lucide.ReceiptText size={18} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-base font-bold text-slate-900 tracking-tight">Recent Transactions</h2>
-                    <span className="rounded-full bg-purple-50 px-2.5 py-0.5 text-[10px] font-bold text-purple-700 border border-purple-200/60">
+                    <h2 className="text-base font-semibold text-ink tracking-tight">Recent Transactions</h2>
+                    <span className="flex items-center gap-1 rounded-full bg-purple-50 px-2.5 py-0.5 text-xs font-semibold text-purple-700 border border-purple-200/60">
+                      <span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
                       {recentPayments.length} Settlements
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Latest settled folios, payments & guest transactions</p>
+                  <p className="text-xs text-ink-secondary mt-0.5">Latest settled folios, payments & guest transactions</p>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => go({ view: 'payments' })}
-                className="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-sm font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                title="View all transactions"
               >
                 <span>View all</span>
-                <Lucide.ArrowRight size={13} className="text-slate-400" />
+                <Lucide.ArrowRight size={14} className="text-ink-secondary" />
               </button>
             </div>
 
             {/* Table Container */}
             <TableContainer>
-              <table className="pms-table w-full text-xs min-w-[580px] [&_th]:px-2.5 [&_th]:py-2.5 [&_td]:px-2.5 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
+              <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
                 <thead>
                   <tr>
-                    <th className="w-8 text-center whitespace-nowrap">#</th>
-                    <th className="whitespace-nowrap">GUEST & REFERENCE</th>
-                    <th className="whitespace-nowrap">DATE & METHOD</th>
-                    <th className="whitespace-nowrap text-center">STATUS</th>
-                    <th className="text-right whitespace-nowrap">AMOUNT</th>
-                    <th className="text-right w-12 whitespace-nowrap pr-3.5">ACTION</th>
+                    <th className="w-8 text-center whitespace-nowrap text-xs font-semibold">#</th>
+                    <th className="whitespace-nowrap text-xs font-semibold">GUEST & REFERENCE</th>
+                    <th className="whitespace-nowrap text-xs font-semibold">DATE & METHOD</th>
+                    <th className="whitespace-nowrap text-center text-xs font-semibold">STATUS</th>
+                    <th className="text-right whitespace-nowrap text-xs font-semibold">AMOUNT</th>
+                    <th className="text-right w-12 whitespace-nowrap pr-3.5 text-xs font-semibold">ACTION</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentPayments.map((p, idx) => (
                     <tr key={p.ref}>
-                      <td className="text-center font-medium text-slate-400 text-xs whitespace-nowrap">
+                      <td className="text-center font-medium text-ink-secondary text-xs whitespace-nowrap">
                         {idx + 1}
                       </td>
                       <td className="whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Avatar name={p.guest} size={30} />
                           <div className="min-w-0">
-                            <span className="font-semibold text-slate-900 text-xs block truncate max-w-[130px]">{p.guest}</span>
-                            <span className="font-mono text-[10.5px] text-slate-400 block">{p.ref}</span>
+                            <span className="font-semibold text-ink text-sm block truncate max-w-[130px]">{p.guest}</span>
+                            <span className="font-mono text-xs text-ink-secondary block">{p.ref}</span>
                           </div>
                         </div>
                       </td>
                       <td className="whitespace-nowrap">
-                        <span className="font-medium text-slate-800 text-xs block">{p.date}</span>
-                        <span className="text-[11px] text-slate-400 block">{p.method}</span>
+                        <span className="font-medium text-ink text-sm block">{p.date}</span>
+                        <span className="text-xs text-ink-secondary block">{p.method}</span>
                       </td>
                       <td className="whitespace-nowrap text-center">
                         <Badge tone={p.status === 'Paid' ? 'success' : 'warning'}>
                           {p.status}
                         </Badge>
                       </td>
-                      <td className="text-right font-bold text-slate-900 text-xs font-mono whitespace-nowrap">
+                      <td className="text-right font-bold text-ink text-sm font-mono whitespace-nowrap">
                         ₹{p.amount.toLocaleString('en-IN')}.00
                       </td>
                       <td className="text-right whitespace-nowrap pr-3.5">
@@ -1565,12 +1580,12 @@ export function Dashboard({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs text-slate-500">
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-xs text-ink-secondary">
             <span>Showing {recentPayments.length} recent settlements</span>
             <button
               type="button"
               onClick={() => go({ view: 'payments' })}
-              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+              className="font-semibold text-xs text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Manage all transactions</span>
               <Lucide.ArrowRight size={13} />

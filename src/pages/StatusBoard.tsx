@@ -508,15 +508,15 @@ export function StatusBoard() {
   };
 
   return (
-    <div className="flex flex-col gap-3.5 pms-animate-fade-in pb-8">
+    <div className="flex flex-col gap-4 pms-animate-fade-in pb-8">
       {/* ================= PAGE HEADER & TOOLBAR ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-[26px] font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.LayoutGrid className="text-primary" size={26} />
+          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
+            <Lucide.LayoutGrid className="text-primary" size={28} />
             <span>Status Board</span>
           </h1>
-          <p className="text-[13.5px] text-ink-muted mt-0.5">
+          <p className="text-xs text-ink-muted mt-1">
             Live view of room status, housekeeping and guest movements
           </p>
         </div>
@@ -527,7 +527,7 @@ export function StatusBoard() {
           <button
             type="button"
             onClick={() => toast('Date picker dialog', { tone: 'info' })}
-            className="flex items-center gap-2 rounded-md border px-3 py-1.5 text-[13px] font-semibold text-ink shadow-2xs hover:bg-black/[0.03] transition-colors"
+            className="flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-ink shadow-2xs hover:bg-black/[0.03] transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
             <Lucide.Calendar size={15} className="text-ink-secondary" />
@@ -541,7 +541,7 @@ export function StatusBoard() {
               setCurrentDate('Oct 16, 2026');
               toast('Jumped to Today', { tone: 'success' });
             }}
-            className="rounded-md border px-3 py-1.5 text-[13px] font-semibold text-primary shadow-2xs hover:bg-black/[0.03] transition-colors"
+            className="rounded-md border px-3 py-1.5 text-sm font-medium text-primary shadow-2xs hover:bg-black/[0.03] transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
             Today
@@ -555,9 +555,9 @@ export function StatusBoard() {
             <button
               type="button"
               onClick={() => setViewMode('grid')}
-              className={`rounded-lg px-3 py-1.5 text-[12.5px] font-semibold transition-all ${
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
                 viewMode === 'grid'
-                  ? 'bg-primary text-white font-bold shadow-xs'
+                  ? 'bg-primary text-white font-semibold shadow-xs'
                   : 'text-ink-secondary hover:text-ink'
               }`}
             >
@@ -566,9 +566,9 @@ export function StatusBoard() {
             <button
               type="button"
               onClick={() => setViewMode('timeline')}
-              className={`rounded-lg px-3 py-1.5 text-[12.5px] font-semibold transition-all ${
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
                 viewMode === 'timeline'
-                  ? 'bg-primary text-white font-bold shadow-xs'
+                  ? 'bg-primary text-white font-semibold shadow-xs'
                   : 'text-ink-secondary hover:text-ink'
               }`}
             >

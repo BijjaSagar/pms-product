@@ -199,15 +199,15 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
   ];
 
   return (
-    <div className="flex flex-col gap-3.5 pms-animate-fade-in pb-8">
+    <div className="flex flex-col gap-4 pms-animate-fade-in pb-8">
       {/* ================= PAGE HEADER ================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-[26px] font-bold tracking-tight text-ink flex items-center gap-2.5">
+          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
             <Lucide.Settings className="text-primary" size={26} />
             <span>Property Settings</span>
           </h1>
-          <p className="text-[13.5px] text-ink-muted mt-0.5">
+          <p className="text-xs text-ink-secondary mt-1">
             Manage your hotel information, policies, configurations and system preferences
           </p>
         </div>
@@ -223,7 +223,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
               key={t.id}
               type="button"
               onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 rounded-md px-4 py-2.5 text-[13px] font-semibold whitespace-nowrap transition-all ${
+              className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
                 isActive
                   ? 'text-white shadow-sm'
                   : 'text-ink-secondary hover:text-ink hover:bg-black/[0.03]'
@@ -255,57 +255,57 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
               <div>
                 <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
                   <div>
-                    <h2 className="text-[16px] font-bold text-ink">Basic Information</h2>
-                    <p className="text-[12px] text-ink-muted mt-0.5">Core details about your property</p>
+                    <h2 className="text-base font-semibold text-ink">Basic Information</h2>
+                    <p className="text-xs text-ink-secondary mt-0.5">Core details about your property</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => void handleSaveBasic()}
                     disabled={saving}
-                    className="pms-btn-primary px-4 py-2 text-[13px] font-semibold rounded-md shadow-xs disabled:opacity-50"
+                    className="pms-btn-primary px-4 py-2 text-sm font-semibold rounded-md shadow-xs disabled:opacity-50"
                   >
                     Save Changes
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {/* Property Name */}
                   <div className="sm:col-span-2">
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">
+                    <label className="block text-xs font-medium text-ink mb-1.5">
                       Property Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       value={propertyName}
                       onChange={(e) => setPropertyName(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   {/* Property Code */}
                   <div>
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">
+                    <label className="block text-xs font-medium text-ink mb-1.5">
                       Property Code <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       value={propertyCode}
                       onChange={(e) => setPropertyCode(e.target.value.toUpperCase())}
-                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 uppercase"
+                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 uppercase"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   {/* Property Type */}
                   <div>
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">
+                    <label className="block text-xs font-medium text-ink mb-1.5">
                       Property Type
                     </label>
                     <select
                       value={propertyType}
                       onChange={(e) => setPropertyType(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>Hotel</option>
@@ -319,9 +319,9 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
 
                   {/* Star Rating */}
                   <div className="sm:col-span-2 lg:col-span-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[12.5px] font-semibold text-ink mb-1.5">
+                        <label className="block text-xs font-medium text-ink mb-1.5">
                           Star Rating
                         </label>
                         <div
@@ -343,21 +343,21 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                               </button>
                             ))}
                           </div>
-                          <span className="text-[12px] font-bold text-ink-muted">
+                          <span className="text-xs font-medium text-ink-secondary">
                             {starRating} Star Luxury
                           </span>
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-[12.5px] font-semibold text-ink mb-1.5">
+                        <label className="block text-xs font-medium text-ink mb-1.5">
                           Address Line 1
                         </label>
                         <input
                           type="text"
                           value={addressLine1}
                           onChange={(e) => setAddressLine1(e.target.value)}
-                          className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
@@ -366,102 +366,102 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
 
                   {/* Address Line 2 */}
                   <div className="sm:col-span-2 lg:col-span-4">
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">
+                    <label className="block text-xs font-medium text-ink mb-1.5">
                       Address Line 2
                     </label>
                     <input
                       type="text"
                       value={addressLine2}
                       onChange={(e) => setAddressLine2(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   {/* City, State, Country, Postal Code */}
                   <div>
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">City</label>
+                    <label className="block text-xs font-medium text-ink mb-1.5">City</label>
                     <input
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">State / Province</label>
+                    <label className="block text-xs font-medium text-ink mb-1.5">State / Province</label>
                     <input
                       type="text"
                       value={stateProvince}
                       onChange={(e) => setStateProvince(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Country</label>
+                    <label className="block text-xs font-medium text-ink mb-1.5">Country</label>
                     <input
                       type="text"
                       value={country}
                       onChange={(e) => setCountry(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Postal Code</label>
+                    <label className="block text-xs font-medium text-ink mb-1.5">Postal Code</label>
                     <input
                       type="text"
                       value={postalCode}
                       onChange={(e) => setPostalCode(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   {/* Phone, Email, Website */}
-                  <div className="sm:col-span-2 lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+                  <div className="sm:col-span-2 lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                     <div>
-                      <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Phone Number</label>
+                      <label className="block text-xs font-medium text-ink mb-1.5">Phone Number</label>
                       <div className="relative">
                         <Lucide.Phone size={15} className="absolute left-3.5 top-3 text-ink-muted" />
                         <input
                           type="text"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Email Address</label>
+                      <label className="block text-xs font-medium text-ink mb-1.5">Email Address</label>
                       <div className="relative">
                         <Lucide.Mail size={15} className="absolute left-3.5 top-3 text-ink-muted" />
                         <input
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Website</label>
+                      <label className="block text-xs font-medium text-ink mb-1.5">Website</label>
                       <div className="relative">
                         <Lucide.Globe size={15} className="absolute left-3.5 top-3 text-ink-muted" />
                         <input
                           type="text"
                           value={website}
                           onChange={(e) => setWebsite(e.target.value)}
-                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
@@ -478,8 +478,8 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
             >
               <div>
                 <div className="pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <h2 className="text-[16px] font-bold text-ink">Property Logo & Images</h2>
-                  <p className="text-[12px] text-ink-muted mt-0.5">Logo, cover image and gallery photos</p>
+                  <h2 className="text-base font-semibold text-ink">Property Logo & Images</h2>
+                  <p className="text-xs text-ink-secondary mt-0.5">Logo, cover image and gallery photos</p>
                 </div>
 
                 {/* Cover Image Banner */}
@@ -493,7 +493,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                   <button
                     type="button"
                     onClick={() => toast('Change cover image dialog', { tone: 'info' })}
-                    className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 rounded-lg bg-white/90 backdrop-blur-md px-2.5 py-1 text-[11px] font-bold text-ink shadow-sm hover:bg-surface transition-colors"
+                    className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 rounded-lg bg-white/90 backdrop-blur-md px-2.5 py-1 text-xs font-medium text-ink shadow-sm hover:bg-surface transition-colors"
                   >
                     <Lucide.Camera size={13} />
                     <span>Change cover image</span>
@@ -508,7 +508,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                   >
                     <div className="flex flex-col items-center justify-center">
                       <Lucide.Building2 size={20} className="text-amber-600 mb-0.5" />
-                      <span className="text-[7.5px] font-bold uppercase tracking-wider text-ink-secondary leading-tight">
+                      <span className="text-[8px] font-bold uppercase tracking-wider text-ink-secondary leading-tight">
                         Grand Horizon
                       </span>
                     </div>
@@ -517,13 +517,13 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                     <button
                       type="button"
                       onClick={() => toast('Change logo dialog', { tone: 'info' })}
-                      className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-bold text-ink hover:bg-black/[0.04] transition-colors"
+                      className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium text-ink hover:bg-black/[0.04] transition-colors"
                       style={{ borderColor: 'var(--color-border)' }}
                     >
                       <Lucide.Image size={13} />
                       <span>Change logo</span>
                     </button>
-                    <p className="text-[11px] text-ink-muted mt-1 leading-snug">
+                    <p className="text-xs text-ink-secondary mt-1 leading-snug">
                       Recommended size: 400 × 400 px<br />PNG, JPG (max 2MB)
                     </p>
                   </div>
@@ -531,7 +531,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
 
                 {/* Gallery Images */}
                 <div>
-                  <p className="text-[12.5px] font-semibold text-ink mb-2">Gallery Images</p>
+                  <p className="text-xs font-medium text-ink mb-2">Gallery Images</p>
                   <div className="grid grid-cols-5 gap-2">
                     {[
                       'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=300&q=80',
@@ -550,7 +550,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                       style={{ borderColor: 'var(--color-border)', color: 'var(--color-ink-muted)' }}
                     >
                       <Lucide.Plus size={16} strokeWidth={2.4} />
-                      <span className="text-[9.5px] font-bold mt-1 text-center leading-tight">Add photos</span>
+                      <span className="text-xs font-medium mt-1 text-center leading-tight">Add photos</span>
                     </button>
                   </div>
                 </div>
@@ -568,70 +568,70 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
               <div>
                 <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
                   <div>
-                    <h2 className="text-[16px] font-bold text-ink">Contact Information</h2>
-                    <p className="text-[12px] text-ink-muted mt-0.5">Public contact details for guests</p>
+                    <h2 className="text-base font-semibold text-ink">Contact Information</h2>
+                    <p className="text-xs text-ink-secondary mt-0.5">Public contact details for guests</p>
                   </div>
                   <button
                     type="button"
                     onClick={handleSaveContact}
-                    className="pms-btn-primary px-3.5 py-1.5 text-[12.5px] font-semibold rounded-md shadow-xs"
+                    className="pms-btn-primary px-3.5 py-1.5 text-sm font-semibold rounded-md shadow-xs"
                   >
                     Save Changes
                   </button>
                 </div>
 
-                <div className="flex flex-col gap-3.5">
+                <div className="flex flex-col gap-3">
                   <div>
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Front Desk Phone</label>
+                    <label className="block text-xs font-medium text-ink mb-1.5">Front Desk Phone</label>
                     <div className="relative">
                       <Lucide.Phone size={15} className="absolute left-3.5 top-3 text-ink-muted" />
                       <input
                         type="text"
                         value={frontDeskPhone}
                         onChange={(e) => setFrontDeskPhone(e.target.value)}
-                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Reservations Email</label>
+                    <label className="block text-xs font-medium text-ink mb-1.5">Reservations Email</label>
                     <div className="relative">
                       <Lucide.Mail size={15} className="absolute left-3.5 top-3 text-ink-muted" />
                       <input
                         type="email"
                         value={reservationsEmail}
                         onChange={(e) => setReservationsEmail(e.target.value)}
-                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">General Email</label>
+                    <label className="block text-xs font-medium text-ink mb-1.5">General Email</label>
                     <div className="relative">
                       <Lucide.Mail size={15} className="absolute left-3.5 top-3 text-ink-muted" />
                       <input
                         type="email"
                         value={generalEmail}
                         onChange={(e) => setGeneralEmail(e.target.value)}
-                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Emergency Contact</label>
+                    <label className="block text-xs font-medium text-ink mb-1.5">Emergency Contact</label>
                     <div className="relative">
                       <Lucide.PhoneCall size={15} className="absolute left-3.5 top-3 text-ink-muted" />
                       <input
                         type="text"
                         value={emergencyPhone}
                         onChange={(e) => setEmergencyPhone(e.target.value)}
-                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
@@ -648,26 +648,26 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
               <div>
                 <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
                   <div>
-                    <h2 className="text-[16px] font-bold text-ink">Operational Settings</h2>
-                    <p className="text-[12px] text-ink-muted mt-0.5">Configure key operational details</p>
+                    <h2 className="text-base font-semibold text-ink">Operational Settings</h2>
+                    <p className="text-xs text-ink-secondary mt-0.5">Configure key operational details</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => void handleSaveOperations()}
                     disabled={saving}
-                    className="pms-btn-primary px-3.5 py-1.5 text-[12.5px] font-semibold rounded-md shadow-xs disabled:opacity-50"
+                    className="pms-btn-primary px-3.5 py-1.5 text-sm font-semibold rounded-md shadow-xs disabled:opacity-50"
                   >
                     Save Changes
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3.5">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Time Zone</label>
+                    <label className="block text-xs font-medium text-ink mb-1.5">Time Zone</label>
                     <select
                       value={timeZone}
                       onChange={(e) => setTimeZone(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>(GMT+05:30) India Standard Time</option>
@@ -679,11 +679,11 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                   </div>
 
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Date Format</label>
+                    <label className="block text-xs font-medium text-ink mb-1.5">Date Format</label>
                     <select
                       value={dateFormat}
                       onChange={(e) => setDateFormat(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>DD/MM/YYYY</option>
@@ -693,39 +693,39 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                   </div>
 
                   <div>
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Check-in Time</label>
+                    <label className="block text-xs font-medium text-ink mb-1.5">Check-in Time</label>
                     <div className="relative">
                       <Lucide.Clock size={15} className="absolute left-3 top-3 text-ink-muted" />
                       <input
                         type="text"
                         value={checkInTime}
                         onChange={(e) => setCheckInTime(e.target.value)}
-                        className="w-full rounded-md border pl-8 pr-2.5 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-8 pr-2.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Check-out Time</label>
+                    <label className="block text-xs font-medium text-ink mb-1.5">Check-out Time</label>
                     <div className="relative">
                       <Lucide.Clock size={15} className="absolute left-3 top-3 text-ink-muted" />
                       <input
                         type="text"
                         value={checkOutTime}
                         onChange={(e) => setCheckOutTime(e.target.value)}
-                        className="w-full rounded-md border pl-8 pr-2.5 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-8 pr-2.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
                   </div>
 
                   <div className="col-span-2">
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Default Currency</label>
+                    <label className="block text-xs font-medium text-ink mb-1.5">Default Currency</label>
                     <select
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>INR - Indian Rupee (₹)</option>
@@ -737,23 +737,23 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                   </div>
 
                   <div>
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Number of Floors</label>
+                    <label className="block text-xs font-medium text-ink mb-1.5">Number of Floors</label>
                     <input
                       type="number"
                       value={floors}
                       onChange={(e) => setFloors(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Total Rooms</label>
+                    <label className="block text-xs font-medium text-ink mb-1.5">Total Rooms</label>
                     <input
                       type="number"
                       value={totalRooms}
                       onChange={(e) => setTotalRooms(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -768,51 +768,51 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
             >
               <div>
                 <div className="pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <h2 className="text-[16px] font-bold text-ink">Quick Actions</h2>
-                  <p className="text-[12px] text-ink-muted mt-0.5">Common property actions</p>
+                  <h2 className="text-base font-semibold text-ink">Quick Actions</h2>
+                  <p className="text-xs text-ink-secondary mt-0.5">Common property actions</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   {/* Action 1: Business Details */}
                   <button
                     type="button"
                     onClick={() => setActiveTab('taxes')}
-                    className="flex flex-col items-start p-3.5 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
+                    className="flex flex-col items-start p-3 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
                     <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-blue-600 mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.Building2 size={18} strokeWidth={2.2} />
                     </div>
-                    <span className="text-[13px] font-bold text-ink leading-tight">Business Details</span>
-                    <span className="text-[11px] text-ink-muted mt-1 leading-tight">Update legal and tax information</span>
+                    <span className="text-sm font-semibold text-ink leading-tight">Business Details</span>
+                    <span className="text-xs text-ink-secondary mt-1 leading-tight">Update legal and tax information</span>
                   </button>
 
                   {/* Action 2: Upload Documents */}
                   <button
                     type="button"
                     onClick={() => toast('Document upload center', { tone: 'info' })}
-                    className="flex flex-col items-start p-3.5 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
+                    className="flex flex-col items-start p-3 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
                     <div className="flex h-9 w-9 items-center justify-center rounded-md bg-purple-50 text-purple-600 mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.FileText size={18} strokeWidth={2.2} />
                     </div>
-                    <span className="text-[13px] font-bold text-ink leading-tight">Upload Documents</span>
-                    <span className="text-[11px] text-ink-muted mt-1 leading-tight">License, permits, certificates</span>
+                    <span className="text-sm font-semibold text-ink leading-tight">Upload Documents</span>
+                    <span className="text-xs text-ink-secondary mt-1 leading-tight">License, permits, certificates</span>
                   </button>
 
                   {/* Action 3: Set Policies */}
                   <button
                     type="button"
                     onClick={() => setActiveTab('policies')}
-                    className="flex flex-col items-start p-3.5 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
+                    className="flex flex-col items-start p-3 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
                     <div className="flex h-9 w-9 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.ShieldCheck size={18} strokeWidth={2.2} />
                     </div>
-                    <span className="text-[13px] font-bold text-ink leading-tight">Set Policies</span>
-                    <span className="text-[11px] text-ink-muted mt-1 leading-tight">Cancellation, payment, guest</span>
+                    <span className="text-sm font-semibold text-ink leading-tight">Set Policies</span>
+                    <span className="text-xs text-ink-secondary mt-1 leading-tight">Cancellation, payment, guest</span>
                   </button>
 
                   {/* Action 4: Manage Amenities */}
@@ -822,14 +822,14 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                       const el = document.getElementById('amenities-section');
                       el?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="flex flex-col items-start p-3.5 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
+                    className="flex flex-col items-start p-3 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
                     <div className="flex h-9 w-9 items-center justify-center rounded-md bg-amber-50 text-amber-600 mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.Star size={18} strokeWidth={2.2} />
                     </div>
-                    <span className="text-[13px] font-bold text-ink leading-tight">Manage Amenities</span>
-                    <span className="text-[11px] text-ink-muted mt-1 leading-tight">Property facilities and services</span>
+                    <span className="text-sm font-semibold text-ink leading-tight">Manage Amenities</span>
+                    <span className="text-xs text-ink-secondary mt-1 leading-tight">Property facilities and services</span>
                   </button>
                 </div>
               </div>
@@ -846,13 +846,13 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
               <div>
                 <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
                   <div>
-                    <h2 className="text-[16px] font-bold text-ink">Property Description</h2>
-                    <p className="text-[12px] text-ink-muted mt-0.5">This description is shown to guests on booking channels</p>
+                    <h2 className="text-base font-semibold text-ink">Property Description</h2>
+                    <p className="text-xs text-ink-secondary mt-0.5">This description is shown to guests on booking channels</p>
                   </div>
                   <button
                     type="button"
                     onClick={handleSaveDescription}
-                    className="pms-btn-primary px-3.5 py-1.5 text-[12.5px] font-semibold rounded-md shadow-xs"
+                    className="pms-btn-primary px-3.5 py-1.5 text-sm font-semibold rounded-md shadow-xs"
                   >
                     Save Changes
                   </button>
@@ -860,9 +860,9 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
 
                 {/* Rich text formatting bar */}
                 <div className="flex items-center gap-1 border-b pb-2 mb-2 text-ink-secondary" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-black/[0.05] text-[13px] font-bold">B</button>
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-black/[0.05] text-[13px] italic font-serif">I</button>
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-black/[0.05] text-[13px] underline">U</button>
+                  <button type="button" className="p-1.5 rounded-lg hover:bg-black/[0.05] text-xs font-bold">B</button>
+                  <button type="button" className="p-1.5 rounded-lg hover:bg-black/[0.05] text-xs italic font-serif">I</button>
+                  <button type="button" className="p-1.5 rounded-lg hover:bg-black/[0.05] text-xs underline">U</button>
                   <span className="h-4 w-px bg-border mx-1" />
                   <button type="button" className="p-1.5 rounded-lg hover:bg-black/[0.05]"><Lucide.List size={15} /></button>
                   <button type="button" className="p-1.5 rounded-lg hover:bg-black/[0.05]"><Lucide.Link2 size={15} /></button>
@@ -872,12 +872,12 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                   rows={5}
                   value={description}
                   onChange={(e) => setDescription(e.target.value.slice(0, 500))}
-                  className="w-full rounded-md border p-3 text-[13px] leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                  className="w-full rounded-md border p-3 text-sm leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none font-normal"
                   style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                 />
 
                 <div className="flex justify-end mt-2">
-                  <span className="text-[11.5px] text-ink-muted">
+                  <span className="text-xs text-ink-secondary">
                     Characters: {description.length} / 500
                   </span>
                 </div>
@@ -893,24 +893,24 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
               <div>
                 <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
                   <div>
-                    <h2 className="text-[16px] font-bold text-ink">Amenities & Facilities</h2>
-                    <p className="text-[12px] text-ink-muted mt-0.5">Select amenities available at your property</p>
+                    <h2 className="text-base font-semibold text-ink">Amenities & Facilities</h2>
+                    <p className="text-xs text-ink-secondary mt-0.5">Select amenities available at your property</p>
                   </div>
                   <button
                     type="button"
                     onClick={handleSaveAmenities}
-                    className="pms-btn-primary px-3.5 py-1.5 text-[12.5px] font-semibold rounded-md shadow-xs"
+                    className="pms-btn-primary px-3.5 py-1.5 text-sm font-semibold rounded-md shadow-xs"
                   >
                     Save Changes
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {amenities.map((item) => (
                     <label
                       key={item.id}
                       onClick={() => toggleAmenity(item.id)}
-                      className={`flex items-center gap-2 p-2 rounded-md border text-[12.5px] font-medium cursor-pointer transition-all ${
+                      className={`flex items-center gap-2 p-2 rounded-md border text-xs font-medium cursor-pointer transition-all ${
                         item.checked ? 'border-primary/40 bg-primary/[0.04]' : 'border-border hover:bg-muted-surface/40'
                       }`}
                       style={{ borderColor: item.checked ? 'var(--color-primary)' : 'var(--color-border)' }}
@@ -929,7 +929,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                 <button
                   type="button"
                   onClick={addCustomAmenity}
-                  className="flex items-center gap-1.5 mt-4 text-[12.5px] font-bold text-primary hover:underline"
+                  className="flex items-center gap-1.5 mt-4 text-xs font-semibold text-primary hover:underline"
                 >
                   <Lucide.Plus size={14} strokeWidth={2.4} />
                   <span>Add custom amenity</span>
@@ -944,8 +944,8 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
             >
               <div>
                 <div className="pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <h2 className="text-[16px] font-bold text-ink">Property Status</h2>
-                  <p className="text-[12px] text-ink-muted mt-0.5">Current configuration status</p>
+                  <h2 className="text-base font-semibold text-ink">Property Status</h2>
+                  <p className="text-xs text-ink-secondary mt-0.5">Current configuration status</p>
                 </div>
 
                 {/* Status Box */}
@@ -960,26 +960,26 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                     <Lucide.CheckCircle2 size={18} strokeWidth={2.4} />
                   </div>
                   <div>
-                    <p className="text-[13.5px] font-bold text-emerald-900 leading-snug">Property is Active</p>
-                    <p className="text-[11.5px] text-emerald-800/80 leading-relaxed mt-0.5">
+                    <p className="text-sm font-semibold text-emerald-900 leading-snug">Property is Active</p>
+                    <p className="text-xs text-emerald-800/80 leading-relaxed mt-0.5">
                       Your property is configured and ready to accept reservations.
                     </p>
                   </div>
                 </div>
 
                 {/* Metadata Details */}
-                <div className="flex flex-col gap-2.5 text-[12.5px]">
+                <div className="flex flex-col gap-2 text-xs">
                   <div className="flex items-center justify-between border-b pb-2" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                    <span className="text-ink-muted">Last updated</span>
+                    <span className="text-ink-secondary">Last updated</span>
                     <span className="font-semibold text-ink">Oct 14, 2026, 10:30 AM</span>
                   </div>
                   <div className="flex items-center justify-between border-b pb-2" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                    <span className="text-ink-muted">Updated by</span>
+                    <span className="text-ink-secondary">Updated by</span>
                     <span className="font-semibold text-ink">Admin</span>
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-ink-muted">Configuration completeness</span>
+                      <span className="text-ink-secondary">Configuration completeness</span>
                       <span className="font-bold text-emerald-600">92%</span>
                     </div>
                     <div className="h-2 w-full rounded-full bg-muted-surface overflow-hidden">
@@ -995,67 +995,67 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
 
       {/* ================= POLICIES TAB ================= */}
       {activeTab === 'policies' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="rounded-2xl border p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-[16px] font-bold text-ink mb-1">Booking & Cancellation Policies</h2>
-            <p className="text-[12px] text-ink-muted mb-4">Guest-facing terms applied on confirmed bookings</p>
-            <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+            <h2 className="text-base font-semibold text-ink mb-1">Booking & Cancellation Policies</h2>
+            <p className="text-xs text-ink-secondary mb-4">Guest-facing terms applied on confirmed bookings</p>
+            <div className="flex flex-col gap-3">
               <div>
-                <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Cancellation Policy</label>
+                <label className="block text-xs font-medium text-ink mb-1.5">Cancellation Policy</label>
                 <input
                   defaultValue="Free cancellation until 48h before arrival; first night charged thereafter."
-                  className="w-full rounded-md border p-2.5 text-[13px] text-ink"
+                  className="w-full rounded-md border p-2.5 text-sm font-normal text-ink"
                   style={{ borderColor: 'var(--color-border)' }}
                 />
               </div>
               <div>
-                <label className="block text-[12.5px] font-semibold text-ink mb-1.5">No-show Policy</label>
+                <label className="block text-xs font-medium text-ink mb-1.5">No-show Policy</label>
                 <input
                   defaultValue="First night charged to the primary payment method on file."
-                  className="w-full rounded-md border p-2.5 text-[13px] text-ink"
+                  className="w-full rounded-md border p-2.5 text-sm font-normal text-ink"
                   style={{ borderColor: 'var(--color-border)' }}
                 />
               </div>
               <div>
-                <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Child & Extra Bed Policy</label>
+                <label className="block text-xs font-medium text-ink mb-1.5">Child & Extra Bed Policy</label>
                 <input
                   defaultValue="Children under 6 stay complimentary using existing bedding."
-                  className="w-full rounded-md border p-2.5 text-[13px] text-ink"
+                  className="w-full rounded-md border p-2.5 text-sm font-normal text-ink"
                   style={{ borderColor: 'var(--color-border)' }}
                 />
               </div>
               <button
                 type="button"
                 onClick={() => toast('Policies saved', { tone: 'success' })}
-                className="pms-btn-primary px-4 py-2 text-[13px] font-semibold rounded-md mt-2 w-fit"
+                className="pms-btn-primary px-4 py-2 text-sm font-semibold rounded-md mt-2 w-fit"
               >
                 Save Policies
               </button>
             </div>
           </div>
 
-          <div className="rounded-2xl border p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-[16px] font-bold text-ink mb-1">Stay Rules & Check-in Requirements</h2>
-            <p className="text-[12px] text-ink-muted mb-4">Standard hospitality verification procedures</p>
-            <div className="flex flex-col gap-4">
+          <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+            <h2 className="text-base font-semibold text-ink mb-1">Stay Rules & Check-in Requirements</h2>
+            <p className="text-xs text-ink-secondary mb-4">Standard hospitality verification procedures</p>
+            <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--color-border-subtle)' }}>
                 <div>
-                  <p className="text-[13px] font-semibold text-ink">Mandatory Government ID on Check-in</p>
-                  <p className="text-[11.5px] text-ink-muted">Passport, driving license, or national identity card</p>
+                  <p className="text-sm font-semibold text-ink">Mandatory Government ID on Check-in</p>
+                  <p className="text-xs text-ink-secondary">Passport, driving license, or national identity card</p>
                 </div>
                 <input type="checkbox" defaultChecked className="h-5 w-5 rounded accent-primary cursor-pointer" />
               </div>
               <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--color-border-subtle)' }}>
                 <div>
-                  <p className="text-[13px] font-semibold text-ink">Security Deposit Guarantee</p>
-                  <p className="text-[11.5px] text-ink-muted">Pre-authorization hold of 20% on incidentals</p>
+                  <p className="text-sm font-semibold text-ink">Security Deposit Guarantee</p>
+                  <p className="text-xs text-ink-secondary">Pre-authorization hold of 20% on incidentals</p>
                 </div>
                 <input type="checkbox" defaultChecked className="h-5 w-5 rounded accent-primary cursor-pointer" />
               </div>
               <div className="flex items-center justify-between" style={{ borderColor: 'var(--color-border-subtle)' }}>
                 <div>
-                  <p className="text-[13px] font-semibold text-ink">Minimum Check-in Age (18+)</p>
-                  <p className="text-[11.5px] text-ink-muted">Primary guest must be 18 years or older</p>
+                  <p className="text-sm font-semibold text-ink">Minimum Check-in Age (18+)</p>
+                  <p className="text-xs text-ink-secondary">Primary guest must be 18 years or older</p>
                 </div>
                 <input type="checkbox" defaultChecked className="h-5 w-5 rounded accent-primary cursor-pointer" />
               </div>
@@ -1066,13 +1066,13 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
 
       {/* ================= TAXES & FEES TAB ================= */}
       {activeTab === 'taxes' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="rounded-2xl border p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-[16px] font-bold text-ink mb-1">Active Backend Tax Rules</h2>
-            <p className="text-[12px] text-ink-muted mb-4">Taxes applied dynamically to folios and invoices</p>
-            <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+            <h2 className="text-base font-semibold text-ink mb-1">Active Backend Tax Rules</h2>
+            <p className="text-xs text-ink-secondary mb-4">Taxes applied dynamically to folios and invoices</p>
+            <div className="flex flex-col gap-3">
               <div>
-                <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Tax Rate (%)</label>
+                <label className="block text-xs font-medium text-ink mb-1.5">Tax Rate (%)</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -1080,10 +1080,10 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                     max={40}
                     value={taxRate}
                     onChange={(e) => setTaxRate(Number(e.target.value))}
-                    className="w-32 rounded-md border p-2.5 text-[14px] font-bold text-ink"
+                    className="w-32 rounded-md border p-2 text-sm font-bold text-ink"
                     style={{ borderColor: 'var(--color-border)' }}
                   />
-                  <span className="text-[13px] font-semibold text-ink-muted">% GST / VAT</span>
+                  <span className="text-xs font-semibold text-ink-secondary">% GST / VAT</span>
                 </div>
               </div>
               <button
@@ -1102,29 +1102,29 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                     setSaving(false);
                   }
                 }}
-                className="pms-btn-primary px-4 py-2 text-[13px] font-semibold rounded-md w-fit disabled:opacity-50"
+                className="pms-btn-primary px-4 py-2 text-sm font-semibold rounded-md w-fit disabled:opacity-50"
               >
                 Save Tax Rule
               </button>
             </div>
           </div>
 
-          <div className="rounded-2xl border p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-[16px] font-bold text-ink mb-1">Invoice Details & Legal Header</h2>
-            <p className="text-[12px] text-ink-muted mb-4">Printed information on guest folios & receipts</p>
-            <div className="flex flex-col gap-4">
+          <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+            <h2 className="text-base font-semibold text-ink mb-1">Invoice Details & Legal Header</h2>
+            <p className="text-xs text-ink-secondary mb-4">Printed information on guest folios & receipts</p>
+            <div className="flex flex-col gap-3">
               <div>
-                <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Invoice Prefix</label>
-                <input defaultValue="INV-2026-" className="w-full rounded-md border p-2.5 font-mono text-[13px] text-ink" style={{ borderColor: 'var(--color-border)' }} />
+                <label className="block text-xs font-medium text-ink mb-1.5">Invoice Prefix</label>
+                <input defaultValue="INV-2026-" className="w-full rounded-md border p-2.5 font-mono text-sm text-ink" style={{ borderColor: 'var(--color-border)' }} />
               </div>
               <div>
-                <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Tax Registration / GSTIN</label>
-                <input defaultValue="27AAAAA0000A1Z5" className="w-full rounded-md border p-2.5 font-mono text-[13px] text-ink" style={{ borderColor: 'var(--color-border)' }} />
+                <label className="block text-xs font-medium text-ink mb-1.5">Tax Registration / GSTIN</label>
+                <input defaultValue="27AAAAA0000A1Z5" className="w-full rounded-md border p-2.5 font-mono text-sm text-ink" style={{ borderColor: 'var(--color-border)' }} />
               </div>
               <button
                 type="button"
                 onClick={() => toast('Invoice details saved', { tone: 'success' })}
-                className="pms-btn-primary px-4 py-2 text-[13px] font-semibold rounded-md w-fit"
+                className="pms-btn-primary px-4 py-2 text-sm font-semibold rounded-md w-fit"
               >
                 Save Invoice Details
               </button>
@@ -1135,23 +1135,23 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
 
       {/* ================= BRANDING TAB ================= */}
       {activeTab === 'branding' && (
-        <div className="rounded-2xl border p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+        <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
             <div>
-              <h2 className="text-[16px] font-bold text-ink">Appearance & House Themes</h2>
-              <p className="text-[12px] text-ink-muted mt-0.5">Select from 9 luxury curated hotel house color palettes</p>
+              <h2 className="text-base font-semibold text-ink">Appearance & House Themes</h2>
+              <p className="text-xs text-ink-secondary mt-0.5">Select from 9 luxury curated hotel house color palettes</p>
             </div>
             <button
               type="button"
               onClick={onOpenThemes}
-              className="pms-btn-primary flex items-center gap-2 px-4 py-2 text-[13px] font-bold rounded-md"
+              className="pms-btn-primary flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-md"
             >
               <Lucide.Palette size={16} />
               <span>Open Theme Swatcher</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-2.5">
             {PRESET_LIST.map((p) => {
               const isActive = preset === p.id;
               return (
@@ -1159,7 +1159,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                   key={p.id}
                   type="button"
                   onClick={() => setPreset(p.id)}
-                  className="rounded-md border p-3.5 text-left transition-all hover:border-primary group"
+                  className="rounded-md border p-3 text-left transition-all hover:border-primary group"
                   style={{
                     borderColor: isActive ? 'var(--color-primary)' : 'var(--color-border)',
                     background: isActive ? 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))' : 'var(--color-surface)',
@@ -1172,7 +1172,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                     ))}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[13px] font-bold text-ink truncate">{p.name}</span>
+                    <span className="text-sm font-semibold text-ink truncate">{p.name}</span>
                     {isActive ? <Lucide.Check size={14} className="text-primary flex-none" /> : null}
                   </div>
                 </button>
@@ -1188,14 +1188,14 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-3">
             <Lucide.Sliders size={26} />
           </div>
-          <h2 className="text-[17px] font-bold text-ink capitalize">{activeTab.replace('-', ' ')} Settings</h2>
-          <p className="text-[13px] text-ink-muted max-w-md mx-auto mt-1 mb-5">
+          <h2 className="text-lg font-semibold text-ink capitalize">{activeTab.replace('-', ' ')} Settings</h2>
+          <p className="text-sm text-ink-secondary max-w-md mx-auto mt-1 mb-5">
             Manage your hotel's {activeTab.replace('-', ' ')} preferences, configurations, and channel integrations.
           </p>
           <button
             type="button"
             onClick={() => setActiveTab('general')}
-            className="pms-btn-primary px-4 py-2 text-[13px] font-bold rounded-md"
+            className="pms-btn-primary px-4 py-2 text-sm font-semibold rounded-md"
           >
             Back to General Settings
           </button>

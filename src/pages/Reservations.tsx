@@ -788,20 +788,20 @@ export function Reservations({
       {/* ================= 1. PAGE HEADER ================= */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-[26px] font-bold tracking-tight text-slate-900">Reservations</h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <h1 className="text-[28px] font-bold tracking-tight text-slate-900">Reservations</h1>
+          <p className="text-xs text-slate-500 mt-1">
             Manage all reservations, search, filter and view booking details
           </p>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Theme Swatcher Trigger Button */}
           <button
             type="button"
             onClick={() => (onOpenThemes ? onOpenThemes() : setSwatcherOpen(true))}
             title="Customize Theme & Palette"
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors cursor-pointer"
           >
             <Lucide.Palette size={15} className="text-[var(--color-primary)]" />
             <span className="hidden sm:inline">Theme</span>
@@ -816,7 +816,7 @@ export function Reservations({
                 tone: 'success',
               })
             }
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors cursor-pointer"
           >
             <span>Export</span>
             <Lucide.ChevronDown size={14} className="text-slate-400" />
@@ -831,7 +831,7 @@ export function Reservations({
                 tone: 'info',
               })
             }
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors cursor-pointer"
           >
             <span>Bulk actions</span>
             <Lucide.ChevronDown size={14} className="text-slate-400" />
@@ -841,32 +841,32 @@ export function Reservations({
           <button
             type="button"
             onClick={() => go({ view: 'new-reservation' })}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-md bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-white shadow-xs transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-md bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-white shadow-xs transition-all cursor-pointer"
           >
-            <Lucide.Plus size={15} strokeWidth={2.5} />
+            <Lucide.Plus size={16} strokeWidth={2.5} />
             <span>New Reservation</span>
           </button>
         </div>
       </div>
 
       {/* ================= 2. 6 KPI METRIC CARDS ================= */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
         {summaryStats.map((stat) => (
           <div
             key={stat.label}
-            className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex items-center gap-3.5 transition-all hover:shadow-md cursor-pointer"
+            className="bg-white rounded-xl border border-slate-200/80 p-3 shadow-xs flex items-center gap-3 transition-all hover:shadow-md cursor-pointer"
             onClick={() => {
               if (stat.label === 'Arrivals Today') go({ view: 'check-in' });
               else if (stat.label === 'Departures Today') go({ view: 'check-out' });
               else if (stat.label === 'In-house') go({ view: 'in-house' });
             }}
           >
-            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${stat.iconBg}`}>
-              <stat.Icon size={20} strokeWidth={2} />
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${stat.iconBg}`}>
+              <stat.Icon size={18} strokeWidth={2} />
             </div>
-            <div>
-              <p className="text-[22px] font-bold text-slate-900 leading-none">{stat.value}</p>
-              <p className="text-[11.5px] text-slate-500 font-medium mt-1 truncate">{stat.label}</p>
+            <div className="min-w-0">
+              <p className="text-xl font-bold text-slate-900 leading-none">{stat.value}</p>
+              <p className="text-xs text-slate-500 font-normal mt-1 truncate">{stat.label}</p>
             </div>
           </div>
         ))}
@@ -1074,10 +1074,10 @@ export function Reservations({
       {/* ================= 5. RESERVATIONS TABLE CARD ================= */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.04)] overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-left text-sm border-collapse">
             {/* Table Header */}
             <thead>
-              <tr className="bg-slate-50/90 border-b border-slate-200 text-[11px] font-bold text-slate-500 tracking-wider">
+              <tr className="bg-slate-50/90 border-b border-slate-200 text-xs font-semibold text-slate-500 tracking-wider uppercase">
                 <th className="py-2.5 px-3 w-10">
                   <input
                     type="checkbox"
@@ -1155,10 +1155,10 @@ export function Reservations({
 
                     {/* Reference & Created Time */}
                     <td className="py-2.5 px-3">
-                      <div className="font-bold text-slate-900 tracking-tight text-xs font-mono">
+                      <div className="font-bold text-slate-900 tracking-tight text-sm font-mono">
                         {r.id}
                       </div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">
+                      <div className="text-xs text-slate-400 mt-0.5">
                         {r.checkInIso ? `Oct 15, 2026 • 10:24 AM` : 'Oct 15, 2026 • 09:12 AM'}
                       </div>
                     </td>
@@ -1169,7 +1169,7 @@ export function Reservations({
                         <Avatar name={r.guest} size={36} />
                         <div>
                           <p className="font-semibold text-slate-900 text-sm leading-tight">{r.guest}</p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">
+                          <p className="text-xs text-slate-400 mt-0.5">
                             {r.guest === 'Rahul Sharma'
                               ? '+91 91234 56789'
                               : r.guest === 'Priya Mehta'
@@ -1198,8 +1198,8 @@ export function Reservations({
                             className="h-9 w-9 rounded-md object-cover shrink-0 border border-slate-200"
                           />
                           <div>
-                            <p className="font-bold text-slate-900 text-xs leading-tight">{r.roomNumber}</p>
-                            <p className="text-[11px] text-slate-500">{r.roomType}</p>
+                            <p className="font-bold text-slate-900 text-sm leading-tight">{r.roomNumber}</p>
+                            <p className="text-xs text-slate-500">{r.roomType}</p>
                           </div>
                         </div>
                       ) : (
@@ -1213,7 +1213,7 @@ export function Reservations({
                     </td>
 
                     {/* Stay Dates */}
-                    <td className="py-3.5 px-3 whitespace-nowrap text-xs text-slate-700">
+                    <td className="py-3.5 px-3 whitespace-nowrap text-sm text-slate-700">
                       <span className="font-medium">
                         {r.checkIn} → {r.checkOut}
                       </span>{' '}
@@ -1221,9 +1221,9 @@ export function Reservations({
                     </td>
 
                     {/* Guests Count */}
-                    <td className="py-3.5 px-3 whitespace-nowrap text-xs text-slate-700">
+                    <td className="py-3.5 px-3 whitespace-nowrap text-sm text-slate-700">
                       <span className="inline-flex items-center gap-1.5 font-medium">
-                        <Lucide.User size={13} className="text-slate-400" />
+                        <Lucide.User size={14} className="text-slate-400" />
                         <span>{r.adults + r.children}</span>
                       </span>
                     </td>
@@ -1239,7 +1239,7 @@ export function Reservations({
                     </td>
 
                     {/* Total */}
-                    <td className="py-3.5 px-3 text-right font-bold text-slate-900 text-xs sm:text-[13px] whitespace-nowrap tnum">
+                    <td className="py-3.5 px-3 text-right font-bold text-slate-900 text-sm whitespace-nowrap tnum">
                       ₹{r.total.toLocaleString('en-IN')}.00
                     </td>
 

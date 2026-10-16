@@ -183,14 +183,14 @@ function Shell() {
           onOpenThemes={() => setSwatcherOpen(true)}
           onGo={go}
         />
-        <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}`} className={`pms-animate-fade-up mx-auto w-full flex-1 px-2.5 py-3 sm:px-4 sm:py-3.5 lg:px-6 lg:py-4 ${view === 'dashboard' || view === 'new-reservation' || view === 'reservations' || view === 'status-board' ? 'max-w-[1600px] 2xl:max-w-[1760px]' : 'max-w-[1280px] 2xl:max-w-[1440px]'}`} style={{ background: 'var(--color-page)' }}>
+        <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}`} className={`pms-animate-fade-up mx-auto w-full flex-1 px-4 py-4 lg:px-6 lg:py-6 ${view === 'dashboard' || view === 'new-reservation' || view === 'reservations' || view === 'status-board' ? 'max-w-[1600px] 2xl:max-w-[1760px]' : 'max-w-[1280px] 2xl:max-w-[1440px]'}`} style={{ background: 'var(--color-page)' }}>
           <Suspense fallback={<PageFallback />}>{page}</Suspense>
         </main>
         <footer
-          className="border-t px-4 py-3.5 sm:px-6"
+          className="border-t px-4 py-3.5 lg:px-6"
           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
         >
-          <p className="tnum mx-auto w-full max-w-[1280px] text-[11.5px] font-medium 2xl:max-w-[1440px]" style={{ color: 'var(--color-ink-secondary)' }}>
+          <p className="tnum mx-auto w-full max-w-[1280px] text-xs font-normal 2xl:max-w-[1440px]" style={{ color: 'var(--color-ink-secondary)' }}>
             TriponX PMS · {THEME_PRESETS[preset]?.name ?? 'Theme'} · 9 colour themes ·
             status colours fixed across themes · unsupported modules remain demo-only
           </p>

@@ -212,15 +212,15 @@ export function RateManagement() {
   };
 
   return (
-    <div className="flex flex-col gap-3.5 pb-8 w-full">
+    <div className="flex flex-col gap-4 pb-8 w-full">
       {/* 1. TOP HEADER & QUICK ACTION BUTTONS */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.SlidersHorizontal className="text-primary" size={26} />
+          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
+            <Lucide.SlidersHorizontal className="text-primary" size={28} />
             <span>Rate Management</span>
           </h1>
-          <p className="text-sm text-ink-secondary mt-1">
+          <p className="text-xs text-ink-secondary mt-1">
             Manage room rates, availability, restrictions and seasonal pricing across all channels
           </p>
         </div>
@@ -230,7 +230,7 @@ export function RateManagement() {
           <button
             type="button"
             onClick={() => setActiveTab('plans')}
-            className={`pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 cursor-pointer transition-colors ${
+            className={`pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3 py-2 cursor-pointer transition-colors ${
               activeTab === 'plans' ? 'border-primary/40 text-primary bg-primary/10' : ''
             }`}
           >
@@ -242,7 +242,7 @@ export function RateManagement() {
           <button
             type="button"
             onClick={() => setActiveTab('seasonality')}
-            className={`pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 cursor-pointer transition-colors ${
+            className={`pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3 py-2 cursor-pointer transition-colors ${
               activeTab === 'seasonality' ? 'border-primary/40 text-primary bg-primary/10' : ''
             }`}
           >
@@ -254,7 +254,7 @@ export function RateManagement() {
           <button
             type="button"
             onClick={() => setShowBulkUpdateModal(true)}
-            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 cursor-pointer"
+            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3 py-2 cursor-pointer"
           >
             <Lucide.CopyCheck size={14} />
             <span>Bulk Update</span>
@@ -264,7 +264,7 @@ export function RateManagement() {
           <button
             type="button"
             onClick={() => setActiveTab('calendar')}
-            className={`pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 cursor-pointer transition-colors ${
+            className={`pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3 py-2 cursor-pointer transition-colors ${
               activeTab === 'calendar' ? 'border-primary/40 text-primary bg-primary/10' : ''
             }`}
           >
@@ -276,25 +276,25 @@ export function RateManagement() {
           <button
             type="button"
             onClick={() => setShowCreatePlanModal(true)}
-            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold"
+            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold"
           >
-            <Lucide.Plus size={15} strokeWidth={2.4} />
+            <Lucide.Plus size={16} strokeWidth={2.4} />
             <span>Create Rate Plan</span>
           </button>
         </div>
       </div>
 
       {/* 2. STATS / KPI ROW (5 CARDS) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
         {/* Card 1: Rate Plans */}
-        <div className="pms-card p-4 flex items-center gap-3.5 transition-all hover:shadow-md">
-          <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-            <Lucide.SlidersHorizontal size={22} strokeWidth={2.4} />
+        <div className="pms-card p-3 sm:p-3.5 flex items-center gap-3 transition-all hover:shadow-md">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+            <Lucide.SlidersHorizontal size={20} strokeWidth={2.4} />
           </div>
           <div>
-            <div className="text-2xl font-extrabold text-ink leading-tight tnum">6</div>
-            <div className="text-xs font-semibold text-ink-secondary mt-0.5">Rate Plans</div>
-            <div className="text-[11px] font-semibold text-emerald-600 flex items-center gap-0.5 mt-0.5">
+            <div className="text-xl font-bold text-ink leading-tight tnum">6</div>
+            <div className="text-xs font-medium text-ink-secondary mt-0.5">Rate Plans</div>
+            <div className="text-xs font-semibold text-emerald-600 flex items-center gap-0.5 mt-0.5">
               <span>↗</span>
               <span>active promotions</span>
             </div>
@@ -302,26 +302,26 @@ export function RateManagement() {
         </div>
 
         {/* Card 2: Total Rooms */}
-        <div className="pms-card p-4 flex items-center gap-3.5 transition-all hover:shadow-md">
-          <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-            <Lucide.BedDouble size={22} strokeWidth={2.4} />
+        <div className="pms-card p-3 sm:p-3.5 flex items-center gap-3 transition-all hover:shadow-md">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+            <Lucide.BedDouble size={20} strokeWidth={2.4} />
           </div>
           <div>
-            <div className="text-2xl font-extrabold text-ink leading-tight tnum">50</div>
-            <div className="text-xs font-semibold text-ink-secondary mt-0.5">Total Rooms</div>
-            <div className="text-[11px] font-normal text-ink-muted mt-0.5">Across 5 room types</div>
+            <div className="text-xl font-bold text-ink leading-tight tnum">50</div>
+            <div className="text-xs font-medium text-ink-secondary mt-0.5">Total Rooms</div>
+            <div className="text-xs font-normal text-ink-muted mt-0.5">Across 5 room types</div>
           </div>
         </div>
 
         {/* Card 3: ADR (This Month) */}
-        <div className="pms-card p-4 flex items-center gap-3.5 transition-all hover:shadow-md">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold text-xl">
+        <div className="pms-card p-3 sm:p-3.5 flex items-center gap-3 transition-all hover:shadow-md">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold text-lg">
             ₹
           </div>
           <div>
-            <div className="text-2xl font-extrabold text-ink leading-tight tnum">₹8,450</div>
-            <div className="text-xs font-semibold text-ink-secondary mt-0.5">ADR (This Month)</div>
-            <div className="text-[11px] font-semibold text-emerald-600 flex items-center gap-0.5 mt-0.5">
+            <div className="text-xl font-bold text-ink leading-tight tnum">₹8,450</div>
+            <div className="text-xs font-medium text-ink-secondary mt-0.5">ADR (This Month)</div>
+            <div className="text-xs font-semibold text-emerald-600 flex items-center gap-0.5 mt-0.5">
               <span>↑ 12%</span>
               <span className="font-normal text-ink-muted">vs last month</span>
             </div>
@@ -329,14 +329,14 @@ export function RateManagement() {
         </div>
 
         {/* Card 4: Occupancy (This Month) */}
-        <div className="pms-card p-4 flex items-center gap-3.5 transition-all hover:shadow-md">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center flex-shrink-0">
-            <Lucide.CalendarDays size={22} strokeWidth={2.4} />
+        <div className="pms-card p-3 sm:p-3.5 flex items-center gap-3 transition-all hover:shadow-md">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center flex-shrink-0">
+            <Lucide.CalendarDays size={20} strokeWidth={2.4} />
           </div>
           <div>
-            <div className="text-2xl font-extrabold text-ink leading-tight tnum">78%</div>
-            <div className="text-xs font-semibold text-ink-secondary mt-0.5">Occupancy (This Month)</div>
-            <div className="text-[11px] font-semibold text-emerald-600 flex items-center gap-0.5 mt-0.5">
+            <div className="text-xl font-bold text-ink leading-tight tnum">78%</div>
+            <div className="text-xs font-medium text-ink-secondary mt-0.5">Occupancy (This Month)</div>
+            <div className="text-xs font-semibold text-emerald-600 flex items-center gap-0.5 mt-0.5">
               <span>↑ 6%</span>
               <span className="font-normal text-ink-muted">vs last month</span>
             </div>
@@ -344,14 +344,14 @@ export function RateManagement() {
         </div>
 
         {/* Card 5: Projected Revenue */}
-        <div className="pms-card p-4 flex items-center gap-3.5 col-span-2 sm:col-span-1 transition-all hover:shadow-md">
-          <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center flex-shrink-0">
-            <Lucide.TrendingUp size={22} strokeWidth={2.4} />
+        <div className="pms-card p-3 sm:p-3.5 flex items-center gap-3 col-span-2 sm:col-span-1 transition-all hover:shadow-md">
+          <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center flex-shrink-0">
+            <Lucide.TrendingUp size={20} strokeWidth={2.4} />
           </div>
           <div>
-            <div className="text-2xl font-extrabold text-ink leading-tight tnum">₹4,22,500</div>
-            <div className="text-xs font-semibold text-ink-secondary mt-0.5">Projected Revenue</div>
-            <div className="text-[11px] font-normal text-ink-muted mt-0.5">Next 30 days</div>
+            <div className="text-xl font-bold text-ink leading-tight tnum">₹4,22,500</div>
+            <div className="text-xs font-medium text-ink-secondary mt-0.5">Projected Revenue</div>
+            <div className="text-xs font-normal text-ink-muted mt-0.5">Next 30 days</div>
           </div>
         </div>
       </div>

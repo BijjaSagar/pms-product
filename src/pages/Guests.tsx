@@ -35,29 +35,29 @@ function GuestProfile({ g, onClose, go, onSave }: { g: Guest; onClose: () => voi
       <div className="flex flex-wrap items-center gap-3">
         <Avatar name={g.name} />
         <div className="min-w-0 flex-1">
-          <p className="text-[16px] font-semibold" style={{ color: 'var(--color-ink)' }}>{g.name}</p>
-          <p className="tnum font-mono text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>{g.id} · {g.category}</p>
+          <p className="text-base font-semibold text-ink">{g.name}</p>
+          <p className="tnum font-mono text-xs text-ink-secondary">{g.id} · {g.category}</p>
         </div>
         <Badge tone={tierTone(g.tier)}>{g.tier}</Badge>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
         {[[String(g.stays), 'Stays'], [g.spent > 0 ? formatCurrency(g.spent, 'INR') : '—', 'Lifetime'], [g.balance > 0 ? formatCurrency(g.balance, 'INR') : '—', 'Balance']].map(([v, k]) => (
-          <div key={k} className="rounded-control border p-2.5" style={{ borderColor: 'var(--color-border)' }}>
-            <p className="tnum text-[16px] font-semibold" style={{ color: 'var(--color-ink)' }}>{v}</p>
-            <p className="pms-helper">{k}</p>
+          <div key={k} className="rounded-control border p-2.5 sm:p-3" style={{ borderColor: 'var(--color-border)' }}>
+            <p className="tnum text-base font-bold text-ink">{v}</p>
+            <p className="text-xs text-ink-secondary mt-0.5">{k}</p>
           </div>
         ))}
       </div>
       <div className="mt-3">
         <Tabs label="Guest sections" tabs={[{ id: 'overview', label: 'Overview' }, { id: 'stays', label: 'Stays' }, { id: 'payments', label: 'Payments' }, { id: 'notes', label: 'Notes' }]} active={tab} onChange={setTab} />
       </div>
-      <div className="mt-3 text-[13.5px]">
+      <div className="mt-3 text-sm">
         {tab === 'overview' && (
           <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {[['Email', g.email], ['Phone', editing ? '' : phone], ['Company', g.company ?? '—'], ['Last visit', g.lastVisit], ['Preferences', editing ? '' : (prefs || '—')]].map(([k, v]) => (
               <div key={k} className="rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}>
-                <dt className="pms-helper">{k}</dt>
-                <dd className="font-semibold" style={{ color: 'var(--color-ink)' }}>
+                <dt className="text-xs font-medium text-ink-secondary mb-1">{k}</dt>
+                <dd className="text-sm font-semibold text-ink">
                   {editing && (k === 'Phone' || k === 'Preferences') ? (
                     <input value={k === 'Phone' ? phone : prefs} onChange={(e) => (k === 'Phone' ? setPhone(e.target.value) : setPrefs(e.target.value))} className={inputClass()} aria-label={k} />
                   ) : v}
@@ -68,32 +68,32 @@ function GuestProfile({ g, onClose, go, onSave }: { g: Guest; onClose: () => voi
         )}
         {tab === 'stays' && (
           <ul className="flex flex-col gap-2">
-            <p className="pms-helper">{g.stays ? `${g.stays} stay(s) on record; stay details are not included in the guest endpoint.` : 'No stays on record.'}</p>
+            <p className="text-xs text-ink-secondary py-2">{g.stays ? `${g.stays} stay(s) on record; stay details are not included in the guest endpoint.` : 'No stays on record.'}</p>
           </ul>
         )}
         {tab === 'payments' && (
           <ul className="flex flex-col gap-2">
-            <p className="pms-helper">Guest-specific payment and invoice history is not exposed by the current API.</p>
+            <p className="text-xs text-ink-secondary py-2">Guest-specific payment and invoice history is not exposed by the current API.</p>
           </ul>
         )}
         {tab === 'notes' && (
           <div className="rounded-control border p-3" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
-            <p className="text-[13px]" style={{ color: 'var(--color-ink)' }}>{g.notes || 'No notes yet.'}</p>
-            <p className="pms-helper mt-1">Communication history appears here in the connected build.</p>
+            <p className="text-sm text-ink">{g.notes || 'No notes yet.'}</p>
+            <p className="text-xs text-ink-secondary mt-1">Communication history appears here in the connected build.</p>
           </div>
         )}
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        <button type="button" className="pms-btn-ghost flex-1 px-3 py-2.5" onClick={() => {
+        <button type="button" className="pms-btn-ghost flex-1 px-3 py-2.5 text-sm font-medium" onClick={() => {
           if (!editing) { setEditing(true); return; }
           void onSave({ phone, preferences: prefs }).then(() => setEditing(false)).catch(() => undefined);
         }}>
           {editing ? 'Save guest' : 'Edit guest'}
         </button>
-        <button type="button" className="pms-btn-ghost flex-1 px-3 py-2.5" onClick={() => go({ view: 'new-reservation' })}>New reservation</button>
-        <button type="button" className="pms-btn-primary flex-1 px-3 py-2.5" onClick={() => go({ view: 'folios' })}>View folio</button>
+        <button type="button" className="pms-btn-ghost flex-1 px-3 py-2.5 text-sm font-medium" onClick={() => go({ view: 'new-reservation' })}>New reservation</button>
+        <button type="button" className="pms-btn-primary flex-1 px-3 py-2.5 text-sm font-semibold" onClick={() => go({ view: 'folios' })}>View folio</button>
       </div>
-      <button type="button" className="pms-btn-ghost mt-2 w-full px-3 py-2" onClick={onClose}>Back to directory</button>
+      <button type="button" className="pms-btn-ghost mt-2 w-full px-3 py-2 text-sm font-medium" onClick={onClose}>Back to directory</button>
     </div>
   );
 }
@@ -169,15 +169,15 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
   }
 
   return (
-    <div className="flex flex-col gap-3.5">
+    <div className="flex flex-col gap-4">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
+          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
             <Lucide.Users className="text-primary" size={26} />
             <span>Guest Profiles & Directory</span>
           </h1>
-          <p className="mt-1 text-sm text-ink-secondary">
+          <p className="mt-1 text-xs text-ink-secondary">
             Guest history, VIP tiers, contact preferences, and stay profiles
           </p>
         </div>
@@ -185,7 +185,7 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border"
+            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-xl border border-border"
             title="Refresh directory"
           >
             <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : ''} />
@@ -194,7 +194,7 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
           <button
             type="button"
             onClick={() => setAdding(true)}
-            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-bold rounded-xl"
+            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-xl"
           >
             <Lucide.Plus size={16} strokeWidth={2.4} />
             <span>Add Guest</span>
@@ -209,8 +209,8 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
         />
       {resource.error ? <p role="alert" className="pms-helper">Could not load guests: {resource.error}</p> : null}
       <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-4">
-        <input value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} placeholder="Name, ID or phone…" aria-label="Search guests" className={inputClass()} />
-        <select value={sort} onChange={(e) => setSort(e.target.value as never)} aria-label="Sort guests" className={inputClass()}>
+        <input value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} placeholder="Name, ID or phone…" aria-label="Search guests" className={inputClass('text-sm')} />
+        <select value={sort} onChange={(e) => setSort(e.target.value as never)} aria-label="Sort guests" className={inputClass('text-sm')}>
           <option value="name">Sort: name</option>
           <option value="stays">Sort: most stays</option>
           <option value="spent">Sort: lifetime value</option>
@@ -220,56 +220,56 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
             <FilterChip key={t} active={tier === t} onClick={() => { setTier(t); setPage(0); }}>{t}</FilterChip>
           ))}
         </div>
-        <button type="button" className="pms-btn-ghost px-3 py-2.5" onClick={() => { setQ(''); setTier('All'); setSort('name'); setPage(0); }}>Clear</button>
+        <button type="button" className="pms-btn-ghost px-3 py-2 text-sm font-medium" onClick={() => { setQ(''); setTier('All'); setSort('name'); setPage(0); }}>Clear</button>
       </div>
       <TableContainer>
         <table className="pms-table min-w-[760px]">
           <thead>
             <tr>
-              <th className="w-12 text-center">#</th>
-              <th>GUEST NAME</th>
-              <th>CONTACT</th>
-              <th>COMPANY</th>
-              <th>TIER</th>
-              <th className="text-right">STAYS</th>
-              <th className="text-right">BALANCE</th>
-              <th>LAST VISIT</th>
-              <th className="text-right">ACTIONS</th>
+              <th className="w-12 text-center text-xs font-semibold">#</th>
+              <th className="text-xs font-semibold">GUEST NAME</th>
+              <th className="text-xs font-semibold">CONTACT</th>
+              <th className="text-xs font-semibold">COMPANY</th>
+              <th className="text-xs font-semibold">TIER</th>
+              <th className="text-right text-xs font-semibold">STAYS</th>
+              <th className="text-right text-xs font-semibold">BALANCE</th>
+              <th className="text-xs font-semibold">LAST VISIT</th>
+              <th className="text-right text-xs font-semibold">ACTIONS</th>
             </tr>
           </thead>
           <tbody>
             {slice.map((g, idx) => (
               <tr key={g.id}>
-                <td className="text-center font-medium text-slate-400 text-xs">
+                <td className="text-center font-medium text-ink-secondary text-xs">
                   {safe * PAGE_SIZE + idx + 1}
                 </td>
                 <td>
                   <div className="flex items-center gap-3">
                     <Avatar name={g.name} size={36} />
                     <div>
-                      <span className="block font-semibold text-slate-900 text-sm">{g.name}</span>
-                      <span className="tnum block font-mono text-[11px] text-slate-400">{g.id}</span>
+                      <span className="block font-semibold text-ink text-sm">{g.name}</span>
+                      <span className="tnum block font-mono text-xs text-ink-secondary">{g.id}</span>
                     </div>
                   </div>
                 </td>
                 <td>
-                  <span className="block text-slate-700 text-sm">{g.email}</span>
-                  <span className="tnum block text-[12px] text-slate-400">{g.phone}</span>
+                  <span className="block text-ink text-sm">{g.email}</span>
+                  <span className="tnum block text-xs text-ink-secondary">{g.phone}</span>
                 </td>
                 <td>
-                  <span className="text-slate-600 text-sm">{g.company ?? '—'}</span>
+                  <span className="text-ink text-sm">{g.company ?? '—'}</span>
                 </td>
                 <td>
                   <Badge tone={tierTone(g.tier)}>{g.tier}</Badge>
                 </td>
-                <td className="tnum text-right font-medium text-slate-700 text-sm">
+                <td className="tnum text-right font-medium text-ink text-sm">
                   {g.stays}
                 </td>
-                <td className="tnum text-right font-bold text-slate-900 text-sm">
+                <td className="tnum text-right font-bold text-ink text-sm">
                   {g.balance > 0 ? formatCurrency(g.balance, 'INR') : '—'}
                 </td>
                 <td>
-                  <span className="text-slate-500 text-sm">{g.lastVisit}</span>
+                  <span className="text-ink-secondary text-sm">{g.lastVisit}</span>
                 </td>
                 <td className="text-right">
                   <div className="flex items-center justify-end gap-1.5">
@@ -284,7 +284,7 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
             ))}
           </tbody>
         </table>
-        {slice.length === 0 ? <p className="pms-helper py-8 text-center text-slate-400">No guests match.</p> : null}
+        {slice.length === 0 ? <p className="pms-helper py-8 text-center text-xs text-ink-secondary">No guests match.</p> : null}
       </TableContainer>
       <div className="mt-4 pt-1">
         <Pagination
@@ -296,10 +296,10 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
       </div>
       <Modal open={adding} onClose={() => setAdding(false)} title="Add guest" subtitle="Saved to the guest directory">
         <div className="flex flex-col gap-3">
-          <Field label="Full name"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Jordan Miles" className={inputClass()} /></Field>
-          <Field label="Email"><input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jordan@mail.com" inputMode="email" className={inputClass()} /></Field>
-          <Field label="Phone"><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 010 2030" inputMode="tel" className={inputClass()} /></Field>
-          <button type="button" className="pms-btn-primary px-4 py-2.5" onClick={addGuest}>Add guest</button>
+          <Field label="Full name"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Jordan Miles" className={inputClass('text-sm')} /></Field>
+          <Field label="Email"><input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jordan@mail.com" inputMode="email" className={inputClass('text-sm')} /></Field>
+          <Field label="Phone"><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 010 2030" inputMode="tel" className={inputClass('text-sm')} /></Field>
+          <button type="button" className="pms-btn-primary px-4 py-2.5 text-sm font-semibold" onClick={addGuest}>Add guest</button>
         </div>
       </Modal>
     </Card>

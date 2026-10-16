@@ -404,20 +404,20 @@ export function ChannelManager() {
   };
 
   return (
-    <div className="flex flex-col gap-3.5 pb-8 w-full">
+    <div className="flex flex-col gap-4 pb-8 w-full">
       {/* 1. TOP HEADER & MAIN CONTROLS */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.Globe className="text-primary" size={26} />
+          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
+            <Lucide.Globe className="text-primary" size={28} />
             <span>Channel Manager</span>
           </h1>
-          <p className="text-sm text-ink-secondary mt-1">
+          <p className="text-xs text-ink-secondary mt-1">
             Manage your online travel channels, synchronize inventory, rates and availability in real-time
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Auto Sync Enabled Pill */}
           <button
             type="button"
@@ -441,7 +441,7 @@ export function ChannelManager() {
             type="button"
             onClick={handleTriggerSync}
             disabled={isSyncing}
-            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border"
+            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3.5 py-2 rounded-xl border border-border"
             title="Force instant sync with all OTAs"
           >
             <Lucide.RefreshCw size={14} className={isSyncing ? 'animate-spin text-primary' : ''} />
@@ -452,7 +452,7 @@ export function ChannelManager() {
           <button
             type="button"
             onClick={() => setShowLogsModal(true)}
-            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border"
+            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3.5 py-2 rounded-xl border border-border"
           >
             <Lucide.ScrollText size={14} />
             <span>Channel Logs</span>
@@ -462,62 +462,62 @@ export function ChannelManager() {
           <button
             type="button"
             onClick={() => setShowAddChannelModal(true)}
-            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl shadow-xs"
+            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-xl shadow-xs"
           >
-            <Lucide.Plus size={15} strokeWidth={2.4} />
+            <Lucide.Plus size={16} strokeWidth={2.4} />
             <span>Add Channel</span>
           </button>
         </div>
       </div>
 
       {/* 2. STATS / KPI ROW (5 CARDS) */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
         {/* Card 1: Connected Channels */}
-        <div className="pms-card p-4 flex items-center gap-3.5 transition-all hover:shadow-md">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center flex-shrink-0">
-            <Lucide.Link2 size={22} strokeWidth={2.4} />
+        <div className="pms-card p-3 sm:p-3.5 flex items-center gap-3 transition-all hover:shadow-md">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center flex-shrink-0">
+            <Lucide.Link2 size={20} strokeWidth={2.4} />
           </div>
           <div>
-            <div className="text-2xl font-extrabold text-ink leading-tight tnum">6</div>
-            <div className="text-xs font-semibold text-ink-secondary mt-0.5">Connected Channels</div>
+            <div className="text-xl font-bold text-ink leading-tight tnum">6</div>
+            <div className="text-xs font-medium text-ink-secondary mt-0.5">Connected Channels</div>
           </div>
         </div>
 
         {/* Card 2: Total Room Nights */}
-        <div className="pms-card p-4 flex items-center gap-3.5 transition-all hover:shadow-md">
-          <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-            <Lucide.BedDouble size={22} strokeWidth={2.4} />
+        <div className="pms-card p-3 sm:p-3.5 flex items-center gap-3 transition-all hover:shadow-md">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+            <Lucide.BedDouble size={20} strokeWidth={2.4} />
           </div>
           <div>
-            <div className="text-2xl font-extrabold text-ink leading-tight tnum">348</div>
-            <div className="text-xs font-semibold text-ink-secondary mt-0.5">
-              Total Room Nights <span className="text-[11px] font-normal text-ink-muted">(Next 30 days)</span>
+            <div className="text-xl font-bold text-ink leading-tight tnum">348</div>
+            <div className="text-xs font-medium text-ink-secondary mt-0.5">
+              Total Room Nights <span className="text-xs font-normal text-ink-muted">(Next 30 days)</span>
             </div>
           </div>
         </div>
 
         {/* Card 3: Upcoming Bookings */}
-        <div className="pms-card p-4 flex items-center gap-3.5 transition-all hover:shadow-md">
-          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center flex-shrink-0">
-            <Lucide.CalendarDays size={22} strokeWidth={2.4} />
+        <div className="pms-card p-3 sm:p-3.5 flex items-center gap-3 transition-all hover:shadow-md">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center flex-shrink-0">
+            <Lucide.CalendarDays size={20} strokeWidth={2.4} />
           </div>
           <div>
-            <div className="text-2xl font-extrabold text-ink leading-tight tnum">87</div>
-            <div className="text-xs font-semibold text-ink-secondary mt-0.5">
-              Upcoming Bookings <span className="text-[11px] font-normal text-ink-muted">(from channels)</span>
+            <div className="text-xl font-bold text-ink leading-tight tnum">87</div>
+            <div className="text-xs font-medium text-ink-secondary mt-0.5">
+              Upcoming Bookings <span className="text-xs font-normal text-ink-muted">(from channels)</span>
             </div>
           </div>
         </div>
 
         {/* Card 4: Expected Revenue */}
-        <div className="pms-card p-4 flex items-center gap-3.5 transition-all hover:shadow-md">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold text-xl">
+        <div className="pms-card p-3 sm:p-3.5 flex items-center gap-3 transition-all hover:shadow-md">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold text-lg">
             ₹
           </div>
           <div>
-            <div className="text-2xl font-extrabold text-ink leading-tight tnum">₹4,32,680</div>
-            <div className="text-xs font-semibold text-ink-secondary mt-0.5">
-              Expected Revenue <span className="text-[11px] font-normal text-ink-muted">(Next 30 days)</span>
+            <div className="text-xl font-bold text-ink leading-tight tnum">₹4,32,680</div>
+            <div className="text-xs font-medium text-ink-secondary mt-0.5">
+              Expected Revenue <span className="text-xs font-normal text-ink-muted">(Next 30 days)</span>
             </div>
           </div>
         </div>

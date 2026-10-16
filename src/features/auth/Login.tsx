@@ -293,10 +293,10 @@ export function Login() {
                 </p>
               </div>
 
-              <h2 className="mt-5 text-[24px] font-bold text-slate-900 tracking-tight">
+              <h2 className="mt-5 text-2xl font-bold text-slate-900 tracking-tight">
                 {inviteToken ? 'Accept your invitation' : 'Welcome Back'}
               </h2>
-              <p className="mt-1 text-[13px] text-slate-500">
+              <p className="mt-1 text-xs text-slate-500">
                 {inviteToken
                   ? 'Set a secure password to activate your staff account'
                   : 'Sign in to your account to continue'}
@@ -305,13 +305,13 @@ export function Login() {
 
             {/* Login Card */}
             <div className="rounded-2xl border border-slate-200/80 bg-white p-6 sm:p-7 shadow-[0_10px_30px_-5px_rgba(15,23,42,0.06)]">
-              <form onSubmit={submit} className="flex flex-col gap-4">
+              <form onSubmit={submit} className="flex flex-col gap-3">
                 {/* Email Field */}
                 {!inviteToken && (
                   <div>
                     <label
                       htmlFor="email"
-                      className="block text-xs font-semibold text-slate-700 mb-1.5"
+                      className="block text-xs font-medium text-slate-700 mb-1.5"
                     >
                       Email Address
                     </label>
@@ -327,7 +327,7 @@ export function Login() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="Enter your email address"
-                        className="w-full rounded-md border border-slate-200 bg-white py-2.5 pl-10 pr-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10 transition-all"
+                        className="w-full rounded-md border border-slate-200 bg-white py-2.5 pl-10 pr-3.5 text-sm font-normal text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10 transition-all"
                       />
                     </div>
                   </div>
@@ -338,7 +338,7 @@ export function Login() {
                   <div className="flex items-center justify-between mb-1.5">
                     <label
                       htmlFor="password"
-                      className="block text-xs font-semibold text-slate-700"
+                      className="block text-xs font-medium text-slate-700"
                     >
                       {inviteToken ? 'Create Password' : 'Password'}
                     </label>
@@ -365,7 +365,7 @@ export function Login() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder={inviteToken ? 'At least 12 characters' : 'Enter your password'}
-                      className="w-full rounded-md border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10 transition-all"
+                      className="w-full rounded-md border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm font-normal text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10 transition-all"
                     />
                     <button
                       type="button"
@@ -383,7 +383,7 @@ export function Login() {
                   <div>
                     <label
                       htmlFor="confirmPassword"
-                      className="block text-xs font-semibold text-slate-700 mb-1.5"
+                      className="block text-xs font-medium text-slate-700 mb-1.5"
                     >
                       Confirm Password
                     </label>
@@ -400,7 +400,7 @@ export function Login() {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Re-enter your new password"
-                        className="w-full rounded-md border border-slate-200 bg-white py-2.5 pl-10 pr-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10 transition-all"
+                        className="w-full rounded-md border border-slate-200 bg-white py-2.5 pl-10 pr-3.5 text-sm font-normal text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10 transition-all"
                       />
                     </div>
                   </div>
@@ -450,7 +450,7 @@ export function Login() {
               {/* Or continue with divider */}
               {!inviteToken && (
                 <>
-                  <div className="relative my-5">
+                  <div className="relative my-4">
                     <div className="absolute inset-0 flex items-center">
                       <div className="w-full border-t border-slate-200" />
                     </div>
@@ -467,7 +467,7 @@ export function Login() {
                     <button
                       type="button"
                       onClick={() => setSsoInfoModal('Google Single Sign-On')}
-                      className="flex items-center justify-center gap-2.5 rounded-md border border-slate-200 bg-white py-2.5 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 active:bg-slate-100 transition-colors"
+                      className="flex items-center justify-center gap-2.5 rounded-md border border-slate-200 bg-white py-2 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 active:bg-slate-100 transition-colors"
                     >
                       <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" aria-hidden="true">
                         <path
@@ -494,7 +494,7 @@ export function Login() {
                     <button
                       type="button"
                       onClick={() => setSsoInfoModal('Microsoft Single Sign-On')}
-                      className="flex items-center justify-center gap-2.5 rounded-md border border-slate-200 bg-white py-2.5 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 active:bg-slate-100 transition-colors"
+                      className="flex items-center justify-center gap-2.5 rounded-md border border-slate-200 bg-white py-2 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 active:bg-slate-100 transition-colors"
                     >
                       <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" aria-hidden="true">
                         <rect x="1" y="1" width="10" height="10" fill="#F25022" />
@@ -510,12 +510,12 @@ export function Login() {
             </div>
 
             {/* Bottom Contact Administrator text */}
-            <p className="mt-6 text-center text-xs text-slate-500">
+            <p className="mt-5 text-center text-xs text-slate-500">
               Don’t have an account?{' '}
               <button
                 type="button"
                 onClick={() => setAdminContactModal(true)}
-                className="font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:underline cursor-pointer"
+                className="font-medium text-xs text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:underline cursor-pointer"
               >
                 Contact your administrator
               </button>
@@ -524,7 +524,7 @@ export function Login() {
 
           {/* Bottom Copyright / Security Tag */}
           <div className="w-full text-center">
-            <p className="text-[11px] text-slate-400">
+            <p className="text-xs text-slate-400">
               © {new Date().getFullYear()} TriponX Hospitality Technologies. All rights reserved.
             </p>
           </div>
@@ -540,7 +540,7 @@ export function Login() {
             <div className="flex h-11 w-11 items-center justify-center rounded-md bg-[var(--color-muted-surface)] text-[var(--color-primary)] mb-3.5">
               <HelpCircle size={22} />
             </div>
-            <h3 className="text-base font-bold text-slate-900">Reset Your Password</h3>
+            <h3 className="text-base font-semibold text-slate-900">Reset Your Password</h3>
             <p className="mt-2 text-xs text-slate-600 leading-relaxed">
               For security compliance, hotel staff password resets must be initiated by your Property
               Administrator or General Manager.
@@ -555,7 +555,7 @@ export function Login() {
               <button
                 type="button"
                 onClick={() => setForgotPasswordModal(false)}
-                className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-xs font-semibold text-white hover:bg-[var(--color-primary-hover)] cursor-pointer"
+                className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-hover)] cursor-pointer"
               >
                 Got It
               </button>
@@ -571,7 +571,7 @@ export function Login() {
             <div className="flex h-11 w-11 items-center justify-center rounded-md bg-[var(--color-muted-surface)] text-[var(--color-primary)] mb-3.5">
               <Mail size={22} />
             </div>
-            <h3 className="text-base font-bold text-slate-900">Staff Account Access</h3>
+            <h3 className="text-base font-semibold text-slate-900">Staff Account Access</h3>
             <p className="mt-2 text-xs text-slate-600 leading-relaxed">
               New property accounts and staff role assignments are provisioned directly by your hotel
               operations director or management.
@@ -586,7 +586,7 @@ export function Login() {
               <button
                 type="button"
                 onClick={() => setAdminContactModal(false)}
-                className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-xs font-semibold text-white hover:bg-[var(--color-primary-hover)] cursor-pointer"
+                className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-hover)] cursor-pointer"
               >
                 Close
               </button>
@@ -599,7 +599,7 @@ export function Login() {
       {ssoInfoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4 animate-in fade-in duration-200">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-150">
-            <h3 className="text-base font-bold text-slate-900">{ssoInfoModal}</h3>
+            <h3 className="text-base font-semibold text-slate-900">{ssoInfoModal}</h3>
             <p className="mt-2 text-xs text-slate-600 leading-relaxed">
               Enterprise Single Sign-On (SSO) with {ssoInfoModal} is enabled for enterprise hotel
               chains configured through SAML 2.0 / OAuth.
@@ -611,7 +611,7 @@ export function Login() {
               <button
                 type="button"
                 onClick={() => setSsoInfoModal(null)}
-                className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-xs font-semibold text-white hover:bg-[var(--color-primary-hover)] cursor-pointer"
+                className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-hover)] cursor-pointer"
               >
                 Okay
               </button>

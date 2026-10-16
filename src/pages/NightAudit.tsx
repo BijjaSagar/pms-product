@@ -56,19 +56,19 @@ export function NightAudit({ go }: NightAuditProps) {
       {/* ================= 1. HEADER SECTION ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">
+          <h1 className="text-[28px] font-bold tracking-tight text-ink">
             Night Audit
           </h1>
-          <p className="text-xs sm:text-sm text-ink-secondary mt-0.5 font-medium">
+          <p className="text-xs text-ink-secondary mt-1 font-normal">
             Close the day, post room charges, settle accounts and roll over to the next day.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setLogsModalOpen(true)}
-            className="pms-btn-ghost px-3.5 py-2 text-xs font-semibold flex items-center gap-2 border shadow-2xs"
+            className="pms-btn-ghost px-3.5 py-2 text-sm font-medium flex items-center gap-2 border shadow-2xs"
             style={{
               borderColor: 'var(--color-border)',
               background: 'var(--color-surface)',
@@ -82,7 +82,7 @@ export function NightAudit({ go }: NightAuditProps) {
           <button
             type="button"
             onClick={() => go?.({ view: 'reports' })}
-            className="pms-btn-ghost px-3.5 py-2 text-xs font-semibold flex items-center gap-2 border shadow-2xs"
+            className="pms-btn-ghost px-3.5 py-2 text-sm font-medium flex items-center gap-2 border shadow-2xs"
             style={{
               borderColor: 'var(--color-border)',
               background: 'var(--color-surface)',
@@ -113,7 +113,7 @@ export function NightAudit({ go }: NightAuditProps) {
             </div>
             <div>
               <p className="text-sm font-bold text-ink">Pre-Audit Checks</p>
-              <p className="text-[11.5px] text-ink-secondary">Review status &amp; resolve issues</p>
+              <p className="text-xs text-ink-secondary">Review status &amp; resolve issues</p>
             </div>
           </div>
 
@@ -131,7 +131,7 @@ export function NightAudit({ go }: NightAuditProps) {
             </div>
             <div>
               <p className="text-sm font-bold text-ink">Post Charges</p>
-              <p className="text-[11.5px] text-ink-secondary">Apply room and service charges</p>
+              <p className="text-xs text-ink-secondary">Apply room and service charges</p>
             </div>
           </div>
 
@@ -149,7 +149,7 @@ export function NightAudit({ go }: NightAuditProps) {
             </div>
             <div>
               <p className="text-sm font-bold text-ink">Settle &amp; Verify</p>
-              <p className="text-[11.5px] text-ink-secondary">Check payments and balances</p>
+              <p className="text-xs text-ink-secondary">Check payments and balances</p>
             </div>
           </div>
 
@@ -167,32 +167,32 @@ export function NightAudit({ go }: NightAuditProps) {
             </div>
             <div>
               <p className="text-sm font-bold text-ink">Close Day</p>
-              <p className="text-[11.5px] text-ink-secondary">Lock date and roll over</p>
+              <p className="text-xs text-ink-secondary">Lock date and roll over</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* ================= 3. TOP KPI CARDS ROW (5 CARDS) ================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
         {/* KPI 1: Occupied Rooms */}
         <div
-          className="rounded-2xl border p-4 shadow-2xs flex items-center gap-3.5 transition-all"
+          className="rounded-xl border p-3 shadow-xs flex items-center gap-3 transition-all"
           style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
         >
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-none bg-blue-50 text-blue-600 border border-blue-100">
-            <Lucide.Bed size={22} strokeWidth={2} />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-none bg-blue-50 text-blue-600 border border-blue-100">
+            <Lucide.Bed size={20} strokeWidth={2} />
           </div>
           <div>
-            <p className="text-2xl font-black text-ink leading-tight">68</p>
-            <p className="text-xs font-semibold text-ink-secondary">Occupied Rooms</p>
-            <p className="text-[11.5px] font-medium text-ink-muted">68 / 100 (68%)</p>
+            <p className="text-xl font-bold text-ink leading-tight">68</p>
+            <p className="text-xs font-medium text-ink-secondary">Occupied Rooms</p>
+            <p className="text-xs font-normal text-ink-muted">68 / 100 (68%)</p>
           </div>
         </div>
 
         {/* KPI 2: Expected Arrivals */}
         <div
-          className="rounded-2xl border p-4 shadow-2xs flex items-center gap-3.5 transition-all"
+          className="rounded-xl border p-3 shadow-xs flex items-center gap-3 transition-all"
           style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
         >
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-none bg-indigo-50 text-indigo-600 border border-indigo-100">

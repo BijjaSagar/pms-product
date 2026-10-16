@@ -84,15 +84,15 @@ export function Reports({ go }: { go: (t: NavTarget) => void }) {
   ];
 
   return (
-    <div className="flex flex-col gap-3.5">
+    <div className="flex flex-col gap-4">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.BarChart3 className="text-primary" size={26} />
+          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
+            <Lucide.BarChart3 className="text-primary" size={28} />
             <span>Operational & Financial Reports</span>
           </h1>
-          <p className="mt-1 text-sm text-ink-secondary">
+          <p className="mt-1 text-xs text-ink-secondary">
             Property performance analytics, occupancy forecasts, daily flash metrics, and manager audits
           </p>
         </div>
@@ -100,7 +100,7 @@ export function Reports({ go }: { go: (t: NavTarget) => void }) {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border"
+            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3.5 py-2 rounded-xl border border-border"
             title="Refresh analytics"
           >
             <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : ''} />
@@ -117,13 +117,13 @@ export function Reports({ go }: { go: (t: NavTarget) => void }) {
       ) : null}
 
       {/* Navigation Quick Tiles */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         {tiles.map((tile) => (
           <button
             key={tile.title}
             type="button"
             onClick={() => go(tile.target)}
-            className="pms-card pms-card-hover p-3.5 sm:p-4 text-left flex flex-col justify-between transition-all duration-200"
+            className="pms-card pms-card-hover p-3 sm:p-3.5 text-left flex flex-col justify-between transition-all duration-200"
           >
             <div>
               <div className="flex items-center justify-between mb-3">

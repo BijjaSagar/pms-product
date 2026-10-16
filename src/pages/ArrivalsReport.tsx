@@ -27,15 +27,15 @@ export function ArrivalsReport() {
   const net = arrivals.length - departures.length;
 
   return (
-    <div className="flex flex-col gap-3.5">
+    <div className="flex flex-col gap-4">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
+          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
             <Lucide.ArrowLeftRight className="text-primary" size={26} />
             <span>Arrivals & Departures Manifest</span>
           </h1>
-          <p className="mt-1 text-sm text-ink-secondary">
+          <p className="mt-1 text-xs text-ink-secondary">
             Daily guest movements, check-in manifests, departure schedules, and net inventory changes
           </p>
         </div>
@@ -43,7 +43,7 @@ export function ArrivalsReport() {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border"
+            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-xl border border-border"
             title="Refresh movements"
           >
             <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : ''} />
@@ -54,19 +54,19 @@ export function ArrivalsReport() {
 
       {resource.error ? <p role="alert" className="pms-helper">Could not load movement report: {resource.error}</p> : null}
       
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
         {[
           { label: 'Expected arrivals', value: arrivals.length, icon: Lucide.ArrowDownLeft, color: 'var(--color-primary)' },
           { label: 'Expected departures', value: departures.length, icon: Lucide.ArrowUpRight, color: 'var(--color-warning-text)' },
           { label: 'Net room change', value: net >= 0 ? `+${net}` : `${net}`, icon: Lucide.Activity, color: net >= 0 ? 'var(--color-primary)' : 'var(--color-danger-text)' },
           { label: 'Manifest date', value: day, icon: Lucide.Calendar, color: 'var(--color-ink-secondary)' },
         ].map((item) => (
-          <section key={item.label} className="pms-card p-4 transition-all duration-200 hover:-translate-y-0.5" style={{ boxShadow: 'var(--shadow-sm)' }}>
+          <section key={item.label} className="pms-card p-3 sm:p-3.5 transition-all duration-200 hover:-translate-y-0.5" style={{ boxShadow: 'var(--shadow-sm)' }}>
             <div className="flex items-center justify-between">
-              <p className="pms-label">{item.label}</p>
+              <p className="text-xs font-medium text-ink-secondary">{item.label}</p>
               <item.icon size={16} style={{ color: item.color }} />
             </div>
-            <p className="pms-kpi-value tnum mt-1.5">{item.value}</p>
+            <p className="text-xl font-bold text-ink tnum mt-1">{item.value}</p>
           </section>
         ))}
       </div>
@@ -90,7 +90,7 @@ export function ArrivalsReport() {
                   type="date"
                   value={day}
                   onChange={(event) => setDay(event.target.value)}
-                  className={inputClass('border-0 bg-transparent py-1 px-2 tnum text-[13px]')}
+                  className={inputClass('border-0 bg-transparent py-1 px-2 tnum text-sm')}
                   aria-label="Movement business date"
                 />
                 <button
@@ -106,7 +106,7 @@ export function ArrivalsReport() {
               {can('report.export') ? (
                 <button
                   type="button"
-                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-2"
+                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-2 text-sm font-medium"
                   onClick={() => void downloadApiFile(reportsApi.exportMovement(day, day), `movement-${day}.csv`).catch((error: unknown) => toast('Export failed', { detail: displayApiError(error), tone: 'danger' }))}
                 >
                   <Lucide.Download size={14} />
@@ -117,21 +117,21 @@ export function ArrivalsReport() {
           }
         />
 
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 mt-2">
-          <div className="rounded-control border p-3.5" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
-            <div className="flex items-center justify-between mb-3">
-              <span className="flex items-center gap-1.5 font-semibold text-ink text-[14px]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 mt-2">
+          <div className="rounded-control border p-3 sm:p-3.5" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="flex items-center gap-1.5 font-semibold text-ink text-base">
                 <Lucide.ArrowDownLeft size={16} className="text-primary" />
                 <span>Arrivals</span>
               </span>
-              <span className="pms-badge rounded-full px-2 py-0.5 text-[11px] font-semibold bg-primary/10 text-primary">
+              <span className="pms-badge rounded-full px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary">
                 {arrivals.length} expected
               </span>
             </div>
 
             <ul className="flex flex-col gap-2">
               {arrivals.length === 0 ? (
-                <p className="pms-helper py-6 text-center">No arrivals scheduled for {day}.</p>
+                <p className="pms-helper py-6 text-center text-xs text-ink-secondary">No arrivals scheduled for {day}.</p>
               ) : (
                 arrivals.map((row) => (
                   <li
@@ -141,8 +141,8 @@ export function ArrivalsReport() {
                   >
                     <Avatar name={row.guestName ?? 'Guest'} size={32} />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13.5px] font-semibold text-ink">{row.guestName ?? 'Guest'}</span>
-                      <span className="tnum block text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>
+                      <span className="block truncate text-sm font-semibold text-ink">{row.guestName ?? 'Guest'}</span>
+                      <span className="tnum block text-xs text-ink-secondary">
                         {row.bookingCode} · Room {row.roomNumber ?? 'unassigned'} · {row.nights} night{row.nights > 1 ? 's' : ''}
                       </span>
                     </span>
@@ -153,20 +153,20 @@ export function ArrivalsReport() {
             </ul>
           </div>
 
-          <div className="rounded-control border p-3.5" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
-            <div className="flex items-center justify-between mb-3">
-              <span className="flex items-center gap-1.5 font-semibold text-ink text-[14px]">
+          <div className="rounded-control border p-3 sm:p-3.5" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="flex items-center gap-1.5 font-semibold text-ink text-base">
                 <Lucide.ArrowUpRight size={16} className="text-amber-500" />
                 <span>Departures</span>
               </span>
-              <span className="pms-badge rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-500/10 text-amber-600">
+              <span className="pms-badge rounded-full px-2 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-600">
                 {departures.length} scheduled
               </span>
             </div>
 
             <ul className="flex flex-col gap-2">
               {departures.length === 0 ? (
-                <p className="pms-helper py-6 text-center">No departures scheduled for {day}.</p>
+                <p className="pms-helper py-6 text-center text-xs text-ink-secondary">No departures scheduled for {day}.</p>
               ) : (
                 departures.map((row) => (
                   <li
@@ -176,8 +176,8 @@ export function ArrivalsReport() {
                   >
                     <Avatar name={row.guestName ?? 'Guest'} size={32} />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13.5px] font-semibold text-ink">{row.guestName ?? 'Guest'}</span>
-                      <span className="tnum block text-[12px]" style={{ color: 'var(--color-ink-secondary)' }}>
+                      <span className="block truncate text-sm font-semibold text-ink">{row.guestName ?? 'Guest'}</span>
+                      <span className="tnum block text-xs text-ink-secondary">
                         {row.bookingCode} · Room {row.roomNumber ?? 'unassigned'}
                       </span>
                     </span>

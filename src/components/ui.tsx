@@ -56,10 +56,10 @@ export function CardTitle({
   action?: ReactNode;
 }) {
   return (
-    <div className="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+    <div className="mb-2 flex flex-wrap items-start justify-between gap-x-3 gap-y-1.5">
       <div className="min-w-0 flex-1 basis-48">
-        <h3 className="text-xl font-bold tracking-tight text-slate-900 text-balance">{title}</h3>
-        {subtitle ? <p className="text-sm text-slate-500 mt-0.5 text-pretty">{subtitle}</p> : null}
+        <h4 className="text-base font-semibold tracking-tight text-slate-900 text-balance">{title}</h4>
+        {subtitle ? <p className="text-xs text-slate-500 mt-0.5 text-pretty">{subtitle}</p> : null}
       </div>
       {action ? <div className="flex flex-none flex-wrap items-center gap-2">{action}</div> : null}
     </div>

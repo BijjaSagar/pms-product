@@ -1102,26 +1102,26 @@ export function Billing() {
   };
 
   return (
-    <div className="flex flex-col gap-3.5 pb-8">
+    <div className="flex flex-col gap-4 pb-8">
       {/* 1. TOP HEADER & GUEST SELECTOR */}
       <div className="flex flex-col gap-4">
         {/* Title & Action Buttons Row */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
-              <Lucide.ReceiptText className="text-primary" size={26} />
+            <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
+              <Lucide.ReceiptText className="text-primary" size={28} />
               <span>Folios & Billing</span>
             </h1>
-            <p className="text-sm text-ink-secondary mt-0.5">
+            <p className="text-xs text-ink-secondary mt-1">
               View, manage and settle guest folios, post charges and generate invoices
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               type="button"
               onClick={() => window.print()}
-              className="pms-btn-ghost px-3.5 py-2 text-xs font-semibold flex items-center gap-2"
+              className="pms-btn-ghost px-3.5 py-2 text-sm font-medium flex items-center gap-2"
             >
               <Lucide.Printer size={15} />
               <span>Print Folio</span>
@@ -1129,7 +1129,7 @@ export function Billing() {
             <button
               type="button"
               onClick={() => setEmailModalOpen(true)}
-              className="pms-btn-ghost px-3.5 py-2 text-xs font-semibold flex items-center gap-2"
+              className="pms-btn-ghost px-3.5 py-2 text-sm font-medium flex items-center gap-2"
             >
               <Lucide.Mail size={15} />
               <span>Email</span>
@@ -1137,7 +1137,7 @@ export function Billing() {
             <button
               type="button"
               onClick={() => setPostChargeModalOpen(true)}
-              className="pms-btn-primary px-4 py-2 text-xs font-bold flex items-center gap-2"
+              className="pms-btn-primary px-4 py-2 text-sm font-semibold flex items-center gap-2"
             >
               <Lucide.Plus size={16} />
               <span>Add Charge</span>

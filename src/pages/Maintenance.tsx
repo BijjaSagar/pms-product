@@ -146,15 +146,15 @@ export function Maintenance() {
   };
 
   return (
-    <div className="flex flex-col gap-3.5">
+    <div className="flex flex-col gap-4">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.Wrench className="text-primary" size={26} />
+          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
+            <Lucide.Wrench className="text-primary" size={28} />
             <span>Maintenance & Repairs</span>
           </h1>
-          <p className="mt-1 text-sm text-ink-secondary">
+          <p className="mt-1 text-xs text-ink-secondary">
             Manage engineering work orders, prioritize urgent repairs, and return rooms to service
           </p>
         </div>
@@ -162,7 +162,7 @@ export function Maintenance() {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border"
+            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3.5 py-2 rounded-xl border border-border"
             title="Refresh tickets"
           >
             <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : ''} />
@@ -171,7 +171,7 @@ export function Maintenance() {
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-bold rounded-xl"
+            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-xl"
           >
             <Lucide.Plus size={16} strokeWidth={2.4} />
             <span>New Work Order</span>
@@ -187,10 +187,10 @@ export function Maintenance() {
         >
           <Lucide.AlertTriangle size={20} className="text-danger flex-none mt-0.5" />
           <div>
-            <p className="text-[14px] font-bold text-danger">
+            <p className="text-sm font-bold text-danger">
               {oosCount} room(s) currently out of order
             </p>
-            <p className="mt-0.5 text-[13px] text-danger/90">
+            <p className="mt-0.5 text-xs text-danger/90">
               Resolve the maintenance ticket, then return each room to service from Room Overview.
             </p>
           </div>
@@ -205,7 +205,7 @@ export function Maintenance() {
             <button
               type="button"
               onClick={() => setCreating(true)}
-              className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold"
+              className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold"
             >
               <Lucide.Plus size={16} strokeWidth={2.4} />
               <span>New request</span>

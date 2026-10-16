@@ -54,7 +54,7 @@ export function Tabs<T extends string>({
             role="tab"
             aria-selected={selected}
             onClick={() => onChange(t.id)}
-            className="min-h-[38px] flex-none whitespace-nowrap rounded-[9px] px-3.5 py-2 text-[13px] font-semibold snap-start"
+            className="min-h-[38px] flex-none whitespace-nowrap rounded-[9px] px-3.5 py-2 text-sm font-semibold snap-start"
             style={{
               background: selected ? 'var(--color-surface)' : 'transparent',
               color: selected ? 'var(--color-ink)' : 'var(--color-ink-secondary)',
@@ -173,7 +173,7 @@ export function StatCard({
   );
   if (!onClick)
     return (
-      <section className="pms-card relative overflow-hidden p-4">
+      <section className="pms-card relative overflow-hidden p-3 sm:p-3.5">
         {inner}
       </section>
     );
@@ -181,7 +181,7 @@ export function StatCard({
     <button
       type="button"
       onClick={onClick}
-      className="pms-card pms-card-hover relative overflow-hidden p-4 text-left"
+      className="pms-card pms-card-hover relative overflow-hidden p-3 sm:p-3.5 text-left"
       aria-label={`${label}: ${value}. View details`}
     >
       {inner}
@@ -206,7 +206,7 @@ export function FilterChip({
       onClick={onClick}
       aria-pressed={active}
       aria-label={pressedLabel}
-      className="min-h-[34px] flex-none whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[12.5px] font-semibold snap-start"
+      className="min-h-[34px] flex-none whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold snap-start"
       style={{
         borderColor: active ? 'var(--color-primary)' : 'var(--color-border)',
         background: active ? 'var(--color-primary)' : 'var(--color-surface)',

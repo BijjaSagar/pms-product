@@ -21,15 +21,15 @@ export function Properties() {
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
+          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
             <Lucide.Building2 className="text-primary" size={26} />
             <span>Properties & Portfolios</span>
           </h1>
-          <p className="mt-1 text-sm text-ink-secondary">
+          <p className="mt-1 text-xs text-ink-secondary">
             Active hotel properties, location details, multi-property portfolios, and access switching
           </p>
         </div>
@@ -37,7 +37,7 @@ export function Properties() {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border"
+            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-xl border border-border"
             title="Refresh properties"
           >
             <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : ''} />
@@ -53,13 +53,13 @@ export function Properties() {
         />
         {resource.error ? <p role="alert" className="pms-helper">Could not load properties: {resource.error}</p> : null}
         
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 mt-1">
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3 mt-1">
           {properties.map((property) => {
             const current = property.id === me?.activePropertyId;
             return (
               <article
                 key={property.id}
-                className="rounded-xl border p-3.5 sm:p-4 transition-all duration-200 hover:-translate-y-0.5"
+                className="rounded-xl border p-3 sm:p-3.5 transition-all duration-200 hover:-translate-y-0.5"
                 style={{
                   borderColor: current ? 'var(--color-primary)' : 'var(--color-border)',
                   background: current ? 'var(--color-hover-surface)' : 'var(--color-surface)',
@@ -78,8 +78,8 @@ export function Properties() {
                       <Lucide.Building2 size={20} />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-brand text-[17px] font-bold text-ink truncate">{property.name}</p>
-                      <p className="flex items-center gap-1 text-[12.5px] text-ink-secondary mt-0.5 truncate">
+                      <p className="font-brand text-base font-bold text-ink truncate">{property.name}</p>
+                      <p className="flex items-center gap-1 text-xs text-ink-secondary mt-0.5 truncate">
                         <Lucide.MapPin size={12} className="shrink-0 text-ink-muted" />
                         <span>{[property.addressLine1, property.city].filter(Boolean).join(' · ') || property.slug}</span>
                       </p>
@@ -87,7 +87,7 @@ export function Properties() {
                   </div>
                   {current ? (
                     <Badge tone="success">
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 text-xs font-semibold">
                         <Lucide.Check size={11} />
                         <span>Active</span>
                       </span>
@@ -97,34 +97,34 @@ export function Properties() {
                   )}
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-2 text-center">
-                  <div className="rounded-[10px] border p-2.5 bg-surface" style={{ borderColor: 'var(--color-border)' }}>
-                    <p className="flex items-center justify-center gap-1 tnum text-[15px] font-semibold text-ink">
+                <div className="mt-3.5 grid grid-cols-2 gap-2 text-center">
+                  <div className="rounded-[10px] border p-2 sm:p-2.5 bg-surface" style={{ borderColor: 'var(--color-border)' }}>
+                    <p className="flex items-center justify-center gap-1 tnum text-sm font-semibold text-ink">
                       <Lucide.Coins size={14} className="text-ink-muted" />
                       <span>{property.currencyCode}</span>
                     </p>
-                    <p className="pms-helper text-[11px] mt-0.5">Base currency</p>
+                    <p className="text-xs text-ink-secondary mt-0.5">Base currency</p>
                   </div>
-                  <div className="rounded-[10px] border p-2.5 bg-surface" style={{ borderColor: 'var(--color-border)' }}>
-                    <p className="flex items-center justify-center gap-1 tnum text-[14px] font-semibold text-ink truncate" title={property.timezone}>
+                  <div className="rounded-[10px] border p-2 sm:p-2.5 bg-surface" style={{ borderColor: 'var(--color-border)' }}>
+                    <p className="flex items-center justify-center gap-1 tnum text-sm font-semibold text-ink truncate" title={property.timezone}>
                       <Lucide.Clock size={13} className="text-ink-muted shrink-0" />
                       <span className="truncate">{property.timezone.split('/')[1]?.replace('_', ' ') || property.timezone}</span>
                     </p>
-                    <p className="pms-helper text-[11px] mt-0.5">Time zone</p>
+                    <p className="text-xs text-ink-secondary mt-0.5">Time zone</p>
                   </div>
                 </div>
 
                 {!current ? (
                   <button
                     type="button"
-                    className="pms-btn-ghost flex items-center justify-center gap-1.5 mt-4 w-full px-3 py-2.5 text-[13px] font-medium"
+                    className="pms-btn-ghost flex items-center justify-center gap-1.5 mt-3 w-full px-3 py-2 text-sm font-medium"
                     onClick={() => void changeProperty(property.id)}
                   >
                     <span>Switch context</span>
                     <Lucide.ArrowRight size={14} />
                   </button>
                 ) : (
-                  <div className="flex items-center justify-center gap-1.5 mt-4 py-2 text-[12px] font-medium text-primary">
+                  <div className="flex items-center justify-center gap-1.5 mt-3 py-2 text-xs font-medium text-primary">
                     <Lucide.CheckCircle2 size={14} />
                     <span>Current active property context</span>
                   </div>

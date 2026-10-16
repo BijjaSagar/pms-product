@@ -117,15 +117,15 @@ export function Staff() {
   };
 
   return (
-    <div className="flex flex-col gap-3.5">
+    <div className="flex flex-col gap-4">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
+          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
             <Lucide.ShieldCheck className="text-primary" size={26} />
             <span>Staff & Access Roles</span>
           </h1>
-          <p className="mt-1 text-sm text-ink-secondary">
+          <p className="mt-1 text-xs text-ink-secondary">
             Manage team members, property permissions, invitations, and role assignments
           </p>
         </div>
@@ -133,7 +133,7 @@ export function Staff() {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-md border border-border"
+            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-xl border border-border"
             title="Refresh staff"
           >
             <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : ''} />
@@ -142,7 +142,7 @@ export function Staff() {
           {can('user.invite') ? (
             <button
               type="button"
-              className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-bold rounded-md"
+              className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-xl"
               onClick={() => {
                 setIsNew(true);
                 setEmail('');
@@ -157,13 +157,18 @@ export function Staff() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
         {[
           ['Active staff', rows.filter((row) => row.status === 'ACTIVE' && row.membershipActive).length],
           ['Invited', rows.filter((row) => row.status === 'INVITED').length],
           ['Disabled', rows.filter((row) => row.status === 'DISABLED' || !row.membershipActive).length],
           ['Roles', roles.length],
-        ].map(([label, value]) => <section key={label} className="pms-card p-4"><p className="pms-label">{label}</p><p className="pms-kpi-value tnum mt-1">{value}</p></section>)}
+        ].map(([label, value]) => (
+          <section key={label} className="pms-card p-3 sm:p-3.5">
+            <p className="text-xs font-medium text-ink-secondary">{label}</p>
+            <p className="text-xl font-bold text-ink tnum mt-1">{value}</p>
+          </section>
+        ))}
       </div>
       <Card>
         <CardTitle
@@ -189,7 +194,7 @@ export function Staff() {
         />
         {resource.error ? <p role="alert" className="pms-helper mb-3 text-rose-600">Could not load users: {resource.error}</p> : null}
         
-        <div className="mb-4 flex flex-col sm:flex-row items-center gap-2.5">
+        <div className="mb-4 flex flex-col sm:flex-row items-center gap-2">
           <div className="relative flex-1 w-full">
             <Lucide.Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
@@ -200,13 +205,13 @@ export function Staff() {
               }}
               placeholder="Search by name, email or role…"
               aria-label="Search users"
-              className={`${inputClass()} pl-9.5 w-full`}
+              className={`${inputClass('text-sm')} pl-9.5 w-full`}
             />
           </div>
           {q ? (
             <button
               type="button"
-              className="pms-btn-ghost px-3.5 py-2 text-xs font-semibold"
+              className="pms-btn-ghost px-3.5 py-2 text-sm font-medium"
               onClick={() => {
                 setQ('');
                 setPage(0);
@@ -221,32 +226,32 @@ export function Staff() {
           <table className="pms-table min-w-[760px]">
             <thead>
               <tr>
-                <th className="w-12 text-center">#</th>
-                <th>NAME</th>
-                <th>EMAIL</th>
-                <th>ROLE</th>
-                <th>STATUS</th>
-                <th>INVITE STATUS</th>
-                <th className="text-right">ACTIONS</th>
+                <th className="w-12 text-center text-xs font-semibold">#</th>
+                <th className="text-xs font-semibold">NAME</th>
+                <th className="text-xs font-semibold">EMAIL</th>
+                <th className="text-xs font-semibold">ROLE</th>
+                <th className="text-xs font-semibold">STATUS</th>
+                <th className="text-xs font-semibold">INVITE STATUS</th>
+                <th className="text-right text-xs font-semibold">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {paginatedSlice.map((staff, idx) => (
                 <tr key={staff.userId}>
-                  <td className="text-center font-medium text-slate-400 text-xs">
+                  <td className="text-center font-medium text-ink-secondary text-xs">
                     {safePage * pageSize + idx + 1}
                   </td>
                   <td>
                     <div className="flex items-center gap-3">
                       <Avatar name={staff.fullName} size={36} />
                       <div>
-                        <span className="block font-semibold text-slate-900 text-sm">{staff.fullName}</span>
-                        <span className="block font-mono text-[11px] text-slate-400">{staff.userId}</span>
+                        <span className="block font-semibold text-ink text-sm">{staff.fullName}</span>
+                        <span className="block font-mono text-xs text-ink-secondary">{staff.userId}</span>
                       </div>
                     </div>
                   </td>
                   <td>
-                    <span className="text-slate-600 text-sm">{staff.email}</span>
+                    <span className="text-ink text-sm">{staff.email}</span>
                   </td>
                   <td>
                     {roleBadge(staff.roleName || staff.roleKey)}
@@ -256,15 +261,15 @@ export function Staff() {
                   </td>
                   <td>
                     {staff.invitePending ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">
                         Pending
                       </span>
                     ) : staff.inviteExpired ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200/60">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/60">
                         Expired
                       </span>
                     ) : (
-                      <span className="text-slate-400 text-xs">—</span>
+                      <span className="text-ink-secondary text-xs">—</span>
                     )}
                   </td>
                   <td className="text-right">
@@ -296,7 +301,7 @@ export function Staff() {
               ))}
             </tbody>
           </table>
-          {filtered.length === 0 ? <p className="pms-helper py-8 text-center text-slate-400">No registered users match your query.</p> : null}
+          {filtered.length === 0 ? <p className="pms-helper py-8 text-center text-xs text-ink-secondary">No registered users match your query.</p> : null}
         </TableContainer>
 
         <div className="mt-4 pt-1">
@@ -313,12 +318,12 @@ export function Staff() {
         <div className="flex flex-col gap-3">
           {resource.data.matrix.resources.map((group) => (
             <div key={group.resource}>
-              <p className="pms-label mb-1">{group.resource}</p>
+              <p className="text-sm font-semibold text-ink mb-1">{group.resource}</p>
               <div className="overflow-x-auto"><table className="pms-table min-w-[640px]">
-                <thead><tr><th>Permission</th>{resource.data?.matrix?.roles.map((role) => <th key={role.key}>{role.name}</th>)}</tr></thead>
+                <thead><tr><th className="text-xs font-semibold">Permission</th>{resource.data?.matrix?.roles.map((role) => <th key={role.key} className="text-xs font-semibold">{role.name}</th>)}</tr></thead>
                 <tbody>{group.permissions.map((permission) => <tr key={permission.key}>
-                  <td><span className="block font-medium">{permission.key}</span><span className="block text-[11.5px]" style={{ color: 'var(--color-ink-secondary)' }}>{permission.description}</span></td>
-                  {resource.data?.matrix?.roles.map((role) => <td key={role.key} className="text-center">{permission.roles.includes(role.key) ? '✓' : '—'}</td>)}
+                  <td><span className="block font-medium text-sm text-ink">{permission.key}</span><span className="block text-xs text-ink-secondary">{permission.description}</span></td>
+                  {resource.data?.matrix?.roles.map((role) => <td key={role.key} className="text-center text-sm">{permission.roles.includes(role.key) ? '✓' : '—'}</td>)}
                 </tr>)}</tbody>
               </table></div>
             </div>
@@ -328,25 +333,25 @@ export function Staff() {
       {roles.length ? <Card>
         <CardTitle title="Role catalogue" subtitle="Role permissions are managed in the backend" />
         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-          {roles.map((role: RoleRow) => <div key={role.id} className="rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}>
-            <div className="flex items-center justify-between gap-2"><span className="font-semibold">{role.name}</span><Badge tone={role.isActive ? 'success' : 'neutral'}>{role.memberCount} members</Badge></div>
-            <p className="pms-helper mt-1">{role.description ?? role.key}</p>
-            <p className="mt-1 text-[11.5px]" style={{ color: 'var(--color-ink-secondary)' }}>{role.permissions.length} permissions{role.isSystem ? ' · system role' : ''}</p>
+          {roles.map((role: RoleRow) => <div key={role.id} className="rounded-control border p-3 sm:p-3.5" style={{ borderColor: 'var(--color-border)' }}>
+            <div className="flex items-center justify-between gap-2"><span className="text-sm font-semibold text-ink">{role.name}</span><Badge tone={role.isActive ? 'success' : 'neutral'}>{role.memberCount} members</Badge></div>
+            <p className="text-xs text-ink-secondary mt-1">{role.description ?? role.key}</p>
+            <p className="mt-1 text-xs text-ink-secondary">{role.permissions.length} permissions{role.isSystem ? ' · system role' : ''}</p>
           </div>)}
         </div>
       </Card> : null}
       <Modal open={isNew || editing !== null} onClose={() => { setEditing(null); setIsNew(false); }} title={isNew ? 'Invite staff member' : `Manage ${editing?.fullName ?? ''}`} subtitle={isNew ? 'The backend returns an invite token; it does not send email.' : 'Changes are checked against your permissions'} wide>
         {isNew ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Full name"><input value={fullName} onChange={(event) => setFullName(event.target.value)} className={inputClass()} /></Field>
-          <Field label="Email"><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass()} /></Field>
-          <Field label="Role"><select value={roleKey} onChange={(event) => setRoleKey(event.target.value)} className={inputClass()}>{roles.map((role: RoleRow) => <option key={role.key} value={role.key}>{role.name}</option>)}</select></Field>
-          <div className="flex items-end"><button type="button" className="pms-btn-primary w-full px-4 py-2.5" onClick={() => void save()}>Create invitation</button></div>
+          <Field label="Full name"><input value={fullName} onChange={(event) => setFullName(event.target.value)} className={inputClass('text-sm')} /></Field>
+          <Field label="Email"><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass('text-sm')} /></Field>
+          <Field label="Role"><select value={roleKey} onChange={(event) => setRoleKey(event.target.value)} className={inputClass('text-sm')}>{roles.map((role: RoleRow) => <option key={role.key} value={role.key}>{role.name}</option>)}</select></Field>
+          <div className="flex items-end"><button type="button" className="pms-btn-primary w-full px-4 py-2.5 text-sm font-semibold" onClick={() => void save()}>Create invitation</button></div>
         </div> : editing ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Full name"><input disabled={!can('user.update')} value={editing.fullName} onChange={(event) => setEditing({ ...editing, fullName: event.target.value })} className={inputClass()} /></Field>
-          <Field label="Role"><select disabled={!can('role.assign')} value={editing.roleKey} onChange={(event) => setEditing({ ...editing, roleKey: event.target.value })} className={inputClass()}>{roles.map((role: RoleRow) => <option key={role.key} value={role.key}>{role.name}</option>)}</select></Field>
-          <Field label="Status"><select disabled={!can('user.deactivate')} value={editing.status === 'ACTIVE' ? 'ACTIVE' : 'DISABLED'} onChange={(event) => setEditing({ ...editing, status: event.target.value as StaffRow['status'] })} className={inputClass()}><option value="ACTIVE">Active</option><option value="DISABLED">Disabled</option></select></Field>
-          <div className="flex items-end"><button type="button" className="pms-btn-primary w-full px-4 py-2.5" onClick={() => void save()}>Save changes</button></div>
-          {editing.status === 'INVITED' && can('user.invite') ? <div className="flex gap-2 sm:col-span-2"><button type="button" className="pms-btn-ghost flex-1 px-4 py-2.5" onClick={() => void updateInvite('reissue')}>Reissue invitation</button><button type="button" className="pms-btn-ghost flex-1 px-4 py-2.5" onClick={() => void updateInvite('cancel')}>Cancel invitation</button></div> : null}
+          <Field label="Full name"><input disabled={!can('user.update')} value={editing.fullName} onChange={(event) => setEditing({ ...editing, fullName: event.target.value })} className={inputClass('text-sm')} /></Field>
+          <Field label="Role"><select disabled={!can('role.assign')} value={editing.roleKey} onChange={(event) => setEditing({ ...editing, roleKey: event.target.value })} className={inputClass('text-sm')}>{roles.map((role: RoleRow) => <option key={role.key} value={role.key}>{role.name}</option>)}</select></Field>
+          <Field label="Status"><select disabled={!can('user.deactivate')} value={editing.status === 'ACTIVE' ? 'ACTIVE' : 'DISABLED'} onChange={(event) => setEditing({ ...editing, status: event.target.value as StaffRow['status'] })} className={inputClass('text-sm')}><option value="ACTIVE">Active</option><option value="DISABLED">Disabled</option></select></Field>
+          <div className="flex items-end"><button type="button" className="pms-btn-primary w-full px-4 py-2.5 text-sm font-semibold" onClick={() => void save()}>Save changes</button></div>
+          {editing.status === 'INVITED' && can('user.invite') ? <div className="flex gap-2 sm:col-span-2"><button type="button" className="pms-btn-ghost flex-1 px-4 py-2.5 text-sm font-medium" onClick={() => void updateInvite('reissue')}>Reissue invitation</button><button type="button" className="pms-btn-ghost flex-1 px-4 py-2.5 text-sm font-medium" onClick={() => void updateInvite('cancel')}>Cancel invitation</button></div> : null}
         </div> : null}
       </Modal>
     </div>

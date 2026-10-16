@@ -258,15 +258,15 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
   }
 
   return (
-    <div className="flex flex-col gap-3.5">
+    <div className="flex flex-col gap-4">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.UserPlus className="text-primary" size={26} />
+          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
+            <Lucide.UserPlus className="text-primary" size={28} />
             <span>Walk-In Registration</span>
           </h1>
-          <p className="mt-1 text-sm text-ink-secondary">
+          <p className="mt-1 text-xs text-ink-secondary">
             Fast-track same-day check-in, immediate room assignment, and key deposit collection
           </p>
         </div>
@@ -274,9 +274,9 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
           <button
             type="button"
             onClick={() => go({ view: 'check-in' })}
-            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-md border border-border"
+            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3.5 py-2 rounded-md border border-border"
           >
-            <Lucide.LogIn size={14} />
+            <Lucide.LogIn size={15} />
             <span>Check-in Desk</span>
           </button>
         </div>
@@ -287,7 +287,7 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
         {/* Guest Information */}
         <Card>
           <CardTitle title="Guest Information" subtitle="Immediate walk-in registration" />
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 mt-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-2">
             <Field label="Guest full name">
               <input
                 value={name}

@@ -481,8 +481,8 @@ export function NewReservation({ go, onOpenThemes }: { go: (t: NavTarget) => voi
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <h1 className="text-[24px] font-bold tracking-tight text-slate-900">New Reservation</h1>
-            <p className="text-xs text-slate-500 mt-0.5">Create a new booking for your guest</p>
+            <h1 className="text-[28px] font-bold tracking-tight text-slate-900">New Reservation</h1>
+            <p className="text-xs text-slate-500 mt-1">Create a new booking for your guest</p>
           </div>
 
           {/* Stepper Progress Bar */}
