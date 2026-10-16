@@ -527,7 +527,7 @@ export function StatusBoard() {
           <button
             type="button"
             onClick={() => toast('Date picker dialog', { tone: 'info' })}
-            className="flex items-center gap-2 rounded-xl border px-3 py-1.5 text-[13px] font-semibold text-ink shadow-2xs hover:bg-black/[0.03] transition-colors"
+            className="flex items-center gap-2 rounded-md border px-3 py-1.5 text-[13px] font-semibold text-ink shadow-2xs hover:bg-black/[0.03] transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
             <Lucide.Calendar size={15} className="text-ink-secondary" />
@@ -541,7 +541,7 @@ export function StatusBoard() {
               setCurrentDate('Oct 16, 2026');
               toast('Jumped to Today', { tone: 'success' });
             }}
-            className="rounded-xl border px-3 py-1.5 text-[13px] font-semibold text-primary shadow-2xs hover:bg-black/[0.03] transition-colors"
+            className="rounded-md border px-3 py-1.5 text-[13px] font-semibold text-primary shadow-2xs hover:bg-black/[0.03] transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
             Today
@@ -549,7 +549,7 @@ export function StatusBoard() {
 
           {/* Grid vs Timeline Switcher */}
           <div
-            className="flex rounded-xl border p-0.5 gap-0.5 shadow-2xs"
+            className="flex rounded-md border p-0.5 gap-0.5 shadow-2xs"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
             <button
@@ -580,7 +580,7 @@ export function StatusBoard() {
           <button
             type="button"
             onClick={() => toast('Status board options: Export, Print, Refresh', { tone: 'info' })}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border text-ink-secondary hover:text-ink hover:bg-black/[0.03] transition-colors shadow-2xs"
+            className="flex h-9 w-9 items-center justify-center rounded-md border text-ink-secondary hover:text-ink hover:bg-black/[0.03] transition-colors shadow-2xs"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             title="More actions"
           >
@@ -764,7 +764,7 @@ export function StatusBoard() {
                                         event: ev,
                                       })
                                     }}
-                                    className="absolute h-9 rounded-xl border flex items-center justify-center px-3 text-center cursor-pointer shadow-2xs transition-all hover:scale-[1.01] hover:shadow-sm"
+                                    className="absolute h-9 rounded-md border flex items-center justify-center px-3 text-center cursor-pointer shadow-2xs transition-all hover:scale-[1.01] hover:shadow-sm"
                                     style={{
                                       left: `${Math.max(0.5, leftPercent)}%`,
                                       width: `${Math.min(99, widthPercent - 1)}%`,
@@ -846,7 +846,7 @@ export function StatusBoard() {
                             event: primaryEv,
                           })
                         }
-                        className="rounded-xl border p-3 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-sm"
+                        className="rounded-md border p-3 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-sm"
                         style={{
                           background: style.bg,
                           borderColor: style.border,
@@ -932,7 +932,7 @@ export function StatusBoard() {
                 <button
                   type="button"
                   onClick={() => setSelectedRoomModal(null)}
-                  className="rounded-xl p-1.5 text-ink-muted hover:text-ink hover:bg-black/[0.05] transition-colors"
+                  className="rounded-md p-1.5 text-ink-muted hover:text-ink hover:bg-black/[0.05] transition-colors"
                   aria-label="Close dialog"
                 >
                   <Lucide.X size={19} />
@@ -961,7 +961,7 @@ export function StatusBoard() {
                           key={opt.type}
                           type="button"
                           onClick={() => updateRoomStatus(selectedRoomModal.number, opt.type)}
-                          className={`flex items-center gap-1.5 p-2 rounded-xl border text-[12px] font-bold transition-all ${
+                          className={`flex items-center gap-1.5 p-2 rounded-md border text-[12px] font-bold transition-all ${
                             isCurrent ? 'ring-2 ring-primary ring-offset-1 shadow-xs' : 'hover:scale-[1.02]'
                           }`}
                           style={{
@@ -1050,7 +1050,7 @@ export function StatusBoard() {
                 <button
                   type="button"
                   onClick={() => setSelectedRoomModal(null)}
-                  className="rounded-xl border px-4 py-2 text-[12.5px] font-bold text-ink hover:bg-black/[0.04] transition-colors"
+                  className="rounded-md border px-4 py-2 text-[12.5px] font-bold text-ink hover:bg-black/[0.04] transition-colors"
                   style={{ borderColor: 'var(--color-border)' }}
                 >
                   Close
@@ -1061,7 +1061,7 @@ export function StatusBoard() {
                     updateRoomStatus(selectedRoomModal.number, 'Inspected');
                     setSelectedRoomModal(null);
                   }}
-                  className="pms-btn-primary px-4 py-2 text-[12.5px] font-bold rounded-xl shadow-xs"
+                  className="pms-btn-primary px-4 py-2 text-[12.5px] font-bold rounded-md shadow-xs"
                 >
                   Mark Inspected & Ready
                 </button>

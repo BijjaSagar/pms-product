@@ -6,4 +6,5 @@ export type ThemeKey =
   | 'SOFT_BLUE_SLATE'
   | 'EUCALYPTUS'
   | 'OLIVE_CREAM'
-  | 'DUSTY_LAVENDER';
+  | 'DUSTY_LAVENDER'
+  | 'CRIMSON_RED';

@@ -7,7 +7,7 @@
   --font-brand: 'Playfair Display', Georgia, serif;
   --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
 
-  --radius-control: 10px;
+  --radius-control: 6px;
   --radius-card: 16px;
   --radius-modal: 20px;
   --radius-pill: 999px;
@@ -62,7 +62,7 @@
   --color-dark-accent: #12304a;
   --color-soft: #60a5fa;
   --color-page: #f8fafc;
-  --color-sidebar: #12304a;
+  --color-sidebar: #ffffff;
   --color-surface: #ffffff;
   --color-elevated: #ffffff;
   --color-hover-surface: #e8f0fe;
@@ -76,14 +76,13 @@
   --color-focus: #1d4ed8;
   --color-selection: rgb(29 78 216 / 0.18);
 
-  /* Sidebar contrast + scrim, derived from the palette so navigation and every
-     overlay follow the active preset instead of a hardcoded colour. */
-  --color-sidebar-ink: rgb(255 255 255 / 0.85);
-  --color-sidebar-ink-strong: #ffffff;
-  --color-sidebar-ink-muted: rgb(255 255 255 / 0.72);
-  --color-sidebar-border: rgb(255 255 255 / 0.22);
-  --color-sidebar-active-bg: var(--color-surface);
-  --color-sidebar-active-ink: var(--color-dark-accent);
+  /* Sidebar contrast + scrim: white sidebar background with theme-aware active tokens */
+  --color-sidebar-ink: #64748b;
+  --color-sidebar-ink-strong: #0f172a;
+  --color-sidebar-ink-muted: #94a3b8;
+  --color-sidebar-border: #e2e8f0;
+  --color-sidebar-active-bg: var(--color-muted-surface);
+  --color-sidebar-active-ink: var(--color-primary);
   --color-scrim: rgb(20 14 10 / 0.45);
 }
 
@@ -96,7 +95,7 @@
   --color-dark-accent: #075985;
   --color-soft: #7dd3fc;
   --color-page: #ffffff;
-  --color-sidebar: var(--color-primary);
+  --color-sidebar: #ffffff;
   --color-surface: #ffffff;
   --color-elevated: #ffffff;
   --color-hover-surface: #f0f9ff;
@@ -120,7 +119,7 @@
   --color-dark-accent: #594638;
   --color-soft: #d7c6b4;
   --color-page: #faf7f2;
-  --color-sidebar: var(--color-primary);
+  --color-sidebar: #ffffff;
   --color-surface: #ffffff;
   --color-elevated: #ffffff;
   --color-hover-surface: #f3ece3;
@@ -144,7 +143,7 @@
   --color-dark-accent: #344e43;
   --color-soft: #b7c9be;
   --color-page: #f7f8f5;
-  --color-sidebar: var(--color-primary);
+  --color-sidebar: #ffffff;
   --color-surface: #ffffff;
   --color-elevated: #ffffff;
   --color-hover-surface: #eef3ef;
@@ -168,7 +167,7 @@
   --color-dark-accent: #34495e;
   --color-soft: #c4d3e0;
   --color-page: #f7f9fc;
-  --color-sidebar: var(--color-primary);
+  --color-sidebar: #ffffff;
   --color-surface: #ffffff;
   --color-elevated: #ffffff;
   --color-hover-surface: #eef2f7;
@@ -192,7 +191,7 @@
   --color-dark-accent: #31534e;
   --color-soft: #b9d0c9;
   --color-page: #f5f8f6;
-  --color-sidebar: var(--color-primary);
+  --color-sidebar: #ffffff;
   --color-surface: #ffffff;
   --color-elevated: #ffffff;
   --color-hover-surface: #ecf3f0;
@@ -216,7 +215,7 @@
   --color-dark-accent: #424e38;
   --color-soft: #c7d0b9;
   --color-page: #faf9f4;
-  --color-sidebar: var(--color-primary);
+  --color-sidebar: #ffffff;
   --color-surface: #ffffff;
   --color-elevated: #ffffff;
   --color-hover-surface: #f0f3ea;
@@ -240,7 +239,7 @@
   --color-dark-accent: #504464;
   --color-soft: #d4c9e2;
   --color-page: #f8f7fa;
-  --color-sidebar: var(--color-primary);
+  --color-sidebar: #ffffff;
   --color-surface: #ffffff;
   --color-elevated: #ffffff;
   --color-hover-surface: #f2edf7;
@@ -264,7 +263,7 @@
   --color-dark-accent: #12304a;
   --color-soft: #60a5fa;
   --color-page: #f8fafc;
-  --color-sidebar: #12304a;
+  --color-sidebar: #ffffff;
   --color-surface: #ffffff;
   --color-elevated: #ffffff;
   --color-hover-surface: #e8f0fe;
@@ -277,6 +276,30 @@
   --color-divider: #e4edf5;
   --color-focus: #1d4ed8;
   --color-selection: rgb(29 78 216 / 0.18);
+}
+
+/* ================= Theme I — Crimson Red ================= */
+:root[data-preset='crimson'] {
+  --color-primary: #c62828;
+  --color-primary-hover: #b71c1c;
+  --color-primary-active: #7f0000;
+  --color-primary-foreground: #ffffff;
+  --color-dark-accent: #7f0000;
+  --color-soft: #ef9a9a;
+  --color-page: #ffffff;
+  --color-sidebar: #ffffff;
+  --color-surface: #ffffff;
+  --color-elevated: #ffffff;
+  --color-hover-surface: #f5f5f5;
+  --color-muted-surface: #ffebee;
+  --color-ink: #212121;
+  --color-ink-secondary: #616161;
+  --color-ink-muted: #9e9e9e;
+  --color-ink-disabled: #bdbdbd;
+  --color-border: #e0e0e0;
+  --color-divider: #eeeeee;
+  --color-focus: #c62828;
+  --color-selection: rgb(198 40 40 / 0.18);
 }
 
 /* Spec aliases (§5 example names) map onto the canonical tokens above. */

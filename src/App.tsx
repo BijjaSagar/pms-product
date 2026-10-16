@@ -25,6 +25,7 @@ const THEME_KEY_TO_PRESET: Record<ThemeKey, ThemePresetId> = {
   EUCALYPTUS: 'eucalyptus',
   OLIVE_CREAM: 'olive',
   DUSTY_LAVENDER: 'lavender',
+  CRIMSON_RED: 'crimson',
 };
 const PRESET_TO_THEME_KEY = Object.fromEntries(Object.entries(THEME_KEY_TO_PRESET).map(([key, value]) => [value, key])) as Record<string, ThemeKey>;
 
@@ -105,11 +106,11 @@ function Shell() {
     }
     switch (view) {
       case 'dashboard':
-        return <Dashboard go={go} />;
+        return <Dashboard go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'reservations':
-        return <Reservations initialQuery={target.query} focusId={target.focusId} go={go} />;
+        return <Reservations initialQuery={target.query} focusId={target.focusId} go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'new-reservation':
-        return <NewReservation go={go} />;
+        return <NewReservation go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'rate-management':
         return <RateManagement />;
       case 'channel-manager':
@@ -179,7 +180,7 @@ function Shell() {
           onOpenThemes={() => setSwatcherOpen(true)}
           onGo={go}
         />
-        <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}`} className="pms-animate-fade-up mx-auto w-full max-w-[1280px] flex-1 px-3 py-4 sm:px-5 sm:py-6 lg:px-8 2xl:max-w-[1440px]">
+        <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}`} className={`pms-animate-fade-up mx-auto w-full flex-1 px-3 py-4 sm:px-5 sm:py-6 lg:px-8 ${view === 'dashboard' || view === 'new-reservation' || view === 'reservations' || view === 'status-board' ? 'max-w-[1600px] 2xl:max-w-[1760px]' : 'max-w-[1280px] 2xl:max-w-[1440px]'}`}>
           <Suspense fallback={<PageFallback />}>{page}</Suspense>
         </main>
         <footer
@@ -187,7 +188,7 @@ function Shell() {
           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
         >
           <p className="tnum mx-auto w-full max-w-[1280px] text-[11.5px] font-medium 2xl:max-w-[1440px]" style={{ color: 'var(--color-ink-secondary)' }}>
-            TriponX PMS · {THEME_PRESETS[preset].name} · 8 colour themes ·
+            TriponX PMS · {THEME_PRESETS[preset]?.name ?? 'Theme'} · 9 colour themes ·
             status colours fixed across themes · unsupported modules remain demo-only
           </p>
         </footer>

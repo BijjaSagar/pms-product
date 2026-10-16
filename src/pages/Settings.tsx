@@ -223,7 +223,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
               key={t.id}
               type="button"
               onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-semibold whitespace-nowrap transition-all ${
+              className={`flex items-center gap-2 rounded-md px-4 py-2.5 text-[13px] font-semibold whitespace-nowrap transition-all ${
                 isActive
                   ? 'text-white shadow-sm'
                   : 'text-ink-secondary hover:text-ink hover:bg-black/[0.03]'
@@ -262,7 +262,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                     type="button"
                     onClick={() => void handleSaveBasic()}
                     disabled={saving}
-                    className="pms-btn-primary px-4 py-2 text-[13px] font-semibold rounded-xl shadow-xs disabled:opacity-50"
+                    className="pms-btn-primary px-4 py-2 text-[13px] font-semibold rounded-md shadow-xs disabled:opacity-50"
                   >
                     Save Changes
                   </button>
@@ -278,7 +278,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                       type="text"
                       value={propertyName}
                       onChange={(e) => setPropertyName(e.target.value)}
-                      className="w-full rounded-xl border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -292,7 +292,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                       type="text"
                       value={propertyCode}
                       onChange={(e) => setPropertyCode(e.target.value.toUpperCase())}
-                      className="w-full rounded-xl border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 uppercase"
+                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 uppercase"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -305,7 +305,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                     <select
                       value={propertyType}
                       onChange={(e) => setPropertyType(e.target.value)}
-                      className="w-full rounded-xl border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>Hotel</option>
@@ -325,7 +325,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                           Star Rating
                         </label>
                         <div
-                          className="flex items-center justify-between rounded-xl border px-3.5 py-2"
+                          className="flex items-center justify-between rounded-md border px-3.5 py-2"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         >
                           <div className="flex items-center gap-1 text-amber-500">
@@ -357,7 +357,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                           type="text"
                           value={addressLine1}
                           onChange={(e) => setAddressLine1(e.target.value)}
-                          className="w-full rounded-xl border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
@@ -373,7 +373,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                       type="text"
                       value={addressLine2}
                       onChange={(e) => setAddressLine2(e.target.value)}
-                      className="w-full rounded-xl border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -385,7 +385,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="w-full rounded-xl border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -396,7 +396,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                       type="text"
                       value={stateProvince}
                       onChange={(e) => setStateProvince(e.target.value)}
-                      className="w-full rounded-xl border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -407,7 +407,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                       type="text"
                       value={country}
                       onChange={(e) => setCountry(e.target.value)}
-                      className="w-full rounded-xl border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -418,7 +418,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                       type="text"
                       value={postalCode}
                       onChange={(e) => setPostalCode(e.target.value)}
-                      className="w-full rounded-xl border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -433,7 +433,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                           type="text"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          className="w-full rounded-xl border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
@@ -447,7 +447,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className="w-full rounded-xl border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
@@ -461,7 +461,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                           type="text"
                           value={website}
                           onChange={(e) => setWebsite(e.target.value)}
-                          className="w-full rounded-xl border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
@@ -483,7 +483,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                 </div>
 
                 {/* Cover Image Banner */}
-                <div className="relative h-36 w-full rounded-xl overflow-hidden shadow-xs mb-4 group">
+                <div className="relative h-36 w-full rounded-md overflow-hidden shadow-xs mb-4 group">
                   <img
                     src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=85"
                     alt="Resort Cover"
@@ -501,9 +501,9 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                 </div>
 
                 {/* Logo Section */}
-                <div className="flex items-center gap-3.5 mb-5 p-3 rounded-xl border" style={{ borderColor: 'var(--color-border-subtle)', background: 'color-mix(in srgb, var(--color-muted-surface) 40%, var(--color-surface))' }}>
+                <div className="flex items-center gap-3.5 mb-5 p-3 rounded-md border" style={{ borderColor: 'var(--color-border-subtle)', background: 'color-mix(in srgb, var(--color-muted-surface) 40%, var(--color-surface))' }}>
                   <div
-                    className="flex h-16 w-16 flex-none items-center justify-center rounded-xl border bg-white shadow-xs p-1 text-center"
+                    className="flex h-16 w-16 flex-none items-center justify-center rounded-md border bg-white shadow-xs p-1 text-center"
                     style={{ borderColor: 'var(--color-border)' }}
                   >
                     <div className="flex flex-col items-center justify-center">
@@ -539,14 +539,14 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                       'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=300&q=80',
                       'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?auto=format&fit=crop&w=300&q=80',
                     ].map((src, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border shadow-2xs group" style={{ borderColor: 'var(--color-border)' }}>
+                      <div key={idx} className="relative aspect-square rounded-md overflow-hidden border shadow-2xs group" style={{ borderColor: 'var(--color-border)' }}>
                         <img src={src} alt="Gallery thumb" className="h-full w-full object-cover transition-transform group-hover:scale-110" />
                       </div>
                     ))}
                     <button
                       type="button"
                       onClick={() => toast('Add gallery photos dialog', { tone: 'info' })}
-                      className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed aspect-square transition-colors hover:border-primary hover:text-primary"
+                      className="flex flex-col items-center justify-center rounded-md border-2 border-dashed aspect-square transition-colors hover:border-primary hover:text-primary"
                       style={{ borderColor: 'var(--color-border)', color: 'var(--color-ink-muted)' }}
                     >
                       <Lucide.Plus size={16} strokeWidth={2.4} />
@@ -574,7 +574,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                   <button
                     type="button"
                     onClick={handleSaveContact}
-                    className="pms-btn-primary px-3.5 py-1.5 text-[12.5px] font-semibold rounded-xl shadow-xs"
+                    className="pms-btn-primary px-3.5 py-1.5 text-[12.5px] font-semibold rounded-md shadow-xs"
                   >
                     Save Changes
                   </button>
@@ -589,7 +589,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                         type="text"
                         value={frontDeskPhone}
                         onChange={(e) => setFrontDeskPhone(e.target.value)}
-                        className="w-full rounded-xl border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
@@ -603,7 +603,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                         type="email"
                         value={reservationsEmail}
                         onChange={(e) => setReservationsEmail(e.target.value)}
-                        className="w-full rounded-xl border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
@@ -617,7 +617,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                         type="email"
                         value={generalEmail}
                         onChange={(e) => setGeneralEmail(e.target.value)}
-                        className="w-full rounded-xl border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
@@ -631,7 +631,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                         type="text"
                         value={emergencyPhone}
                         onChange={(e) => setEmergencyPhone(e.target.value)}
-                        className="w-full rounded-xl border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-[13.5px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
@@ -655,7 +655,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                     type="button"
                     onClick={() => void handleSaveOperations()}
                     disabled={saving}
-                    className="pms-btn-primary px-3.5 py-1.5 text-[12.5px] font-semibold rounded-xl shadow-xs disabled:opacity-50"
+                    className="pms-btn-primary px-3.5 py-1.5 text-[12.5px] font-semibold rounded-md shadow-xs disabled:opacity-50"
                   >
                     Save Changes
                   </button>
@@ -667,7 +667,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                     <select
                       value={timeZone}
                       onChange={(e) => setTimeZone(e.target.value)}
-                      className="w-full rounded-xl border px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>(GMT+05:30) India Standard Time</option>
@@ -683,7 +683,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                     <select
                       value={dateFormat}
                       onChange={(e) => setDateFormat(e.target.value)}
-                      className="w-full rounded-xl border px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>DD/MM/YYYY</option>
@@ -700,7 +700,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                         type="text"
                         value={checkInTime}
                         onChange={(e) => setCheckInTime(e.target.value)}
-                        className="w-full rounded-xl border pl-8 pr-2.5 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-8 pr-2.5 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
@@ -714,7 +714,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                         type="text"
                         value={checkOutTime}
                         onChange={(e) => setCheckOutTime(e.target.value)}
-                        className="w-full rounded-xl border pl-8 pr-2.5 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-8 pr-2.5 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
@@ -725,7 +725,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                     <select
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value)}
-                      className="w-full rounded-xl border px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>INR - Indian Rupee (₹)</option>
@@ -742,7 +742,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                       type="number"
                       value={floors}
                       onChange={(e) => setFloors(e.target.value)}
-                      className="w-full rounded-xl border px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -753,7 +753,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                       type="number"
                       value={totalRooms}
                       onChange={(e) => setTotalRooms(e.target.value)}
-                      className="w-full rounded-xl border px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -777,10 +777,10 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                   <button
                     type="button"
                     onClick={() => setActiveTab('taxes')}
-                    className="flex flex-col items-start p-3.5 rounded-xl border text-left transition-all hover:shadow-xs hover:border-primary group"
+                    className="flex flex-col items-start p-3.5 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 mb-2 group-hover:scale-105 transition-transform">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-blue-600 mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.Building2 size={18} strokeWidth={2.2} />
                     </div>
                     <span className="text-[13px] font-bold text-ink leading-tight">Business Details</span>
@@ -791,10 +791,10 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                   <button
                     type="button"
                     onClick={() => toast('Document upload center', { tone: 'info' })}
-                    className="flex flex-col items-start p-3.5 rounded-xl border text-left transition-all hover:shadow-xs hover:border-primary group"
+                    className="flex flex-col items-start p-3.5 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-purple-600 mb-2 group-hover:scale-105 transition-transform">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-purple-50 text-purple-600 mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.FileText size={18} strokeWidth={2.2} />
                     </div>
                     <span className="text-[13px] font-bold text-ink leading-tight">Upload Documents</span>
@@ -805,10 +805,10 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                   <button
                     type="button"
                     onClick={() => setActiveTab('policies')}
-                    className="flex flex-col items-start p-3.5 rounded-xl border text-left transition-all hover:shadow-xs hover:border-primary group"
+                    className="flex flex-col items-start p-3.5 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 mb-2 group-hover:scale-105 transition-transform">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.ShieldCheck size={18} strokeWidth={2.2} />
                     </div>
                     <span className="text-[13px] font-bold text-ink leading-tight">Set Policies</span>
@@ -822,10 +822,10 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                       const el = document.getElementById('amenities-section');
                       el?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="flex flex-col items-start p-3.5 rounded-xl border text-left transition-all hover:shadow-xs hover:border-primary group"
+                    className="flex flex-col items-start p-3.5 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 mb-2 group-hover:scale-105 transition-transform">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-amber-50 text-amber-600 mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.Star size={18} strokeWidth={2.2} />
                     </div>
                     <span className="text-[13px] font-bold text-ink leading-tight">Manage Amenities</span>
@@ -852,7 +852,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                   <button
                     type="button"
                     onClick={handleSaveDescription}
-                    className="pms-btn-primary px-3.5 py-1.5 text-[12.5px] font-semibold rounded-xl shadow-xs"
+                    className="pms-btn-primary px-3.5 py-1.5 text-[12.5px] font-semibold rounded-md shadow-xs"
                   >
                     Save Changes
                   </button>
@@ -872,7 +872,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                   rows={5}
                   value={description}
                   onChange={(e) => setDescription(e.target.value.slice(0, 500))}
-                  className="w-full rounded-xl border p-3 text-[13px] leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                  className="w-full rounded-md border p-3 text-[13px] leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
                   style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                 />
 
@@ -899,7 +899,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                   <button
                     type="button"
                     onClick={handleSaveAmenities}
-                    className="pms-btn-primary px-3.5 py-1.5 text-[12.5px] font-semibold rounded-xl shadow-xs"
+                    className="pms-btn-primary px-3.5 py-1.5 text-[12.5px] font-semibold rounded-md shadow-xs"
                   >
                     Save Changes
                   </button>
@@ -910,7 +910,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                     <label
                       key={item.id}
                       onClick={() => toggleAmenity(item.id)}
-                      className={`flex items-center gap-2 p-2 rounded-xl border text-[12.5px] font-medium cursor-pointer transition-all ${
+                      className={`flex items-center gap-2 p-2 rounded-md border text-[12.5px] font-medium cursor-pointer transition-all ${
                         item.checked ? 'border-primary/40 bg-primary/[0.04]' : 'border-border hover:bg-muted-surface/40'
                       }`}
                       style={{ borderColor: item.checked ? 'var(--color-primary)' : 'var(--color-border)' }}
@@ -956,7 +956,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                     borderColor: 'color-mix(in srgb, var(--color-success) 25%, transparent)',
                   }}
                 >
-                  <div className="flex h-8 w-8 flex-none items-center justify-center rounded-xl bg-emerald-500 text-white shadow-xs">
+                  <div className="flex h-8 w-8 flex-none items-center justify-center rounded-md bg-emerald-500 text-white shadow-xs">
                     <Lucide.CheckCircle2 size={18} strokeWidth={2.4} />
                   </div>
                   <div>
@@ -1004,7 +1004,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                 <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Cancellation Policy</label>
                 <input
                   defaultValue="Free cancellation until 48h before arrival; first night charged thereafter."
-                  className="w-full rounded-xl border p-2.5 text-[13px] text-ink"
+                  className="w-full rounded-md border p-2.5 text-[13px] text-ink"
                   style={{ borderColor: 'var(--color-border)' }}
                 />
               </div>
@@ -1012,7 +1012,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                 <label className="block text-[12.5px] font-semibold text-ink mb-1.5">No-show Policy</label>
                 <input
                   defaultValue="First night charged to the primary payment method on file."
-                  className="w-full rounded-xl border p-2.5 text-[13px] text-ink"
+                  className="w-full rounded-md border p-2.5 text-[13px] text-ink"
                   style={{ borderColor: 'var(--color-border)' }}
                 />
               </div>
@@ -1020,14 +1020,14 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                 <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Child & Extra Bed Policy</label>
                 <input
                   defaultValue="Children under 6 stay complimentary using existing bedding."
-                  className="w-full rounded-xl border p-2.5 text-[13px] text-ink"
+                  className="w-full rounded-md border p-2.5 text-[13px] text-ink"
                   style={{ borderColor: 'var(--color-border)' }}
                 />
               </div>
               <button
                 type="button"
                 onClick={() => toast('Policies saved', { tone: 'success' })}
-                className="pms-btn-primary px-4 py-2 text-[13px] font-semibold rounded-xl mt-2 w-fit"
+                className="pms-btn-primary px-4 py-2 text-[13px] font-semibold rounded-md mt-2 w-fit"
               >
                 Save Policies
               </button>
@@ -1080,7 +1080,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                     max={40}
                     value={taxRate}
                     onChange={(e) => setTaxRate(Number(e.target.value))}
-                    className="w-32 rounded-xl border p-2.5 text-[14px] font-bold text-ink"
+                    className="w-32 rounded-md border p-2.5 text-[14px] font-bold text-ink"
                     style={{ borderColor: 'var(--color-border)' }}
                   />
                   <span className="text-[13px] font-semibold text-ink-muted">% GST / VAT</span>
@@ -1102,7 +1102,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                     setSaving(false);
                   }
                 }}
-                className="pms-btn-primary px-4 py-2 text-[13px] font-semibold rounded-xl w-fit disabled:opacity-50"
+                className="pms-btn-primary px-4 py-2 text-[13px] font-semibold rounded-md w-fit disabled:opacity-50"
               >
                 Save Tax Rule
               </button>
@@ -1115,16 +1115,16 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
             <div className="flex flex-col gap-4">
               <div>
                 <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Invoice Prefix</label>
-                <input defaultValue="INV-2026-" className="w-full rounded-xl border p-2.5 font-mono text-[13px] text-ink" style={{ borderColor: 'var(--color-border)' }} />
+                <input defaultValue="INV-2026-" className="w-full rounded-md border p-2.5 font-mono text-[13px] text-ink" style={{ borderColor: 'var(--color-border)' }} />
               </div>
               <div>
                 <label className="block text-[12.5px] font-semibold text-ink mb-1.5">Tax Registration / GSTIN</label>
-                <input defaultValue="27AAAAA0000A1Z5" className="w-full rounded-xl border p-2.5 font-mono text-[13px] text-ink" style={{ borderColor: 'var(--color-border)' }} />
+                <input defaultValue="27AAAAA0000A1Z5" className="w-full rounded-md border p-2.5 font-mono text-[13px] text-ink" style={{ borderColor: 'var(--color-border)' }} />
               </div>
               <button
                 type="button"
                 onClick={() => toast('Invoice details saved', { tone: 'success' })}
-                className="pms-btn-primary px-4 py-2 text-[13px] font-semibold rounded-xl w-fit"
+                className="pms-btn-primary px-4 py-2 text-[13px] font-semibold rounded-md w-fit"
               >
                 Save Invoice Details
               </button>
@@ -1144,7 +1144,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
             <button
               type="button"
               onClick={onOpenThemes}
-              className="pms-btn-primary flex items-center gap-2 px-4 py-2 text-[13px] font-bold rounded-xl"
+              className="pms-btn-primary flex items-center gap-2 px-4 py-2 text-[13px] font-bold rounded-md"
             >
               <Lucide.Palette size={16} />
               <span>Open Theme Swatcher</span>
@@ -1159,7 +1159,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
                   key={p.id}
                   type="button"
                   onClick={() => setPreset(p.id)}
-                  className="rounded-xl border p-3.5 text-left transition-all hover:border-primary group"
+                  className="rounded-md border p-3.5 text-left transition-all hover:border-primary group"
                   style={{
                     borderColor: isActive ? 'var(--color-primary)' : 'var(--color-border)',
                     background: isActive ? 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))' : 'var(--color-surface)',
@@ -1195,7 +1195,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
           <button
             type="button"
             onClick={() => setActiveTab('general')}
-            className="pms-btn-primary px-4 py-2 text-[13px] font-bold rounded-xl"
+            className="pms-btn-primary px-4 py-2 text-[13px] font-bold rounded-md"
           >
             Back to General Settings
           </button>

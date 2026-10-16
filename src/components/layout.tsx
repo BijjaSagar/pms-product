@@ -7,6 +7,8 @@ import { NOTICES } from '../data/mock';
 import { toast } from './toastStore';
 import { useAuth } from '../features/auth/AuthContext';
 import { displayApiError } from '../lib/api/client';
+import { useTheme } from '../theme/useTheme';
+import { THEME_PRESETS } from '../theme/presets';
 
 const NAV_ICONS: Record<ViewId, Lucide.LucideIcon> = {
   dashboard: Lucide.LayoutDashboard,
@@ -159,41 +161,69 @@ function NavButton({
   label,
   selected,
   onSelect,
+  fourthColor,
 }: {
   id: ViewId;
   label: string;
   selected: boolean;
   onSelect: () => void;
+  fourthColor?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onSelect}
       aria-current={selected ? 'page' : undefined}
-      className="flex min-h-[40px] w-full items-center gap-2.5 rounded-control px-3 py-2 text-left text-[13.5px]"
+      className="flex min-h-[40px] w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13.5px] transition-all cursor-pointer hover:bg-slate-100/70"
       style={
         selected
           ? {
-              background: 'var(--color-sidebar-active-bg)',
-              color: 'var(--color-sidebar-active-ink)',
-              border: '1px solid color-mix(in srgb, var(--color-sidebar-active-ink) 22%, transparent)',
-              boxShadow: 'var(--shadow-xs), inset 3px 0 0 var(--color-sidebar-active-ink)',
+              background: fourthColor || 'var(--color-sidebar-active-bg)',
+              color: 'var(--color-primary)',
+              border: '1.5px solid var(--color-primary)',
+              boxShadow: 'var(--shadow-xs)',
               fontWeight: 650,
             }
           : {
               background: 'transparent',
-              color: 'var(--color-sidebar-ink)',
-              border: '1px solid transparent',
+              color: '#475569',
+              border: '1.5px solid transparent',
               fontWeight: 500,
             }
       }
     >
-      <span className="flex-none" style={{ color: selected ? 'var(--color-sidebar-active-ink)' : 'inherit' }}>
+      <span className="flex-none" style={{ color: selected ? 'var(--color-primary)' : '#64748b' }}>
         <NavIcon id={id} />
       </span>
-      <span className="min-w-0 flex-1 truncate">{label}</span>
+      <span className="min-w-0 flex-1 truncate" style={{ color: selected ? 'var(--color-primary)' : '#334155' }}>
+        {label}
+      </span>
     </button>
   );
+}
+
+const SECTION_ICONS: Record<string, Lucide.LucideIcon> = {
+  Overview: Lucide.LayoutDashboard,
+  'Front Office': Lucide.CalendarDays,
+  'Rooms & Housekeeping': Lucide.BedDouble,
+  'Rates & Distribution': Lucide.SlidersHorizontal,
+  Finance: Lucide.ReceiptText,
+  Analytics: Lucide.BarChart3,
+  Administration: Lucide.ShieldCheck,
+};
+
+interface TooltipData {
+  x: number;
+  y: number;
+  title: string;
+  hint?: string;
+  badge?: string;
+}
+
+interface FlyoutData {
+  sectionTitle: string;
+  x: number;
+  y: number;
 }
 
 export function Sidebar({
@@ -201,7 +231,7 @@ export function Sidebar({
   onNavigate,
   mobileOpen,
   onClose,
-  onOpenThemes: _onOpenThemes,
+  onOpenThemes,
 }: {
   active: ViewId;
   onNavigate: (v: ViewId) => void;
@@ -210,7 +240,40 @@ export function Sidebar({
   onOpenThemes?: () => void;
 }) {
   const { can } = useAuth();
+  const { preset } = useTheme();
+  const activePreset = THEME_PRESETS[preset] || THEME_PRESETS.ocean;
+  const fourthColor = activePreset.swatch[3];
+
+  // Collapsed compact mode state (persisted) - defaults to true (compact icon-based sidebar)
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('pms_sidebar_collapsed');
+      return saved !== null ? JSON.parse(saved) : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('pms_sidebar_collapsed', JSON.stringify(next));
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
+    setFlyout(null);
+    setTooltip(null);
+  };
+
+  const [tooltip, setTooltip] = useState<TooltipData | null>(null);
+  const [flyout, setFlyout] = useState<FlyoutData | null>(null);
+  const flyoutRef = useRef<HTMLDivElement>(null);
+
   const [openSections, setOpenSections] = useState<string[]>(() => NAV_SECTIONS.map((s) => s.title));
+
   const visibleSections = NAV_SECTIONS.map((section) => ({
     ...section,
     items: section.items.filter((item) => {
@@ -228,67 +291,172 @@ export function Sidebar({
     setOpenSections((prev) => (prev.includes(section) ? prev : [...prev, section]));
     onNavigate(v);
     onClose();
+    setFlyout(null);
+    setTooltip(null);
   };
 
-  const panel = (
-    <div className="flex h-full flex-col" style={{ background: 'var(--color-sidebar)' }}>
-      <div className="flex items-center gap-3 border-b px-4 pb-4 pt-5" style={{ borderColor: 'var(--color-sidebar-border)' }}>
-        <span
-          className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-[19px] font-bold"
-          style={{ background: 'var(--color-dark-accent)', color: 'var(--color-sidebar-ink-strong)', boxShadow: 'var(--shadow-sm)' }}
-          aria-hidden="true"
-        >
-          T
-        </span>
-        <div className="min-w-0">
-          <p className="font-brand truncate text-[18px] font-bold leading-none tracking-tight" style={{ color: 'var(--color-sidebar-ink-strong)' }}>
-            TriponX
-          </p>
-          <p className="mt-1 text-[10.5px] font-semibold uppercase tracking-[0.14em]" style={{ color: 'var(--color-sidebar-ink-muted)' }}>
-            Hotel PMS
-          </p>
+  // Keyboard shortcut listener (Ctrl+\ or Escape) and click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (flyoutRef.current && !flyoutRef.current.contains(e.target as Node)) {
+        setFlyout(null);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setFlyout(null);
+        setTooltip(null);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === '\\') {
+        e.preventDefault();
+        toggleCollapsed();
+      }
+    };
+
+    if (flyout) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [flyout]);
+
+  const handleMouseEnter = (
+    e: React.MouseEvent<HTMLElement>,
+    title: string,
+    hint?: string,
+    badge?: string
+  ) => {
+    if (flyout?.sectionTitle === title) {
+      setTooltip(null);
+      return;
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltip({
+      x: rect.right + 12,
+      y: rect.top + rect.height / 2,
+      title,
+      hint,
+      badge,
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setTooltip(null);
+  };
+
+  const handleSectionClick = (
+    e: React.MouseEvent<HTMLElement>,
+    section: (typeof visibleSections)[number]
+  ) => {
+    if (section.items.length === 1) {
+      go(section.items[0].id);
+      setFlyout(null);
+      setTooltip(null);
+      return;
+    }
+
+    if (flyout?.sectionTitle === section.title) {
+      setFlyout(null);
+    } else {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setTooltip(null);
+      setFlyout({
+        sectionTitle: section.title,
+        x: rect.right + 10,
+        y: Math.max(16, Math.min(window.innerHeight - 440, rect.top - 12)),
+      });
+    }
+  };
+
+  // ================= EXPANDED FULL PANEL (Used when expanded or inside mobile drawer) =================
+  const fullPanel = (
+    <div className="flex h-full flex-col bg-white" style={{ background: '#ffffff', color: '#1e293b' }}>
+      {/* Brand Header */}
+      <div className="flex items-center justify-between border-b px-4 pb-4 pt-5" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => go('dashboard')}
+            className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-[19px] font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+            style={{ background: 'var(--color-primary, #165dfc)', color: '#ffffff' }}
+            aria-label="Dashboard"
+          >
+            T
+          </button>
+          <div className="min-w-0">
+            <p className="font-brand truncate text-[18px] font-bold leading-none tracking-tight text-slate-900">
+              TriponX
+            </p>
+            <p className="mt-1 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+              Hotel PMS
+            </p>
+          </div>
         </div>
+
+        {/* Collapse button on desktop */}
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          title="Collapse to icon sidebar (Ctrl+\)"
+          className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
+        >
+          <Lucide.ChevronsLeft size={16} />
+        </button>
       </div>
+
+      {/* Nav Menu Items */}
       <nav className="min-h-0 flex-1 overflow-y-auto px-2.5 py-3" aria-label="Primary">
         <ul className="flex flex-col gap-0.5">
           {visibleSections.map((section) => {
             const open = openSections.includes(section.title);
             const containsActive = section.items.some((i) => i.id === active);
+            const SectionIcon = SECTION_ICONS[section.title] || Lucide.Layers;
+
             if (section.title === 'Overview') {
               return (
                 <li key={section.title}>
                   <ul className="flex flex-col gap-0.5">
                     {section.items.map((item) => (
                       <li key={item.id}>
-                        <NavButton id={item.id} label={item.label} selected={item.id === active} onSelect={() => go(item.id)} />
+                        <NavButton id={item.id} label={item.label} selected={item.id === active} onSelect={() => go(item.id)} fourthColor={fourthColor} />
                       </li>
                     ))}
                   </ul>
                 </li>
               );
             }
+
             return (
-              <li key={section.title} className="mt-4 first:mt-0">
+              <li key={section.title} className="mt-3.5 first:mt-0">
                 <button
                   type="button"
                   onClick={() => toggleSection(section.title)}
                   aria-expanded={open}
-                  className="flex min-h-[32px] w-full items-center justify-between rounded-[8px] px-3 py-1.5 text-left text-[11px] font-bold uppercase tracking-[0.12em]"
+                  className="flex min-h-[34px] w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[11px] font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer hover:bg-slate-100/60"
                   style={{
-                    color: containsActive ? 'var(--color-sidebar-ink-strong)' : 'var(--color-sidebar-ink-muted)',
-                    background: 'transparent',
+                    color: containsActive ? 'var(--color-primary)' : '#64748b',
                   }}
                 >
-                  {section.title}
-                  <svg viewBox="0 0 24 24" className={`h-4 w-4 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
-                    <path d="M6 9l6 6 6-6" />
-                  </svg>
+                  <span className="flex items-center gap-2">
+                    <SectionIcon size={14} style={{ color: containsActive ? 'var(--color-primary)' : '#94a3b8' }} />
+                    <span className="font-bold">{section.title}</span>
+                  </span>
+                  <Lucide.ChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+                    style={{ color: containsActive ? 'var(--color-primary)' : '#94a3b8' }}
+                  />
                 </button>
                 {open ? (
-                  <ul className="mt-1 flex flex-col gap-0.5">
+                  <ul className="mt-1 flex flex-col gap-0.5 pl-1.5">
                     {section.items.map((item) => (
                       <li key={item.id}>
-                        <NavButton id={item.id} label={item.label} selected={item.id === active} onSelect={() => go(item.id)} />
+                        <NavButton id={item.id} label={item.label} selected={item.id === active} onSelect={() => go(item.id)} fourthColor={fourthColor} />
                       </li>
                     ))}
                   </ul>
@@ -298,17 +466,319 @@ export function Sidebar({
           })}
         </ul>
       </nav>
+
+      {/* Footer controls in full panel */}
+      <div className="border-t p-3 flex flex-col gap-1.5" style={{ borderColor: 'var(--color-border)' }}>
+        {onOpenThemes && (
+          <button
+            type="button"
+            onClick={onOpenThemes}
+            className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            <Lucide.Palette size={16} className="text-[var(--color-primary)]" />
+            <span>Theme Colors</span>
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          className="hidden lg:flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
+        >
+          <Lucide.ChevronsLeft size={16} />
+          <span>Collapse sidebar</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  // ================= COMPACT ICON RAIL (Desktop Default) =================
+  const compactRail = (
+    <div className="flex h-full flex-col items-center justify-between bg-white" style={{ background: '#ffffff' }}>
+      {/* 1. Top Brand Logo */}
+      <div className="flex h-16 w-full items-center justify-center border-b" style={{ borderColor: 'var(--color-border)' }}>
+        <button
+          type="button"
+          onClick={() => go('dashboard')}
+          onMouseEnter={(e) => handleMouseEnter(e, 'TriponX Hotel PMS', 'Go to Dashboard', 'PMS')}
+          onMouseLeave={handleMouseLeave}
+          className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-[19px] font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+          style={{ background: 'var(--color-primary, #165dfc)', color: '#ffffff' }}
+          aria-label="TriponX Home"
+        >
+          T
+        </button>
+      </div>
+
+      {/* 2. Middle Icon Navigation Rail */}
+      <nav className="flex-1 w-full overflow-y-auto px-2 py-3.5 flex flex-col items-center gap-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Icon Navigation">
+        {visibleSections.map((section) => {
+          const Icon = SECTION_ICONS[section.title] || Lucide.Layers;
+          const isDirectItem = section.items.length === 1;
+          const directItem = isDirectItem ? section.items[0] : null;
+          const isSectionActive = section.items.some((i) => i.id === active);
+          const isFlyoutOpen = flyout?.sectionTitle === section.title;
+
+          return (
+            <div key={section.title} className="relative flex items-center justify-center w-full">
+              {/* Active left indicator pill */}
+              {isSectionActive && (
+                <span
+                  className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full"
+                  style={{ background: 'var(--color-primary)' }}
+                />
+              )}
+
+              <button
+                type="button"
+                onClick={(e) => handleSectionClick(e, section)}
+                onMouseEnter={(e) =>
+                  handleMouseEnter(
+                    e,
+                    isDirectItem ? directItem!.label : section.title,
+                    isDirectItem ? directItem!.hint : `${section.items.length} views • Click to open menu`,
+                    isSectionActive ? 'Active' : undefined
+                  )
+                }
+                onMouseLeave={handleMouseLeave}
+                aria-label={section.title}
+                aria-expanded={isFlyoutOpen}
+                className={`relative flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-150 cursor-pointer ${
+                  isFlyoutOpen
+                    ? 'ring-2 ring-slate-300 scale-105'
+                    : 'hover:bg-slate-100 hover:scale-105 active:scale-95'
+                }`}
+                style={
+                  isSectionActive
+                    ? {
+                        background: fourthColor,
+                        border: '1.5px solid var(--color-primary)',
+                        boxShadow: 'var(--shadow-xs)',
+                      }
+                    : {
+                        background: isFlyoutOpen ? '#f1f5f9' : 'transparent',
+                        border: '1.5px solid transparent',
+                      }
+                }
+              >
+                <Icon
+                  size={20}
+                  strokeWidth={isSectionActive ? 2.2 : 1.8}
+                  style={{ color: isSectionActive ? 'var(--color-primary)' : '#64748b' }}
+                />
+
+                {/* Sub-item count badge indicator */}
+                {!isDirectItem && (
+                  <span
+                    className="absolute -bottom-0.5 -right-0.5 flex h-3.5 min-w-[14px] px-0.5 items-center justify-center rounded-full text-[8.5px] font-bold"
+                    style={{
+                      background: isSectionActive ? 'var(--color-primary)' : '#94a3b8',
+                      color: '#ffffff',
+                    }}
+                  >
+                    {section.items.length}
+                  </span>
+                )}
+              </button>
+            </div>
+          );
+        })}
+      </nav>
+
+      {/* 3. Bottom Utility Actions */}
+      <div className="flex h-20 w-full flex-col items-center justify-center border-t gap-1.5 py-2" style={{ borderColor: 'var(--color-border)' }}>
+        {/* Theme Swatcher Trigger */}
+        {onOpenThemes && (
+          <button
+            type="button"
+            onClick={onOpenThemes}
+            onMouseEnter={(e) => handleMouseEnter(e, 'Hotel Theme', 'Switch between 8 color palettes', 'Theme')}
+            onMouseLeave={handleMouseLeave}
+            className="flex h-9 w-9 items-center justify-center rounded-xl transition-all hover:bg-slate-100 hover:scale-110 active:scale-95 cursor-pointer text-slate-500 hover:text-slate-900"
+            aria-label="Change Theme"
+          >
+            <Lucide.Palette size={18} />
+          </button>
+        )}
+
+        {/* Expand Sidebar Toggle */}
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          onMouseEnter={(e) => handleMouseEnter(e, 'Expand Sidebar', 'Show full navigation (Ctrl+\\)', 'Shortcut')}
+          onMouseLeave={handleMouseLeave}
+          className="flex h-8 w-8 items-center justify-center rounded-lg transition-all hover:bg-slate-100 hover:scale-110 active:scale-95 cursor-pointer text-slate-400 hover:text-slate-900"
+          aria-label="Expand sidebar"
+        >
+          <Lucide.ChevronsRight size={17} />
+        </button>
+      </div>
     </div>
   );
 
   return (
     <>
+      {/* Desktop Sidebar: Smoothly transitions between compact 72px icon rail and full 260px panel */}
       <aside
-        className="hidden w-[260px] flex-none self-start border-r lg:sticky lg:top-0 lg:block lg:h-screen"
-        style={{ borderColor: 'var(--color-border)' }}
+        className={`hidden flex-none self-start border-r lg:sticky lg:top-0 lg:block lg:h-screen transition-[width] duration-200 ease-in-out ${
+          collapsed ? 'w-[72px]' : 'w-[260px]'
+        }`}
+        style={{ borderColor: 'var(--color-border)', background: '#ffffff' }}
       >
-        {panel}
+        {collapsed ? compactRail : fullPanel}
       </aside>
+
+      {/* Floating Tooltip via Portal */}
+      {tooltip &&
+        createPortal(
+          <div
+            className="pointer-events-none fixed z-[9999] flex items-center animate-in fade-in zoom-in-95 duration-100"
+            style={{
+              left: `${tooltip.x}px`,
+              top: `${tooltip.y}px`,
+              transform: 'translateY(-50%)',
+            }}
+          >
+            {/* Arrow pointing left */}
+            <div className="mr-[-1px] h-0 w-0 border-y-[5px] border-y-transparent border-r-[6px] border-r-slate-900" />
+            <div className="rounded-xl bg-slate-900/95 backdrop-blur-md px-3 py-1.5 text-white shadow-2xl border border-slate-700/60 text-left">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[12.5px] font-semibold tracking-tight text-white">
+                  {tooltip.title}
+                </span>
+                {tooltip.badge && (
+                  <span className="rounded-md bg-white/20 px-1.5 py-0.5 text-[9.5px] font-bold tracking-wide uppercase text-slate-200">
+                    {tooltip.badge}
+                  </span>
+                )}
+              </div>
+              {tooltip.hint && (
+                <p className="mt-0.5 text-[11px] text-slate-300 font-normal">
+                  {tooltip.hint}
+                </p>
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {/* Expandable Menu Items Flyout Panel via Portal */}
+      {flyout &&
+        (() => {
+          const activeSection = visibleSections.find((s) => s.title === flyout.sectionTitle);
+          if (!activeSection) return null;
+          const SectionIcon = SECTION_ICONS[activeSection.title] || Lucide.Layers;
+
+          return createPortal(
+            <div
+              ref={flyoutRef}
+              className="fixed z-[9990] w-[310px] overflow-hidden rounded-2xl border border-slate-200/90 bg-white text-slate-800 shadow-[0_20px_50px_rgba(15,23,42,0.18)] animate-in fade-in zoom-in-95 duration-150"
+              style={{
+                left: `${flyout.x}px`,
+                top: `${flyout.y}px`,
+              }}
+            >
+              {/* Flyout Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-4 py-3">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="flex h-7 w-7 items-center justify-center rounded-lg shadow-2xs"
+                    style={{
+                      background: 'var(--color-primary, #165dfc)',
+                      color: '#ffffff',
+                    }}
+                  >
+                    <SectionIcon size={15} />
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-bold text-slate-900 leading-tight">
+                      {activeSection.title}
+                    </p>
+                    <p className="text-[10.5px] font-medium text-slate-400">
+                      {activeSection.items.length} views available
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFlyout(null)}
+                  className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200/60 hover:text-slate-600 transition-colors cursor-pointer"
+                  aria-label="Close menu"
+                >
+                  <Lucide.X size={14} />
+                </button>
+              </div>
+
+              {/* Flyout Items List */}
+              <div className="max-h-[60vh] overflow-y-auto p-1.5 flex flex-col gap-0.5">
+                {activeSection.items.map((item) => {
+                  const isItemActive = item.id === active;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        go(item.id);
+                        setFlyout(null);
+                        setTooltip(null);
+                      }}
+                      style={
+                        isItemActive
+                          ? {
+                              background: fourthColor,
+                              border: '1.5px solid var(--color-primary)',
+                            }
+                          : {
+                              border: '1.5px solid transparent',
+                            }
+                      }
+                      className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-all cursor-pointer ${
+                        isItemActive
+                          ? 'font-semibold shadow-2xs'
+                          : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900'
+                      }`}
+                    >
+                      <div
+                        className="flex h-8 w-8 flex-none items-center justify-center rounded-lg transition-colors"
+                        style={
+                          isItemActive
+                            ? {
+                                background: 'transparent',
+                                color: 'var(--color-primary)',
+                              }
+                            : {
+                                background: '#f1f5f9',
+                                color: '#64748b',
+                              }
+                        }
+                      >
+                        <NavIcon id={item.id} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between">
+                          <p
+                            className="text-[13px] font-semibold leading-snug truncate"
+                            style={{ color: isItemActive ? 'var(--color-primary)' : '#1e293b' }}
+                          >
+                            {item.label}
+                          </p>
+                          {isItemActive && (
+                            <span className="h-1.5 w-1.5 rounded-full flex-none" style={{ background: 'var(--color-primary)' }} />
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-400 font-normal truncate mt-0.5">
+                          {item.hint}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>,
+            document.body
+          );
+        })()}
+
+      {/* Mobile Drawer */}
       {mobileOpen ? (
         <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
           <button
@@ -320,13 +790,13 @@ export function Sidebar({
           />
           <aside
             className="pms-overlay-enter absolute left-0 top-0 h-full w-[86vw] max-w-[320px] overflow-hidden rounded-r-[16px] border-r"
-            style={{ borderColor: 'var(--color-border)', boxShadow: 'var(--shadow-2xl)', background: 'var(--color-sidebar)' }}
+            style={{ borderColor: 'var(--color-border)', boxShadow: 'var(--shadow-2xl)', background: '#ffffff' }}
           >
-            <div className="flex items-center justify-between border-b px-4 py-3 lg:hidden" style={{ borderColor: 'var(--color-sidebar-border)' }}>
-              <span className="text-[12px] font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--color-sidebar-ink-muted)' }}>Menu</span>
-              <button type="button" onClick={onClose} aria-label="Close navigation" className="pms-btn-ghost min-h-[38px] min-w-[38px] px-2.5 py-1.5">✕</button>
+            <div className="flex items-center justify-between border-b px-4 py-3 lg:hidden" style={{ borderColor: 'var(--color-border)' }}>
+              <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-slate-400">Menu</span>
+              <button type="button" onClick={onClose} aria-label="Close navigation" className="pms-btn-ghost min-h-[38px] min-w-[38px] px-2.5 py-1.5 cursor-pointer">✕</button>
             </div>
-            <div className="h-[calc(100%-53px)]">{panel}</div>
+            <div className="h-[calc(100%-53px)]">{fullPanel}</div>
           </aside>
         </div>
       ) : null}

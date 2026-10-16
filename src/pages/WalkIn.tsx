@@ -274,7 +274,7 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
           <button
             type="button"
             onClick={() => go({ view: 'check-in' })}
-            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border"
+            className="pms-btn-ghost flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-md border border-border"
           >
             <Lucide.LogIn size={14} />
             <span>Check-in Desk</span>
@@ -352,7 +352,7 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
             subtitle={choices.loading ? 'Loading property inventory…' : `Real-time availability for ${choices.data?.businessDate ?? 'today'}`}
           />
           {choices.error ? (
-            <div className="mb-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <div className="mb-3 flex items-center gap-2 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               <Lucide.AlertCircle size={18} />
               <span>Could not load room inventory: {choices.error}</span>
             </div>
@@ -371,7 +371,7 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
                   setRoomNo(null);
                   void releaseHold();
                 }}
-                className="rounded-xl border p-3 text-left transition-all"
+                className="rounded-md border p-3 text-left transition-all"
                 style={{
                   borderColor: roomTypeId === t.id ? 'var(--color-primary)' : 'var(--color-border)',
                   background: roomTypeId === t.id ? 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))' : 'var(--color-surface)',
@@ -395,7 +395,7 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
                 role="radio"
                 aria-checked={roomNo === r.number}
                 onClick={() => selectRoom({ number: r.number, backendId: r.backendId })}
-                className="rounded-xl border p-3.5 text-left transition-all hover:scale-[1.02]"
+                className="rounded-md border p-3.5 text-left transition-all hover:scale-[1.02]"
                 style={{
                   borderColor: roomNo === r.number ? 'var(--color-primary)' : 'var(--color-border)',
                   background: roomNo === r.number ? 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))' : 'var(--color-surface)',
@@ -452,7 +452,7 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
       <div className="min-w-0 xl:col-span-2 xl:self-start">
         <Card className="xl:sticky xl:top-24">
           <CardTitle title="Registration Summary" subtitle="Verify charges before creating" />
-          <ul className="rounded-xl border overflow-hidden text-[13.5px] mt-2" style={{ borderColor: 'var(--color-border)' }}>
+          <ul className="rounded-md border overflow-hidden text-[13.5px] mt-2" style={{ borderColor: 'var(--color-border)' }}>
             <li className="pms-summary-row border-b px-3.5 py-2.5" style={{ borderColor: 'var(--color-divider)' }}>
               <span className="text-ink-secondary">
                 Room {roomNo ?? '—'} · {type.name} × {nights}n
@@ -476,7 +476,7 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
           </ul>
 
           {hold && !holdExpired ? (
-            <div className="mt-3 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800">
+            <div className="mt-3 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800">
               <Lucide.Clock size={14} className="animate-spin-slow" />
               <span>
                 Room temporarily held: <strong>{formatHoldCountdown(holdRemainingMs)}</strong> remaining
@@ -485,14 +485,14 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
           ) : null}
 
           {holdExpired ? (
-            <div className="mt-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-xs text-red-700" role="alert">
+            <div className="mt-3 flex items-center gap-2 rounded-md border border-red-200 bg-red-50 p-2.5 text-xs text-red-700" role="alert">
               <Lucide.AlertCircle size={14} />
               <span>Room hold expired. Select room again to re-hold.</span>
             </div>
           ) : null}
 
           {errors.length > 0 ? (
-            <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700" role="alert">
+            <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700" role="alert">
               <ul className="flex flex-col gap-1">
                 {errors.map((e) => (
                   <li key={e} className="flex items-center gap-1.5">
@@ -506,7 +506,7 @@ export function WalkIn({ go }: { go: (t: NavTarget) => void }) {
 
           <button
             type="button"
-            className="pms-btn-primary mt-4 w-full flex items-center justify-center gap-2 py-3 font-bold rounded-xl shadow-sm"
+            className="pms-btn-primary mt-4 w-full flex items-center justify-center gap-2 py-3 font-bold rounded-md shadow-sm"
             onClick={() => {
               if (validate()) setConfirming(true);
             }}

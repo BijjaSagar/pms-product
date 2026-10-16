@@ -57,7 +57,7 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
 
         <div className="flex-1 overflow-y-auto px-5 py-5">
           <h3 className="pms-label mb-1">Colour preset</h3>
-          <p className="pms-helper mb-3">Eight house palettes in a light linen finish.</p>
+          <p className="pms-helper mb-3">Nine house palettes in a light linen finish.</p>
           <div className="grid grid-cols-1 gap-2.5 xs:grid-cols-2 sm:grid-cols-2" role="radiogroup" aria-label="Colour preset">
             {PRESET_LIST.map((p) => {
               const checked = preset === p.id;

@@ -4,6 +4,7 @@
 export const PRESET_IDS = [
   'midnight',
   'ocean',
+  'crimson',
   'beige',
   'sage',
   'slate',
@@ -28,6 +29,12 @@ export const THEME_PRESETS: Record<ThemePresetId, PresetMeta> = {
     name: 'Sky Blue & White',
     description: 'Light, friendly, and minimal — ideal for portfolios, education, and healthcare.',
     swatch: ['#0EA5E9', '#075985', '#7DD3FC', '#E0F2FE', '#FFFFFF'],
+  },
+  crimson: {
+    id: 'crimson',
+    name: 'Crimson Red',
+    description: 'Bold crimson brand palette with light red accents and crisp white surfaces.',
+    swatch: ['#C62828', '#7F0000', '#EF9A9A', '#FFEBEE', '#FFFFFF'],
   },
   beige: {
     id: 'beige',
@@ -69,7 +76,7 @@ export const THEME_PRESETS: Record<ThemePresetId, PresetMeta> = {
     id: 'midnight',
     name: 'Midnight Navy',
     description: 'Deep navy navigation with bright blue actions.',
-    swatch: ['#1D4ED8', '#12304A', '#60A5FA', '#12304A', '#F8FAFC'],
+    swatch: ['#1D4ED8', '#12304A', '#60A5FA', '#DBEAFE', '#F8FAFC'],
   },
 };
 
@@ -83,6 +90,7 @@ export const STORAGE_KEYS = {
 export function isPresetId(value: string | null): value is ThemePresetId {
   return (
     value === 'ocean' ||
+    value === 'crimson' ||
     value === 'beige' ||
     value === 'sage' ||
     value === 'slate' ||
