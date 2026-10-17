@@ -1033,14 +1033,14 @@ export function Header({
           boxShadow: '0 4px 20px -8px rgba(0, 0, 0, 0.08)',
         }}
       >
-        <div className="mx-auto flex h-16 w-full max-w-[1280px] items-center justify-between gap-3 px-3 sm:px-5 lg:px-8 2xl:max-w-[1440px]">
+        <div className="flex h-16 w-full items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           {/* ================= LEFT GROUP: Mobile menu toggle ================= */}
           <div className="flex items-center gap-2 lg:hidden">
             <button
               type="button"
               onClick={onMenu}
               aria-label="Open mobile menu"
-              className="flex h-10 w-10 items-center justify-center rounded-xl border transition-colors"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border transition-colors cursor-pointer"
               style={{
                 borderColor: 'var(--color-border)',
                 background: 'var(--color-surface)',
@@ -1053,143 +1053,143 @@ export function Header({
 
           {/* ================= ULTRA-ATTRACTIVE HEADER KPI STATUS DECK ================= */}
           <div
-            className="hidden lg:flex items-center rounded-2xl p-1.5 border shadow-xs backdrop-blur-md gap-1.5 xl:gap-2.5 overflow-x-auto no-scrollbar"
+            className="hidden lg:flex items-center rounded-2xl p-1 border shadow-xs backdrop-blur-md gap-0.5 xl:gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-none"
             style={{
               borderColor: 'var(--color-border)',
               background: 'color-mix(in srgb, var(--color-surface) 94%, var(--color-page))',
-              boxShadow: '0 2px 10px -3px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.7)',
+              boxShadow: '0 2px 10px -3px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.6)',
             }}
           >
             {/* 1. Occupancy */}
             <button
               type="button"
               onClick={() => onGo({ view: 'occupancy-report' })}
-              className="group flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl transition-all duration-150 hover:bg-white/95 dark:hover:bg-slate-800 hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Occupancy: 30% (6 of 20 rooms)"
             >
-              <div className="flex h-7.5 w-7.5 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-rose-500 to-pink-500 text-white shadow-xs shadow-rose-500/25 group-hover:scale-105 transition-transform">
+              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-rose-500 to-pink-500 text-white shadow-xs shadow-rose-500/25 group-hover:scale-105 transition-transform">
                 <Lucide.BedDouble size={14} strokeWidth={2.2} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Occupancy</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold tnum text-slate-900 dark:text-white">{kpi.occupancyPct}%</span>
-                  <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-md leading-tight">
+                <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">Occupancy</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[13.5px] font-bold tnum text-ink">{kpi.occupancyPct}%</span>
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-md leading-tight">
                     +12%
                   </span>
                 </div>
               </div>
             </button>
 
-            <div className="h-6 w-px bg-slate-200/80 dark:bg-slate-800 my-auto mx-0.5 flex-none" />
+            <div className="h-5 w-px my-auto mx-0.5 flex-none" style={{ background: 'var(--color-border)' }} />
 
             {/* 2. Today's Arrivals */}
             <button
               type="button"
               onClick={() => onGo({ view: 'check-in' })}
-              className="group flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl transition-all duration-150 hover:bg-white/95 dark:hover:bg-slate-800 hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Today's Arrivals: 8 (+3 vs yesterday)"
             >
-              <div className="flex h-7.5 w-7.5 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-xs shadow-emerald-500/25 group-hover:scale-105 transition-transform">
+              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-xs shadow-emerald-500/25 group-hover:scale-105 transition-transform">
                 <Lucide.ArrowUpRight size={14} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Arrivals</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold tnum text-slate-900 dark:text-white">{kpi.arrivalsCount}</span>
-                  <span className="text-xs font-bold text-amber-700 bg-amber-500/15 dark:bg-amber-500/20 px-1.5 py-0.5 rounded-md leading-tight">
+                <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">Arrivals</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[13.5px] font-bold tnum text-ink">{kpi.arrivalsCount}</span>
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-500/15 dark:bg-amber-500/20 px-1.5 py-0.5 rounded-md leading-tight">
                     2 VIP
                   </span>
                 </div>
               </div>
             </button>
 
-            <div className="h-6 w-px bg-slate-200/80 dark:bg-slate-800 my-auto mx-0.5 flex-none" />
+            <div className="h-5 w-px my-auto mx-0.5 flex-none" style={{ background: 'var(--color-border)' }} />
 
             {/* 3. Today's Departures */}
             <button
               type="button"
               onClick={() => onGo({ view: 'check-out' })}
-              className="group flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl transition-all duration-150 hover:bg-white/95 dark:hover:bg-slate-800 hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Today's Departures: 7 (-1 vs yesterday)"
             >
-              <div className="flex h-7.5 w-7.5 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-xs shadow-amber-500/25 group-hover:scale-105 transition-transform">
+              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-xs shadow-amber-500/25 group-hover:scale-105 transition-transform">
                 <Lucide.ArrowDownRight size={14} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Departures</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold tnum text-slate-900 dark:text-white">{kpi.departuresCount}</span>
-                  <span className="text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md leading-tight">
+                <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">Departures</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[13.5px] font-bold tnum text-ink">{kpi.departuresCount}</span>
+                  <span className="text-[10px] font-semibold text-ink-secondary bg-black/[0.04] dark:bg-white/[0.06] px-1.5 py-0.5 rounded-md leading-tight">
                     7 sched
                   </span>
                 </div>
               </div>
             </button>
 
-            <div className="h-6 w-px bg-slate-200/80 dark:bg-slate-800 my-auto mx-0.5 flex-none" />
+            <div className="h-5 w-px my-auto mx-0.5 flex-none" style={{ background: 'var(--color-border)' }} />
 
             {/* 4. In-house Guests */}
             <button
               type="button"
               onClick={() => onGo({ view: 'in-house' })}
-              className="group flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl transition-all duration-150 hover:bg-white/95 dark:hover:bg-slate-800 hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="In-house Guests: 8 (28 rooms • 4 extra guests)"
             >
-              <div className="flex h-7.5 w-7.5 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-violet-500 to-purple-600 text-white shadow-xs shadow-purple-500/25 group-hover:scale-105 transition-transform">
+              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-violet-500 to-purple-600 text-white shadow-xs shadow-purple-500/25 group-hover:scale-105 transition-transform">
                 <Lucide.Users size={14} strokeWidth={2.2} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">In-House</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold tnum text-slate-900 dark:text-white">{kpi.inHouseCount}</span>
-                  <span className="text-xs font-semibold text-purple-700 bg-purple-500/15 dark:bg-purple-500/20 px-1.5 py-0.5 rounded-md leading-tight">
+                <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">In-House</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[13.5px] font-bold tnum text-ink">{kpi.inHouseCount}</span>
+                  <span className="text-[10px] font-semibold text-purple-700 bg-purple-500/15 dark:bg-purple-500/20 px-1.5 py-0.5 rounded-md leading-tight">
                     Active
                   </span>
                 </div>
               </div>
             </button>
 
-            <div className="h-6 w-px bg-slate-200/80 dark:bg-slate-800 my-auto mx-0.5 flex-none" />
+            <div className="h-5 w-px my-auto mx-0.5 flex-none" style={{ background: 'var(--color-border)' }} />
 
             {/* 5. Total Revenue */}
             <button
               type="button"
               onClick={() => onGo({ view: 'revenue-report' })}
-              className="group flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl transition-all duration-150 hover:bg-white/95 dark:hover:bg-slate-800 hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Total Revenue (Today)"
             >
-              <div className="flex h-7.5 w-7.5 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-emerald-500 to-green-600 text-white shadow-xs shadow-emerald-500/25 group-hover:scale-105 transition-transform">
+              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-emerald-500 to-green-600 text-white shadow-xs shadow-emerald-500/25 group-hover:scale-105 transition-transform">
                 <Lucide.CreditCard size={14} strokeWidth={2.2} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Revenue</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold tnum text-emerald-600 dark:text-emerald-400">₹{kpi.totalRevenue.toLocaleString('en-IN')}</span>
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-500/15 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-md leading-tight">
+                <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">Revenue</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[13.5px] font-bold tnum text-emerald-600 dark:text-emerald-400">₹{kpi.totalRevenue.toLocaleString('en-IN')}</span>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-500/15 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-md leading-tight">
                     Today
                   </span>
                 </div>
               </div>
             </button>
 
-            <div className="h-6 w-px bg-slate-200/80 dark:bg-slate-800 my-auto mx-0.5 flex-none" />
+            <div className="h-5 w-px my-auto mx-0.5 flex-none" style={{ background: 'var(--color-border)' }} />
 
             {/* 6. Pending Payments */}
             <button
               type="button"
               onClick={() => onGo({ view: 'payments' })}
-              className="group flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl transition-all duration-150 hover:bg-white/95 dark:hover:bg-slate-800 hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Pending Payments: 3 (₹28,160 outstanding)"
             >
-              <div className="flex h-7.5 w-7.5 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-rose-500 to-red-600 text-white shadow-xs shadow-rose-500/25 group-hover:scale-105 transition-transform animate-pulse">
+              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-rose-500 to-red-600 text-white shadow-xs shadow-rose-500/25 group-hover:scale-105 transition-transform animate-pulse">
                 <Lucide.AlertCircle size={14} strokeWidth={2.3} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Pending</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold tnum text-rose-600 dark:text-rose-400">{kpi.pendingPaymentsCount}</span>
-                  <span className="text-xs font-bold text-rose-700 bg-rose-500/15 dark:bg-rose-500/20 px-1.5 py-0.5 rounded-md leading-tight">
+                <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">Pending</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[13.5px] font-bold tnum text-rose-600 dark:text-rose-400">{kpi.pendingPaymentsCount}</span>
+                  <span className="text-[10px] font-bold text-rose-700 bg-rose-500/15 dark:bg-rose-500/20 px-1.5 py-0.5 rounded-md leading-tight">
                     Due
                   </span>
                 </div>
@@ -1198,18 +1198,16 @@ export function Header({
           </div>
 
           {/* ================= RIGHT GROUP: Actions, Alerts, Themes, Profile ================= */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 ml-auto">
-
-
+          <div className="flex items-center gap-2 sm:gap-2.5 ml-auto flex-none">
             {/* + New Booking Button */}
             {can('reservation.create') ? (
               <button
                 type="button"
                 onClick={() => onGo({ view: 'new-reservation' })}
-                className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-xl shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-xl shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer flex-none"
                 title="Create a new reservation"
               >
-                <Lucide.Plus size={16} strokeWidth={2.6} />
+                <Lucide.Plus size={15} strokeWidth={2.6} />
                 <span className="hidden sm:inline">New Booking</span>
               </button>
             ) : null}
@@ -1221,7 +1219,7 @@ export function Header({
                 onClick={() => setPanel(panel === 'notices' ? 'none' : 'notices')}
                 aria-label={`Notifications, ${unreadCount} unread`}
                 aria-expanded={panel === 'notices'}
-                className="group relative flex h-10 w-10 items-center justify-center rounded-xl border transition-all hover:bg-black/[0.03]"
+                className="group relative flex h-10 w-10 items-center justify-center rounded-xl border transition-all hover:bg-black/[0.03] cursor-pointer flex-none"
                 style={{
                   borderColor: panel === 'notices' ? 'var(--color-primary)' : 'var(--color-border)',
                   background: panel === 'notices' ? 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))' : 'var(--color-surface)',
@@ -1232,7 +1230,7 @@ export function Header({
                 <Lucide.Bell size={18} strokeWidth={1.9} className="group-hover:rotate-6 transition-transform" />
                 {unreadCount > 0 ? (
                   <span
-                    className="tnum absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1.5 text-[10.5px] font-bold text-white shadow-md ring-2 ring-white animate-pulse"
+                    className="tnum absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1.5 text-[10.5px] font-bold text-white shadow-md ring-2 ring-[var(--color-surface)] animate-pulse"
                     style={{ background: '#ef4444' }}
                   >
                     {unreadCount}
@@ -1510,7 +1508,7 @@ export function Header({
                 onClick={() => setPanel(panel === 'profile' ? 'none' : 'profile')}
                 aria-label="Open user profile menu"
                 aria-expanded={panel === 'profile'}
-                className="group flex items-center gap-2 rounded-xl border p-1 sm:pr-2.5 transition-all hover:shadow-sm"
+                className="group flex items-center gap-2 rounded-xl border p-1 sm:pr-2.5 transition-all hover:shadow-xs cursor-pointer flex-none"
                 style={{
                   borderColor: panel === 'profile' ? 'var(--color-primary)' : 'var(--color-border)',
                   background: 'var(--color-surface)',

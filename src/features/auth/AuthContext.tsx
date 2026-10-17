@@ -52,8 +52,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    try { await authApi.logout(); }
-    finally { setMe(null); }
+    await authApi.logout();
+    // Static build: there is no login screen, so "signing out" simply reloads
+    // the fixed demo session rather than dropping the user.
+    setMe(await authApi.me());
   }, []);
 
   const switchProperty = useCallback(async (propertyId: string) => {

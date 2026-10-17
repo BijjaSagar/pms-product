@@ -1,4 +1,4 @@
-import { api } from './client';
+import { store } from '../../data/store';
 
 export interface PropertyMembership {
   id: string;
@@ -139,10 +139,10 @@ export interface NightAuditRow {
 }
 
 export const authApi = {
-  login: (email: string, password: string) => api.post('/auth/login', { email, password }),
-  me: () => api.get<AuthMe>('/auth/me'),
-  logout: () => api.post<void>('/auth/logout'),
-  switchProperty: (propertyId: string) => api.post<void>('/auth/switch-property', { propertyId }),
+  login: async (_email: string, _password: string) => store.session(),
+  me: async () => store.session(),
+  logout: async () => undefined,
+  switchProperty: async (propertyId: string) => store.switchProperty(propertyId),
 };
 
 export interface HoldResult {
@@ -162,107 +162,99 @@ export interface HoldResult {
  * after ten minutes and is consumed by the reservation that uses it.
  */
 export const holdApi = {
-  acquire: (roomId: string, checkIn: string, checkOut: string) =>
-    api.post<HoldResult>('/availability/hold', { roomId, checkIn, checkOut }),
-  refresh: (holdId: string) => api.post<HoldResult>(`/availability/holds/${holdId}/refresh`),
-  release: (holdId: string) => api.del<void>(`/availability/holds/${holdId}`),
+  acquire: async (roomId: string, checkIn: string, checkOut: string) =>
+    store.acquireHold(roomId, checkIn, checkOut),
+  refresh: async (holdId: string) => store.refreshHold(holdId) as HoldResult,
+  release: async (holdId: string) => store.releaseHold(holdId),
 };
 
 export const propertyApi = {
-  list: () => api.get<PropertyRow[]>('/properties'),
-  update: (id: string, body: Record<string, unknown>) => api.patch(`/properties/${id}`, body),
+  list: async () => store.properties(),
+  update: async (id: string, body: Record<string, unknown>) => store.updateProperty(id, body),
 };
 
 export const inventoryApi = {
-  rooms: () => api.get<RoomRow[]>('/rooms'),
-  roomTypes: () => api.get<RoomTypeRow[]>('/room-types'),
-  updateRoom: (id: string, body: Record<string, unknown>) => api.patch(`/rooms/${id}`, body),
-  updateRoomType: (id: string, body: Record<string, unknown>) => api.patch(`/room-types/${id}`, body),
-  createRoom: (body: Record<string, unknown>) => api.post('/rooms', body),
-  createRoomType: (body: Record<string, unknown>) => api.post('/room-types', body),
-  availability: (checkIn: string, checkOut: string, roomTypeId: string) =>
-    api.get<AvailabilityResult>(`/availability?${new URLSearchParams({ checkIn, checkOut, roomTypeId })}`),
-  outOfOrder: (id: string, reason: string) => api.post(`/rooms/${id}/out-of-order`, { reason }),
-  backInService: (id: string, reason: string) => api.post(`/rooms/${id}/back-in-service`, { reason }),
+  rooms: async () => store.rooms(),
+  roomTypes: async () => store.roomTypes(),
+  updateRoom: async (id: string, body: Record<string, unknown>) => store.updateRoom(id, body),
+  updateRoomType: async (id: string, body: Record<string, unknown>) => store.updateRoomType(id, body),
+  createRoom: async (body: Record<string, unknown>) => store.createRoom(body),
+  createRoomType: async (body: Record<string, unknown>) => store.createRoomType(body),
+  availability: async (checkIn: string, checkOut: string, roomTypeId: string) =>
+    store.availability(checkIn, checkOut, roomTypeId),
+  outOfOrder: async (id: string, reason: string) => store.outOfOrder(id, reason),
+  backInService: async (id: string, reason: string) => store.backInService(id, reason),
 };
 
 export const guestApi = {
-  list: (search = '', page = 1, pageSize = 100) => {
-    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-    if (search) params.set('search', search);
-    return api.get<PageResult<GuestRow>>(`/guests?${params}`);
-  },
-  get: (id: string) => api.get<GuestRow>(`/guests/${id}`),
-  create: (body: Record<string, unknown>) => api.post<GuestRow>('/guests', body),
-  update: (id: string, body: Record<string, unknown>) => api.patch<GuestRow>(`/guests/${id}`, body),
+  list: async (search = '', page = 1, pageSize = 100) => store.listGuests(search, page, pageSize),
+  get: async (id: string) => store.getGuest(id) as GuestRow,
+  create: async (body: Record<string, unknown>) => store.createGuest(body),
+  update: async (id: string, body: Record<string, unknown>) => store.updateGuest(id, body) as GuestRow,
 };
 
 export const reservationApi = {
-  list: (search = '', status?: string, page = 1, pageSize = 100) => {
-    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-    if (search) params.set('search', search);
-    if (status) params.set('status', status);
-    return api.get<PageResult<ReservationRow>>(`/reservations?${params}`);
-  },
-  get: (id: string) => api.get<ReservationRow>(`/reservations/${id}`),
-  create: (body: Record<string, unknown>) => api.post<{id:string; bookingCode:string}>('/reservations', body),
-  update: (id: string, body: Record<string, unknown>) => api.patch<ReservationRow>(`/reservations/${id}`, body),
-  assignRoom: (id: string, roomId: string) => api.post(`/reservations/${id}/assign-room`, { roomId }),
-  cancel: (id: string, reason: string) => api.post(`/reservations/${id}/cancel`, { reason }),
+  list: async (search = '', status?: string, page = 1, pageSize = 100) =>
+    store.listReservations(search, status, page, pageSize),
+  get: async (id: string) => store.getReservation(id) as ReservationRow,
+  create: async (body: Record<string, unknown>) => store.createReservation(body),
+  update: async (id: string, body: Record<string, unknown>) => store.updateReservation(id, body) as ReservationRow,
+  assignRoom: async (id: string, roomId: string) => store.assignRoom(id, roomId),
+  cancel: async (id: string, reason: string) => store.cancelReservation(id, reason),
 };
 
 export const frontDeskApi = {
-  arrivals: () => api.get<StayList>('/front-desk/arrivals'),
-  departures: () => api.get<StayList>('/front-desk/departures'),
-  inHouse: () => api.get<StayList>('/front-desk/in-house'),
-  checkIn: (id: string, overrideReason?: string) => api.post(`/reservations/${id}/check-in`, overrideReason ? { overrideReason } : {}),
-  checkOut: (id: string, overrideReason?: string) => api.post(`/reservations/${id}/check-out`, overrideReason ? { overrideReason } : {}),
-  extend: (id: string, newCheckOutDate: string) => api.post(`/reservations/${id}/extend`, { newCheckOutDate }),
+  arrivals: async () => store.arrivals(),
+  departures: async () => store.departures(),
+  inHouse: async () => store.inHouse(),
+  checkIn: async (id: string, _overrideReason?: string) => store.checkIn(id),
+  checkOut: async (id: string, overrideReason?: string) => store.checkOut(id, overrideReason),
+  extend: async (id: string, newCheckOutDate: string) => store.extend(id, newCheckOutDate),
 };
 
 export const folioApi = {
-  listPayments: () => api.get<PaymentRow[]>('/payments'),
-  listInvoices: () => api.get<InvoiceRow[]>('/invoices'),
-  balance: (id: string) => api.get<FolioBalanceRow>(`/folios/${id}/balance`),
-  detail: (id: string) => api.get<FolioDetailRow>(`/folios/${id}`),
-  close: (id: string) => api.post(`/folios/${id}/close`),
-  reopen: (id: string, reason: string) => api.post(`/folios/${id}/reopen`, { reason }),
-  postItem: (id: string, body: Record<string, unknown>) => api.post(`/folios/${id}/items`, body),
-  voidItem: (itemId: string, reason: string) => api.post(`/folio-items/${itemId}/void`, { reason }),
-  payment: (id: string, body: Record<string, unknown>) => api.post(`/folios/${id}/payments`, body),
-  refund: (id: string, amount: string, reason: string) => api.post(`/payments/${id}/refund`, { amount, reason }),
-  issueInvoice: (folioId: string) => api.post<{ id: string; invoiceNo: string; status?: string }>(`/folios/${folioId}/invoices`),
-  voidInvoice: (invoiceId: string, reason: string) => api.post(`/invoices/${invoiceId}/void`, { reason }),
-  invoice: (id: string) => api.get<InvoiceRow & { property: { name: string; addressLine1: string | null; city: string | null; countryCode: string } | null; lines: Array<{ id: string; description: string; totalAmount: string }> }>(`/invoices/${id}`),
+  listPayments: async () => store.listPayments(),
+  listInvoices: async () => store.listInvoices(),
+  balance: async (id: string) => store.folioBalance(id) as FolioBalanceRow,
+  detail: async (id: string) => store.folioDetail(id) as FolioDetailRow,
+  close: async (id: string) => store.closeFolio(id),
+  reopen: async (id: string, reason: string) => store.reopenFolio(id, reason),
+  postItem: async (id: string, body: Record<string, unknown>) => store.postItem(id, body),
+  voidItem: async (itemId: string, reason: string) => store.voidItem(itemId, reason),
+  payment: async (id: string, body: Record<string, unknown>) => store.recordPayment(id, body),
+  refund: async (id: string, amount: string, reason: string) => store.refundPayment(id, amount, reason),
+  issueInvoice: async (folioId: string) => store.issueInvoice(folioId) as { id: string; invoiceNo: string; status?: string },
+  voidInvoice: async (invoiceId: string, reason: string) => store.voidInvoice(invoiceId, reason),
+  invoice: async (id: string) => store.getInvoice(id) as InvoiceRow & { property: { name: string; addressLine1: string | null; city: string | null; countryCode: string } | null; lines: Array<{ id: string; description: string; totalAmount: string }> },
 };
 
 export const operationsApi = {
-  housekeepingTasks: (scope?: string) => api.get<HousekeepingTaskRow[]>(`/housekeeping/tasks${scope ? `?scope=${encodeURIComponent(scope)}` : ''}`),
-  housekeepingSummary: () => api.get<{ byStatus: Record<string, number>; rooms: DailyFlashRow['rooms'] }>('/housekeeping/summary'),
-  createTask: (body: Record<string, unknown>) => api.post<{ id: string; status: string; roomNumber: string }>('/housekeeping/tasks', body),
-  assignTask: (id: string, assignedToId: string | null) => api.patch(`/housekeeping/tasks/${id}/assign`, { assignedToId }),
-  startTask: (id: string) => api.post(`/housekeeping/tasks/${id}/start`),
-  completeTask: (id: string, notes?: string) => api.post(`/housekeeping/tasks/${id}/complete`, notes ? { notes } : {}),
-  requestInspection: (id: string) => api.post(`/housekeeping/tasks/${id}/request-inspection`),
-  inspectTask: (id: string, result: 'pass' | 'fail', notes?: string) => api.post(`/housekeeping/tasks/${id}/inspect`, { result, notes }),
-  blockTask: (id: string, reason: string) => api.post(`/housekeeping/tasks/${id}/block`, { reason }),
-  unblockTask: (id: string) => api.post(`/housekeeping/tasks/${id}/unblock`),
-  cancelTask: (id: string, reason: string) => api.post(`/housekeeping/tasks/${id}/cancel`, { reason }),
-  maintenanceTickets: () => api.get<MaintenanceTicketRow[]>('/maintenance/tickets'),
-  createTicket: (body: Record<string, unknown>) => api.post<{ id: string; ticketNo: string; status: string }>('/maintenance/tickets', body),
-  assignTicket: (id: string, assignedToId: string | null) => api.patch(`/maintenance/tickets/${id}/assign`, { assignedToId }),
-  startTicket: (id: string) => api.post(`/maintenance/tickets/${id}/start`),
-  resolveTicket: (id: string, resolution: string) => api.post(`/maintenance/tickets/${id}/resolve`, { resolution }),
-  closeTicket: (id: string, reason?: string) => api.post(`/maintenance/tickets/${id}/close`, reason ? { reason } : {}),
-  reopenTicket: (id: string, reason: string) => api.post(`/maintenance/tickets/${id}/reopen`, { reason }),
+  housekeepingTasks: async (scope?: string) => store.housekeepingTasks(scope),
+  housekeepingSummary: async () => store.housekeepingSummary(),
+  createTask: async (body: Record<string, unknown>) => store.createTask(body),
+  assignTask: async (id: string, assignedToId: string | null) => store.assignTask(id, assignedToId),
+  startTask: async (id: string) => store.startTask(id),
+  completeTask: async (id: string, notes?: string) => store.completeTask(id, notes),
+  requestInspection: async (id: string) => store.requestInspection(id),
+  inspectTask: async (id: string, result: 'pass' | 'fail', notes?: string) => store.inspectTask(id, result, notes),
+  blockTask: async (id: string, reason: string) => store.blockTask(id, reason),
+  unblockTask: async (id: string) => store.unblockTask(id),
+  cancelTask: async (id: string, reason: string) => store.cancelTask(id, reason),
+  maintenanceTickets: async () => store.maintenanceTickets(),
+  createTicket: async (body: Record<string, unknown>) => store.createTicket(body),
+  assignTicket: async (id: string, assignedToId: string | null) => store.assignTicket(id, assignedToId),
+  startTicket: async (id: string) => store.startTicket(id),
+  resolveTicket: async (id: string, resolution: string) => store.resolveTicket(id, resolution),
+  closeTicket: async (id: string, reason?: string) => store.closeTicket(id, reason),
+  reopenTicket: async (id: string, reason: string) => store.reopenTicket(id, reason),
 };
 
 export const reportsApi = {
-  dailyFlash: (date?: string) => api.get<DailyFlashRow>(`/reports/daily-flash${date ? `?date=${date}` : ''}`),
-  occupancy: (from: string, to: string) => api.get<OccupancyReportRow>(`/reports/occupancy?${new URLSearchParams({ from, to })}`),
-  revenue: (from: string, to: string) => api.get<RevenueReportRow>(`/reports/revenue?${new URLSearchParams({ from, to })}`),
-  movement: (from: string, to: string) => api.get<MovementReportRow>(`/reports/arrivals-departures?${new URLSearchParams({ from, to })}`),
-  housekeeping: (from: string, to: string) => api.get<HousekeepingReportRow>(`/reports/housekeeping?${new URLSearchParams({ from, to })}`),
+  dailyFlash: async (date?: string) => store.dailyFlash(date),
+  occupancy: async (from: string, to: string) => store.occupancyReport(from, to),
+  revenue: async (from: string, to: string) => store.revenueReport(from, to),
+  movement: async (from: string, to: string) => store.movementReport(from, to),
+  housekeeping: async (from: string, to: string) => store.housekeepingReport(from, to),
   exportDailyFlash: (date: string) => `/reports/daily-flash/export.csv?${new URLSearchParams({ date })}`,
   exportOccupancy: (from: string, to: string) => `/reports/occupancy/export.csv?${new URLSearchParams({ from, to })}`,
   exportRevenue: (from: string, to: string) => `/reports/revenue/export.csv?${new URLSearchParams({ from, to })}`,
@@ -270,15 +262,15 @@ export const reportsApi = {
 };
 
 export const auditApi = {
-  list: (limit = 20) => api.get<AuditEventsResult>(`/audit-log?limit=${limit}`),
+  list: async (limit = 20) => store.auditEvents(limit),
   export: () => '/audit-log/export.csv',
 };
 
 export const nightAuditApi = {
-  get: (date: string) => api.get<NightAuditRow>(`/night-audit/${date}`),
-  preview: (date: string) => api.post<NightAuditRow>(`/night-audit/${date}/preview`),
-  close: (date: string, idempotencyKey: string) => api.post<NightAuditRow>(`/night-audit/${date}/close`, { idempotencyKey }),
-  reopen: (date: string, reason: string) => api.post<NightAuditRow>(`/night-audit/${date}/reopen`, { reason }),
+  get: async (date: string) => store.nightAuditGet(date),
+  preview: async (date: string) => store.nightAuditPreview(date),
+  close: async (date: string, _idempotencyKey: string) => store.nightAuditClose(date),
+  reopen: async (date: string, reason: string) => store.nightAuditReopen(date, reason),
 };
 
 export interface RoleMatrix {
@@ -287,23 +279,28 @@ export interface RoleMatrix {
 }
 
 export const adminApi = {
-  users: () => api.get<UserRow[]>('/users'),
-  acceptInvite: (token: string, password: string) => api.post<{ email: string; status: string }>('/users/accept-invite', { token, password }),
-  invite: (body: Record<string, unknown>) => api.post<{ email: string; inviteToken: string; acceptUrl: string }>('/users/invite', body),
-  reissueInvite: (id: string) => api.post<{ inviteToken: string; acceptUrl: string }>(`/users/${id}/reissue-invite`),
-  cancelInvite: (id: string) => api.post(`/users/${id}/cancel-invite`),
-  updateUser: (id: string, body: Record<string, unknown>) => api.patch<UserRow>(`/users/${id}`, body),
-  setRole: (id: string, propertyId: string, roleKey: string) => api.patch(`/users/${id}/role`, { propertyId, roleKey }),
-  setUserStatus: (id: string, status: 'ACTIVE' | 'DISABLED') => api.patch(`/users/${id}/status`, { status }),
-  roles: () => api.get<RoleRow[]>('/roles'),
-  permissions: () => api.get<Array<{ key: string; resource: string; action: string; description: string }>>('/permissions'),
-  matrix: () => api.get<RoleMatrix>('/roles/matrix'),
-  taxRules: () => api.get<TaxRuleRow[]>('/tax-rules'),
-  createTaxRule: (body: Record<string, unknown>) => api.post('/tax-rules', body),
-  updateTaxRule: (id: string, body: Record<string, unknown>) => api.patch(`/tax-rules/${id}`, body),
+  users: async () => store.users(),
+  acceptInvite: async (token: string, _password: string) => ({ email: token, status: 'ACTIVE' }),
+  invite: async (body: Record<string, unknown>) => store.invite(body),
+  reissueInvite: async (id: string) => store.reissueInvite(id),
+  cancelInvite: async (id: string) => store.cancelInvite(id),
+  updateUser: async (id: string, body: Record<string, unknown>) => store.updateUser(id, body) as UserRow,
+  setRole: async (id: string, propertyId: string, roleKey: string) => store.setRole(id, propertyId, roleKey),
+  setUserStatus: async (id: string, status: 'ACTIVE' | 'DISABLED') => store.setUserStatus(id, status),
+  roles: async () => store.roles(),
+  permissions: async () => store.permissions(),
+  matrix: async () => store.matrix(),
+  taxRules: async () => store.taxRules(),
+  createTaxRule: async (body: Record<string, unknown>) => store.createTaxRule(body),
+  updateTaxRule: async (id: string, body: Record<string, unknown>) => store.updateTaxRule(id, body),
 };
 
+const THEME_STORAGE_KEY = 'pms.theme';
+
 export const themeApi = {
-  get: () => api.get<{ themeKey: string }>('/preferences/theme'),
-  set: (themeKey: string) => api.put<{ themeKey: string; applied: boolean }>('/preferences/theme', { themeKey }),
+  get: async () => ({ themeKey: localStorage.getItem(THEME_STORAGE_KEY) ?? 'MIDNIGHT_NAVY' }),
+  set: async (themeKey: string) => {
+    localStorage.setItem(THEME_STORAGE_KEY, themeKey);
+    return { themeKey, applied: true };
+  },
 };

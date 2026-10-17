@@ -1,18 +1,51 @@
-# React + TypeScript + Vite
+# TriponX Hotel PMS — static demo build
 
-## Connect to the PMS backend
+## Running without a backend
 
-The frontend calls the backend at `/api/v1`. In development, Vite proxies that
-path to `http://localhost:3000`; set `VITE_API_BASE_URL` in `.env.local` if the
-API is hosted elsewhere. The backend's `FRONTEND_URL` must match the browser
-origin for credentialed requests.
+This build is **fully static**. There is no server, no network calls and no
+database — the UI is driven entirely by an in-memory data store that is seeded
+at startup and lives for the lifetime of the browser tab.
 
-Start the backend with its configured PostgreSQL database before signing in.
-The backend session is held in an HttpOnly cookie; the frontend does not store
-session tokens in local storage.
+- `src/data/catalog.ts` holds the fixed reference data (property, roles,
+  permissions, staff, room types, guest profiles).
+- `src/data/fixtures.ts` generates rooms, reservations and folios for the
+  business date `2026-10-17`.
+- `src/data/store.ts` is the interactive store. Every create/update/delete the
+  UI performs (check-in, check-out, posting charges, taking payments, raising
+  tickets, inviting staff, …) mutates this store in place, so the change is
+  immediately visible everywhere in the app.
+- `src/lib/api/*` keeps its original module shape and method signatures; the
+  API objects now delegate to the store instead of `fetch`.
 
-Expenses, rate plans, and notification preferences are not backed by current
-backend endpoints. Those sections are explicitly marked demo-only or unavailable.
+Because the store lives in memory, **all changes reset when you reload the
+page**. There is no persistence layer.
+
+### Sessions
+
+There is no login screen. The app boots straight into a fixed demo session
+(Anaya Sharma, Owner) with full access to every module, so all views render.
+"Sign out" simply reloads that same demo session.
+
+### Exports
+
+Report and audit-log CSV exports are generated client-side from the store, so
+the download buttons work without a server.
+
+Expenses, rate plans and notification preferences remain demo-only sections.
+
+## Development
+
+```bash
+npm install
+npm run dev     # start the Vite dev server
+npm run build   # type-check and produce a production bundle in dist/
+npm run lint    # run ESLint
+```
+
+The production bundle in `dist/` is completely self-contained and can be served
+from any static host.
+
+## Template notes
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

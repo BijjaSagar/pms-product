@@ -1068,7 +1068,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
       {activeTab === 'taxes' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-base font-semibold text-ink mb-1">Active Backend Tax Rules</h2>
+            <h2 className="text-base font-semibold text-ink mb-1">Active Tax Rules</h2>
             <p className="text-xs text-ink-secondary mb-4">Taxes applied dynamically to folios and invoices</p>
             <div className="flex flex-col gap-3">
               <div>

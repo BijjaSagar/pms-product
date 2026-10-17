@@ -80,7 +80,7 @@ export function Invoices() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         {[
-          { label: 'Total Invoices', val: String(resource.data?.length ?? 0), sub: 'Backend records', Icon: Lucide.FileText },
+          { label: 'Total Invoices', val: String(resource.data?.length ?? 0), sub: 'Issued records', Icon: Lucide.FileText },
           { label: 'Issued Documents', val: String((resource.data ?? []).filter((i) => i.status === 'Issued').length), sub: 'Official invoices', Icon: Lucide.CheckCircle2 },
           { label: 'Voided Invoices', val: String((resource.data ?? []).filter((i) => i.status === 'Void').length), sub: 'Cancelled records', Icon: Lucide.FileX },
         ].map(({ label, val, sub, Icon }) => (

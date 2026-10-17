@@ -12,7 +12,6 @@ import type { ThemePresetId } from './theme/presets';
 import { Toaster } from './components/overlays';
 import { Dashboard } from './pages/Dashboard';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
-import { Login } from './features/auth/Login';
 import { themeApi } from './lib/api/themeApi';
 import type { ThemeKey } from './types';
 
@@ -217,7 +216,7 @@ function ShellWithBoundary() {
 }
 
 function AuthenticatedApp() {
-  const { me, loading, error, reload, switchProperty } = useAuth();
+  const { me, loading, switchProperty } = useAuth();
   const { preset, setPreset } = useTheme();
   const [loadedThemeProperty, setLoadedThemeProperty] = useState<string | null>(null);
   const themeScope = me?.activePropertyId ? `${me.user.id}:${me.activePropertyId}` : null;
@@ -245,19 +244,13 @@ function AuthenticatedApp() {
     return <main className="flex min-h-screen items-center justify-center" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}><p className="pms-helper">Connecting to TriponX…</p></main>;
   }
 
-  if (error && !me) {
+  if (!me) {
     return (
-      <main className="flex min-h-screen items-center justify-center px-4" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
-        <section className="pms-card max-w-[520px] p-5">
-          <h1 className="pms-section-title">Backend connection unavailable</h1>
-          <p className="pms-helper mt-2">{error}</p>
-          <button className="pms-btn-primary mt-4 px-4 py-2.5" type="button" onClick={() => void reload()}>Try again</button>
-        </section>
+      <main className="flex min-h-screen items-center justify-center" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
+        <p className="pms-helper">Preparing your workspace…</p>
       </main>
     );
   }
-
-  if (!me) return <Login />;
 
   if (!me.activePropertyId) {
     const memberships = me.user.propertyMemberships.filter((membership) => membership.isActive);
