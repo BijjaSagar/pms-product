@@ -2,15 +2,15 @@
 // Runtime values live in tokens.css (must stay in sync). TS-only, erasable syntax.
 
 export const PRESET_IDS = [
-  'midnight',
-  'ocean',
   'crimson',
+  'ocean',
   'beige',
   'sage',
   'slate',
   'eucalyptus',
   'olive',
   'lavender',
+  'midnight',
 ] as const;
 
 export type ThemePresetId = (typeof PRESET_IDS)[number];

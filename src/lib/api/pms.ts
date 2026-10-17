@@ -298,7 +298,7 @@ export const adminApi = {
 const THEME_STORAGE_KEY = 'pms.theme';
 
 export const themeApi = {
-  get: async () => ({ themeKey: localStorage.getItem(THEME_STORAGE_KEY) ?? 'MIDNIGHT_NAVY' }),
+  get: async () => ({ themeKey: localStorage.getItem(THEME_STORAGE_KEY) ?? 'CRIMSON_RED' }),
   set: async (themeKey: string) => {
     localStorage.setItem(THEME_STORAGE_KEY, themeKey);
     return { themeKey, applied: true };

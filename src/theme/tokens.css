@@ -52,29 +52,29 @@
   --color-neutral-text: #4a5450;
   --color-neutral-border: #d5d8d5;
 
-  /* Fallback palette (Midnight Navy). Every preset below overrides these, so a
+  /* Fallback palette (Crimson Red). Every preset below overrides these, so a
      missing or unknown `data-preset` still renders a themed UI rather than one
      with undefined colours. */
-  --color-primary: #1d4ed8;
-  --color-primary-hover: #1e40af;
-  --color-primary-active: #1e3a8a;
+  --color-primary: #c62828;
+  --color-primary-hover: #b71c1c;
+  --color-primary-active: #7f0000;
   --color-primary-foreground: #ffffff;
-  --color-dark-accent: #12304a;
-  --color-soft: #60a5fa;
+  --color-dark-accent: #7f0000;
+  --color-soft: #ef9a9a;
   --color-page: #f2f2f2;
   --color-sidebar: #ffffff;
   --color-surface: #ffffff;
   --color-elevated: #ffffff;
-  --color-hover-surface: #e8f0fe;
-  --color-muted-surface: #dbeafe;
-  --color-ink: #12304a;
-  --color-ink-secondary: #3e5a78;
-  --color-ink-muted: #7a93af;
-  --color-ink-disabled: #b4c6d9;
-  --color-border: #cbddf0;
-  --color-divider: #e4edf5;
-  --color-focus: #1d4ed8;
-  --color-selection: rgb(29 78 216 / 0.18);
+  --color-hover-surface: #f5f5f5;
+  --color-muted-surface: #ffebee;
+  --color-ink: #212121;
+  --color-ink-secondary: #616161;
+  --color-ink-muted: #9e9e9e;
+  --color-ink-disabled: #bdbdbd;
+  --color-border: #e0e0e0;
+  --color-divider: #eeeeee;
+  --color-focus: #c62828;
+  --color-selection: rgb(198 40 40 / 0.18);
 
   /* Sidebar contrast + scrim: white sidebar background with theme-aware active tokens */
   --color-sidebar-ink: #64748b;
