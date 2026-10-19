@@ -1,5 +1,6 @@
 import { PRESET_LIST } from '../theme/presets';
 import { useTheme } from '../theme/useTheme';
+import { toast } from './toastStore';
 
 export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { preset = 'crimson', setPreset } = useTheme();
@@ -47,8 +48,13 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                   type="button"
                   role="radio"
                   aria-checked={checked}
-                  onClick={() => setPreset(p.id)}
-                  className="rounded-[14px] border p-3 text-left transition-all duration-200 hover:-translate-y-0.5"
+                  onClick={() => {
+                    setPreset(p.id);
+                    toast.success(`Theme updated to ${p.name}`, {
+                      detail: p.description,
+                    });
+                  }}
+                  className="rounded-[14px] border p-3 text-left transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
                   style={{
                     borderColor: checked ? 'var(--color-primary)' : 'var(--color-border)',
                     background: checked ? 'color-mix(in srgb, var(--color-hover-surface) 78%, white)' : 'var(--color-surface)',
@@ -85,6 +91,100 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                 </button>
               );
             })}
+          </div>
+
+          {/* Live Notification Preview Playground */}
+          <div className="mt-6 border-t pt-5" style={{ borderColor: 'var(--color-border)' }}>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="pms-label">Preview Toast Notifications</h3>
+              <span className="text-[11px] font-medium" style={{ color: 'var(--color-ink-muted)' }}>
+                Live Demo
+              </span>
+            </div>
+            <p className="pms-helper mb-3">
+              Test each toast variant with smooth physics, glassmorphic styling, and hover-pause.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  toast.success('Reservation Confirmed', {
+                    detail: 'Room 304 · Alex Morgan checked in successfully.',
+                  })
+                }
+                className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-xs font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
+                style={{
+                  background: 'var(--color-surface)',
+                  borderColor: 'color-mix(in srgb, #10b981 35%, var(--color-border))',
+                  color: 'var(--color-ink)',
+                }}
+              >
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-xs" />
+                <span>Success Toast</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  toast.info('Housekeeping Assigned', {
+                    detail: '3 departure rooms queued for immediate inspection.',
+                  })
+                }
+                className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-xs font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
+                style={{
+                  background: 'var(--color-surface)',
+                  borderColor: 'color-mix(in srgb, #0ea5e9 35%, var(--color-border))',
+                  color: 'var(--color-ink)',
+                }}
+              >
+                <span className="h-2.5 w-2.5 rounded-full bg-sky-500 shadow-xs" />
+                <span>Info Toast</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  toast.warning('Checkout Pending', {
+                    detail: 'Room 108 requested late checkout until 1:30 PM.',
+                  })
+                }
+                className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-xs font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
+                style={{
+                  background: 'var(--color-surface)',
+                  borderColor: 'color-mix(in srgb, #f59e0b 35%, var(--color-border))',
+                  color: 'var(--color-ink)',
+                }}
+              >
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-500 shadow-xs" />
+                <span>Warning Toast</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  toast.error('Payment Authorization Failed', {
+                    detail: 'Visa •••• 4242 declined ($420.00). Cardholder notified.',
+                    action: {
+                      label: 'Retry Charge',
+                      onClick: () => {
+                        toast.info('Retrying Payment...', {
+                          detail: 'Connecting to payment gateway.',
+                        });
+                      },
+                    },
+                  })
+                }
+                className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-xs font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
+                style={{
+                  background: 'var(--color-surface)',
+                  borderColor: 'color-mix(in srgb, #f43f5e 35%, var(--color-border))',
+                  color: 'var(--color-ink)',
+                }}
+              >
+                <span className="h-2.5 w-2.5 rounded-full bg-rose-500 shadow-xs" />
+                <span>Error Toast</span>
+              </button>
+            </div>
           </div>
         </div>
       </aside>

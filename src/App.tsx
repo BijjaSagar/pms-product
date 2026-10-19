@@ -30,6 +30,8 @@ const PRESET_TO_THEME_KEY = Object.fromEntries(Object.entries(THEME_KEY_TO_PRESE
 
 const Reservations = lazy(() => import('./pages/Reservations').then((m) => ({ default: m.Reservations })));
 const NewReservation = lazy(() => import('./pages/NewReservation').then((m) => ({ default: m.NewReservation })));
+const NewReservation2 = lazy(() => import('./pages/NewReservation2').then((m) => ({ default: m.NewReservation2 })));
+const NewReservation3 = lazy(() => import('./pages/NewReservation3').then((m) => ({ default: m.NewReservation3 })));
 const RateManagement = lazy(() => import('./pages/RateManagement').then((m) => ({ default: m.RateManagement })));
 const ChannelManager = lazy(() => import('./pages/ChannelManager').then((m) => ({ default: m.ChannelManager })));
 const CheckIn = lazy(() => import('./pages/CheckIn').then((m) => ({ default: m.CheckIn })));
@@ -111,6 +113,10 @@ function Shell() {
         return <Reservations initialQuery={target.query} focusId={target.focusId} go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'new-reservation':
         return <NewReservation go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
+      case 'new-reservation-2':
+        return <NewReservation2 go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
+      case 'new-reservation-3':
+        return <NewReservation3 go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'rate-management':
         return <RateManagement />;
       case 'channel-manager':
@@ -182,7 +188,7 @@ function Shell() {
           onOpenThemes={() => setSwatcherOpen(true)}
           onGo={go}
         />
-        <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}`} className={`pms-animate-fade-up mx-auto w-full flex-1 px-4 py-4 lg:px-6 lg:py-6 ${view === 'dashboard' || view === 'new-reservation' || view === 'reservations' || view === 'status-board' ? 'max-w-[1600px] 2xl:max-w-[1760px]' : 'max-w-[1280px] 2xl:max-w-[1440px]'}`} style={{ background: 'var(--color-page)' }}>
+        <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}`} className={`pms-animate-fade-up mx-auto w-full flex-1 px-4 py-4 lg:px-6 lg:py-6 ${view === 'dashboard' || view === 'new-reservation' || view === 'new-reservation-2' || view === 'new-reservation-3' || view === 'reservations' || view === 'status-board' ? 'max-w-[1600px] 2xl:max-w-[1760px]' : 'max-w-[1280px] 2xl:max-w-[1440px]'}`} style={{ background: 'var(--color-page)' }}>
           <Suspense fallback={<PageFallback />}>{page}</Suspense>
         </main>
         <footer

@@ -1,2 +1,9 @@
-export type { ToastItem } from '../utils/toast';
-export { toast, dismissToast, subscribeToasts, snapshotToasts } from '../utils/toast';
+export type { ToastItem, ToastOptions, ToastAction, ToastCallable } from '../utils/toast';
+export {
+  toast,
+  dismissToast,
+  forceDismissToast,
+  clearToasts,
+  subscribeToasts,
+  snapshotToasts,
+} from '../utils/toast';

@@ -340,33 +340,16 @@ const DEMO_PAYMENTS = [
   },
 ];
 
-const OCCUPANCY_CHART_DATA = [
-  { day: '14 Oct', occ: 88, adr: 4600 },
-  { day: '15 Oct', occ: 62, adr: 4200 },
-  { day: '16 Oct', occ: 40, adr: 5100 },
-  { day: '17 Oct', occ: 92, adr: 5400 },
-  { day: '18 Oct', occ: 70, adr: 4800 },
-  { day: '19 Oct', occ: 60, adr: 5900 },
-  { day: '20 Oct', occ: 78, adr: 6200 },
-  { day: '21 Oct', occ: 55, adr: 5200 },
-  { day: '22 Oct', occ: 68, adr: 5500 },
-  { day: '23 Oct', occ: 74, adr: 5800 },
-  { day: '24 Oct', occ: 95, adr: 6500 },
-  { day: '25 Oct', occ: 88, adr: 6400 },
-  { day: '26 Oct', occ: 72, adr: 5700 },
-  { day: '27 Oct', occ: 58, adr: 5300 },
-];
 
 export function Dashboard({
   go,
-  onOpenThemes,
+  onOpenThemes: _onOpenThemes,
 }: {
   go: (t: NavTarget) => void;
   onOpenThemes?: () => void;
 }) {
   const { me, can } = useAuth();
   const [timelineTab, setTimelineTab] = useState<'all' | 'arrivals' | 'departures' | 'in-house'>('all');
-  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [swatcherOpen, setSwatcherOpen] = useState(false);
 
   const loadDashboard = useCallback(async () => {
@@ -485,16 +468,6 @@ export function Dashboard({
     return DEMO_PAYMENTS;
   }, [payments]);
 
-  const adrPoints = useMemo(() => {
-    const minAdr = 3500;
-    const maxAdr = 7000;
-    return OCCUPANCY_CHART_DATA.map((item, idx) => {
-      const x = 40 + (idx / (OCCUPANCY_CHART_DATA.length - 1)) * 920;
-      const norm = Math.max(0, Math.min(1, (item.adr - minAdr) / (maxAdr - minAdr)));
-      const y = 120 - norm * 85;
-      return { x: Math.round(x), y: Math.round(y) };
-    });
-  }, []);
 
   return (
     <div className="w-full text-slate-900 font-sans pb-8 flex flex-col gap-4">
@@ -515,311 +488,13 @@ export function Dashboard({
           </div>
         </div>
 
-        {/* Right Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* + New Reservation */}
-          <button
-            type="button"
-            onClick={() => go({ view: 'new-reservation' })}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-md bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-white shadow-sm transition-all cursor-pointer"
-          >
-            <Lucide.Plus size={16} strokeWidth={2.5} />
-            <span>New Reservation</span>
-          </button>
-
-          {/* Walk-in Guest */}
-          <button
-            type="button"
-            onClick={() => go({ view: 'walk-in' })}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors cursor-pointer"
-          >
-            <Lucide.Footprints size={16} className="text-slate-500" />
-            <span>Walk-in Guest</span>
-          </button>
-
-          {/* Check-in */}
-          <button
-            type="button"
-            onClick={() => go({ view: 'check-in' })}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-md border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 text-emerald-800 shadow-xs transition-colors cursor-pointer"
-          >
-            <Lucide.DoorOpen size={16} className="text-emerald-600" />
-            <span>Check-in</span>
-          </button>
-
-          {/* Check-out */}
-          <button
-            type="button"
-            onClick={() => go({ view: 'check-out' })}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-md border border-amber-200 bg-amber-50/50 hover:bg-amber-50 text-amber-800 shadow-xs transition-colors cursor-pointer"
-          >
-            <Lucide.DoorClosed size={16} className="text-amber-600" />
-            <span>Check-out</span>
-          </button>
-
-          {/* More Actions Dropdown */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setMoreMenuOpen((prev) => !prev)}
-              className="flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors cursor-pointer"
-              aria-label="More options"
-            >
-              <span>••• More</span>
-              <Lucide.ChevronDown size={14} className="text-slate-400" />
-            </button>
-
-            {moreMenuOpen && (
-              <div
-                className="absolute right-0 top-full mt-1.5 z-30 w-48 rounded-md border border-slate-200 bg-white p-1.5 shadow-xl text-xs animate-in fade-in zoom-in-95"
-                onClick={() => setMoreMenuOpen(false)}
-              >
-                <button
-                  type="button"
-                  onClick={() => (onOpenThemes ? onOpenThemes() : setSwatcherOpen(true))}
-                  className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-slate-700 hover:bg-slate-100 font-medium cursor-pointer"
-                >
-                  <Lucide.Palette size={14} className="text-[var(--color-primary)]" />
-                  <span>Customize Theme</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => go({ view: 'room-inventory' })}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-slate-700 hover:bg-slate-100 font-medium cursor-pointer"
-                >
-                  <Lucide.Boxes size={14} className="text-slate-500" />
-                  <span>Room Inventory</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => go({ view: 'reports' })}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-slate-700 hover:bg-slate-100 font-medium cursor-pointer"
-                >
-                  <Lucide.BarChart3 size={14} className="text-slate-500" />
-                  <span>Daily Reports</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => go({ view: 'folios' })}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-slate-700 hover:bg-slate-100 font-medium cursor-pointer"
-                >
-                  <Lucide.ReceiptText size={14} className="text-slate-500" />
-                  <span>Guest Folios</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
-      {/* ================= 2. PERFORMANCE & INVENTORY: OCCUPANCY (col-8) & ROOM STATUS (col-4) ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-        {/* Card: Occupancy (Next 14 Days) - col-8 */}
-        <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between h-full">
-          <div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 text-sky-600 border border-sky-200/70 shadow-2xs">
-                  <Lucide.BarChart3 size={18} strokeWidth={2.4} />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-900 tracking-tight">Occupancy (Next 14 Days)</h2>
-                  <p className="text-[11px] text-slate-400">Demand forecast and Average Daily Rate (ADR) projection</p>
-                </div>
-              </div>
-
-              {/* Legend & Action */}
-              <div className="flex items-center gap-3 self-start sm:self-auto">
-                <div className="flex items-center gap-3 text-xs text-slate-500 bg-slate-50 px-3 py-1 rounded-lg border border-slate-200/60">
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <span className="h-2.5 w-2.5 rounded-xs bg-[var(--color-primary)]" />
-                    <span>Occupancy %</span>
-                  </span>
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <span className="h-2 w-2 rounded-full border-2 border-sky-400 bg-white" />
-                    <span>ADR (₹)</span>
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => go({ view: 'occupancy-report' })}
-                  className="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
-                >
-                  <span>Report</span>
-                  <Lucide.ArrowRight size={12} className="text-slate-400" />
-                </button>
-              </div>
-            </div>
-
-            {/* Bar + Line Combo Chart */}
-            <div className="relative h-48 w-full flex items-end pt-3">
-              {/* Y-axis left lines */}
-              <div className="absolute inset-0 flex flex-col justify-between text-[9.5px] text-slate-400 pointer-events-none select-none">
-                <div className="border-b border-dashed border-slate-100 pb-0.5">100%</div>
-                <div className="border-b border-dashed border-slate-100 pb-0.5">80%</div>
-                <div className="border-b border-dashed border-slate-100 pb-0.5">60%</div>
-                <div className="border-b border-dashed border-slate-100 pb-0.5">40%</div>
-                <div className="border-b border-dashed border-slate-100 pb-0.5">20%</div>
-                <div className="border-b border-slate-200 pb-0.5">0%</div>
-              </div>
-
-              {/* Y-axis right labels */}
-              <div className="absolute right-0 inset-y-0 flex flex-col justify-between text-[9.5px] text-slate-400 pointer-events-none select-none text-right">
-                <div>₹7K</div>
-                <div>₹6K</div>
-                <div>₹5K</div>
-                <div>₹4K</div>
-                <div>₹3K</div>
-                <div>₹0</div>
-              </div>
-
-              {/* 14 Day Bars */}
-              <div className="relative z-10 w-full pl-7 pr-8 flex items-end justify-between h-40">
-                {OCCUPANCY_CHART_DATA.map((item, idx) => (
-                  <div key={idx} className="flex flex-col items-center flex-1 h-full justify-end group relative">
-                    {/* Tooltip on hover */}
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5 text-[9.5px] font-bold bg-slate-900 text-white rounded px-1.5 py-0.5 pointer-events-none z-30 whitespace-nowrap shadow-md">
-                      {item.day}: {item.occ}% · ₹{item.adr}
-                    </div>
-                    {/* The bar */}
-                    <div
-                      className="w-3.5 sm:w-5 md:w-6 rounded-t bg-[var(--color-primary)] group-hover:bg-[var(--color-primary-hover)] transition-all cursor-pointer shadow-2xs"
-                      style={{ height: `${item.occ}%` }}
-                    />
-                    <span className="text-[10px] text-slate-500 mt-2 leading-tight text-center font-medium">
-                      {item.day.split(' ')[0]}<br />
-                      <span className="text-slate-400 text-[9px]">{item.day.split(' ')[1]}</span>
-                    </span>
-                  </div>
-                ))}
-
-                {/* Simulated ADR Trend Line (SVG Overlay) */}
-                <svg className="absolute inset-0 h-40 w-full pointer-events-none overflow-visible pl-7 pr-8" viewBox="0 0 1000 140" preserveAspectRatio="none">
-                  <polyline
-                    fill="none"
-                    stroke="#38bdf8"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    points={adrPoints.map((p) => `${p.x},${p.y}`).join(' ')}
-                  />
-                  {adrPoints.map((p, i) => (
-                    <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="#ffffff" stroke="#0284c7" strokeWidth="2" />
-                  ))}
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span className="text-[11.5px] text-slate-400">Peak demand: 24 Oct (95% Occupancy · ₹6,500 ADR)</span>
-            <button
-              type="button"
-              onClick={() => go({ view: 'occupancy-report' })}
-              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
-            >
-              <span>14-day projection report</span>
-              <Lucide.ArrowRight size={12} />
-            </button>
-          </div>
-        </div>
-
-        {/* Card: Room Status Overview - col-4 (rest col) */}
-        <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between h-full">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 shadow-2xs">
-                  <Lucide.BedDouble size={18} strokeWidth={2.4} />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-900 tracking-tight">Room Status Overview</h2>
-                  <p className="text-[11px] text-slate-400">Current live inventory distribution</p>
-                </div>
-              </div>
-              <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/60">
-                50 Rooms
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between gap-4 py-2">
-              {/* SVG Donut Chart */}
-              <div className="relative h-32 w-32 flex-none flex items-center justify-center">
-                <svg viewBox="0 0 160 160" className="h-full w-full -rotate-90">
-                  <circle cx="80" cy="80" r="60" fill="none" stroke="var(--color-primary)" strokeWidth="18" strokeDasharray="256.35 376.99" strokeDashoffset="0" />
-                  <circle cx="80" cy="80" r="60" fill="none" stroke="#10b981" strokeWidth="18" strokeDasharray="75.40 376.99" strokeDashoffset="-256.35" />
-                  <circle cx="80" cy="80" r="60" fill="none" stroke="#f59e0b" strokeWidth="18" strokeDasharray="30.16 376.99" strokeDashoffset="-331.75" />
-                  <circle cx="80" cy="80" r="60" fill="none" stroke="#0ea5e9" strokeWidth="18" strokeDasharray="7.54 376.99" strokeDashoffset="-361.91" />
-                  <circle cx="80" cy="80" r="60" fill="none" stroke="#ef4444" strokeWidth="18" strokeDasharray="7.54 376.99" strokeDashoffset="-369.45" />
-                </svg>
-
-                {/* Center Label */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-2xl font-bold text-slate-900 leading-none">50</span>
-                  <span className="text-[10px] text-slate-400 font-medium mt-0.5">Total Rooms</span>
-                </div>
-              </div>
-
-              {/* Legend List */}
-              <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-700 truncate">
-                    <span className="h-2 w-2 rounded-full bg-[var(--color-primary)] flex-none" />
-                    <span className="font-medium">34 Occupied</span>
-                  </span>
-                  <span className="font-bold text-slate-800">68%</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-700 truncate">
-                    <span className="h-2 w-2 rounded-full bg-[#10b981] flex-none" />
-                    <span className="font-medium">10 Available</span>
-                  </span>
-                  <span className="font-bold text-slate-800">20%</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-700 truncate">
-                    <span className="h-2 w-2 rounded-full bg-[#f59e0b] flex-none" />
-                    <span className="font-medium">4 Dirty</span>
-                  </span>
-                  <span className="font-bold text-slate-800">8%</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-700 truncate">
-                    <span className="h-2 w-2 rounded-full bg-[#0ea5e9] flex-none" />
-                    <span className="font-medium">1 Cleaning</span>
-                  </span>
-                  <span className="font-bold text-slate-800">2%</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-700 truncate">
-                    <span className="h-2 w-2 rounded-full bg-[#ef4444] flex-none" />
-                    <span className="font-medium">1 Out of order</span>
-                  </span>
-                  <span className="font-bold text-slate-800">2%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-[11.5px] text-slate-400">Available to sell: 10 units</span>
-            <button
-              type="button"
-              onClick={() => go({ view: 'room-inventory' })}
-              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
-            >
-              <span>Room inventory</span>
-              <Lucide.ArrowRight size={12} />
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* ================= 3. OPERATIONAL TIMELINE & DEPARTMENT TASKS ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Today's Activity Timeline (lg:col-span-7) */}
-        <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between h-full">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        {/* Today's Activity Timeline (lg:col-span-6) */}
+        <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between h-full">
           <div>
             {/* Header */}
             <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
@@ -864,11 +539,10 @@ export function Dashboard({
                   key={tab.key}
                   type="button"
                   onClick={() => setTimelineTab(tab.key)}
-                  className={`flex-1 min-w-[70px] py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer text-center ${
-                    timelineTab === tab.key
+                  className={`flex-1 min-w-[70px] py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer text-center ${timelineTab === tab.key
                       ? 'bg-white text-slate-900 shadow-2xs font-bold border border-slate-200/50'
                       : 'text-slate-500 hover:text-slate-800'
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -966,137 +640,252 @@ export function Dashboard({
           </div>
         </div>
 
-        {/* Housekeeping & Department Tasks (lg:col-span-5) */}
-        <div className="lg:col-span-5 flex flex-col gap-5">
+        {/* Housekeeping & Department Tasks (lg:col-span-6) */}
+        <div className="lg:col-span-6 flex flex-col gap-5 h-full">
           {/* Card: Housekeeping Progress */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)]">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-600 border border-sky-200/60 shadow-2xs">
-                  <Lucide.Sparkles size={16} strokeWidth={2.4} />
+          <div className="flex-1 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
+            <div>
+              {/* Header */}
+              <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-600 border border-sky-200/60 shadow-2xs">
+                    <Lucide.Sparkles size={16} strokeWidth={2.4} />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">Housekeeping Progress</h2>
+                    <p className="text-[11px] text-slate-400">Turnaround status & inspection</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-900 tracking-tight">Housekeeping Progress</h2>
-                  <p className="text-[11px] text-slate-400">Turnaround status & inspection</p>
+                <button
+                  type="button"
+                  onClick={() => go({ view: 'housekeeping' })}
+                  className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs transition-colors"
+                >
+                  View all
+                </button>
+              </div>
+
+              {/* Progress Summary */}
+              <div className="flex items-baseline justify-between mb-1.5">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xl font-bold text-slate-900">18%</span>
+                  <span className="text-xs text-slate-500 font-normal">9 of 50 rooms cleaned</span>
+                </div>
+                <span className="text-[11px] font-semibold text-slate-400">Target: 85% by 2:00 PM</span>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden mb-3.5">
+                <div className="h-full rounded-full bg-[var(--color-primary)] w-[18%] transition-all" />
+              </div>
+
+              {/* 4 Stat Boxes */}
+              <div className="grid grid-cols-4 gap-2 text-center mb-3.5">
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-2">
+                  <span className="text-[11px] font-medium text-emerald-800 block">✓ Cleaned</span>
+                  <span className="text-base font-bold text-emerald-900 mt-0.5 block">9</span>
+                </div>
+                <div className="rounded-xl border border-[var(--color-primary)]/20 bg-[var(--color-muted-surface)] p-2">
+                  <span className="text-[11px] font-medium text-[var(--color-primary)] block">In progress</span>
+                  <span className="text-base font-bold text-[var(--color-primary-active)] mt-0.5 block">6</span>
+                </div>
+                <div className="rounded-xl border border-slate-200/60 bg-slate-50 p-2">
+                  <span className="text-[11px] font-medium text-slate-600 block">● Pending</span>
+                  <span className="text-base font-bold text-slate-800 mt-0.5 block">31</span>
+                </div>
+                <div className="rounded-xl border border-rose-100 bg-rose-50/60 p-2">
+                  <span className="text-[11px] font-medium text-rose-800 block">! Issues</span>
+                  <span className="text-base font-bold text-rose-900 mt-0.5 block">4</span>
                 </div>
               </div>
+
+              {/* Priority Turnaround Queue */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                  <span>Priority Turnaround Queue</span>
+                  <span className="text-[10.5px] text-slate-400 font-normal">Release for check-in</span>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 p-2 rounded-xl border border-slate-200/60 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="h-2 w-2 rounded-full bg-amber-500 flex-none" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-800 truncate">Room 201 · Deluxe King</p>
+                      <p className="text-[10.5px] text-slate-400">Assigned: Anita S. · Turnover due 12:00 PM</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toast('Room 201 verified', { detail: 'Marked clean & ready for check-in.', tone: 'success' })}
+                    className="flex-none text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                  >
+                    Mark Clean
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 p-2 rounded-xl border border-slate-200/60 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="h-2 w-2 rounded-full bg-purple-500 flex-none" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-800 truncate">Room 304 · Executive Suite</p>
+                      <p className="text-[10.5px] text-slate-400">VIP arrival 02:00 PM · Needs supervisor inspection</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toast('Inspection queued', { detail: 'Supervisor alerted for Room 304.', tone: 'info' })}
+                    className="flex-none text-[11px] font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                  >
+                    Inspect
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span className="text-[11.5px] text-slate-400">4 priority turnovers due before 2:00 PM</span>
               <button
                 type="button"
                 onClick={() => go({ view: 'housekeeping' })}
-                className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs"
+                className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
-                View all
+                <span>Housekeeping board</span>
+                <Lucide.ArrowRight size={12} />
               </button>
-            </div>
-
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-xl font-bold text-slate-900">18%</span>
-              <span className="text-xs text-slate-500 font-normal">9 of 50 rooms cleaned</span>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden mb-4">
-              <div className="h-full rounded-full bg-[var(--color-primary)] w-[18%]" />
-            </div>
-
-            {/* 4 Stat Boxes */}
-            <div className="grid grid-cols-4 gap-2 text-center">
-              <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-2">
-                <span className="text-[11px] font-medium text-emerald-800 block">✓ Cleaned</span>
-                <span className="text-base font-bold text-emerald-900 mt-0.5 block">9</span>
-              </div>
-              <div className="rounded-xl border border-[var(--color-primary)]/20 bg-[var(--color-muted-surface)] p-2">
-                <span className="text-[11px] font-medium text-[var(--color-primary)] block">In progress</span>
-                <span className="text-base font-bold text-[var(--color-primary-active)] mt-0.5 block">6</span>
-              </div>
-              <div className="rounded-xl border border-slate-200/60 bg-slate-50 p-2">
-                <span className="text-[11px] font-medium text-slate-600 block">● Pending</span>
-                <span className="text-base font-bold text-slate-800 mt-0.5 block">31</span>
-              </div>
-              <div className="rounded-xl border border-rose-100 bg-rose-50/60 p-2">
-                <span className="text-[11px] font-medium text-rose-800 block">! Issues</span>
-                <span className="text-base font-bold text-rose-900 mt-0.5 block">4</span>
-              </div>
             </div>
           </div>
 
           {/* Card: Department Tasks */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)]">
-            <div className="flex items-center justify-between mb-3.5">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200/60 shadow-2xs">
-                  <Lucide.ClipboardList size={16} strokeWidth={2.4} />
+          <div className="flex-1 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
+            <div>
+              {/* Header */}
+              <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200/60 shadow-2xs">
+                    <Lucide.ClipboardList size={16} strokeWidth={2.4} />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">Department Tasks</h2>
+                    <p className="text-[11px] text-slate-400">Operational follow-ups & alerts</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-900 tracking-tight">Department Tasks</h2>
-                  <p className="text-[11px] text-slate-400">Operational follow-ups & alerts</p>
+                <button
+                  type="button"
+                  onClick={() => go({ view: 'maintenance' })}
+                  className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs transition-colors"
+                >
+                  View all
+                </button>
+              </div>
+
+              {/* Tasks List */}
+              <div className="flex flex-col gap-2.5">
+                {/* Task 1 */}
+                <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-slate-200/60 bg-white hover:bg-slate-50/60 transition-colors">
+                  <div className="flex items-start gap-2.5 min-w-0">
+                    <span className="h-2 w-2 rounded-full bg-amber-500 mt-1.5 flex-none" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-800 leading-tight">4 rooms pending inspection</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5 truncate">Rooms 204, 305, 408, 501 · Ready for release</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-none">
+                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                      High
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => toast('Inspection alert sent', { detail: 'Floor supervisor notified.', tone: 'info' })}
+                      className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    >
+                      Release
+                    </button>
+                  </div>
+                </div>
+
+                {/* Task 2 */}
+                <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-slate-200/60 bg-white hover:bg-slate-50/60 transition-colors">
+                  <div className="flex items-start gap-2.5 min-w-0">
+                    <span className="h-2 w-2 rounded-full bg-rose-500 mt-1.5 flex-none" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-800 leading-tight">2 maintenance requests</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5 truncate">AC thermostat in 305 · TV issue in 118</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-none">
+                    <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-700">
+                      Urgent
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => go({ view: 'maintenance' })}
+                      className="text-[11px] font-semibold text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    >
+                      Assign
+                    </button>
+                  </div>
+                </div>
+
+                {/* Task 3 */}
+                <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-slate-200/60 bg-white hover:bg-slate-50/60 transition-colors">
+                  <div className="flex items-start gap-2.5 min-w-0">
+                    <span className="h-2 w-2 rounded-full bg-amber-500 mt-1.5 flex-none" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-800 leading-tight">3 late check-out requests</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5 truncate">101 (1:00 PM), 305 (2:00 PM), 501 (1:30 PM)</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-none">
+                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                      Attention
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => go({ view: 'check-out' })}
+                      className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    >
+                      Review
+                    </button>
+                  </div>
+                </div>
+
+                {/* Task 4 */}
+                <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-slate-200/60 bg-white hover:bg-slate-50/60 transition-colors">
+                  <div className="flex items-start gap-2.5 min-w-0">
+                    <span className="h-2 w-2 rounded-full bg-sky-500 mt-1.5 flex-none" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-800 leading-tight">1 VIP arrival today</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5 truncate">Amelia Hart · Deluxe Suite 204 · Amenity set</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-none">
+                    <span className="rounded-full bg-[var(--color-muted-surface)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-primary)]">
+                      VIP Elite
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => go({ view: 'arrivals-departures' })}
+                      className="text-[11px] font-semibold text-indigo-700 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    >
+                      Prepare
+                    </button>
+                  </div>
                 </div>
               </div>
+            </div>
+
+            {/* Footer */}
+            <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span className="text-[11.5px] text-slate-400">5 active tickets · 2 high priority</span>
               <button
                 type="button"
                 onClick={() => go({ view: 'maintenance' })}
-                className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs"
+                className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
-                View all
+                <span>Task manager</span>
+                <Lucide.ArrowRight size={12} />
               </button>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              {/* Task 1 */}
-              <div className="flex items-center justify-between gap-3 p-1 rounded-xl hover:bg-slate-50 transition-colors">
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-amber-500 mt-1.5 flex-none" />
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-800 leading-tight">4 rooms pending inspection</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">204, 305, 408, 501</p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[10.5px] font-bold text-amber-700 flex-none">
-                  High
-                </span>
-              </div>
-
-              {/* Task 2 */}
-              <div className="flex items-center justify-between gap-3 p-1 rounded-xl hover:bg-slate-50 transition-colors">
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-amber-500 mt-1.5 flex-none" />
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-800 leading-tight">2 maintenance requests</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">AC issue · 305, TV issue · 118</p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[10.5px] font-bold text-amber-700 flex-none">
-                  High
-                </span>
-              </div>
-
-              {/* Task 3 */}
-              <div className="flex items-center justify-between gap-3 p-1 rounded-xl hover:bg-slate-50 transition-colors">
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-rose-500 mt-1.5 flex-none" />
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-800 leading-tight">3 late check-outs</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">101, 305, 501</p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[10.5px] font-bold text-rose-700 flex-none">
-                  Attention
-                </span>
-              </div>
-
-              {/* Task 4 */}
-              <div className="flex items-center justify-between gap-3 p-1 rounded-xl hover:bg-slate-50 transition-colors">
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-blue-500 mt-1.5 flex-none" />
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-800 leading-tight">1 VIP arrival today</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">Amelia Hart · Room 204</p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-[var(--color-muted-surface)] px-2.5 py-0.5 text-[10.5px] font-bold text-[var(--color-primary)] flex-none">
-                  Info
-                </span>
-              </div>
             </div>
           </div>
         </div>
@@ -1173,11 +962,10 @@ export function Dashboard({
                       </td>
                       <td className="whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
-                          <span className={`font-bold text-xs px-2 py-0.5 rounded-md border ${
-                            r.room === 'Unassigned'
+                          <span className={`font-bold text-xs px-2 py-0.5 rounded-md border ${r.room === 'Unassigned'
                               ? 'text-amber-800 bg-amber-50 border-amber-200/80'
                               : 'text-slate-800 bg-slate-100 border-slate-200/60'
-                          }`}>
+                            }`}>
                             {r.room === 'Unassigned' ? 'Unassigned' : `Room ${r.room}`}
                           </span>
                           <span className={`inline-flex items-center gap-1 text-xs font-medium ${r.roomReady ? 'text-emerald-600' : 'text-amber-600'}`}>
@@ -1311,20 +1099,18 @@ export function Dashboard({
                           <span className="font-bold text-xs px-2 py-0.5 rounded-md border text-slate-800 bg-slate-100 border-slate-200/60">
                             Room {d.room}
                           </span>
-                          <span className={`inline-flex items-center gap-1 text-xs font-medium ${
-                            d.status === 'Inspected'
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium ${d.status === 'Inspected'
                               ? 'text-emerald-600'
                               : d.status === 'Late Checkout'
-                              ? 'text-purple-600'
-                              : 'text-amber-600'
-                          }`}>
-                            <span className={`h-1.5 w-1.5 rounded-full ${
-                              d.status === 'Inspected'
+                                ? 'text-purple-600'
+                                : 'text-amber-600'
+                            }`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${d.status === 'Inspected'
                                 ? 'bg-emerald-500'
                                 : d.status === 'Late Checkout'
-                                ? 'bg-purple-500'
-                                : 'bg-amber-500'
-                            }`} />
+                                  ? 'bg-purple-500'
+                                  : 'bg-amber-500'
+                              }`} />
                             {d.status}
                           </span>
                         </div>
