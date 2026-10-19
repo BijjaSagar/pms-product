@@ -110,7 +110,9 @@ function Shell() {
       case 'dashboard':
         return <Dashboard go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'reservations':
-        return <Reservations initialQuery={target.query} focusId={target.focusId} go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
+        return <Reservations initialViewMode="list" initialQuery={target.query} focusId={target.focusId} go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
+      case 'room-calendar':
+        return <Reservations initialViewMode="calendar" initialQuery={target.query} focusId={target.focusId} go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'new-reservation':
         return <NewReservation go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'new-reservation-2':
@@ -188,7 +190,7 @@ function Shell() {
           onOpenThemes={() => setSwatcherOpen(true)}
           onGo={go}
         />
-        <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}`} className={`pms-animate-fade-up mx-auto w-full flex-1 px-4 py-4 lg:px-6 lg:py-6 ${view === 'dashboard' || view === 'new-reservation' || view === 'new-reservation-2' || view === 'new-reservation-3' || view === 'reservations' || view === 'status-board' ? 'max-w-[1600px] 2xl:max-w-[1760px]' : 'max-w-[1280px] 2xl:max-w-[1440px]'}`} style={{ background: 'var(--color-page)' }}>
+        <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}`} className={`pms-animate-fade-up mx-auto w-full flex-1 px-4 py-4 lg:px-6 lg:py-6 ${view === 'dashboard' || view === 'new-reservation' || view === 'new-reservation-2' || view === 'new-reservation-3' || view === 'reservations' || view === 'room-calendar' || view === 'status-board' ? 'max-w-[1600px] 2xl:max-w-[1760px]' : 'max-w-[1280px] 2xl:max-w-[1440px]'}`} style={{ background: 'var(--color-page)' }}>
           <Suspense fallback={<PageFallback />}>{page}</Suspense>
         </main>
         <footer

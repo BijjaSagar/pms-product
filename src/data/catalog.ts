@@ -182,17 +182,13 @@ export interface FloorPlan {
 }
 
 export const FLOOR_PLAN: FloorPlan[] = [
-  { floor: '1', wing: 'East Wing', typeId: 'standard', start: 101, count: 10 },
-  { floor: '2', wing: 'East Wing', typeId: 'deluxe', start: 201, count: 10 },
-  { floor: '3', wing: 'West Wing', typeId: 'deluxe', start: 301, count: 10 },
-  { floor: '4', wing: 'West Wing', typeId: 'superior', start: 401, count: 8 },
-  { floor: '5', wing: 'West Wing', typeId: 'executive', start: 501, count: 6 },
-  { floor: '6', wing: 'East Wing', typeId: 'family', start: 601, count: 4 },
-  { floor: '7', wing: 'West Wing', typeId: 'suite', start: 701, count: 2 },
+  { floor: '1', wing: 'East Wing', typeId: 'standard', start: 101, count: 5 },
+  { floor: '2', wing: 'East Wing', typeId: 'deluxe', start: 201, count: 5 },
+  { floor: '3', wing: 'West Wing', typeId: 'executive', start: 301, count: 5 },
 ];
 
 /** The room currently taken out of service for repairs. */
-export const OUT_OF_ORDER_ROOM = '208';
+export const OUT_OF_ORDER_ROOM = '205';
 
 export const GUESTS: GuestRow[] = [
   { id: 'g-1023', firstName: 'Aarav', lastName: 'Iyer', email: 'aarav.iyer@example.com', phone: '+91 98765 43210', companyName: 'TechCorp Solutions', city: 'Mumbai', countryCode: 'IN', preferences: 'High floor, king bed, late check-out', internalNotes: 'Frequent business traveller, prefers a quiet room.', stayCount: 7, lastStayAt: '2026-10-17' },

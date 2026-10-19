@@ -1,6 +1,7 @@
 export type ViewId =
   | 'dashboard'
   | 'reservations'
+  | 'room-calendar'
   | 'new-reservation'
   | 'new-reservation-2'
   | 'new-reservation-3'
@@ -56,6 +57,7 @@ export const NAV_SECTIONS: NavSection[] = [
     title: 'Front Office',
     items: [
       { id: 'reservations', label: 'Reservations', hint: 'Bookings & calendar' },
+      { id: 'room-calendar', label: 'Room Calendar', hint: 'Drag-and-drop room rack' },
       { id: 'new-reservation', label: 'New Reservation', hint: 'Create a booking' },
       { id: 'new-reservation-2', label: 'New Reservation 2', hint: 'Visitor & guest intake' },
       { id: 'new-reservation-3', label: 'New Reservation 3', hint: 'Folio booking console' },
@@ -133,6 +135,7 @@ export function labelOf(view: ViewId): string {
 export const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
   dashboard: 'dashboard.read',
   reservations: 'reservation.read',
+  'room-calendar': 'reservation.read',
   'new-reservation': 'reservation.create',
   'new-reservation-2': 'reservation.create',
   'new-reservation-3': 'reservation.create',

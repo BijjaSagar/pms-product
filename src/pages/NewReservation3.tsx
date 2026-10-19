@@ -627,8 +627,8 @@ export function NewReservation3({
               type="button"
               onClick={() => setActiveTab('general')}
               className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === 'general'
-                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60'
-                  : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60'
+                : 'text-slate-600 hover:text-slate-900'
                 }`}
             >
               <Lucide.FileText size={13} className={activeTab === 'general' ? 'text-[var(--color-primary)]' : 'text-slate-400'} />
@@ -638,8 +638,8 @@ export function NewReservation3({
               type="button"
               onClick={() => setActiveTab('outlet')}
               className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === 'outlet'
-                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60'
-                  : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60'
+                : 'text-slate-600 hover:text-slate-900'
                 }`}
             >
               <Lucide.Receipt size={13} className={activeTab === 'outlet' ? 'text-[var(--color-primary)]' : 'text-slate-400'} />
@@ -649,8 +649,8 @@ export function NewReservation3({
               type="button"
               onClick={() => setActiveTab('preferences')}
               className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === 'preferences'
-                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60'
-                  : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60'
+                : 'text-slate-600 hover:text-slate-900'
                 }`}
             >
               <Lucide.Sliders size={13} className={activeTab === 'preferences' ? 'text-[var(--color-primary)]' : 'text-slate-400'} />
@@ -902,8 +902,8 @@ export function NewReservation3({
                       type="button"
                       onClick={() => setOverridePrice(!overridePrice)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${overridePrice
-                          ? 'bg-amber-50 border-amber-300 text-amber-800 shadow-2xs'
-                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        ? 'bg-amber-50 border-amber-300 text-amber-800 shadow-2xs'
+                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                         }`}
                     >
                       <Lucide.Sliders size={12} />
@@ -1590,15 +1590,15 @@ export function NewReservation3({
                   key={task.id}
                   onClick={() => handleToggleTask(task.id)}
                   className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${task.done
-                      ? 'bg-slate-50 border-slate-200/60 opacity-60'
-                      : 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+                    ? 'bg-slate-50 border-slate-200/60 opacity-60'
+                    : 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
                     }`}
                 >
                   <button
                     type="button"
                     className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded border transition-colors ${task.done
-                        ? 'bg-emerald-500 border-emerald-500 text-white'
-                        : 'border-slate-300 bg-white'
+                      ? 'bg-emerald-500 border-emerald-500 text-white'
+                      : 'border-slate-300 bg-white'
                       }`}
                   >
                     {task.done && <Lucide.Check size={11} />}
@@ -1768,8 +1768,8 @@ export function NewReservation3({
                       type="button"
                       onClick={() => setCollectMethod(method)}
                       className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${collectMethod === method
-                          ? 'bg-[var(--color-primary)] text-white border-transparent shadow-xs'
-                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        ? 'bg-[var(--color-primary)] text-white border-transparent shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                         }`}
                     >
                       {method}

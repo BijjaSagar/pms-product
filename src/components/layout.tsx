@@ -14,6 +14,7 @@ import { folioApi, frontDeskApi, reportsApi } from '../lib/api/pms';
 const NAV_ICONS: Record<ViewId, Lucide.LucideIcon> = {
   dashboard: Lucide.LayoutDashboard,
   reservations: Lucide.CalendarDays,
+  'room-calendar': Lucide.CalendarRange,
   'new-reservation': Lucide.CalendarPlus,
   'new-reservation-2': Lucide.UserPlus,
   'new-reservation-3': Lucide.FileSpreadsheet,
@@ -749,6 +750,7 @@ const NOTICE_TONE_CONFIG: Record<
 const SEARCH_KEYWORDS: Record<ViewId, string[]> = {
   dashboard: ['home', 'overview', 'summary', 'metrics', 'kpi', 'revenue', 'occupancy', 'analytics'],
   reservations: ['booking', 'bookings', 'calendar', 'calendar view', 'schedule', 'stays', 'guest reservation'],
+  'room-calendar': ['room calendar', 'room rack', 'drag and drop', 'timeline', 'grid', 'reservations calendar', 'reallocate', 'tape chart'],
   'new-reservation': ['create booking', 'add reservation', 'new booking', 'book room', 'reservation create', 'make reservation'],
   'new-reservation-2': ['visitor check in', 'new reservation 2', 'visitor intake', 'visitor registration', 'guest intake', 'visitor form', 'id verification'],
   'new-reservation-3': ['new reservation 3', 'djubo booking', 'folio reservation', 'quick reservation', 'board pass booking', 'e collect'],

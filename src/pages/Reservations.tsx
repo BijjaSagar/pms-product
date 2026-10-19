@@ -9,6 +9,7 @@ import { reservationFromApi } from '../lib/api/adapters';
 import { useApiResource } from '../lib/api/useApiResource';
 import { displayApiError } from '../lib/api/client';
 import { ThemeSwatcher } from '../components/ThemeSwatcher';
+import { RoomCalendar } from '../features/roomCalendar/RoomCalendar';
 import type { Reservation, ReservationStatus } from '../types';
 
 const STATUS_FILTERS: (ReservationStatus | 'All')[] = [
@@ -566,16 +567,19 @@ function ReservationDrawer({
 
 export function Reservations({
   initialQuery = '',
+  initialViewMode = 'list',
   focusId,
   go,
   onOpenThemes,
 }: {
   initialQuery?: string;
+  initialViewMode?: 'list' | 'calendar';
   focusId?: string;
   go: (t: NavTarget) => void;
   onOpenThemes?: () => void;
 }) {
   const [swatcherOpen, setSwatcherOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>(initialViewMode);
 
   const loadRows = useCallback(async () => {
     const result = await reservationApi.list('', undefined, 1, 100);
@@ -602,7 +606,7 @@ export function Reservations({
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
 
   // Selected Date bar
-  const [selectedDate, setSelectedDate] = useState('2026-10-14');
+  const [selectedDate, setSelectedDate] = useState('2026-10-17');
 
   const stepDate = (days: number) => {
     const d = new Date(`${selectedDate}T12:00:00Z`);
@@ -611,7 +615,7 @@ export function Reservations({
   };
 
   const resetToToday = () => {
-    setSelectedDate('2026-10-14');
+    setSelectedDate('2026-10-17');
   };
 
   const formattedDate = useMemo(() => {
@@ -794,8 +798,36 @@ export function Reservations({
           </p>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons & View Switcher */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* View Switcher: List View vs Calendar View */}
+          <div className="flex items-center p-1 rounded-xl border border-slate-200 bg-white shadow-2xs">
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                viewMode === 'list'
+                  ? 'bg-[var(--color-primary)] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Lucide.List size={14} />
+              <span>List View</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('calendar')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                viewMode === 'calendar'
+                  ? 'bg-[var(--color-primary)] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Lucide.CalendarRange size={14} />
+              <span>Room Calendar</span>
+            </button>
+          </div>
+
           {/* Theme Swatcher Trigger Button */}
           <button
             type="button"
@@ -840,7 +872,7 @@ export function Reservations({
           {/* + New Reservation Button */}
           <button
             type="button"
-            onClick={() => go({ view: 'new-reservation' })}
+            onClick={() => go({ view: 'new-reservation-3' })}
             className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-md bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-white shadow-xs transition-all cursor-pointer"
           >
             <Lucide.Plus size={16} strokeWidth={2.5} />
@@ -849,7 +881,11 @@ export function Reservations({
         </div>
       </div>
 
-      {/* ================= 2. 6 KPI METRIC CARDS ================= */}
+      {viewMode === 'calendar' ? (
+        <RoomCalendar go={go} onReservationUpdated={() => resource.refresh()} />
+      ) : (
+        <>
+          {/* ================= 2. 6 KPI METRIC CARDS ================= */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
         {summaryStats.map((stat) => (
           <div
@@ -1353,6 +1389,8 @@ export function Reservations({
           </div>
         </div>
       </div>
+      </>
+      )}
 
       {/* ================= 7. RESERVATION DETAILS DRAWER ================= */}
       <Drawer

@@ -65,57 +65,39 @@ interface ResSeed {
 }
 
 const SEEDS: ResSeed[] = [
-  // In-house guests
+  // In-house guests (anchored on BUSINESS_DATE = '2026-10-17')
   { code: 'RSV-9001', guestId: 'g-1023', typeId: 'deluxe', room: '204', start: -2, end: 1, status: 'CHECKED_IN', adults: 1, children: 0, source: 'CORPORATE', ratePlan: 'Corporate Rate', note: 'Quiet room away from the lift.', extras: [{ type: 'MINIBAR', description: 'Minibar consumption', qty: 2, amount: 450 }, { type: 'LAUNDRY', description: 'Laundry service', qty: 1, amount: 600 }] },
-  { code: 'RSV-9002', guestId: 'g-1001', typeId: 'deluxe', room: '305', start: -1, end: 2, status: 'CHECKED_IN', adults: 2, children: 0, source: 'OTA', ratePlan: 'Best Available' },
-  { code: 'RSV-9003', guestId: 'g-1004', typeId: 'superior', room: '401', start: -3, end: 1, status: 'CHECKED_IN', adults: 2, children: 0, source: 'CORPORATE', ratePlan: 'Corporate Rate', note: 'Vegetarian meals only.' },
-  { code: 'RSV-9004', guestId: 'g-1008', typeId: 'superior', room: '402', start: 0, end: 3, status: 'CHECKED_IN', adults: 1, children: 0, source: 'DIRECT', ratePlan: 'Best Available' },
-  { code: 'RSV-9005', guestId: 'g-1013', typeId: 'executive', room: '502', start: -1, end: 4, status: 'CHECKED_IN', adults: 2, children: 1, source: 'DIRECT', ratePlan: 'Executive Package', extras: [{ type: 'RESTAURANT', description: 'Room service dinner', qty: 1, amount: 1250 }] },
-  { code: 'RSV-9006', guestId: 'g-1002', typeId: 'executive', room: '503', start: -2, end: 0, status: 'CHECKED_IN', adults: 1, children: 0, source: 'OTA', ratePlan: 'Best Available' },
-  { code: 'RSV-9007', guestId: 'g-1011', typeId: 'family', room: '601', start: -1, end: 2, status: 'CHECKED_IN', adults: 2, children: 2, source: 'DIRECT', ratePlan: 'Family Package' },
+  { code: 'RSV-9002', guestId: 'g-1001', typeId: 'executive', room: '305', start: -1, end: 2, status: 'CHECKED_IN', adults: 2, children: 0, source: 'OTA', ratePlan: 'Best Available' },
+  { code: 'RSV-9003', guestId: 'g-1004', typeId: 'deluxe', room: '203', start: -3, end: 1, status: 'CHECKED_IN', adults: 2, children: 0, source: 'CORPORATE', ratePlan: 'Corporate Rate', note: 'Vegetarian meals only.' },
+  { code: 'RSV-9004', guestId: 'g-1008', typeId: 'executive', room: '302', start: 0, end: 3, status: 'CHECKED_IN', adults: 1, children: 0, source: 'DIRECT', ratePlan: 'Best Available' },
+  { code: 'RSV-9007', guestId: 'g-1011', typeId: 'executive', room: '303', start: -1, end: 2, status: 'CHECKED_IN', adults: 2, children: 2, source: 'DIRECT', ratePlan: 'Family Package' },
   { code: 'RSV-9008', guestId: 'g-1005', typeId: 'standard', room: '103', start: -1, end: 0, status: 'CHECKED_IN', adults: 1, children: 0, source: 'OTA', ratePlan: 'Saver Rate' },
-  { code: 'RSV-9009', guestId: 'g-1007', typeId: 'deluxe', room: '207', start: -4, end: 2, status: 'CHECKED_IN', adults: 2, children: 0, source: 'DIRECT', ratePlan: 'Best Available', note: 'VIP — welcome amenity set up.', extras: [{ type: 'SPA', description: 'Spa treatment', qty: 1, amount: 2800 }] },
-  { code: 'RSV-9010', guestId: 'g-1014', typeId: 'deluxe', room: '310', start: -3, end: 0, status: 'CHECKED_IN', adults: 1, children: 0, source: 'CORPORATE', ratePlan: 'Corporate Rate' },
-  { code: 'RSV-9011', guestId: 'g-1015', typeId: 'executive', room: '505', start: 0, end: 5, status: 'CHECKED_IN', adults: 2, children: 0, source: 'DIRECT', ratePlan: 'Executive Package' },
-  { code: 'RSV-9012', guestId: 'g-1017', typeId: 'family', room: '602', start: -2, end: 0, status: 'CHECKED_IN', adults: 2, children: 1, source: 'OTA', ratePlan: 'Family Package' },
-  { code: 'RSV-9013', guestId: 'g-1019', typeId: 'suite', room: '701', start: -1, end: 3, status: 'CHECKED_IN', adults: 2, children: 0, source: 'DIRECT', ratePlan: 'Suite Rate', extras: [{ type: 'RESTAURANT', description: 'Lunch buffet', qty: 2, amount: 1100 }] },
-  { code: 'RSV-9014', guestId: 'g-1021', typeId: 'superior', room: '405', start: -2, end: 4, status: 'CHECKED_IN', adults: 1, children: 0, source: 'CORPORATE', ratePlan: 'Corporate Rate' },
+  { code: 'RSV-9014', guestId: 'g-1021', typeId: 'standard', room: '102', start: -2, end: 1, status: 'CHECKED_IN', adults: 1, children: 0, source: 'CORPORATE', ratePlan: 'Corporate Rate' },
 
-  // Today's arrivals
+  // Today's arrivals (2026-10-17)
   { code: 'RSV-9015', guestId: 'g-1016', typeId: 'deluxe', room: '202', start: 0, end: 2, status: 'CONFIRMED', adults: 2, children: 0, source: 'OTA', ratePlan: 'Best Available' },
-  { code: 'RSV-9016', guestId: 'g-1018', typeId: 'deluxe', room: '205', start: 0, end: 1, status: 'CONFIRMED', adults: 1, children: 0, source: 'DIRECT', ratePlan: 'Saver Rate' },
-  { code: 'RSV-9017', guestId: 'g-1003', typeId: 'deluxe', room: '301', start: 0, end: 3, status: 'CONFIRMED', adults: 1, children: 0, source: 'OTA', ratePlan: 'Best Available' },
-  { code: 'RSV-9018', guestId: 'g-1006', typeId: 'superior', room: '403', start: 0, end: 2, status: 'CONFIRMED', adults: 2, children: 1, source: 'DIRECT', ratePlan: 'Best Available' },
-  { code: 'RSV-9019', guestId: 'g-1009', typeId: 'executive', room: '501', start: 0, end: 4, status: 'CONFIRMED', adults: 1, children: 0, source: 'CORPORATE', ratePlan: 'Corporate Rate' },
-  { code: 'RSV-9020', guestId: 'g-1012', typeId: 'family', room: '603', start: 0, end: 2, status: 'CONFIRMED', adults: 2, children: 2, source: 'DIRECT', ratePlan: 'Family Package', note: 'Airport pickup requested.' },
-  { code: 'RSV-9021', guestId: 'g-1020', typeId: 'suite', room: '702', start: 0, end: 3, status: 'CONFIRMED', adults: 2, children: 0, source: 'DIRECT', ratePlan: 'Suite Rate' },
-  { code: 'RSV-9022', guestId: 'g-1010', typeId: 'standard', room: '104', start: 0, end: 1, status: 'CONFIRMED', adults: 1, children: 0, source: 'OTA', ratePlan: 'Saver Rate' },
+  { code: 'RSV-9017', guestId: 'g-1003', typeId: 'executive', room: '301', start: 0, end: 3, status: 'CONFIRMED', adults: 1, children: 0, source: 'OTA', ratePlan: 'Best Available' },
+  { code: 'RSV-9018', guestId: 'g-1006', typeId: 'deluxe', room: '201', start: 0, end: 2, status: 'CONFIRMED', adults: 2, children: 1, source: 'DIRECT', ratePlan: 'Best Available' },
+  { code: 'RSV-9022', guestId: 'g-1010', typeId: 'standard', room: '104', start: 0, end: 2, status: 'CONFIRMED', adults: 1, children: 0, source: 'OTA', ratePlan: 'Saver Rate' },
 
   // Future bookings
-  { code: 'RSV-9023', guestId: 'g-1022', typeId: 'deluxe', room: null, start: 1, end: 4, status: 'CONFIRMED', adults: 2, children: 0, source: 'OTA', ratePlan: 'Best Available' },
-  { code: 'RSV-9024', guestId: 'g-1013', typeId: 'superior', room: null, start: 2, end: 5, status: 'CONFIRMED', adults: 1, children: 0, source: 'DIRECT', ratePlan: 'Best Available' },
-  { code: 'RSV-9025', guestId: 'g-1004', typeId: 'executive', room: null, start: 3, end: 6, status: 'CONFIRMED', adults: 2, children: 0, source: 'CORPORATE', ratePlan: 'Corporate Rate' },
-  { code: 'RSV-9026', guestId: 'g-1023', typeId: 'suite', room: null, start: 5, end: 8, status: 'CONFIRMED', adults: 2, children: 0, source: 'DIRECT', ratePlan: 'Suite Rate' },
-  { code: 'RSV-9027', guestId: 'g-1015', typeId: 'deluxe', room: null, start: 7, end: 10, status: 'CONFIRMED', adults: 2, children: 1, source: 'OTA', ratePlan: 'Best Available' },
-  { code: 'RSV-9028', guestId: 'g-1001', typeId: 'family', room: null, start: 10, end: 14, status: 'CONFIRMED', adults: 2, children: 2, source: 'DIRECT', ratePlan: 'Family Package' },
-  { code: 'RSV-9029', guestId: 'g-1016', typeId: 'standard', room: null, start: 1, end: 3, status: 'DRAFT', adults: 1, children: 0, source: 'DIRECT', ratePlan: 'Saver Rate' },
-  { code: 'RSV-9030', guestId: 'g-1018', typeId: 'deluxe', room: null, start: 12, end: 15, status: 'CONFIRMED', adults: 2, children: 0, source: 'OTA', ratePlan: 'Best Available' },
-  { code: 'RSV-9031', guestId: 'g-1019', typeId: 'executive', room: null, start: 15, end: 18, status: 'CONFIRMED', adults: 1, children: 0, source: 'CORPORATE', ratePlan: 'Corporate Rate' },
-  { code: 'RSV-9032', guestId: 'g-1005', typeId: 'superior', room: null, start: 20, end: 24, status: 'CONFIRMED', adults: 2, children: 1, source: 'DIRECT', ratePlan: 'Best Available' },
+  { code: 'RSV-9009', guestId: 'g-1007', typeId: 'standard', room: '101', start: 1, end: 4, status: 'CONFIRMED', adults: 2, children: 0, source: 'DIRECT', ratePlan: 'Best Available' },
+  { code: 'RSV-9023', guestId: 'g-1022', typeId: 'standard', room: '105', start: 2, end: 5, status: 'CONFIRMED', adults: 2, children: 0, source: 'OTA', ratePlan: 'Best Available' },
+  { code: 'RSV-9024', guestId: 'g-1013', typeId: 'deluxe', room: '204', start: 2, end: 5, status: 'CONFIRMED', adults: 1, children: 0, source: 'DIRECT', ratePlan: 'Best Available' },
+  { code: 'RSV-9025', guestId: 'g-1004', typeId: 'executive', room: '304', start: 3, end: 6, status: 'CONFIRMED', adults: 2, children: 0, source: 'CORPORATE', ratePlan: 'Corporate Rate' },
+  { code: 'RSV-9026', guestId: 'g-1023', typeId: 'executive', room: '305', start: 3, end: 6, status: 'CONFIRMED', adults: 2, children: 0, source: 'DIRECT', ratePlan: 'Suite Rate' },
+  { code: 'RSV-9027', guestId: 'g-1015', typeId: 'deluxe', room: '201', start: 3, end: 6, status: 'CONFIRMED', adults: 2, children: 1, source: 'OTA', ratePlan: 'Best Available' },
+  { code: 'RSV-9028', guestId: 'g-1001', typeId: 'deluxe', room: '202', start: 2, end: 5, status: 'CONFIRMED', adults: 2, children: 2, source: 'DIRECT', ratePlan: 'Family Package' },
+  { code: 'RSV-9029', guestId: 'g-1016', typeId: 'standard', room: null, start: 5, end: 8, status: 'DRAFT', adults: 1, children: 0, source: 'DIRECT', ratePlan: 'Saver Rate' },
 
   // Recently checked out
   { code: 'RSV-9033', guestId: 'g-1002', typeId: 'standard', room: '101', start: -3, end: -1, status: 'CHECKED_OUT', adults: 1, children: 0, source: 'OTA', ratePlan: 'Saver Rate' },
-  { code: 'RSV-9034', guestId: 'g-1010', typeId: 'deluxe', room: '206', start: -4, end: -2, status: 'CHECKED_OUT', adults: 2, children: 0, source: 'DIRECT', ratePlan: 'Best Available' },
-  { code: 'RSV-9035', guestId: 'g-1017', typeId: 'deluxe', room: '302', start: -5, end: -2, status: 'CHECKED_OUT', adults: 2, children: 1, source: 'OTA', ratePlan: 'Family Package' },
-  { code: 'RSV-9036', guestId: 'g-1020', typeId: 'superior', room: '404', start: -4, end: -1, status: 'CHECKED_OUT', adults: 1, children: 0, source: 'DIRECT', ratePlan: 'Best Available' },
-  { code: 'RSV-9037', guestId: 'g-1011', typeId: 'executive', room: '504', start: -6, end: -3, status: 'CHECKED_OUT', adults: 2, children: 0, source: 'CORPORATE', ratePlan: 'Corporate Rate' },
-  { code: 'RSV-9038', guestId: 'g-1006', typeId: 'family', room: '604', start: -5, end: -2, status: 'CHECKED_OUT', adults: 2, children: 2, source: 'DIRECT', ratePlan: 'Family Package' },
-  { code: 'RSV-9039', guestId: 'g-1014', typeId: 'suite', room: '703', start: -7, end: -1, status: 'CHECKED_OUT', adults: 1, children: 0, source: 'DIRECT', ratePlan: 'Suite Rate' },
+  { code: 'RSV-9035', guestId: 'g-1017', typeId: 'executive', room: '302', start: -5, end: -2, status: 'CHECKED_OUT', adults: 2, children: 1, source: 'OTA', ratePlan: 'Family Package' },
   { code: 'RSV-9040', guestId: 'g-1003', typeId: 'standard', room: '105', start: -2, end: -1, status: 'CHECKED_OUT', adults: 1, children: 0, source: 'OTA', ratePlan: 'Saver Rate' },
 
   // Cancellations & no-shows
   { code: 'RSV-9041', guestId: 'g-1007', typeId: 'deluxe', room: null, start: 4, end: 6, status: 'CANCELLED', adults: 1, children: 0, source: 'OTA', ratePlan: 'Best Available', note: 'Cancelled by guest — travel plans changed.' },
-  { code: 'RSV-9042', guestId: 'g-1012', typeId: 'superior', room: null, start: -1, end: 2, status: 'NO_SHOW', adults: 1, children: 0, source: 'DIRECT', ratePlan: 'Best Available' },
+  { code: 'RSV-9042', guestId: 'g-1012', typeId: 'deluxe', room: null, start: -1, end: 2, status: 'NO_SHOW', adults: 1, children: 0, source: 'DIRECT', ratePlan: 'Best Available' },
   { code: 'RSV-9043', guestId: 'g-1013', typeId: 'executive', room: null, start: 8, end: 10, status: 'CANCELLED', adults: 2, children: 0, source: 'CORPORATE', ratePlan: 'Corporate Rate' },
 ];
 
