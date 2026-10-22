@@ -36,7 +36,6 @@ const CheckIn = lazy(() => import('./pages/CheckIn').then((m) => ({ default: m.C
 const CheckOut = lazy(() => import('./pages/CheckOut').then((m) => ({ default: m.CheckOut })));
 const Guests = lazy(() => import('./pages/Guests').then((m) => ({ default: m.Guests })));
 const Rooms = lazy(() => import('./pages/Rooms').then((m) => ({ default: m.Rooms })));
-const RoomTypes = lazy(() => import('./pages/RoomTypes').then((m) => ({ default: m.RoomTypes })));
 const StatusBoard = lazy(() => import('./pages/StatusBoard').then((m) => ({ default: m.StatusBoard })));
 const Housekeeping = lazy(() => import('./pages/Housekeeping').then((m) => ({ default: m.Housekeeping })));
 const Maintenance = lazy(() => import('./pages/Maintenance').then((m) => ({ default: m.Maintenance })));
@@ -119,7 +118,7 @@ function Shell() {
       case 'room-overview':
         return <Rooms initialQuery={target.query} focusId={target.focusId} />;
       case 'room-types':
-        return <RoomTypes />;
+        return <Settings initialTab="room-settings" onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'status-board':
         return <StatusBoard />;
       case 'housekeeping':

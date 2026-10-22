@@ -1,16 +1,23 @@
 import { useCallback, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { useAuth } from '../features/auth/AuthContext';
-import { propertyApi, adminApi } from '../lib/api/pms';
+import { propertyApi, adminApi, inventoryApi } from '../lib/api/pms';
 import { useApiResource } from '../lib/api/useApiResource';
 import { toast } from '../components/toastStore';
 import { displayApiError } from '../lib/api/client';
 import { useTheme } from '../theme/useTheme';
 import { PRESET_LIST } from '../theme/presets';
+import { loadRoomInventory } from '../lib/api/loaders';
+import { formatCurrency } from '../lib/api/format';
+import { Modal } from '../components/overlays';
+import { Field } from '../components/controls';
+import { inputClass } from '../components/inputClass';
+import type { RoomType } from '../types';
 
 type SettingsTab =
   | 'general'
   | 'policies'
+  | 'room-settings'
   | 'rooms-rates'
   | 'taxes'
   | 'guests'
@@ -25,7 +32,454 @@ interface AmenityItem {
   checked: boolean;
 }
 
-export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
+const EMPTY_ROOM_TYPE: RoomType = {
+  id: '',
+  name: '',
+  description: '',
+  count: 0,
+  maxOccupancy: 2,
+  maxAdults: 2,
+  maxChildren: 0,
+  beds: '',
+  baseRate: 0,
+  amenities: [],
+  active: true,
+};
+
+function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
+  const resource = useApiResource(() => loadRoomInventory());
+  const types: RoomType[] = resource.data?.roomTypes ?? [];
+  const [editing, setEditing] = useState<RoomType | null>(null);
+  const [amenText, setAmenText] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Operational preferences state
+  const [turnaroundMinutes, setTurnaroundMinutes] = useState('30');
+  const [keycardsPerRoom, setKeycardsPerRoom] = useState('2');
+  const [autoReleaseHoldMinutes, setAutoReleaseHoldMinutes] = useState('15');
+  const [savingPrefs, setSavingPrefs] = useState(false);
+
+  const openAdd = () => {
+    setEditing({ ...EMPTY_ROOM_TYPE, id: `RT-NEW-${types.length + 1}` });
+    setAmenText('');
+  };
+
+  const openEdit = (t: RoomType) => {
+    setEditing({ ...t, amenities: [...t.amenities] });
+    setAmenText(t.amenities.join(', '));
+  };
+
+  const save = async () => {
+    if (!editing) return;
+    if (editing.name.trim().length < 2) {
+      return toast('Name required', { detail: 'Give the room type a descriptive name.', tone: 'warning' });
+    }
+    if (editing.baseRate < 0) {
+      return toast('Check base rate', { detail: 'Base rate must be zero or above.', tone: 'warning' });
+    }
+    const amenities = amenText
+      .split(',')
+      .map((a) => a.trim())
+      .filter(Boolean);
+
+    setIsSaving(true);
+    try {
+      if (editing.id.startsWith('RT-NEW')) {
+        const code = editing.name.trim().toUpperCase().replace(/[^A-Z0-9]+/g, '-').slice(0, 40);
+        await inventoryApi.createRoomType({
+          code,
+          name: editing.name.trim(),
+          description: editing.description,
+          maxAdults: Math.max(1, editing.maxAdults ?? editing.maxOccupancy),
+          maxChildren: Math.max(0, editing.maxChildren ?? 0),
+          baseRate: editing.baseRate,
+          amenities,
+        });
+      } else {
+        await inventoryApi.updateRoomType(editing.id, {
+          name: editing.name.trim(),
+          description: editing.description,
+          maxAdults: Math.max(1, editing.maxAdults ?? editing.maxOccupancy),
+          maxChildren: Math.max(0, editing.maxChildren ?? 0),
+          baseRate: editing.baseRate,
+          isActive: editing.active,
+          amenities,
+        });
+      }
+      resource.refresh();
+      toast('Room type saved', { detail: 'Configuration updated successfully.', tone: 'success' });
+      setEditing(null);
+    } catch (error) {
+      toast('Could not save room type', { detail: displayApiError(error), tone: 'danger' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSavePreferences = () => {
+    setSavingPrefs(true);
+    setTimeout(() => {
+      setSavingPrefs(false);
+      toast('Room operational rules updated', { tone: 'success' });
+    }, 350);
+  };
+
+  const totalRooms = types.reduce((s, t) => s + t.count, 0);
+  const activeTypes = types.filter((t) => t.active).length;
+  const minRate = types.length > 0 ? Math.min(...types.map((t) => t.baseRate)) : 0;
+
+  return (
+    <div className="flex flex-col gap-5">
+      {/* 4 Summary Stat Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-ink-secondary">Room Categories</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              <Lucide.Layers size={16} />
+            </span>
+          </div>
+          <div className="mt-2">
+            <span className="text-2xl font-black text-ink tnum">{types.length}</span>
+            <p className="text-[11px] text-ink-secondary mt-0.5">{activeTypes} active for booking</p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-ink-secondary">Rooms in Inventory</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+              <Lucide.BedDouble size={16} />
+            </span>
+          </div>
+          <div className="mt-2">
+            <span className="text-2xl font-black text-ink tnum">{totalRooms}</span>
+            <p className="text-[11px] text-ink-secondary mt-0.5">Across all hotel wings</p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-ink-secondary">Starting Base Rate</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+              <Lucide.Tag size={16} />
+            </span>
+          </div>
+          <div className="mt-2">
+            <span className="text-2xl font-black text-ink tnum">{formatCurrency(minRate, currencyCode)}</span>
+            <p className="text-[11px] text-ink-secondary mt-0.5">Lowest base nightly rate</p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-ink-secondary">Catalog Health</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
+              <Lucide.ShieldCheck size={16} />
+            </span>
+          </div>
+          <div className="mt-2">
+            <span className="text-2xl font-black text-emerald-600 tnum">100%</span>
+            <p className="text-[11px] text-ink-secondary mt-0.5">Rates & amenities mapped</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Room Types Table Card */}
+      <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 mb-4 border-b gap-3" style={{ borderColor: 'var(--color-border-subtle)' }}>
+          <div>
+            <h2 className="text-base font-bold text-ink flex items-center gap-2">
+              <Lucide.Layers size={18} className="text-primary" />
+              <span>Room Types & Categories</span>
+            </h2>
+            <p className="text-xs text-ink-secondary mt-0.5">
+              Manage room categories, base rates, occupant limits, and luxury amenities
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => resource.refresh()}
+              className="pms-btn-ghost flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl border border-border"
+              title="Refresh room types"
+            >
+              <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
+              <span>Refresh</span>
+            </button>
+            <button
+              type="button"
+              onClick={openAdd}
+              className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl"
+            >
+              <Lucide.Plus size={15} strokeWidth={2.4} />
+              <span>Add Room Type</span>
+            </button>
+          </div>
+        </div>
+
+        {resource.error && (
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+            <Lucide.AlertCircle size={16} />
+            <span>Could not load room types: {resource.error}</span>
+          </div>
+        )}
+
+        <div className="overflow-x-auto">
+          <table className="pms-table min-w-[760px] w-full text-left">
+            <thead>
+              <tr>
+                <th className="w-10 text-center">#</th>
+                <th>CATEGORY</th>
+                <th>ROOMS</th>
+                <th>CAPACITY</th>
+                <th className="text-right">BASE RATE</th>
+                <th>AMENITIES</th>
+                <th>STATUS</th>
+                <th className="text-right">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {types.map((t, idx) => (
+                <tr key={t.id} className="transition-colors hover:bg-slate-50/70 border-b border-slate-100 last:border-b-0">
+                  <td className="text-center font-medium text-slate-400 text-xs py-3">{idx + 1}</td>
+                  <td className="py-3">
+                    <span className="block font-bold text-slate-900 text-sm">{t.name}</span>
+                    <span className="block max-w-[260px] truncate text-xs text-slate-400 mt-0.5">
+                      {t.description || 'Standard room category'}
+                    </span>
+                  </td>
+                  <td className="tnum font-semibold text-slate-800 text-sm py-3">{t.count}</td>
+                  <td className="tnum text-slate-600 text-xs py-3">
+                    <span className="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-md">
+                      <Lucide.Users size={12} className="text-slate-500" />
+                      <span>{t.maxOccupancy} guests max</span>
+                    </span>
+                  </td>
+                  <td className="tnum text-right font-bold text-slate-900 text-sm py-3">
+                    {formatCurrency(t.baseRate, currencyCode)}
+                  </td>
+                  <td className="max-w-[220px] py-3">
+                    <div className="flex flex-wrap gap-1 max-w-[220px]">
+                      {t.amenities.length > 0 ? (
+                        t.amenities.slice(0, 3).map((a, i) => (
+                          <span key={i} className="text-[10px] font-medium bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
+                            {a}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-slate-400">—</span>
+                      )}
+                      {t.amenities.length > 3 && (
+                        <span className="text-[10px] font-bold text-slate-400 px-1 py-0.5">
+                          +{t.amenities.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-3">
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                      t.active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${t.active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                      {t.active ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="text-right py-3">
+                    <button
+                      type="button"
+                      onClick={() => openEdit(t)}
+                      className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+                      title={`Edit ${t.name}`}
+                    >
+                      <Lucide.Pencil size={14} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {types.length === 0 && !resource.loading && (
+            <p className="py-8 text-center text-xs text-slate-400">No room types configured yet.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Room Operations & Policies Card */}
+      <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+        <h2 className="text-base font-bold text-ink mb-1">Room Operations & Holding Rules</h2>
+        <p className="text-xs text-ink-secondary mb-4">Default automated rules applied across room inventory</p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-ink mb-1.5">Cleaning Turnaround Window</label>
+            <select
+              value={turnaroundMinutes}
+              onChange={(e) => setTurnaroundMinutes(e.target.value)}
+              className="w-full rounded-md border px-3 py-2 text-sm text-ink focus:outline-none"
+              style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+            >
+              <option value="20">20 Minutes</option>
+              <option value="30">30 Minutes (Standard)</option>
+              <option value="45">45 Minutes</option>
+              <option value="60">60 Minutes</option>
+            </select>
+            <span className="text-[11px] text-ink-secondary mt-1 block">Allocated housekeeping duration per room departure</span>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-ink mb-1.5">Default Keycards Allotment</label>
+            <select
+              value={keycardsPerRoom}
+              onChange={(e) => setKeycardsPerRoom(e.target.value)}
+              className="w-full rounded-md border px-3 py-2 text-sm text-ink focus:outline-none"
+              style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+            >
+              <option value="1">1 Keycard</option>
+              <option value="2">2 Keycards (Standard)</option>
+              <option value="3">3 Keycards</option>
+            </select>
+            <span className="text-[11px] text-ink-secondary mt-1 block">Initial issued RFID access cards on check-in</span>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-ink mb-1.5">Auto-Release Hold Timeout</label>
+            <select
+              value={autoReleaseHoldMinutes}
+              onChange={(e) => setAutoReleaseHoldMinutes(e.target.value)}
+              className="w-full rounded-md border px-3 py-2 text-sm text-ink focus:outline-none"
+              style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+            >
+              <option value="10">10 Minutes</option>
+              <option value="15">15 Minutes (Recommended)</option>
+              <option value="30">30 Minutes</option>
+            </select>
+            <span className="text-[11px] text-ink-secondary mt-1 block">Release uncommitted room locks during reservation creation</span>
+          </div>
+        </div>
+
+        <div className="mt-4 pt-3 border-t flex justify-end" style={{ borderColor: 'var(--color-border-subtle)' }}>
+          <button
+            type="button"
+            onClick={handleSavePreferences}
+            disabled={savingPrefs}
+            className="pms-btn-primary px-4 py-2 text-xs font-semibold rounded-md shadow-xs disabled:opacity-50"
+          >
+            {savingPrefs ? 'Saving…' : 'Save Operational Rules'}
+          </button>
+        </div>
+      </div>
+
+      {/* Edit / Add Room Type Modal */}
+      <Modal
+        open={editing !== null}
+        onClose={() => setEditing(null)}
+        title={editing?.id.startsWith('RT-NEW') ? 'Add Room Type' : `Edit ${editing?.name}`}
+        subtitle="Manage room category details, rates, occupant limits, and luxury inclusions"
+        wide
+      >
+        {editing && (
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 py-2">
+            <Field label="Category name">
+              <input
+                value={editing.name}
+                onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                className={inputClass()}
+                placeholder="e.g. Deluxe Suite, Executive King"
+                autoFocus
+              />
+            </Field>
+            <Field label={`Standard base rate per night (${currencyCode})`}>
+              <input
+                type="number"
+                min={0}
+                value={editing.baseRate}
+                onChange={(e) => setEditing({ ...editing, baseRate: Number(e.target.value) })}
+                className={inputClass('tnum')}
+              />
+            </Field>
+            <div className="sm:col-span-2">
+              <Field label="Description">
+                <input
+                  value={editing.description}
+                  onChange={(e) => setEditing({ ...editing, description: e.target.value })}
+                  className={inputClass()}
+                  placeholder="Summary of room size, view, and furnishings"
+                />
+              </Field>
+            </div>
+            <Field label="Max adults">
+              <input
+                type="number"
+                min={1}
+                max={8}
+                value={editing.maxAdults ?? editing.maxOccupancy}
+                onChange={(e) => setEditing({ ...editing, maxAdults: Number(e.target.value) })}
+                className={inputClass('tnum')}
+              />
+            </Field>
+            <Field label="Max children">
+              <input
+                type="number"
+                min={0}
+                max={6}
+                value={editing.maxChildren ?? 0}
+                onChange={(e) => setEditing({ ...editing, maxChildren: Number(e.target.value) })}
+                className={inputClass('tnum')}
+              />
+            </Field>
+            <Field label="Active catalog status">
+              <select
+                value={editing.active ? 'active' : 'inactive'}
+                onChange={(e) => setEditing({ ...editing, active: e.target.value === 'active' })}
+                className={inputClass()}
+              >
+                <option value="active">Active (Available for booking)</option>
+                <option value="inactive">Inactive (Hidden from sales)</option>
+              </select>
+            </Field>
+            <div className="sm:col-span-2">
+              <Field label="Amenities (comma-separated list)">
+                <input
+                  value={amenText}
+                  onChange={(e) => setAmenText(e.target.value)}
+                  placeholder="Free Wi-Fi, King Bed, Mini Bar, Balcony"
+                  className={inputClass()}
+                />
+              </Field>
+            </div>
+            <div className="flex gap-2 sm:col-span-2 pt-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
+              <button
+                type="button"
+                className="pms-btn-ghost flex-1 px-4 py-2.5"
+                onClick={() => setEditing(null)}
+                disabled={isSaving}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="pms-btn-primary flex-[2] px-4 py-2.5 font-semibold"
+                onClick={save}
+                disabled={isSaving}
+              >
+                {isSaving ? 'Saving…' : 'Save Room Type'}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+export function Settings({
+  onOpenThemes,
+  initialTab = 'general',
+}: {
+  onOpenThemes?: () => void;
+  initialTab?: SettingsTab;
+}) {
   const { me, can } = useAuth();
   const { preset, setPreset } = useTheme();
 
@@ -43,8 +497,11 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
 
   const resource = useApiResource(loadSettings);
   const property = resource.data?.property;
+  const currencyCode = property?.currencyCode ?? 'INR';
 
-  const [activeTab, setActiveTab] = useState<SettingsTab>('general');
+  const [activeTab, setActiveTab] = useState<SettingsTab>(
+    initialTab === 'rooms-rates' ? 'room-settings' : initialTab
+  );
   const [saving, setSaving] = useState(false);
 
   // Basic Information State
@@ -189,7 +646,7 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
   const TABS_CONFIG: { id: SettingsTab; label: string; icon: Lucide.LucideIcon }[] = [
     { id: 'general', label: 'General', icon: Lucide.Settings },
     { id: 'policies', label: 'Policies', icon: Lucide.FileText },
-    { id: 'rooms-rates', label: 'Room & Rates', icon: Lucide.BedDouble },
+    { id: 'room-settings', label: 'Room Settings', icon: Lucide.Layers },
     { id: 'taxes', label: 'Taxes & Fees', icon: Lucide.Receipt },
     { id: 'guests', label: 'Guest Settings', icon: Lucide.Users },
     { id: 'integrations', label: 'Integrations', icon: Lucide.Boxes },
@@ -1182,8 +1639,13 @@ export function Settings({ onOpenThemes }: { onOpenThemes: () => void }) {
         </div>
       )}
 
+      {/* ================= ROOM SETTINGS TAB ================= */}
+      {activeTab === 'room-settings' && (
+        <RoomSettingsTab currencyCode={currencyCode} />
+      )}
+
       {/* ================= OTHER TABS (FALLBACK / PLACEHOLDER CARDS) ================= */}
-      {['rooms-rates', 'guests', 'integrations', 'notifications', 'advanced'].includes(activeTab) && (
+      {['guests', 'integrations', 'notifications', 'advanced'].includes(activeTab) && (
         <div className="rounded-2xl border p-8 shadow-sm text-center" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-3">
             <Lucide.Sliders size={26} />

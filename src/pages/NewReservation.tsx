@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import type { NavTarget } from '../components/nav';
 import { toast } from '../components/toastStore';
-import { ThemeSwatcher } from '../components/ThemeSwatcher';
 
 interface RoomRequirement {
   id: string;
@@ -45,12 +44,11 @@ const SAMPLE_GUEST_DATABASE = [
 
 export function NewReservation({
   go,
-  onOpenThemes,
+  onOpenThemes: _onOpenThemes,
 }: {
   go: (t: NavTarget) => void;
   onOpenThemes?: () => void;
 }) {
-  const [swatcherOpen, setSwatcherOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'outlet' | 'preferences'>('general');
 
   // Booking Parameters
@@ -365,7 +363,7 @@ export function NewReservation({
           <div>
             <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
-                New Reservation 3
+                New Reservation
               </h1>
               <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -390,15 +388,6 @@ export function NewReservation({
           >
             <Lucide.CalendarDays size={14} className="text-slate-400" />
             <span className="hidden sm:inline">All Reservations</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => (onOpenThemes ? onOpenThemes() : setSwatcherOpen(true))}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-            title="Theme Palette"
-          >
-            <Lucide.Palette size={14} className="text-[var(--color-primary)]" />
-            <span>Theme</span>
           </button>
         </div>
       </div>
@@ -1858,9 +1847,6 @@ export function NewReservation({
           </div>
         </div>
       )}
-
-      {/* Theme Swatcher Modal Drawer */}
-      <ThemeSwatcher open={swatcherOpen} onClose={() => setSwatcherOpen(false)} />
     </div>
   );
 }

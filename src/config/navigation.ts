@@ -61,7 +61,6 @@ export const NAV_SECTIONS: NavSection[] = [
     title: 'Rooms & Housekeeping',
     items: [
       { id: 'room-overview', label: 'Room Overview', hint: 'Cards & status' },
-      { id: 'room-types', label: 'Room Types', hint: 'Categories & rates' },
       { id: 'status-board', label: 'Status Board', hint: 'Compact live board' },
       { id: 'housekeeping', label: 'Housekeeping', hint: 'Tasks & upkeep' },
       { id: 'maintenance', label: 'Maintenance', hint: 'Requests & work orders' },

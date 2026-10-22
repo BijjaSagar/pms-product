@@ -49,6 +49,14 @@ const OCCUPANCY_CHART_DATA = [
 
 export type AnalyticsTab = 'overview' | 'occupancy' | 'revenue' | 'movements' | 'audits';
 
+const ANALYTICS_TABS: { id: AnalyticsTab; label: string; icon: Lucide.LucideIcon }[] = [
+  { id: 'overview', label: 'Overview', icon: Lucide.LayoutDashboard },
+  { id: 'occupancy', label: 'Occupancy', icon: Lucide.BedDouble },
+  { id: 'revenue', label: 'Revenue & ADR', icon: Lucide.TrendingUp },
+  { id: 'movements', label: 'Movements', icon: Lucide.ArrowLeftRight },
+  { id: 'audits', label: 'Audits & Ops', icon: Lucide.ShieldCheck },
+];
+
 export function Reports({
   go,
   initialTab = 'overview',
@@ -142,63 +150,59 @@ export function Reports({
 
   return (
     <div className="w-full flex flex-col gap-4 text-slate-900 font-sans pb-10">
-      {/* ================= 1. PAGE HEADER & TAB NAVIGATION ================= */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)]">
+      {/* ================= 1. PAGE HEADER ================= */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20">
-              <Lucide.BarChart3 size={20} strokeWidth={2.4} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">Analytics & Reports</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Comprehensive hotel operations, occupancy projections, revenue intelligence, and daily manifests
-              </p>
-            </div>
-          </div>
+          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
+            <Lucide.BarChart3 className="text-primary" size={26} />
+            <span>Analytics & Reports</span>
+          </h1>
+          <p className="text-xs text-ink-secondary mt-1">
+            Comprehensive hotel operations, occupancy projections, revenue intelligence, and daily manifests
+          </p>
         </div>
 
-        {/* Action Controls: Refresh & Tabs Switcher */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* View Mode Tabs Switcher */}
-          <div className="flex items-center p-1 rounded-2xl border border-slate-200 bg-slate-50 shadow-2xs overflow-x-auto no-scrollbar">
-            {[
-              { id: 'overview', label: 'Overview', icon: Lucide.LayoutDashboard },
-              { id: 'occupancy', label: 'Occupancy', icon: Lucide.BedDouble },
-              { id: 'revenue', label: 'Revenue & ADR', icon: Lucide.TrendingUp },
-              { id: 'movements', label: 'Movements', icon: Lucide.ArrowLeftRight },
-              { id: 'audits', label: 'Audits & Ops', icon: Lucide.ShieldCheck },
-            ].map((tab) => {
-              const active = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id as AnalyticsTab)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                    active
-                      ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/60'
-                      : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'
-                  }`}
-                >
-                  <tab.icon size={14} className={active ? 'text-[var(--color-primary)]' : 'text-slate-400'} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
+        <div className="flex items-center gap-2">
           {/* Refresh Data Button */}
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs transition-colors cursor-pointer"
+            className="pms-btn-ghost flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-md cursor-pointer transition-colors"
             title="Refresh analytics data"
           >
-            <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : 'text-slate-400'} />
-            <span className="hidden sm:inline">Refresh</span>
+            <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : 'text-ink-secondary'} />
+            <span>Refresh</span>
           </button>
         </div>
+      </div>
+
+      {/* ================= 2. HORIZONTAL TABS BAR ================= */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b" style={{ borderColor: 'var(--color-border)' }}>
+        {ANALYTICS_TABS.map((t) => {
+          const isActive = activeTab === t.id;
+          const Icon = t.icon;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setActiveTab(t.id)}
+              className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                isActive
+                  ? 'text-white shadow-sm'
+                  : 'text-ink-secondary hover:text-ink hover:bg-black/[0.03]'
+              }`}
+              style={{
+                background: isActive ? 'var(--color-primary)' : 'transparent',
+                border: isActive
+                  ? '1px solid var(--color-primary)'
+                  : '1px solid transparent',
+              }}
+            >
+              <Icon size={16} strokeWidth={isActive ? 2.4 : 1.9} />
+              <span>{t.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {resource.error && (

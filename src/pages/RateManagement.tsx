@@ -226,52 +226,6 @@ export function RateManagement() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Rate Plans Button */}
-          <button
-            type="button"
-            onClick={() => setActiveTab('plans')}
-            className={`pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3 py-2 cursor-pointer transition-colors ${
-              activeTab === 'plans' ? 'border-primary/40 text-primary bg-primary/10' : ''
-            }`}
-          >
-            <Lucide.Layers size={14} />
-            <span>Rate Plans</span>
-          </button>
-
-          {/* Seasonality Button */}
-          <button
-            type="button"
-            onClick={() => setActiveTab('seasonality')}
-            className={`pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3 py-2 cursor-pointer transition-colors ${
-              activeTab === 'seasonality' ? 'border-primary/40 text-primary bg-primary/10' : ''
-            }`}
-          >
-            <Lucide.SunMedium size={14} />
-            <span>Seasonality</span>
-          </button>
-
-          {/* Bulk Update Button */}
-          <button
-            type="button"
-            onClick={() => setShowBulkUpdateModal(true)}
-            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3 py-2 cursor-pointer"
-          >
-            <Lucide.CopyCheck size={14} />
-            <span>Bulk Update</span>
-          </button>
-
-          {/* Calendar View Button */}
-          <button
-            type="button"
-            onClick={() => setActiveTab('calendar')}
-            className={`pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3 py-2 cursor-pointer transition-colors ${
-              activeTab === 'calendar' ? 'border-primary/40 text-primary bg-primary/10' : ''
-            }`}
-          >
-            <Lucide.CalendarDays size={14} />
-            <span>Calendar View</span>
-          </button>
-
           {/* + Create Rate Plan Button */}
           <button
             type="button"
@@ -450,34 +404,39 @@ export function RateManagement() {
       </div>
 
       {/* 4. SUB-TABS ROW & VIEW CONTROLS */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-1 border-b" style={{ borderColor: 'var(--color-border)' }}>
         {/* Left Tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 text-xs font-semibold">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
           {[
-            { id: 'calendar', label: 'Rate Calendar' },
-            { id: 'plans', label: 'Rate Plans' },
-            { id: 'seasonality', label: 'Seasonality' },
-            { id: 'restrictions', label: 'Restrictions' },
-            { id: 'mapping', label: 'Channel Mapping' },
-            { id: 'bulk', label: 'Bulk Update' },
-            { id: 'history', label: 'History' },
-          ].map((tab) => {
-            const isActive = activeTab === tab.id;
+            { id: 'calendar', label: 'Rate Calendar', icon: Lucide.CalendarDays },
+            { id: 'plans', label: 'Rate Plans', icon: Lucide.Layers },
+            { id: 'seasonality', label: 'Seasonality', icon: Lucide.SunMedium },
+            { id: 'restrictions', label: 'Restrictions', icon: Lucide.Lock },
+            { id: 'mapping', label: 'Channel Mapping', icon: Lucide.Network },
+            { id: 'bulk', label: 'Bulk Update', icon: Lucide.Zap },
+            { id: 'history', label: 'History', icon: Lucide.History },
+          ].map((t) => {
+            const isActive = activeTab === t.id;
+            const Icon = t.icon;
             return (
               <button
-                key={tab.id}
+                key={t.id}
                 type="button"
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+                onClick={() => setActiveTab(t.id as typeof activeTab)}
+                className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${
                   isActive
-                    ? 'border-b-2 border-primary text-primary font-bold'
-                    : 'text-ink-muted hover:text-ink hover:bg-muted-surface'
+                    ? 'text-white shadow-sm'
+                    : 'text-ink-secondary hover:text-ink hover:bg-black/[0.03]'
                 }`}
                 style={{
-                  borderBottomColor: isActive ? 'var(--color-primary)' : 'transparent',
+                  background: isActive ? 'var(--color-primary)' : 'transparent',
+                  border: isActive
+                    ? '1px solid var(--color-primary)'
+                    : '1px solid transparent',
                 }}
               >
-                {tab.label}
+                <Icon size={16} strokeWidth={isActive ? 2.4 : 1.9} />
+                <span>{t.label}</span>
               </button>
             );
           })}

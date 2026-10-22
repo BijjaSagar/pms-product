@@ -836,30 +836,35 @@ export function ChannelManager() {
         {/* Navigation Tabs & Filter Bar */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
           {/* Tabs */}
-          <div className="flex items-center gap-1 overflow-x-auto pb-1 text-xs font-semibold">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
             {[
-              { id: 'calendar', label: 'Calendar View' },
-              { id: 'rates', label: 'Rate & Availability' },
-              { id: 'restrictions', label: 'Restrictions' },
-              { id: 'mapping', label: 'Mapping' },
-              { id: 'promotions', label: 'Channel Promotions' },
-            ].map((tab) => {
-              const isActive = activeTab === tab.id;
+              { id: 'calendar', label: 'Calendar View', icon: Lucide.CalendarDays },
+              { id: 'rates', label: 'Rate & Availability', icon: Lucide.TrendingUp },
+              { id: 'restrictions', label: 'Restrictions', icon: Lucide.Lock },
+              { id: 'mapping', label: 'Mapping', icon: Lucide.Network },
+              { id: 'promotions', label: 'Channel Promotions', icon: Lucide.Sparkles },
+            ].map((t) => {
+              const isActive = activeTab === t.id;
+              const Icon = t.icon;
               return (
                 <button
-                  key={tab.id}
+                  key={t.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                  className={`px-3.5 py-2 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+                  onClick={() => setActiveTab(t.id as typeof activeTab)}
+                  className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${
                     isActive
-                      ? 'border-b-2 border-primary text-primary font-bold'
-                      : 'text-ink-muted hover:text-ink hover:bg-muted-surface'
+                      ? 'text-white shadow-sm'
+                      : 'text-ink-secondary hover:text-ink hover:bg-black/[0.03]'
                   }`}
                   style={{
-                    borderBottomColor: isActive ? 'var(--color-primary)' : 'transparent',
+                    background: isActive ? 'var(--color-primary)' : 'transparent',
+                    border: isActive
+                      ? '1px solid var(--color-primary)'
+                      : '1px solid transparent',
                   }}
                 >
-                  {tab.label}
+                  <Icon size={16} strokeWidth={isActive ? 2.4 : 1.9} />
+                  <span>{t.label}</span>
                 </button>
               );
             })}
