@@ -30,7 +30,6 @@ export function NewReservation({
   const [checkOutTime, setCheckOutTime] = useState('11:00');
   const [samePlanAllRooms, setSamePlanAllRooms] = useState(true);
   const [ratePlan, setRatePlan] = useState('Best Available Rates');
-  const [defaultRoomTypeId, setDefaultRoomTypeId] = useState('deluxe');
   const [mealPlan, setMealPlan] = useState('EP');
 
   const loadInventory = useCallback(async () => {
@@ -212,7 +211,8 @@ export function NewReservation({
 
   const handleAddRoom = () => {
     const nextIdx = requirements.length + 1;
-    const category = roomTypes.find((item) => item.id === defaultRoomTypeId) ?? roomTypes[0] ?? FALLBACK_ROOM_CATEGORIES[1];
+    const defaultType = requirements[requirements.length - 1]?.roomTypeId ?? 'deluxe';
+    const category = roomTypes.find((item) => item.id === defaultType) ?? roomTypes[0] ?? FALLBACK_ROOM_CATEGORIES[1];
     const newReq: RoomRequirement = {
       id: `req-${Date.now()}`,
       roomIndex: nextIdx,
@@ -231,29 +231,6 @@ export function NewReservation({
     };
     setRequirements((prev) => [...prev, newReq]);
     toast.success('Room Added', { detail: `Room ${nextIdx} (${category.name}) added to requirements.` });
-  };
-
-  const handleAddDriverRoom = () => {
-    const category = roomTypes.find((item) => item.id === 'standard') ?? roomTypes[0] ?? FALLBACK_ROOM_CATEGORIES[0];
-    const nextIdx = requirements.length + 1;
-    const id = `req-${Date.now()}`;
-    setRequirements((prev) => [...prev, {
-      id,
-      roomIndex: nextIdx,
-      roomTypeId: category.id,
-      category: category.name,
-      adults: 1,
-      children: 0,
-      infant: 0,
-      roomId: null,
-      roomNo: '',
-      rate: category.baseRate,
-      ratePlan,
-      mealPlan,
-      billingRoute: 'Default',
-      occupants: [{ id: `occupant-${Date.now()}-driver`, name: '', role: 'Driver' }],
-    }]);
-    toast.success('Driver Room Added', { detail: `Room ${nextIdx} · ${category.name}` });
   };
 
   const handleRemoveRoom = (id: string) => {
@@ -1013,7 +990,6 @@ export function NewReservation({
                 requirements={requirements}
                 roomTypes={roomTypes}
                 availableRoomsByType={availableRoomsByType}
-                defaultRoomTypeId={defaultRoomTypeId}
                 defaultRatePlan={ratePlan}
                 defaultMealPlan={mealPlan}
                 samePlanAllRooms={samePlanAllRooms}
@@ -1023,14 +999,12 @@ export function NewReservation({
                 roomTax={roomTax}
                 totalRooms={requirements.length}
                 nights={nightsCount}
-                onDefaultRoomTypeChange={setDefaultRoomTypeId}
                 onSamePlanChange={(same) => {
                   setSamePlanAllRooms(same);
                   if (same) setRequirements((previous) => previous.map((room) => ({ ...room, ratePlan, mealPlan })));
                 }}
                 onOverridePriceChange={setOverridePrice}
                 onAddRoom={handleAddRoom}
-                onAddDriverRoom={handleAddDriverRoom}
                 onRemoveRoom={handleRemoveRoom}
                 onUpdateRoom={(id, updates) => {
                   handleUpdateRequirement(id, updates);

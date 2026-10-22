@@ -7,7 +7,6 @@ interface Props {
   requirements: RoomRequirement[];
   roomTypes: RoomCategoryOption[];
   availableRoomsByType: Record<string, AvailabilityRow[]>;
-  defaultRoomTypeId: string;
   defaultRatePlan: string;
   defaultMealPlan: string;
   samePlanAllRooms: boolean;
@@ -17,11 +16,9 @@ interface Props {
   roomTax: number;
   totalRooms: number;
   nights: number;
-  onDefaultRoomTypeChange: (roomTypeId: string) => void;
   onSamePlanChange: (same: boolean) => void;
   onOverridePriceChange: (enabled: boolean) => void;
   onAddRoom: () => void;
-  onAddDriverRoom: () => void;
   onRemoveRoom: (id: string) => void;
   onUpdateRoom: (id: string, updates: Partial<RoomRequirement>) => void;
   onAddOccupant: (roomId: string) => void;
@@ -33,7 +30,6 @@ export function RoomRequirementsSection({
   requirements,
   roomTypes,
   availableRoomsByType,
-  defaultRoomTypeId,
   defaultRatePlan,
   defaultMealPlan,
   samePlanAllRooms,
@@ -43,11 +39,9 @@ export function RoomRequirementsSection({
   roomTax,
   totalRooms,
   nights,
-  onDefaultRoomTypeChange,
   onSamePlanChange,
   onOverridePriceChange,
   onAddRoom,
-  onAddDriverRoom,
   onRemoveRoom,
   onUpdateRoom,
   onAddOccupant,
@@ -65,13 +59,6 @@ export function RoomRequirementsSection({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <label className="flex items-center gap-2 text-[11px] font-semibold text-slate-600">
-            Default for new room
-            <select value={defaultRoomTypeId} onChange={(event) => onDefaultRoomTypeChange(event.target.value)} className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-800">
-              {roomTypes.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}
-            </select>
-          </label>
-          <button type="button" onClick={onAddDriverRoom} className="pms-btn-ghost min-h-[34px] px-2.5 py-1 text-[11px]"><Lucide.CarFront size={13} /> Driver room</button>
           <button type="button" onClick={onAddRoom} className="pms-btn-primary min-h-[34px] px-2.5 py-1 text-[11px]"><Lucide.Plus size={13} /> Add room</button>
         </div>
       </div>
