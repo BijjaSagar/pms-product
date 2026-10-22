@@ -238,23 +238,36 @@ export function Rooms({ initialQuery, focusId }: { initialQuery?: string; focusI
     <div className="flex flex-col gap-4">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.DoorOpen className="text-primary" size={28} />
-            <span>Room Directory & Overview</span>
-          </h1>
-          <p className="mt-1 text-xs text-ink-secondary">
-            Live room status, guest occupancy, housekeeping cycles, and out-of-service controls
-          </p>
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-xs shadow-sky-500/20 mt-0.5">
+            <Lucide.BedDouble size={20} strokeWidth={2.4} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+                Room Directory
+              </h1>
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                </span>
+                Live Inventory
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Live room status, guest occupancy, housekeeping cycles, and out-of-service controls
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3.5 py-2 rounded-xl border border-border"
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer transition-colors"
             title="Refresh rooms"
           >
-            <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : ''} />
+            <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
             <span>Refresh</span>
           </button>
         </div>
@@ -262,8 +275,15 @@ export function Rooms({ initialQuery, focusId }: { initialQuery?: string; focusI
 
       <Card>
         <CardTitle
+          icon={Lucide.BedDouble}
+          iconBg="bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-xs shadow-sky-500/20"
           title="Room Directory"
           subtitle={resource.loading ? 'Loading room inventory…' : `${filtered.length} of ${all.length} rooms shown`}
+          badge={
+            <span className="flex items-center gap-1 rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700 border border-sky-200/60">
+              {all.length} Rooms
+            </span>
+          }
         />
         {resource.error ? (
           <div className="mb-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">

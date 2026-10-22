@@ -172,31 +172,44 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
     <div className="flex flex-col gap-4">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.Users className="text-primary" size={26} />
-            <span>Guest Profiles & Directory</span>
-          </h1>
-          <p className="mt-1 text-xs text-ink-secondary">
-            Guest history, VIP tiers, contact preferences, and stay profiles
-          </p>
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white shadow-xs shadow-indigo-500/20 mt-0.5">
+            <Lucide.Users size={20} strokeWidth={2.4} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+                Guest Directory
+              </h1>
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                </span>
+                CRM Active
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Guest profiles, VIP tiers, contact preferences, and stay histories
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-xl border border-border"
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer transition-colors"
             title="Refresh directory"
           >
-            <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : ''} />
+            <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
             <span>Refresh</span>
           </button>
           <button
             type="button"
             onClick={() => setAdding(true)}
-            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-xl"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
           >
-            <Lucide.Plus size={16} strokeWidth={2.4} />
+            <Lucide.Plus size={15} strokeWidth={2.4} />
             <span>Add Guest</span>
           </button>
         </div>
@@ -204,8 +217,15 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
 
       <Card>
         <CardTitle
+          icon={Lucide.Contact2}
+          iconBg="bg-gradient-to-tr from-violet-600 to-indigo-600 text-white shadow-xs shadow-indigo-500/20"
           title="Guest Directory"
           subtitle={resource.loading ? 'Loading guest directory…' : `${filtered.length} of ${all.length} guests`}
+          badge={
+            <span className="flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700 border border-indigo-200/60">
+              {all.length} Profiles
+            </span>
+          }
         />
       {resource.error ? <p role="alert" className="pms-helper">Could not load guests: {resource.error}</p> : null}
       <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-4">

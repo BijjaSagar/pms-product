@@ -152,14 +152,27 @@ export function Reports({
     <div className="w-full flex flex-col gap-4 text-slate-900 font-sans pb-10">
       {/* ================= 1. PAGE HEADER ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.BarChart3 className="text-primary" size={26} />
-            <span>Analytics & Reports</span>
-          </h1>
-          <p className="text-xs text-ink-secondary mt-1">
-            Comprehensive hotel operations, occupancy projections, revenue intelligence, and daily manifests
-          </p>
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20 mt-0.5">
+            <Lucide.BarChart3 size={20} strokeWidth={2.4} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+                Analytics & Reports
+              </h1>
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                </span>
+                Live Intelligence
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Comprehensive hotel operations, occupancy projections, revenue intelligence, and daily manifests
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -167,10 +180,10 @@ export function Reports({
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-ghost flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-md cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer transition-colors"
             title="Refresh analytics data"
           >
-            <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : 'text-ink-secondary'} />
+            <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : 'text-slate-500'} />
             <span>Refresh</span>
           </button>
         </div>
@@ -531,6 +544,8 @@ export function Reports({
             {/* Operational Snapshot */}
             <Card>
               <CardTitle
+                icon={Lucide.Activity}
+                iconBg="bg-gradient-to-tr from-blue-500 to-indigo-600 text-white shadow-xs shadow-blue-500/20"
                 title="Operational Snapshot"
                 subtitle="Front-desk movements and facility tasks"
                 action={
@@ -580,6 +595,8 @@ export function Reports({
             {/* Financial Snapshot */}
             <Card>
               <CardTitle
+                icon={Lucide.TrendingUp}
+                iconBg="bg-gradient-to-tr from-emerald-500 to-teal-600 text-white shadow-xs shadow-emerald-500/20"
                 title="Financial Snapshot"
                 subtitle={
                   revenue
@@ -691,6 +708,8 @@ export function Reports({
           {/* Occupancy Trend BarChart */}
           <Card elevated>
             <CardTitle
+              icon={Lucide.BedDouble}
+              iconBg="bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-xs shadow-sky-500/20"
               title={`Occupancy Trend (${occRange})`}
               subtitle={occupancy ? `${occupancy.from} through ${occupancy.to}` : 'Loading occupancy data…'}
             />
@@ -707,7 +726,12 @@ export function Reports({
           {/* Sold vs Unsold and Reconciliation */}
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
             <Card elevated>
-              <CardTitle title="Sold vs. Unsold Inventory" subtitle="Room-night utilization in this selected range" />
+              <CardTitle
+                icon={Lucide.PieChart}
+                iconBg="bg-gradient-to-tr from-amber-500 to-orange-600 text-white shadow-xs shadow-amber-500/20"
+                title="Sold vs. Unsold Inventory"
+                subtitle="Room-night utilization in this selected range"
+              />
               {occupancy ? (
                 <div className="mt-2">
                   <DonutChart
@@ -722,7 +746,12 @@ export function Reports({
             </Card>
 
             <Card elevated>
-              <CardTitle title="Inventory Reconciliation" subtitle="Reservation counts compared against allocated room-nights" />
+              <CardTitle
+                icon={Lucide.Layers}
+                iconBg="bg-gradient-to-tr from-purple-500 to-violet-600 text-white shadow-xs shadow-purple-500/20"
+                title="Inventory Reconciliation"
+                subtitle="Reservation counts compared against allocated room-nights"
+              />
               {occupancy ? (
                 <div className="flex flex-col gap-2.5 text-xs pt-1">
                   {[
@@ -847,6 +876,8 @@ export function Reports({
           {/* Revenue Breakdown Chart */}
           <Card>
             <CardTitle
+              icon={Lucide.BarChart2}
+              iconBg="bg-gradient-to-tr from-emerald-500 to-teal-600 text-white shadow-xs shadow-emerald-500/20"
               title="Revenue Components Breakdown"
               subtitle={revenue ? `${revenue.from} through ${revenue.to} · ${currencyCode}` : 'Loading revenue data…'}
             />
@@ -867,7 +898,12 @@ export function Reports({
 
           {/* Revenue and Collections Accounting Ledger */}
           <Card>
-            <CardTitle title="Revenue and Collections Ledger" subtitle="Accounting metrics from backend financial engine" />
+            <CardTitle
+              icon={Lucide.ReceiptText}
+              iconBg="bg-gradient-to-tr from-emerald-500 to-teal-600 text-white shadow-xs shadow-emerald-500/20"
+              title="Revenue and Collections Ledger"
+              subtitle="Accounting metrics from backend financial engine"
+            />
             {revenue ? (
               <div className="pms-table-scroll mt-3 overflow-x-auto rounded-2xl border border-slate-200">
                 <table className="pms-table min-w-[480px]">
@@ -1072,6 +1108,8 @@ export function Reports({
           {data?.housekeeping ? (
             <Card>
               <CardTitle
+                icon={Lucide.Sparkles}
+                iconBg="bg-gradient-to-tr from-sky-500 to-cyan-600 text-white shadow-xs shadow-sky-500/20"
                 title="Housekeeping Performance"
                 subtitle={`${data.housekeeping.from} · ${data.housekeeping.completionRate}% completion · ${data.housekeeping.avgTurnaroundHours}h avg turnaround`}
               />
@@ -1120,6 +1158,8 @@ export function Reports({
           {can('night-audit.read') ? (
             <Card>
               <CardTitle
+                icon={Lucide.Moon}
+                iconBg="bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20"
                 title="Night Audit Day Close"
                 subtitle={`Business date ${auditDate} · Advisory and day-close workflow`}
               />
@@ -1172,6 +1212,8 @@ export function Reports({
           {data?.audit ? (
             <Card>
               <CardTitle
+                icon={Lucide.ShieldCheck}
+                iconBg="bg-gradient-to-tr from-violet-500 to-purple-600 text-white shadow-xs shadow-violet-500/20"
                 title="Recent Managerial & System Audits"
                 subtitle={`${data.audit.total} events recorded · latest ${data.audit.returned} shown`}
                 action={

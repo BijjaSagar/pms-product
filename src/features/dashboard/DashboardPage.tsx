@@ -638,20 +638,23 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
             <div className="min-w-0">
               {/* Header */}
-              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-border/70">
+              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 shadow-2xs">
-                    <Lucide.DoorOpen size={18} strokeWidth={2.4} />
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white shadow-xs shadow-emerald-500/20">
+                    <Lucide.DoorOpen size={17} strokeWidth={2.4} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-base font-semibold text-ink tracking-tight">Pending Check-ins</h2>
-                      <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200/60">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Pending Check-ins</h2>
+                      <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                        </span>
                         {pendingCheckins.length} Expected
                       </span>
                     </div>
-                    <p className="text-xs text-ink-secondary mt-0.5">Today&apos;s arrivals awaiting front desk check-in</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Today&apos;s arrivals awaiting front desk check-in</p>
                   </div>
                 </div>
 
@@ -772,20 +775,23 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
             <div className="min-w-0">
               {/* Header */}
-              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-border/70">
+              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-200/70 shadow-2xs">
-                    <Lucide.DoorClosed size={18} strokeWidth={2.4} />
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white shadow-xs shadow-amber-500/20">
+                    <Lucide.DoorClosed size={17} strokeWidth={2.4} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-base font-semibold text-ink tracking-tight">Pending Check-outs</h2>
-                      <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 border border-amber-200/60">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Pending Check-outs</h2>
+                      <span className="flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200/60">
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
+                        </span>
                         {pendingCheckouts.length} Due Out
                       </span>
                     </div>
-                    <p className="text-xs text-ink-secondary mt-0.5">Departures scheduled today awaiting key return & folio balance</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Departures scheduled today awaiting key return & folio balance</p>
                   </div>
                 </div>
 
@@ -922,20 +928,23 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div className="min-w-0">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-border/70">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-200/70 shadow-2xs">
-                  <Lucide.CalendarDays size={18} strokeWidth={2.4} />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-600 text-white shadow-xs shadow-blue-500/20">
+                  <Lucide.CalendarDays size={17} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-base font-semibold text-ink tracking-tight">Recent Reservations</h2>
-                    <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 border border-blue-200/60">
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">Recent Reservations</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-200/60">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
+                      </span>
                       {recentReservations.length} Bookings
                     </span>
                   </div>
-                  <p className="text-xs text-ink-secondary mt-0.5">Latest confirmed bookings & stays across property</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Latest confirmed bookings & stays across property</p>
                 </div>
               </div>
 
@@ -1024,20 +1033,23 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div className="min-w-0">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-border/70">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-purple-600 border border-purple-200/70 shadow-2xs">
-                  <Lucide.ReceiptText size={18} strokeWidth={2.4} />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-500 to-violet-600 text-white shadow-xs shadow-purple-500/20">
+                  <Lucide.ReceiptText size={17} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-base font-semibold text-ink tracking-tight">Recent Transactions</h2>
-                    <span className="flex items-center gap-1 rounded-full bg-purple-50 px-2.5 py-0.5 text-xs font-semibold text-purple-700 border border-purple-200/60">
-                      <span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
+                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">Recent Transactions</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-purple-50 px-2.5 py-0.5 text-[10px] font-bold text-purple-700 border border-purple-200/60">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-purple-500"></span>
+                      </span>
                       {recentPayments.length} Settlements
                     </span>
                   </div>
-                  <p className="text-xs text-ink-secondary mt-0.5">Latest settled folios, payments & guest transactions</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Latest settled folios, payments & guest transactions</p>
                 </div>
               </div>
 
@@ -1131,22 +1143,32 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         <div className="flex-1 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
           <div>
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-600 border border-sky-200/60 shadow-2xs">
-                  <Lucide.Sparkles size={16} strokeWidth={2.4} />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-500 to-cyan-600 text-white shadow-xs shadow-sky-500/20">
+                  <Lucide.Sparkles size={17} strokeWidth={2.4} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-slate-900 tracking-tight">Housekeeping Progress</h2>
-                  <p className="text-[11px] text-slate-400">Turnaround status & inspection</p>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">Housekeeping Progress</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-sky-50 px-2.5 py-0.5 text-[10px] font-bold text-sky-700 border border-sky-200/60">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-sky-500"></span>
+                      </span>
+                      Live Status
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Turnaround status & inspection</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => go({ view: 'housekeeping' })}
-                className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs transition-colors"
+                className="text-xs font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
-                View all
+                <span>View all</span>
+                <Lucide.ArrowRight size={13} />
               </button>
             </div>
 
@@ -1245,22 +1267,32 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         <div className="flex-1 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
           <div>
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200/60 shadow-2xs">
-                  <Lucide.ClipboardList size={16} strokeWidth={2.4} />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+                  <Lucide.ClipboardList size={17} strokeWidth={2.4} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-slate-900 tracking-tight">Department Tasks</h2>
-                  <p className="text-[11px] text-slate-400">Operational follow-ups & alerts</p>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">Department Tasks</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] font-bold text-indigo-700 border border-indigo-200/60">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
+                      </span>
+                      4 Actions
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Operational follow-ups & alerts</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => go({ view: 'maintenance' })}
-                className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs transition-colors"
+                className="text-xs font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
-                View all
+                <span>View all</span>
+                <Lucide.ArrowRight size={13} />
               </button>
             </div>
 

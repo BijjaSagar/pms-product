@@ -54,13 +54,27 @@ export function NightAudit({ go }: NightAuditProps) {
     <div className="flex flex-col gap-4 pb-10">
       {/* ================= 1. HEADER SECTION ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-[28px] font-bold tracking-tight text-ink">
-            Night Audit
-          </h1>
-          <p className="text-xs text-ink-secondary mt-1 font-normal">
-            Close the day, post room charges, settle accounts and roll over to the next day.
-          </p>
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-xs shadow-indigo-500/20 mt-0.5">
+            <Lucide.Moon size={20} strokeWidth={2.4} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+                Night Audit
+              </h1>
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                </span>
+                Operations Active
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1 font-normal">
+              Close the day, post room charges, settle accounts and roll over to the next day.
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -270,18 +284,23 @@ export function NightAudit({ go }: NightAuditProps) {
         >
           <div>
             {/* Header with red pill */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
-              <div>
-                <h2 className="text-base sm:text-lg font-bold text-ink">
-                  Pre-Audit Checklist
-                </h2>
-                <p className="text-xs text-ink-secondary mt-0.5">
-                  Please review and resolve all items before proceeding with the audit.
-                </p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3.5 mb-3.5 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-rose-500 to-amber-600 text-white shadow-xs shadow-rose-500/20">
+                  <Lucide.ShieldAlert size={17} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900 tracking-tight">
+                    Pre-Audit Checklist
+                  </h2>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Please review and resolve all items before proceeding with the audit.
+                  </p>
+                </div>
               </div>
 
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 flex-none self-start sm:self-auto">
-                <Lucide.AlertCircle size={13} className="text-rose-600" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/60 flex-none self-start sm:self-auto">
+                <Lucide.AlertCircle size={12} className="text-rose-600" />
                 <span>3 items pending</span>
               </span>
             </div>
@@ -438,9 +457,19 @@ export function NightAudit({ go }: NightAuditProps) {
           style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
         >
           <div>
-            <h2 className="text-base font-bold text-ink border-b pb-3" style={{ borderColor: 'var(--color-border)' }}>
-              Audit Summary <span className="font-normal text-xs text-ink-secondary">(Oct 14, 2026)</span>
-            </h2>
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-xs shadow-indigo-500/20">
+                  <Lucide.BarChart2 size={17} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900 tracking-tight">
+                    Audit Summary <span className="font-normal text-[11px] text-slate-400">(Oct 14, 2026)</span>
+                  </h2>
+                  <p className="text-[11px] text-slate-400 mt-0.5">End-of-day operational totals</p>
+                </div>
+              </div>
+            </div>
 
             {/* Metrics breakdown grid in two sub-columns */}
             <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 pt-3.5 text-xs">

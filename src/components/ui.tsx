@@ -50,18 +50,77 @@ export function CardTitle({
   title,
   subtitle,
   action,
+  icon: Icon,
+  iconBg = 'bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20',
+  badge,
 }: {
   title: string;
   subtitle?: string;
   action?: ReactNode;
+  icon?: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
+  iconBg?: string;
+  badge?: ReactNode;
 }) {
   return (
-    <div className="mb-2 flex flex-wrap items-start justify-between gap-x-3 gap-y-1.5">
-      <div className="min-w-0 flex-1 basis-48">
-        <h4 className="text-base font-semibold tracking-tight text-slate-900 text-balance">{title}</h4>
-        {subtitle ? <p className="text-xs text-slate-500 mt-0.5 text-pretty">{subtitle}</p> : null}
+    <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100/80">
+      <div className="flex items-center gap-2.5 min-w-0">
+        {Icon ? (
+          <div className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl text-white shadow-xs ${iconBg}`}>
+            <Icon size={17} strokeWidth={2.4} />
+          </div>
+        ) : null}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-sm font-bold text-slate-900 tracking-tight">{title}</h2>
+            {badge}
+          </div>
+          {subtitle ? <p className="text-[11px] text-slate-400 mt-0.5">{subtitle}</p> : null}
+        </div>
       </div>
-      {action ? <div className="flex flex-none flex-wrap items-center gap-2">{action}</div> : null}
+      {action ? <div className="flex flex-none items-center gap-2">{action}</div> : null}
+    </div>
+  );
+}
+
+export const SectionHeader = CardTitle;
+
+export function PageHeader({
+  title,
+  subtitle,
+  icon: Icon,
+  iconBg = 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20',
+  actions,
+  badge,
+  breadcrumb,
+}: {
+  title: string;
+  subtitle?: string;
+  icon?: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
+  iconBg?: string;
+  actions?: ReactNode;
+  badge?: ReactNode;
+  breadcrumb?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex items-start gap-3">
+        {Icon ? (
+          <div className={`flex h-10 w-10 flex-none items-center justify-center rounded-xl shadow-xs mt-0.5 ${iconBg}`}>
+            <Icon size={20} strokeWidth={2.4} />
+          </div>
+        ) : null}
+        <div>
+          {breadcrumb}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+              {title}
+            </h1>
+            {badge}
+          </div>
+          {subtitle ? <p className="text-xs text-slate-500 mt-1">{subtitle}</p> : null}
+        </div>
+      </div>
+      {actions ? <div className="flex items-center gap-2 flex-wrap">{actions}</div> : null}
     </div>
   );
 }

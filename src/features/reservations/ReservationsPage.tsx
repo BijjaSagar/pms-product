@@ -1770,11 +1770,25 @@ export function Reservations({
 
       {/* ================= 1. PAGE HEADER ================= */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-bold tracking-tight text-slate-900">Reservations</h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Manage all reservations, search, filter and view booking details
-          </p>
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xs shadow-blue-500/20 mt-0.5">
+            <Lucide.CalendarDays size={20} strokeWidth={2.4} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">Reservations</h1>
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                </span>
+                Live Grid
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Manage all reservations, search, filter and view booking details
+            </p>
+          </div>
         </div>
 
         {/* Action Buttons & View Switcher */}

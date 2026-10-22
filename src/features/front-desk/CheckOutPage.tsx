@@ -114,27 +114,40 @@ export function CheckOut() {
     <div className="flex flex-col gap-4">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.LogOut className="text-primary" size={28} />
-            <span>Guest Check-out</span>
-          </h1>
-          <p className="mt-1 text-xs text-ink-secondary">
-            Review folio balances, settle final payments, inspect rooms, and process departures
-          </p>
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-rose-500 to-amber-600 text-white shadow-xs shadow-rose-500/20 mt-0.5">
+            <Lucide.LogOut size={20} strokeWidth={2.4} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+                Guest Check-out
+              </h1>
+              <span className="flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200/60">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
+                </span>
+                Departures Terminal
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Review folio balances, settle final payments, inspect rooms, and process departures
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium px-3 py-1.5 rounded-xl border border-border bg-surface text-ink-secondary flex items-center gap-1.5">
-            <Lucide.Users size={14} className="text-primary" />
+          <span className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 shadow-2xs flex items-center gap-1.5">
+            <Lucide.Users size={14} className="text-amber-600" />
             <span>{list.length} In-House Stay{list.length === 1 ? '' : 's'}</span>
           </span>
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3.5 py-2 rounded-xl border border-border"
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer transition-colors"
             title="Refresh folios"
           >
-            <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : ''} />
+            <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
             <span>Refresh</span>
           </button>
         </div>
@@ -151,8 +164,15 @@ export function CheckOut() {
       {/* In-House Guests List */}
       <Card className="xl:col-span-2">
         <CardTitle
-          title="In-house folios"
-          subtitle={resource.loading ? 'Loading open folios…' : `${list.length} staying`}
+          icon={Lucide.Users}
+          iconBg="bg-gradient-to-tr from-rose-500 to-amber-600 text-white shadow-xs shadow-rose-500/20"
+          title="In-House Folios"
+          subtitle={resource.loading ? 'Loading open folios…' : `${list.length} staying guests`}
+          badge={
+            <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200/60">
+              {list.length} Open
+            </span>
+          }
         />
         <div className="relative mb-3">
           <Lucide.Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
@@ -228,8 +248,15 @@ export function CheckOut() {
         ) : (
           <>
             <CardTitle
+              icon={Lucide.ReceiptText}
+              iconBg="bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20"
               title={`Folio ${folio.id}`}
               subtitle={`${folio.guest} · Room ${folio.room} · ${folio.reservationId}`}
+              badge={
+                <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${folioBalance(folio) > 0 ? 'bg-amber-50 text-amber-700 border-amber-200/60' : 'bg-emerald-50 text-emerald-700 border-emerald-200/60'}`}>
+                  {folioBalance(folio) > 0 ? 'Unsettled' : 'Settled'}
+                </span>
+              }
             />
             <div className="pms-table-scroll overflow-x-auto rounded-xl border" style={{ borderColor: 'var(--color-border)' }}>
               <table className="pms-table min-w-[480px]">

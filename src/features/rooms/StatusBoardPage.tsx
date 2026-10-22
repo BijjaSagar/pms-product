@@ -511,14 +511,27 @@ export function StatusBoard() {
     <div className="flex flex-col gap-4 pms-animate-fade-in pb-8">
       {/* ================= PAGE HEADER & TOOLBAR ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.LayoutGrid className="text-primary" size={28} />
-            <span>Status Board</span>
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">
-            Live view of room status, housekeeping and guest movements
-          </p>
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20 mt-0.5">
+            <Lucide.LayoutGrid size={20} strokeWidth={2.4} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+                Status Board
+              </h1>
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                </span>
+                Live Floorplan
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Live view of room status, housekeeping cycles, and guest movements
+            </p>
+          </div>
         </div>
 
         {/* Header Action Controls */}
@@ -910,20 +923,16 @@ export function StatusBoard() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-[17px] font-bold text-ink">
+                      <h2 className="text-base font-bold text-slate-900 tracking-tight">
                         Room {selectedRoomModal.number}
                       </h2>
                       <span
-                        className="rounded-md px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wider"
-                        style={{
-                          background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)',
-                          color: 'var(--color-primary)',
-                        }}
+                        className="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200/60"
                       >
                         {selectedRoomModal.type} Category
                       </span>
                     </div>
-                    <p className="text-[12px] text-ink-muted mt-0.5">
+                    <p className="text-[11px] text-slate-400 mt-0.5">
                       Floor {selectedRoomModal.floor} · Main Wing · High Speed WiFi
                     </p>
                   </div>

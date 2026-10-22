@@ -1107,14 +1107,27 @@ export function Billing() {
       <div className="flex flex-col gap-4">
         {/* Title & Action Buttons Row */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
-              <Lucide.ReceiptText className="text-primary" size={28} />
-              <span>Folios & Billing</span>
-            </h1>
-            <p className="text-xs text-ink-secondary mt-1">
-              View, manage and settle guest folios, post charges and generate invoices
-            </p>
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-600 text-white shadow-xs shadow-emerald-500/20 mt-0.5">
+              <Lucide.ReceiptText size={20} strokeWidth={2.4} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+                  Folios & Billing
+                </h1>
+                <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  </span>
+                  Active Ledger
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                View, manage and settle guest folios, post charges and generate invoices
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
@@ -1654,18 +1667,26 @@ export function Billing() {
               className="rounded-2xl border p-4 sm:p-5 shadow-xs flex flex-col gap-4"
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
-              <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--color-divider)' }}>
-                <h3 className="font-bold text-ink text-base">Folio Summary</h3>
+              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-600 text-white shadow-xs shadow-emerald-500/20">
+                    <Lucide.ReceiptText size={17} strokeWidth={2.4} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 tracking-tight">Folio Summary</h3>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Department breakdown & balances</p>
+                  </div>
+                </div>
                 <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                     currentGuest.folioStatus === 'Settled'
-                      ? 'bg-blue-50 text-blue-700 border-blue-200'
-                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200/60'
+                      : 'bg-emerald-50 text-emerald-700 border-emerald-200/60'
                   }`}
                 >
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
-                      currentGuest.folioStatus === 'Settled' ? 'bg-blue-600' : 'bg-emerald-600'
+                      currentGuest.folioStatus === 'Settled' ? 'bg-blue-600' : 'bg-emerald-600 animate-pulse'
                     }`}
                   />
                   <span>{currentGuest.folioStatus}</span>
@@ -1927,10 +1948,15 @@ export function Billing() {
       {/* OTHER TABS CONTENT (Room Folios, Payments, Statements, History) */}
       {activeTab === 'Room Folios (1)' ? (
         <div className="p-6 rounded-2xl border bg-surface flex flex-col gap-4" style={{ borderColor: 'var(--color-border)' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-ink text-base">Room Folio 1 — {currentGuest.room}</h3>
-              <p className="text-xs text-ink-muted">Master room tariff and lodging charges for {currentGuest.stayDates}</p>
+          <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-xs shadow-sky-500/20">
+                <Lucide.BedDouble size={17} strokeWidth={2.4} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Room Folio 1 — {currentGuest.room}</h3>
+                <p className="text-[11px] text-slate-400 mt-0.5">Master room tariff and lodging charges for {currentGuest.stayDates}</p>
+              </div>
             </div>
             <span className="font-bold text-primary text-base">{formatINR(currentGuest.summary.roomCharges)}</span>
           </div>
@@ -1949,10 +1975,15 @@ export function Billing() {
 
       {activeTab === 'Payments' ? (
         <div className="rounded-2xl border bg-surface p-5 shadow-xs flex flex-col gap-4" style={{ borderColor: 'var(--color-border)' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-ink text-base">Payment Transactions &amp; Vouchers</h3>
-              <p className="text-xs text-ink-muted">All successful receipts and settlement transactions on record</p>
+          <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-500 to-violet-600 text-white shadow-xs shadow-purple-500/20">
+                <Lucide.CreditCard size={17} strokeWidth={2.4} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Payment Transactions &amp; Vouchers</h3>
+                <p className="text-[11px] text-slate-400 mt-0.5">All successful receipts and settlement transactions on record</p>
+              </div>
             </div>
             <button
               type="button"
@@ -1996,10 +2027,15 @@ export function Billing() {
 
       {activeTab === 'Statements' ? (
         <div className="rounded-2xl border bg-surface p-6 shadow-xs flex flex-col gap-4" style={{ borderColor: 'var(--color-border)' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-ink text-base">Guest Account Statement</h3>
-              <p className="text-xs text-ink-muted">Detailed line-by-line financial statement for checkout presentation</p>
+          <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+                <Lucide.FileSpreadsheet size={17} strokeWidth={2.4} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Guest Account Statement</h3>
+                <p className="text-[11px] text-slate-400 mt-0.5">Detailed line-by-line financial statement for checkout presentation</p>
+              </div>
             </div>
             <button
               type="button"
@@ -2041,8 +2077,26 @@ export function Billing() {
 
       {activeTab === 'History' || activeTab === 'Other Folios (0)' ? (
         <div className="rounded-2xl border bg-surface p-6 shadow-xs flex flex-col gap-3" style={{ borderColor: 'var(--color-border)' }}>
-          <h3 className="font-bold text-ink text-base">Folio Audit Timeline</h3>
-          <p className="text-xs text-ink-muted">All system postings, modifications, and payments logged for this reservation</p>
+          <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+                <Lucide.Clock size={17} strokeWidth={2.4} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-900 tracking-tight">Folio Audit Timeline</h3>
+                  <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                    </span>
+                    Live Feed
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-0.5">All system postings, modifications, and payments logged for this reservation</p>
+              </div>
+            </div>
+          </div>
           <div className="border-l-2 border-primary/30 pl-4 ml-2 flex flex-col gap-4 mt-2 text-xs">
             {currentGuest.transactions.map((tx) => (
               <div key={tx.id} className="relative">

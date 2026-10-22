@@ -187,15 +187,17 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
 
       {/* Main Room Types Table Card */}
       <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 mb-4 border-b gap-3" style={{ borderColor: 'var(--color-border-subtle)' }}>
-          <div>
-            <h2 className="text-base font-bold text-ink flex items-center gap-2">
-              <Lucide.Layers size={18} className="text-primary" />
-              <span>Room Types & Categories</span>
-            </h2>
-            <p className="text-xs text-ink-secondary mt-0.5">
-              Manage room categories, base rates, occupant limits, and luxury amenities
-            </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3.5 mb-3.5 border-b border-slate-100 gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+              <Lucide.BedDouble size={17} strokeWidth={2.4} />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-slate-900 tracking-tight">Room Types &amp; Categories</h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Manage room categories, base rates, occupant limits, and luxury amenities
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -307,8 +309,25 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
 
       {/* Room Operations & Policies Card */}
       <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-        <h2 className="text-base font-bold text-ink mb-1">Room Operations & Holding Rules</h2>
-        <p className="text-xs text-ink-secondary mb-4">Default automated rules applied across room inventory</p>
+        <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-500 to-indigo-600 text-white shadow-xs shadow-purple-500/20">
+              <Lucide.Clock size={17} strokeWidth={2.4} />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-slate-900 tracking-tight">Room Operations &amp; Holding Rules</h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">Default automated rules applied across room inventory</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleSavePreferences}
+            disabled={savingPrefs}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all disabled:opacity-50"
+          >
+            Save Rules
+          </button>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
@@ -659,14 +678,27 @@ export function Settings({
     <div className="flex flex-col gap-4 pms-animate-fade-in pb-8">
       {/* ================= PAGE HEADER ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.Settings className="text-primary" size={26} />
-            <span>Property Settings</span>
-          </h1>
-          <p className="text-xs text-ink-secondary mt-1">
-            Manage your hotel information, policies, configurations and system preferences
-          </p>
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-slate-700 to-slate-900 text-white shadow-xs shadow-slate-900/20 mt-0.5">
+            <Lucide.Settings size={20} strokeWidth={2.4} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+                Property Settings
+              </h1>
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                </span>
+                Active Config
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Manage your hotel information, policies, configurations and system preferences
+            </p>
+          </div>
         </div>
       </div>
 
@@ -710,16 +742,21 @@ export function Settings({
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
               <div>
-                <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <div>
-                    <h2 className="text-base font-semibold text-ink">Basic Information</h2>
-                    <p className="text-xs text-ink-secondary mt-0.5">Core details about your property</p>
+                <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+                      <Lucide.Building2 size={17} strokeWidth={2.4} />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Basic Information</h2>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Core details about your property</p>
+                    </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => void handleSaveBasic()}
                     disabled={saving}
-                    className="pms-btn-primary px-4 py-2 text-sm font-semibold rounded-md shadow-xs disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all disabled:opacity-50"
                   >
                     Save Changes
                   </button>
@@ -934,9 +971,16 @@ export function Settings({
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
               <div>
-                <div className="pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <h2 className="text-base font-semibold text-ink">Property Logo & Images</h2>
-                  <p className="text-xs text-ink-secondary mt-0.5">Logo, cover image and gallery photos</p>
+                <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-500 to-violet-600 text-white shadow-xs shadow-purple-500/20">
+                      <Lucide.Image size={17} strokeWidth={2.4} />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Property Logo &amp; Images</h2>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Logo, cover image and gallery photos</p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Cover Image Banner */}
@@ -1023,15 +1067,20 @@ export function Settings({
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
               <div>
-                <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <div>
-                    <h2 className="text-base font-semibold text-ink">Contact Information</h2>
-                    <p className="text-xs text-ink-secondary mt-0.5">Public contact details for guests</p>
+                <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-500 to-cyan-600 text-white shadow-xs shadow-blue-500/20">
+                      <Lucide.Phone size={17} strokeWidth={2.4} />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Contact Information</h2>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Public contact details for guests</p>
+                    </div>
                   </div>
                   <button
                     type="button"
                     onClick={handleSaveContact}
-                    className="pms-btn-primary px-3.5 py-1.5 text-sm font-semibold rounded-md shadow-xs"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
                   >
                     Save Changes
                   </button>
@@ -1103,16 +1152,21 @@ export function Settings({
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
               <div>
-                <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <div>
-                    <h2 className="text-base font-semibold text-ink">Operational Settings</h2>
-                    <p className="text-xs text-ink-secondary mt-0.5">Configure key operational details</p>
+                <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white shadow-xs shadow-emerald-500/20">
+                      <Lucide.Clock size={17} strokeWidth={2.4} />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Operational Settings</h2>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Configure key operational details</p>
+                    </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => void handleSaveOperations()}
                     disabled={saving}
-                    className="pms-btn-primary px-3.5 py-1.5 text-sm font-semibold rounded-md shadow-xs disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all disabled:opacity-50"
                   >
                     Save Changes
                   </button>

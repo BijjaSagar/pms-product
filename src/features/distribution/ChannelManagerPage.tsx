@@ -301,11 +301,24 @@ export function ChannelManager() {
 
   return (
     <div className="flex w-full flex-col gap-5 pb-8">
-      <header className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-        <div className="min-w-0">
-          <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-ink-muted"><span>Distribution</span><Lucide.ChevronRight size={12} /><span>Channels</span></div>
-          <h1 className="flex items-center gap-2.5 text-ink"><span className="flex h-9 w-9 items-center justify-center rounded-control bg-primary/10 text-primary"><Lucide.Globe size={18} /></span>Channel manager</h1>
-          <p className="mt-1.5 max-w-2xl text-sm text-ink-secondary">Monitor OTA connections, inventory distribution and booking performance.</p>
+      <header className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20 mt-0.5">
+            <Lucide.Globe size={20} strokeWidth={2.4} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">Channel Manager</h1>
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                </span>
+                Live Feed
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">Monitor OTA connections, inventory distribution and booking performance.</p>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" aria-pressed={settings.autoSync} onClick={() => handleSettingsChange('autoSync', !settings.autoSync)} className={`inline-flex min-h-[38px] items-center gap-2 rounded-full border px-3 text-xs font-semibold transition-colors ${settings.autoSync ? 'bg-success-bg text-success-text' : 'bg-muted-surface text-ink-secondary'}`} style={{ borderColor: settings.autoSync ? 'var(--color-success-border)' : 'var(--color-border)' }}>

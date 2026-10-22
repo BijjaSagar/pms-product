@@ -50,13 +50,13 @@
   --color-slate-50: var(--color-page);
   --color-slate-100: var(--color-muted-surface);
   --color-slate-200: var(--color-border);
-  --color-slate-300: color-mix(in srgb, var(--color-border) 72%, var(--color-ink-muted));
-  --color-slate-400: var(--color-ink-muted);
-  --color-slate-500: var(--color-ink-secondary);
-  --color-slate-600: var(--color-ink-secondary);
-  --color-slate-700: var(--color-ink-secondary);
-  --color-slate-800: var(--color-ink);
-  --color-slate-900: var(--color-ink);
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
 
   --radius-control: var(--radius-control);
   --radius-card: var(--radius-card);
