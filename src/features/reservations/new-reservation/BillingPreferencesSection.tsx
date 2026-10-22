@@ -14,9 +14,9 @@ export function BillingPreferencesSection({ preferences, totalsByRoute, onChange
   const needsCompany = preferences.billToCompany || preferences.roomBillTo === 'To Company' || preferences.extrasBillTo === 'To Company';
   return (
     <section className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
-      <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><Lucide.Sliders size={16} /></div>
-        <div><h2 className="text-sm font-bold text-slate-900">Billing Routing & Corporate Invoicing</h2><p className="text-[11px] text-slate-500">Choose who pays for room charges and outlet add-ons.</p></div>
+      <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20"><Lucide.Sliders size={17} /></div>
+        <div><h2 className="text-sm font-bold text-slate-900 tracking-tight">Billing Routing & Corporate Invoicing</h2><p className="text-[11px] text-slate-400 mt-0.5">Choose who pays for room charges and outlet add-ons.</p></div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

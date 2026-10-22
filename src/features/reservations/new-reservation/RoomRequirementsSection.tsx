@@ -52,10 +52,10 @@ export function RoomRequirementsSection({
     <section className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] flex flex-col gap-4">
       <div className="flex flex-col gap-3 border-b border-slate-100 pb-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[var(--color-primary)] text-white font-bold text-xs shadow-xs">2</span>
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold text-xs shadow-xs shadow-indigo-500/20">2</span>
           <div>
-            <h2 className="text-sm font-bold text-slate-900">Room Requirements & Allocation</h2>
-            <p className="text-[11px] text-slate-400">Add different room types and assign each room to its guests.</p>
+            <h2 className="text-sm font-bold text-slate-900 tracking-tight">Room Requirements & Allocation</h2>
+            <p className="text-[11px] text-slate-400 mt-0.5">Add different room types and assign each room to its guests.</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">

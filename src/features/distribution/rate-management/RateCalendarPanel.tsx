@@ -87,17 +87,25 @@ export function RateCalendarPanel({
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="rate-calendar-title">
       <div className="flex flex-col gap-4 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 id="rate-calendar-title" className="text-base font-bold tracking-tight text-ink">Rate calendar</h2>
-            <span className="rounded-full border px-2.5 py-1 text-[11px] font-semibold text-success-text" style={{ background: 'var(--color-success-bg)', borderColor: 'var(--color-success-border)' }}>
-              <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
-              Synced to {plan.channels.length} channels
-            </span>
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+            <Lucide.Calendar size={18} strokeWidth={2.4} />
           </div>
-          <p className="mt-1 text-xs text-ink-secondary">
-            {roomType} · {plan.name}{adjustment ? ` · ${adjustment > 0 ? '+' : ''}${adjustment}% plan adjustment` : ' · base pricing'}
-          </p>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 id="rate-calendar-title" className="text-sm font-bold tracking-tight text-slate-900">Rate Calendar</h2>
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                </span>
+                Synced to {plan.channels.length} channels
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              {roomType} · {plan.name}{adjustment ? ` · ${adjustment > 0 ? '+' : ''}${adjustment}% plan adjustment` : ' · base pricing'}
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center justify-between gap-2 sm:justify-end">

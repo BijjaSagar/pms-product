@@ -13,9 +13,14 @@ export function ChannelMappingPanel({ channels, connectedChannelIds, plans, onTo
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="channel-mapping-title">
       <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
-        <div>
-          <h2 id="channel-mapping-title" className="text-base font-bold text-ink">Channel mapping</h2>
-          <p className="mt-1 text-xs text-ink-secondary">Control distribution and review which rate plans are available on each channel.</p>
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+            <Lucide.Globe size={18} strokeWidth={2.4} />
+          </div>
+          <div>
+            <h2 id="channel-mapping-title" className="text-sm font-bold text-slate-900 tracking-tight">Channel Mapping</h2>
+            <p className="text-[11px] text-slate-400 mt-0.5">Control distribution and review which rate plans are available on each channel</p>
+          </div>
         </div>
         <span className="inline-flex items-center gap-2 rounded-full bg-success-bg px-3 py-1.5 text-[11px] font-semibold text-success-text">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />{connectedChannelIds.length} of {channels.length} channels connected

@@ -16,7 +16,15 @@ export function MappingPanel({ mappings, channels, onChange, onAdd, onSave }: Pr
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="mapping-title">
       <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
-        <div><h2 id="mapping-title" className="text-base font-bold text-ink">Room & rate mapping</h2><p className="mt-1 text-xs text-ink-secondary">Match internal inventory and rate plans to each channel’s product codes.</p></div>
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+            <Lucide.GitMerge size={18} strokeWidth={2.4} />
+          </div>
+          <div>
+            <h2 id="mapping-title" className="text-sm font-bold text-slate-900 tracking-tight">Room & Rate Mapping</h2>
+            <p className="text-[11px] text-slate-400 mt-0.5">Match internal inventory and rate plans to each channel’s product codes</p>
+          </div>
+        </div>
         <div className="flex gap-2"><button type="button" onClick={onAdd} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-xs"><Lucide.Plus size={14} /> Add mapping</button><button type="button" onClick={onSave} className="pms-btn-primary min-h-[38px] px-3 py-1.5 text-xs"><Lucide.Upload size={14} /> Save mappings</button></div>
       </div>
       <div className="pms-table-scroll overflow-x-auto">

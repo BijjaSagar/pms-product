@@ -30,9 +30,14 @@ export function RestrictionsPanel({ dates, minStays, maxStays, closedToArrival, 
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="restrictions-title">
       <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
-        <div>
-          <h2 id="restrictions-title" className="text-base font-bold text-ink">Restrictions & availability</h2>
-          <p className="mt-1 text-xs text-ink-secondary">Review arrival, departure, stop-sell and stay-length rules in the selected date window.</p>
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-rose-500 to-red-600 text-white shadow-xs shadow-rose-500/20">
+            <Lucide.ShieldAlert size={18} strokeWidth={2.4} />
+          </div>
+          <div>
+            <h2 id="restrictions-title" className="text-sm font-bold text-slate-900 tracking-tight">Restrictions & Availability</h2>
+            <p className="text-[11px] text-slate-400 mt-0.5">Review arrival, departure, stop-sell and stay-length rules in the selected date window</p>
+          </div>
         </div>
         <button type="button" onClick={onOpenCalendar} className="pms-btn-ghost min-h-[38px] px-3.5 py-1.5 text-xs">
           <Lucide.CalendarDays size={14} /> Edit calendar

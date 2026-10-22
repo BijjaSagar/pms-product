@@ -17,7 +17,15 @@ const RULES: Array<{ key: keyof Pick<SyncSettings, 'availability' | 'rates' | 'r
 export function RestrictionsPanel({ settings, onChange }: Props) {
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="sync-rules-title">
-      <div className="border-b px-4 py-4 sm:px-5" style={{ borderColor: 'var(--color-border)' }}><h2 id="sync-rules-title" className="text-base font-bold text-ink">Sync rules</h2><p className="mt-1 text-xs text-ink-secondary">Choose which property changes are sent to connected channels.</p></div>
+      <div className="flex items-center gap-2.5 border-b px-4 py-4 sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+          <Lucide.Sliders size={18} strokeWidth={2.4} />
+        </div>
+        <div>
+          <h2 id="sync-rules-title" className="text-sm font-bold text-slate-900 tracking-tight">Sync Rules</h2>
+          <p className="text-[11px] text-slate-400 mt-0.5">Choose which property changes are sent to connected channels</p>
+        </div>
+      </div>
       <div className="divide-y" style={{ borderColor: 'var(--color-divider)' }}>
         {RULES.map(({ key, label, detail, icon: Icon }) => (
           <div key={key} className="flex items-center justify-between gap-4 px-4 py-4 sm:px-5">

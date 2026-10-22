@@ -30,9 +30,23 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="inventory-calendar-title">
       <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5" style={{ borderColor: 'var(--color-border)' }}>
-        <div>
-          <h2 id="inventory-calendar-title" className="text-base font-bold text-ink">Availability calendar</h2>
-          <p className="mt-1 text-xs text-ink-secondary">{totalInventory} rooms · Select a cell to edit channel availability.</p>
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+            <Lucide.CalendarDays size={18} strokeWidth={2.4} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 id="inventory-calendar-title" className="text-sm font-bold text-slate-900 tracking-tight">Availability Calendar</h2>
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                </span>
+                Live Feed
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">{totalInventory} rooms · Select a cell to edit channel availability</p>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <label>

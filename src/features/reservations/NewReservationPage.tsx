@@ -668,8 +668,8 @@ export function NewReservation({
               </span>
             </div>
 
-            {/* Guest Profile Chip */}
-            <div className="p-3 rounded-xl border border-slate-100 bg-white shadow-2xs flex items-center justify-between">
+            {/* Guest Profile Chip with Confirmed Stamp Overlay */}
+            <div className="relative p-3 rounded-xl border border-slate-100 bg-white shadow-2xs flex items-center justify-between">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-white font-bold text-xs shrink-0">
                   {guestName ? guestName.charAt(0).toUpperCase() : 'G'}
@@ -684,22 +684,25 @@ export function NewReservation({
               </div>
               <a
                 href={`tel:${guestContact}`}
-                className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors shrink-0"
                 title="Call Guest"
               >
                 <Lucide.Phone size={13} />
               </a>
-            </div>
 
-            {/* Double-Ring Luxury Confirmed Seal */}
-            <div className="flex justify-center py-1">
-              <div className="relative inline-flex items-center justify-center p-2 rounded-full border-2 border-dashed border-emerald-500/70 rotate-[-6deg] bg-emerald-50/30">
-                <div className="flex flex-col h-16 w-16 items-center justify-center rounded-full border-2 border-emerald-600 bg-white text-emerald-700 shadow-sm text-center">
-                  <Lucide.ShieldCheck size={16} className="text-emerald-600" />
-                  <span className="font-black text-[9px] uppercase tracking-wider mt-0.5 leading-none">
-                    CONFIRMED
-                  </span>
-                  <span className="text-[7px] font-bold text-emerald-500 font-mono mt-0.5">FRONT DESK</span>
+              {/* Double-Ring Luxury Confirmed Front Desk Stamp Overlay - Half on name and half out */}
+              <div
+                className="pointer-events-none absolute -top-6 left-20 sm:left-24 flex items-center justify-center select-none z-20"
+                aria-hidden="true"
+              >
+                <div className="relative inline-flex items-center justify-center p-1.5 rounded-full border-2 border-dashed border-emerald-500/80 bg-emerald-50/25 rotate-[-10deg] shadow-xs">
+                  <div className="flex flex-col h-14 w-14 items-center justify-center rounded-full border-2 border-emerald-600 bg-white/95 text-emerald-700 shadow-xs text-center backdrop-blur-[1px]">
+                    <Lucide.ShieldCheck size={14} className="text-emerald-600" />
+                    <span className="font-black text-[8px] uppercase tracking-wider mt-0.5 leading-none">
+                      CONFIRMED
+                    </span>
+                    <span className="text-[6.5px] font-bold text-emerald-600/90 font-mono mt-0.5">FRONT DESK</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -833,12 +836,12 @@ export function NewReservation({
               <section className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] flex flex-col gap-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center gap-2.5">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[var(--color-primary)] text-white font-bold text-xs shadow-xs">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold text-xs shadow-xs shadow-indigo-500/20">
                       1
                     </span>
                     <div>
-                      <h2 className="text-sm font-bold text-slate-900">Booking Details & Rate Plan</h2>
-                      <p className="text-[11px] text-slate-400">Channel source, stay duration, meal plan & occupancy setup</p>
+                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Booking Details & Rate Plan</h2>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Channel source, stay duration, meal plan & occupancy setup</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -1019,12 +1022,12 @@ export function NewReservation({
               <section className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] flex flex-col gap-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center gap-2.5">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[var(--color-primary)] text-white font-bold text-xs shadow-xs">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold text-xs shadow-xs shadow-indigo-500/20">
                       3
                     </span>
                     <div>
-                      <h2 className="text-sm font-bold text-slate-900">Guest Information & Verification</h2>
-                      <p className="text-[11px] text-slate-400">Search existing CRM profiles or register fresh visitor identity</p>
+                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Guest Information & Verification</h2>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Search existing CRM profiles or register fresh visitor identity</p>
                     </div>
                   </div>
 
@@ -1234,12 +1237,12 @@ export function NewReservation({
               <section className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] flex flex-col gap-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center gap-2.5">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[var(--color-primary)] text-white font-bold text-xs shadow-xs">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold text-xs shadow-xs shadow-indigo-500/20">
                       4
                     </span>
                     <div>
-                      <h2 className="text-sm font-bold text-slate-900">Payments & Master Folio Summary</h2>
-                      <p className="text-[11px] text-slate-400">Payment receipts, advances collected & outstanding balance</p>
+                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Payments & Master Folio Summary</h2>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Payment receipts, advances collected & outstanding balance</p>
                     </div>
                   </div>
 

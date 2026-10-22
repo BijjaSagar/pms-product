@@ -23,7 +23,15 @@ export function RatesPanel({ channels, performance, channelFilter, onChannelFilt
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="channel-performance-title">
       <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
-        <div><h2 id="channel-performance-title" className="text-base font-bold text-ink">Channel performance</h2><p className="mt-1 text-xs text-ink-secondary">Booking contribution and channel revenue · last 30 days</p></div>
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+            <Lucide.TrendingUp size={18} strokeWidth={2.4} />
+          </div>
+          <div>
+            <h2 id="channel-performance-title" className="text-sm font-bold text-slate-900 tracking-tight">Channel Performance</h2>
+            <p className="text-[11px] text-slate-400 mt-0.5">Booking contribution and channel revenue · last 30 days</p>
+          </div>
+        </div>
         <label className="flex items-center gap-2 text-xs font-medium text-ink-secondary"><span>Channel</span><select value={channelFilter} onChange={(event) => onChannelFilterChange(event.target.value)} className="pms-input min-h-[36px] text-xs"><option value="all">All channels</option>{channels.map((channel) => <option key={channel.id} value={channel.id}>{channel.name}</option>)}</select></label>
       </div>
 

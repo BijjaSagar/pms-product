@@ -24,8 +24,8 @@ export function OutletPOSSection({ requirements, addons, catalog, noPost, defaul
     <section className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
       <div className="flex flex-col gap-3 border-b border-slate-100 pb-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600"><Lucide.Receipt size={16} /></div>
-          <div><h2 className="text-sm font-bold text-slate-900">Outlet & Point of Sale Charges</h2><p className="text-[11px] text-slate-500">Pre-assign restaurant, bar, spa, laundry or transport charges to this booking.</p></div>
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white shadow-xs shadow-amber-500/20"><Lucide.Receipt size={17} /></div>
+          <div><h2 className="text-sm font-bold text-slate-900 tracking-tight">Outlet & Point of Sale Charges</h2><p className="text-[11px] text-slate-400 mt-0.5">Pre-assign restaurant, bar, spa, laundry or transport charges to this booking.</p></div>
         </div>
         <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-600">{addons.length} item(s) · ₹{addonTotal.toLocaleString('en-IN')}</span>
       </div>
