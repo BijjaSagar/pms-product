@@ -586,9 +586,57 @@ function ReservationDrawer({
 }
 
 // ================= ROOM CALENDAR TAPE CHART COMPONENT =================
-const COL_WIDTH = 110; // width of each day column in pixels
-const ROW_HEIGHT = 58; // height of each room row in pixels
-const ROOM_COL_WIDTH = 240; // width of sticky room allotment column in pixels
+const COL_WIDTH = 92; // keep in sync with the rendered date cells and drag calculations
+const ROW_HEIGHT = 64; // keep in sync with the rendered room rows and drag calculations
+const ROOM_COL_WIDTH = 236; // width of the sticky room allotment column in pixels
+
+const RESERVATION_BAR_TONES: Record<
+  CalendarReservationStatus,
+  { background: string; color: string; border: string; accent: string }
+> = {
+  Confirmed: {
+    background: 'var(--color-success-bg)',
+    color: 'var(--color-success-text)',
+    border: 'var(--color-success-border)',
+    accent: 'var(--color-success-text)',
+  },
+  'Checked-in': {
+    background: 'var(--color-info-bg)',
+    color: 'var(--color-info-text)',
+    border: 'var(--color-info-border)',
+    accent: 'var(--color-info-text)',
+  },
+  Pending: {
+    background: 'var(--color-warning-bg)',
+    color: 'var(--color-warning-text)',
+    border: 'var(--color-warning-border)',
+    accent: 'var(--color-warning-text)',
+  },
+  Tentative: {
+    background: 'var(--color-warning-bg)',
+    color: 'var(--color-warning-text)',
+    border: 'var(--color-warning-border)',
+    accent: 'var(--color-warning-text)',
+  },
+  'Checked-out': {
+    background: 'var(--color-neutral-bg)',
+    color: 'var(--color-neutral-text)',
+    border: 'var(--color-neutral-border)',
+    accent: 'var(--color-neutral-text)',
+  },
+  Cancelled: {
+    background: 'var(--color-danger-bg)',
+    color: 'var(--color-danger-text)',
+    border: 'var(--color-danger-border)',
+    accent: 'var(--color-danger-text)',
+  },
+  'No-show': {
+    background: 'var(--color-danger-bg)',
+    color: 'var(--color-danger-text)',
+    border: 'var(--color-danger-border)',
+    accent: 'var(--color-danger-text)',
+  },
+};
 
 export function RoomCalendar({
   go: _go,
@@ -953,19 +1001,20 @@ export function RoomCalendar({
     <div className="w-full flex flex-col gap-4 text-slate-900 font-sans select-none">
       
       {/* ================= 1. ROOM CALENDAR TOOLBAR ================= */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] flex flex-col gap-4">
+      <section className="pms-card flex flex-col gap-4 p-3.5 sm:p-4" aria-label="Room calendar controls">
         
         {/* Top Row: Date Step & View Horizon & Master Actions */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
           
           {/* Left: Date Stepper & Today */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 p-1 shadow-2xs">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <div className="flex items-center rounded-xl border border-slate-200 bg-slate-50 p-1 shadow-2xs">
               <button
                 type="button"
                 onClick={() => stepDate(-7)}
                 title="Previous Week (-7 days)"
-                className="p-1.5 rounded-xl hover:bg-white text-slate-600 transition-colors cursor-pointer"
+                aria-label="Previous week"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-white cursor-pointer"
               >
                 <Lucide.ChevronsLeft size={16} />
               </button>
@@ -973,30 +1022,32 @@ export function RoomCalendar({
                 type="button"
                 onClick={() => stepDate(-1)}
                 title="Previous Day (-1 day)"
-                className="p-1.5 rounded-xl hover:bg-white text-slate-600 transition-colors cursor-pointer"
+                aria-label="Previous day"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-white cursor-pointer"
               >
                 <Lucide.ChevronLeft size={16} />
               </button>
 
-              <div className="flex items-center gap-1.5 px-3 py-1 bg-white rounded-xl border border-slate-200/60 shadow-2xs">
+              <label className="relative flex min-h-9 cursor-pointer items-center gap-2 rounded-lg border border-slate-200/80 bg-white px-3 text-xs font-semibold text-slate-800 shadow-2xs focus-within:ring-2 focus-within:ring-[var(--color-primary)]/25">
                 <Lucide.Calendar size={14} className="text-[var(--color-primary)]" />
-                <span className="text-xs font-black text-slate-800">
+                <span>
                   {formatCalendarDate(baseDate).month} {formatCalendarDate(baseDate).dayNum}, {formatCalendarDate(baseDate).year}
                 </span>
                 <input
                   type="date"
                   value={baseDate}
                   onChange={(e) => e.target.value && setBaseDate(e.target.value)}
-                  className="opacity-0 absolute w-6 cursor-pointer"
-                  title="Pick Base Date"
+                  aria-label="Choose calendar date"
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                 />
-              </div>
+              </label>
 
               <button
                 type="button"
                 onClick={() => stepDate(1)}
                 title="Next Day (+1 day)"
-                className="p-1.5 rounded-xl hover:bg-white text-slate-600 transition-colors cursor-pointer"
+                aria-label="Next day"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-white cursor-pointer"
               >
                 <Lucide.ChevronRight size={16} />
               </button>
@@ -1004,7 +1055,8 @@ export function RoomCalendar({
                 type="button"
                 onClick={() => stepDate(7)}
                 title="Next Week (+7 days)"
-                className="p-1.5 rounded-xl hover:bg-white text-slate-600 transition-colors cursor-pointer"
+                aria-label="Next week"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-white cursor-pointer"
               >
                 <Lucide.ChevronsRight size={16} />
               </button>
@@ -1013,19 +1065,20 @@ export function RoomCalendar({
             <button
               type="button"
               onClick={jumpToToday}
-              className="px-3.5 py-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition-colors cursor-pointer"
+              className="min-h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-2xs transition-colors hover:bg-slate-50 cursor-pointer"
             >
               Today
             </button>
 
             {/* Horizon Switcher (7 / 14 / 30 Days) */}
-            <div className="flex items-center p-1 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold shadow-2xs">
+            <div className="flex items-center rounded-xl border border-slate-200 bg-slate-50 p-1 text-xs font-semibold shadow-2xs" role="group" aria-label="Calendar range">
               {([7, 14, 30] as const).map((days) => (
                 <button
                   key={days}
                   type="button"
                   onClick={() => setViewHorizonDays(days)}
-                  className={`px-3 py-1 rounded-xl transition-all cursor-pointer ${
+                  aria-pressed={viewHorizonDays === days}
+                  className={`min-h-8 rounded-lg px-3 transition-all cursor-pointer ${
                     viewHorizonDays === days
                       ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/60'
                       : 'text-slate-500 hover:text-slate-800'
@@ -1040,17 +1093,18 @@ export function RoomCalendar({
         </div>
 
         {/* Bottom Row: Search Box & Filter Dropdowns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-1 border-t border-slate-100">
+        <div className="grid grid-cols-1 gap-2 border-t border-slate-100 pt-3 sm:grid-cols-2 xl:grid-cols-5">
           
           {/* Search */}
-          <div className="relative sm:col-span-2 lg:col-span-1">
+          <div className="relative sm:col-span-2 xl:col-span-1">
             <Lucide.Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search guest, ID, room..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/60 pl-8 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[var(--color-primary)] transition-all font-medium"
+              aria-label="Search reservations by guest, ID, or room"
+              className="min-h-10 w-full border border-slate-200 bg-slate-50/60 py-2 pl-9 pr-3 text-xs font-medium text-slate-900 transition-all focus:border-[var(--color-primary)] focus:bg-white focus:outline-none"
             />
           </div>
 
@@ -1059,7 +1113,8 @@ export function RoomCalendar({
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as RoomType | 'All')}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-1.5 text-xs text-slate-700 font-bold focus:outline-none focus:bg-white cursor-pointer"
+              aria-label="Filter by room type"
+              className="min-h-10 w-full border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none cursor-pointer"
             >
               <option value="All">All Room Types</option>
               <option value="Standard">Standard</option>
@@ -1076,7 +1131,8 @@ export function RoomCalendar({
             <select
               value={filterFloor}
               onChange={(e) => setFilterFloor(e.target.value === 'All' ? 'All' : Number(e.target.value))}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-1.5 text-xs text-slate-700 font-bold focus:outline-none focus:bg-white cursor-pointer"
+              aria-label="Filter by floor"
+              className="min-h-10 w-full border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none cursor-pointer"
             >
               <option value="All">All Floors (15 Rooms)</option>
               <option value="1">Floor 1 (Rooms 101–105)</option>
@@ -1090,13 +1146,17 @@ export function RoomCalendar({
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as CalendarReservationStatus | 'All')}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-1.5 text-xs text-slate-700 font-bold focus:outline-none focus:bg-white cursor-pointer"
+              aria-label="Filter by reservation status"
+              className="min-h-10 w-full border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none cursor-pointer"
             >
               <option value="All">All Statuses</option>
               <option value="Confirmed">Confirmed</option>
-              <option value="Checked-in">Checked-in</option>
+              <option value="Pending">Pending</option>
               <option value="Tentative">Tentative</option>
+              <option value="Checked-in">Checked-in</option>
               <option value="Checked-out">Checked-out</option>
+              <option value="Cancelled">Cancelled</option>
+              <option value="No-show">No-show</option>
             </select>
           </div>
 
@@ -1105,7 +1165,8 @@ export function RoomCalendar({
             <select
               value={filterSource}
               onChange={(e) => setFilterSource(e.target.value as BookingSource | 'All')}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-1.5 text-xs text-slate-700 font-bold focus:outline-none focus:bg-white cursor-pointer"
+              aria-label="Filter by booking source"
+              className="min-h-10 w-full border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none cursor-pointer"
             >
               <option value="All">All Sources</option>
               <option value="Direct">Direct Desk</option>
@@ -1119,97 +1180,100 @@ export function RoomCalendar({
 
         </div>
 
-      </div>
+      </section>
 
-      {/* ================= 2. LIVE METRICS & STATUS LEGEND ================= */}
-      <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-xs">
-        
-        {/* KPI Chips */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-slate-200 shadow-2xs">
-            <span className="text-slate-400 font-medium">Rooms:</span>
-            <span className="font-extrabold text-slate-900">{stats.totalRoomsCount}</span>
+      {/* ================= 2. OCCUPANCY SUMMARY & STATUS LEGEND ================= */}
+      <section
+        className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between sm:px-4"
+        aria-label="Room availability and reservation status legend"
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="mr-1 min-w-[120px]">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Inventory on</p>
+            <p className="text-xs font-semibold text-slate-800">
+              {formatCalendarDate(baseDate).month} {formatCalendarDate(baseDate).dayNum}
+            </p>
           </div>
-
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 shadow-2xs font-semibold">
-            <span>Available Today:</span>
-            <span className="font-extrabold font-mono">{stats.availableToday}</span>
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
+            <span className="text-slate-500">Rooms</span>
+            <span className="font-bold tabular-nums text-slate-900">{stats.totalRoomsCount}</span>
           </div>
-
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-800 shadow-2xs font-semibold">
-            <span>Occupied Today:</span>
-            <span className="font-extrabold font-mono">{stats.occupiedToday} ({stats.occupancyRate}%)</span>
+          <div className="flex items-center gap-2 rounded-xl border border-[var(--color-success-border)] bg-[var(--color-success-bg)] px-3 py-2 text-xs text-[var(--color-success-text)]">
+            <span>Available</span>
+            <span className="font-bold tabular-nums">{stats.availableToday}</span>
           </div>
-
+          <div className="flex items-center gap-2 rounded-xl border border-[var(--color-info-border)] bg-[var(--color-info-bg)] px-3 py-2 text-xs text-[var(--color-info-text)]">
+            <span>Occupied</span>
+            <span className="font-bold tabular-nums">{stats.occupiedToday} · {stats.occupancyRate}%</span>
+          </div>
           {stats.oooCount > 0 && (
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 shadow-2xs font-semibold">
-              <span>Out-of-Order:</span>
-              <span className="font-extrabold font-mono">{stats.oooCount} (Rm 205)</span>
+            <div className="flex items-center gap-2 rounded-xl border border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] px-3 py-2 text-xs text-[var(--color-danger-text)]">
+              <span>Out of order</span>
+              <span className="font-bold tabular-nums">{stats.oooCount}</span>
             </div>
           )}
         </div>
 
-        {/* Legend */}
-        <div className="flex items-center gap-3 text-[11px] font-bold text-slate-600 flex-wrap">
-          <div className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-md bg-emerald-500 shadow-2xs" />
-            <span>Confirmed</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-md bg-indigo-600 shadow-2xs" />
-            <span>Checked-in</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-md bg-amber-500 shadow-2xs" />
-            <span>Tentative</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-md bg-slate-500 shadow-2xs" />
-            <span>Checked-out</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-md bg-rose-400 line-through text-slate-400" />
-            <span>Cancelled</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-md bg-slate-200 border border-slate-300" />
-            <span>Out-of-Order</span>
-          </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[10px] font-semibold text-slate-600" role="list" aria-label="Reservation status legend">
+          {([
+            'Confirmed',
+            'Checked-in',
+            'Pending',
+            'Tentative',
+            'Checked-out',
+            'Cancelled',
+            'No-show',
+          ] as CalendarReservationStatus[]).map((status) => {
+            const tone = RESERVATION_BAR_TONES[status];
+            return (
+              <span key={status} role="listitem" className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                <span className="flex h-3 w-3 items-center justify-center rounded border" style={{ background: tone.background, borderColor: tone.border }}>
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ background: tone.accent }} />
+                </span>
+                {status}
+              </span>
+            );
+          })}
+          <span role="listitem" className="inline-flex items-center gap-1.5 whitespace-nowrap">
+            <span className="h-3 w-3 rounded border border-slate-300 bg-slate-200" />
+            Out of order
+          </span>
         </div>
-
-      </div>
+      </section>
 
       {/* ================= 3. MASTER INTERACTIVE ROOM RACK GRID ================= */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-[0_4px_25px_-5px_rgba(15,23,42,0.06)] overflow-hidden">
+      <section className="pms-card overflow-hidden" aria-label="Room reservation timeline">
         
         {/* Instruction Banner */}
-        <div className="bg-slate-50/80 px-4 py-2 border-b border-slate-200/80 flex items-center justify-between text-xs text-slate-500">
-          <div className="flex items-center gap-2">
-            <Lucide.Hand size={14} className="text-[var(--color-primary)]" />
-            <span>
-              <strong>Tip:</strong> Drag a reservation bar to move room/dates. Drag left/right bar handles to extend or shorten stay. Click to view full folio.
+        <div className="flex flex-col gap-2 border-b border-slate-200/80 bg-slate-50/70 px-3 py-2.5 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-[var(--color-muted-surface)] text-[var(--color-primary)]">
+              <Lucide.Move size={14} />
+            </span>
+            <span className="leading-5">
+              Drag a stay to change its room or dates. Use the bar handles to adjust length; select a stay for details.
             </span>
           </div>
-          <span className="text-[11px] font-bold text-slate-400">
-            {filteredRooms.length} Rooms Visible
+          <span className="flex-none text-[11px] font-semibold text-slate-500">
+            {filteredRooms.length} {filteredRooms.length === 1 ? 'room' : 'rooms'}
           </span>
         </div>
 
         {/* Scrollable Container */}
-        <div className="overflow-x-auto relative" ref={gridContainerRef}>
+        <div className="relative max-h-[72vh] overflow-auto" ref={gridContainerRef}>
           <div
             className="flex flex-col min-w-max relative"
             style={{ width: `${ROOM_COL_WIDTH + calendarDates.length * COL_WIDTH}px` }}
           >
             {/* Header Row: Room Label Column + Date Columns */}
-            <div className="flex border-b border-slate-200 bg-slate-100/90 sticky top-0 z-20">
+            <div className="sticky top-0 z-20 flex border-b border-slate-200 bg-white">
               {/* Sticky Top-Left Corner */}
               <div
                 style={{ width: `${ROOM_COL_WIDTH}px` }}
-                className="shrink-0 p-3 border-r border-slate-200 bg-slate-100 sticky left-0 z-30 font-extrabold text-xs text-slate-700 flex items-center justify-between shadow-[2px_0_5px_rgba(0,0,0,0.03)]"
+                className="sticky left-0 z-30 flex shrink-0 items-center justify-between border-r border-slate-200 bg-slate-50 px-3 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500 shadow-[2px_0_5px_rgba(0,0,0,0.03)]"
               >
-                <span>ROOM ALLOTMENT</span>
-                <span className="text-[10px] text-slate-400 font-semibold uppercase">TYPE / FLR</span>
+                <span>Room</span>
+                <span>Type · floor</span>
               </div>
 
               {/* Date Columns Header */}
@@ -1220,18 +1284,21 @@ export function RoomCalendar({
                   return (
                     <div
                       key={dateStr}
-                      style={{ width: `${COL_WIDTH}px` }}
-                      className={`p-2 border-r border-slate-200/70 text-center flex flex-col items-center justify-center transition-colors shrink-0 ${
-                        isToday
-                          ? 'bg-indigo-50/80 border-b-2 border-b-[var(--color-primary)] font-black'
+                      style={{
+                        width: `${COL_WIDTH}px`,
+                        background: isToday
+                          ? 'color-mix(in srgb, var(--color-primary) 9%, var(--color-surface))'
                           : dateInfo.isWeekend
-                          ? 'bg-slate-50/60'
-                          : 'bg-white'
-                      }`}
+                          ? 'color-mix(in srgb, var(--color-muted-surface) 60%, var(--color-surface))'
+                          : 'var(--color-surface)',
+                        borderColor: 'var(--color-border)',
+                        borderBottom: isToday ? '2px solid var(--color-primary)' : undefined,
+                      }}
+                      className="flex shrink-0 flex-col items-center justify-center border-r px-1 py-2 text-center transition-colors"
                     >
                       <span
                         className={`text-[10px] font-bold uppercase tracking-wider ${
-                          isToday ? 'text-[var(--color-primary)] font-black' : 'text-slate-400'
+                          isToday ? 'font-bold text-[var(--color-primary)]' : 'text-slate-500'
                         }`}
                       >
                         {dateInfo.weekday}
@@ -1239,13 +1306,13 @@ export function RoomCalendar({
                       <span
                         className={`text-sm leading-none mt-0.5 ${
                           isToday
-                            ? 'h-6 w-6 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center font-black shadow-xs'
-                            : 'font-extrabold text-slate-800'
+                            ? 'flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary)] font-bold text-white shadow-xs'
+                            : 'font-bold text-slate-800'
                         }`}
                       >
                         {dateInfo.dayNum}
                       </span>
-                      <span className="text-[9px] font-medium text-slate-400 mt-0.5">
+                      <span className="mt-0.5 text-[9px] font-medium text-slate-500">
                         {dateInfo.month}
                       </span>
                     </div>
@@ -1255,7 +1322,19 @@ export function RoomCalendar({
             </div>
 
             {/* Room Rows (15 Rooms total across 3 floors) */}
-            {filteredRooms.map((room) => {
+            {filteredRooms.length === 0 ? (
+              <div
+                className="flex min-h-52 flex-col items-center justify-center gap-2 px-6 text-center"
+                style={{ width: `${ROOM_COL_WIDTH + calendarDates.length * COL_WIDTH}px` }}
+                role="status"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-muted-surface)] text-[var(--color-ink-secondary)]">
+                  <Lucide.SearchX size={18} />
+                </span>
+                <span className="text-sm font-semibold text-slate-800">No rooms match these filters</span>
+                <span className="text-xs text-slate-500">Try a different room type, floor, or search.</span>
+              </div>
+            ) : filteredRooms.map((room) => {
               const isOOO = room.status === 'Out-of-Order';
               const isTargetRow = dragState?.isDragging && dragState?.proposedRoomId === room.id;
               const typeCfg = ROOM_TYPE_CONFIG[room.type] || ROOM_TYPE_CONFIG.Standard;
@@ -1274,24 +1353,25 @@ export function RoomCalendar({
                   className={`flex border-b border-slate-200/80 relative transition-colors ${
                     isTargetRow
                       ? dragState?.isValid
-                        ? 'bg-indigo-50/40 ring-1 ring-inset ring-[var(--color-primary)]/40'
-                        : 'bg-rose-50/40 ring-1 ring-inset ring-rose-300'
+                        ? 'bg-[var(--color-muted-surface)] ring-1 ring-inset ring-[var(--color-primary)]/40'
+                        : 'bg-[var(--color-danger-bg)] ring-1 ring-inset ring-[var(--color-danger-border)]'
                       : isOOO
-                      ? 'bg-slate-50/40'
-                      : 'hover:bg-slate-50/30'
+                      ? 'bg-slate-50/50'
+                      : 'hover:bg-slate-50/60'
                   }`}
-                  style={{ height: `${ROW_HEIGHT}px` }}
+                  style={{ height: `${ROW_HEIGHT}px`, borderColor: 'var(--color-border)' }}
                 >
                   {/* Sticky Left Room Card (Z-20, solid background, never overlapped) */}
                   <div
-                    style={{ width: `${ROOM_COL_WIDTH}px` }}
-                    className={`shrink-0 p-2.5 px-3 border-r border-slate-200 sticky left-0 z-20 flex items-center justify-between shadow-[2px_0_5px_rgba(0,0,0,0.04)] select-none ${
-                      isTargetRow
-                        ? 'bg-indigo-50'
+                    className="sticky left-0 z-10 flex shrink-0 select-none items-center justify-between border-r border-slate-200 px-3 py-2 shadow-[2px_0_5px_rgba(0,0,0,0.04)]"
+                    style={{
+                      width: `${ROOM_COL_WIDTH}px`,
+                      background: isTargetRow
+                        ? 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))'
                         : isOOO
-                        ? 'bg-slate-100'
-                        : 'bg-white'
-                    }`}
+                        ? 'var(--color-muted-surface)'
+                        : 'var(--color-surface)',
+                    }}
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="flex flex-col">
@@ -1300,12 +1380,12 @@ export function RoomCalendar({
                             Rm {room.number}
                           </span>
                           <span
-                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${typeCfg.badgeBg}`}
+                            className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold ${typeCfg.badgeBg}`}
                           >
                             {room.type}
                           </span>
                         </div>
-                        <span className="text-[10px] text-slate-400 font-medium mt-0.5">
+                        <span className="mt-0.5 text-[10px] font-medium text-slate-500">
                           Flr {room.floor} · ₹{room.baseRate.toLocaleString('en-IN')}/nt · Max {room.maxOccupancy}
                         </span>
                       </div>
@@ -1338,17 +1418,22 @@ export function RoomCalendar({
                     {/* Day background cells */}
                     {calendarDates.map((dateStr) => {
                       const isToday = dateStr === baseDate;
+                      const dateInfo = formatCalendarDate(dateStr);
                       return (
                         <div
                           key={dateStr}
-                          style={{ width: `${COL_WIDTH}px` }}
-                          className={`h-full border-r border-slate-100 flex items-center justify-center relative shrink-0 ${
-                            isOOO
-                              ? 'bg-[repeating-linear-gradient(45deg,#f8fafc,#f8fafc_8px,#f1f5f9_8px,#f1f5f9_16px)]'
+                          style={{
+                            width: `${COL_WIDTH}px`,
+                            borderColor: 'var(--color-border)',
+                            background: isOOO
+                              ? 'repeating-linear-gradient(45deg, var(--color-muted-surface), var(--color-muted-surface) 8px, var(--color-surface) 8px, var(--color-surface) 16px)'
                               : isToday
-                              ? 'bg-indigo-50/20'
-                              : ''
-                          }`}
+                              ? 'color-mix(in srgb, var(--color-primary) 5%, var(--color-surface))'
+                              : dateInfo.isWeekend
+                              ? 'color-mix(in srgb, var(--color-muted-surface) 45%, var(--color-surface))'
+                              : 'var(--color-surface)',
+                          }}
+                          className="relative flex h-full shrink-0 items-center justify-center border-r"
                         />
                       );
                     })}
@@ -1379,33 +1464,40 @@ export function RoomCalendar({
                       const isBeingDragged =
                         dragState?.isDragging && dragState?.reservationId === res.id;
 
-                      let barGradient = 'from-emerald-500 to-teal-600 text-white shadow-emerald-500/20';
-                      if (res.status === 'Checked-in') {
-                        barGradient = 'from-indigo-600 to-blue-600 text-white shadow-indigo-500/20';
-                      } else if (res.status === 'Tentative' || res.status === 'Pending') {
-                        barGradient = 'from-amber-500 to-orange-500 text-white shadow-amber-500/20';
-                      } else if (res.status === 'Checked-out') {
-                        barGradient = 'from-slate-600 to-slate-700 text-slate-100';
-                      } else if (res.status === 'Cancelled' || res.status === 'No-show') {
-                        barGradient = 'from-rose-500/80 to-rose-600/80 text-white line-through opacity-60';
-                      }
+                      const barTone = RESERVATION_BAR_TONES[res.status];
+                      const isInactive = res.status === 'Cancelled' || res.status === 'No-show';
 
                       return (
                         <div
                           key={res.id}
                           onPointerDown={(e) => handlePointerDown(e, res, 'move')}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              setActiveReservation(res);
+                            }
+                          }}
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`${res.guestName}, ${res.status}, Room ${room.number}, ${res.checkInDate} to ${res.checkOutDate}. Select for details.`}
                           style={{
                             left: `${barLeft}px`,
                             width: `${barWidth}px`,
                             top: '8px',
                             bottom: '8px',
+                            background: barTone.background,
+                            color: barTone.color,
+                            borderColor: barTone.border,
+                            borderLeft: `3px solid ${barTone.accent}`,
                           }}
                           className={`absolute ${
                             startedBefore ? 'rounded-l-none' : 'rounded-l-xl'
                           } ${
                             endsAfter ? 'rounded-r-none' : 'rounded-r-xl'
-                          } px-2 py-0.5 flex items-center justify-between text-xs font-semibold shadow-xs transition-all cursor-grab active:cursor-grabbing select-none z-10 group overflow-hidden bg-gradient-to-r ${barGradient} ${
-                            isBeingDragged ? 'opacity-30' : 'hover:brightness-105 hover:shadow-md'
+                          } z-10 group flex select-none items-center justify-between overflow-hidden border px-2 py-0.5 text-xs font-semibold shadow-xs transition-all cursor-grab active:cursor-grabbing focus-visible:z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-1 ${
+                            isBeingDragged ? 'opacity-30' : 'hover:brightness-[0.98] hover:shadow-sm'
+                          } ${isInactive ? 'opacity-75' : ''} ${
+                            res.status === 'Cancelled' ? 'cursor-not-allowed' : ''
                           }`}
                           title={`${res.guestName} (${res.id}) · ${res.checkInDate} to ${res.checkOutDate} (${res.nights}n) · ₹${res.totalAmount.toLocaleString('en-IN')}`}
                         >
@@ -1413,25 +1505,31 @@ export function RoomCalendar({
                           {!startedBefore && res.status !== 'Cancelled' && (
                             <div
                               onPointerDown={(e) => handlePointerDown(e, res, 'resize-start')}
-                              className="absolute left-0 top-0 bottom-0 w-2.5 bg-black/15 hover:bg-black/35 cursor-ew-resize flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="absolute bottom-0 left-0 top-0 z-10 flex w-3 cursor-ew-resize items-center justify-center bg-black/10 opacity-40 transition-opacity group-hover:opacity-100"
                               title="Drag to adjust arrival date"
                             >
-                              <span className="h-3 w-[1px] bg-white/80" />
+                              <span className="h-4 w-0.5 rounded-full bg-current/50" />
                             </div>
                           )}
 
                           {/* Bar Content */}
-                          <div className="flex items-center gap-1 min-w-0 pr-1 pl-1 truncate">
+                          <div className="flex min-w-0 items-center gap-1 truncate pl-1 pr-1">
                             {startedBefore && (
                               <span className="text-[10px] opacity-75 font-mono">‹</span>
                             )}
-                            <span className="font-extrabold text-xs truncate leading-tight">
+                            <span className={`truncate text-xs font-bold leading-tight ${isInactive ? 'line-through' : ''}`}>
                               {res.guestName}
                             </span>
-                            <span className="text-[10px] font-bold px-1 py-0.2 rounded bg-white/20 text-white shrink-0">
+                            <span
+                              className="shrink-0 rounded border px-1 py-0.2 text-[10px] font-semibold"
+                              style={{
+                                background: `color-mix(in srgb, ${barTone.color} 9%, var(--color-surface))`,
+                                borderColor: barTone.border,
+                              }}
+                            >
                               {res.nights}n
                             </span>
-                            <span className="text-[10px] opacity-80 hidden md:inline truncate">
+                            <span className="hidden truncate text-[10px] opacity-80 2xl:inline">
                               ₹{res.totalAmount.toLocaleString('en-IN')}
                             </span>
                             {endsAfter && (
@@ -1440,20 +1538,21 @@ export function RoomCalendar({
                           </div>
 
                           {/* Status Icon */}
-                          <div className="shrink-0 flex items-center pl-1">
-                            {res.status === 'Checked-in' && <Lucide.Key size={11} className="opacity-90" />}
-                            {res.status === 'Confirmed' && <Lucide.Check size={11} className="opacity-90" />}
-                            {(res.status === 'Tentative' || res.status === 'Pending') && <Lucide.Clock size={11} className="opacity-90" />}
+                          <div className="flex shrink-0 items-center pl-1" aria-hidden="true">
+                            {res.status === 'Checked-in' && <Lucide.Key size={12} />}
+                            {res.status === 'Confirmed' && <Lucide.Check size={12} />}
+                            {(res.status === 'Tentative' || res.status === 'Pending') && <Lucide.Clock size={12} />}
+                            {(res.status === 'Cancelled' || res.status === 'No-show') && <Lucide.CircleX size={12} />}
                           </div>
 
                           {/* Right Resize Handle (only if check-out is within visible range) */}
                           {!endsAfter && res.status !== 'Cancelled' && (
                             <div
                               onPointerDown={(e) => handlePointerDown(e, res, 'resize-end')}
-                              className="absolute right-0 top-0 bottom-0 w-2.5 bg-black/15 hover:bg-black/35 cursor-ew-resize flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="absolute bottom-0 right-0 top-0 z-10 flex w-3 cursor-ew-resize items-center justify-center bg-black/10 opacity-40 transition-opacity group-hover:opacity-100"
                               title="Drag to adjust departure date"
                             >
-                              <span className="h-3 w-[1px] bg-white/80" />
+                              <span className="h-4 w-0.5 rounded-full bg-current/50" />
                             </div>
                           )}
                         </div>
@@ -1518,7 +1617,7 @@ export function RoomCalendar({
           </div>
         </div>
 
-      </div>
+      </section>
 
       {/* ================= 4. CONFIRMATION & DETAIL OVERLAYS ================= */}
       
@@ -1827,39 +1926,44 @@ export function Reservations({
         <RoomCalendar go={go} onReservationUpdated={() => resource.refresh()} />
       ) : (
         <>
-          {/* ================= 2. 6 KPI METRIC CARDS ================= */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+          {/* ================= 2. RESERVATION KPI CARDS ================= */}
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6" aria-label="Reservation summary">
         {summaryStats.map((stat) => (
-          <div
+          <button
             key={stat.label}
-            className="bg-white rounded-xl border border-slate-200/80 p-3 shadow-xs flex items-center gap-3 transition-all hover:shadow-md cursor-pointer"
+            type="button"
             onClick={() => {
               if (stat.label === 'Arrivals Today') go({ view: 'check-in' });
               else if (stat.label === 'Departures Today') go({ view: 'check-out' });
               else if (stat.label === 'In-house') setStatus('Checked-in');
             }}
+            className="group flex min-h-[112px] w-full items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 text-left shadow-xs transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md cursor-pointer"
           >
-            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${stat.iconBg}`}>
-              <stat.Icon size={18} strokeWidth={2} />
-            </div>
             <div className="min-w-0">
-              <p className="text-xl font-bold text-slate-900 leading-none">{stat.value}</p>
-              <p className="text-xs text-slate-500 font-normal mt-1 truncate">{stat.label}</p>
+              <p className="truncate text-xs font-semibold uppercase tracking-wide text-slate-500">{stat.label}</p>
+              <p className="mt-2 text-[26px] font-bold leading-none tracking-tight text-slate-900 tabular-nums">{stat.value}</p>
             </div>
-          </div>
+            <span className={`flex h-11 w-11 flex-none items-center justify-center rounded-xl transition-transform group-hover:scale-105 ${stat.iconBg}`}>
+              <stat.Icon size={20} strokeWidth={2} />
+            </span>
+          </button>
         ))}
-      </div>
+      </section>
 
       {/* ================= 3. DATE SELECTOR PILL (TOP RIGHT) ================= */}
-      <div className="flex justify-end -mb-2">
-        <div className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1 shadow-xs">
-          <Lucide.Calendar size={14} className="text-slate-500 ml-1.5" />
-          <span className="text-xs font-semibold text-slate-800 px-1">{formattedDate}</span>
+      <div className="flex justify-end">
+        <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-2xs">
+          <div className="flex items-center gap-2 px-2.5">
+            <Lucide.Calendar size={14} className="text-[var(--color-primary)]" />
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Selected date</span>
+            <span className="text-xs font-bold tabular-nums text-slate-800">{formattedDate}</span>
+          </div>
           <button
             type="button"
             onClick={() => stepDate(-1)}
             title="Previous day"
-            className="h-7 w-7 flex items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
+            aria-label="Previous day"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
           >
             <Lucide.ChevronLeft size={14} />
           </button>
@@ -1867,14 +1971,15 @@ export function Reservations({
             type="button"
             onClick={() => stepDate(1)}
             title="Next day"
-            className="h-7 w-7 flex items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
+            aria-label="Next day"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
           >
             <Lucide.ChevronRight size={14} />
           </button>
           <button
             type="button"
             onClick={resetToToday}
-            className="ml-1 rounded-md px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 cursor-pointer"
+            className="ml-1 min-h-8 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 cursor-pointer"
           >
             Today
           </button>
@@ -1882,11 +1987,20 @@ export function Reservations({
       </div>
 
       {/* ================= 4. SEARCH & FILTER CARD ================= */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col gap-3.5">
+      <section className="pms-card flex flex-col gap-3.5 p-4 sm:p-5" aria-label="Reservation filters">
+        <div className="flex flex-col gap-2 border-b border-slate-100 pb-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-sm font-bold tracking-tight text-slate-900">Find reservations</h2>
+            <p className="mt-0.5 text-xs text-slate-500">Search and filter the reservation list</p>
+          </div>
+          <span className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600">
+            {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
+          </span>
+        </div>
         {/* Row 1: Search + Date Pickers + Dropdowns */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-7">
           {/* Search Box */}
-          <div className="relative flex-1 min-w-[260px]">
+          <div className="relative min-w-0 sm:col-span-2 xl:col-span-2">
             <Lucide.Search
               size={15}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
@@ -1899,20 +2013,18 @@ export function Reservations({
                 setPage(0);
               }}
               placeholder="Search guest name, booking ID, phone, email..."
-              className="w-full rounded-md border border-slate-200 bg-white pl-10 pr-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
+              className="min-h-10 w-full rounded-control border border-slate-200 bg-white py-2 pl-10 pr-3.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
             />
           </div>
 
           {/* Check-in Date Picker */}
-          <div className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">
+          <div className="flex min-h-10 items-center justify-between gap-1.5 rounded-control border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">
             <span>Check-in date</span>
             <Lucide.Calendar size={14} className="text-slate-400 ml-1" />
           </div>
 
-          <span className="text-slate-300 hidden sm:inline">–</span>
-
           {/* Check-out Date Picker */}
-          <div className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">
+          <div className="flex min-h-10 items-center justify-between gap-1.5 rounded-control border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">
             <span>Check-out date</span>
             <Lucide.Calendar size={14} className="text-slate-400 ml-1" />
           </div>
@@ -1924,7 +2036,8 @@ export function Reservations({
               setSource(e.target.value);
               setPage(0);
             }}
-            className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[var(--color-primary)]"
+            aria-label="Filter by source"
+            className="min-h-10 rounded-control border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[var(--color-primary)]"
           >
             <option value="All">All sources</option>
             {sources
@@ -1943,7 +2056,8 @@ export function Reservations({
               setRoomFilter(e.target.value);
               setPage(0);
             }}
-            className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[var(--color-primary)]"
+            aria-label="Filter by room type"
+            className="min-h-10 rounded-control border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[var(--color-primary)]"
           >
             <option value="All">All rooms</option>
             {roomTypes
@@ -1962,7 +2076,8 @@ export function Reservations({
               setGuestCountFilter(e.target.value);
               setPage(0);
             }}
-            className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[var(--color-primary)]"
+            aria-label="Filter by guest count"
+            className="min-h-10 rounded-control border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[var(--color-primary)]"
           >
             <option value="All">All guests</option>
             <option value="1">1 Guest</option>
@@ -1983,6 +2098,7 @@ export function Reservations({
                 <button
                   key={f}
                   type="button"
+                  aria-pressed={isActive}
                   onClick={() => {
                     setStatus(f);
                     setPage(0);
@@ -2047,15 +2163,37 @@ export function Reservations({
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* ================= 5. RESERVATIONS TABLE CARD ================= */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.04)] overflow-hidden">
+      <section className="pms-card overflow-hidden" aria-label="Reservation list">
+        <div className="flex flex-col gap-3 border-b border-slate-200/80 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--color-muted-surface)] text-[var(--color-primary)]">
+              <Lucide.ClipboardList size={17} />
+            </span>
+            <div>
+              <h2 className="text-sm font-bold tracking-tight text-slate-900">Reservation list</h2>
+              <p className="mt-0.5 text-xs text-slate-500">Guest details, stay dates, status, and totals</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            {selectedRowIds.length > 0 && (
+              <span className="rounded-full border border-[var(--color-primary)]/20 bg-[var(--color-muted-surface)] px-2.5 py-1 font-semibold text-[var(--color-primary)]">
+                {selectedRowIds.length} selected
+              </span>
+            )}
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-semibold tabular-nums">
+              {filtered.length} {filtered.length === 1 ? 'reservation' : 'reservations'}
+            </span>
+          </div>
+        </div>
+
         <div className="pms-table-scroll overflow-x-auto">
-          <table className="pms-table w-full text-left text-sm border-collapse">
+          <table className="pms-table min-w-[1020px] w-full border-collapse text-left text-sm">
             {/* Table Header */}
             <thead>
-              <tr className="bg-slate-50/90 border-b border-slate-200 text-xs font-semibold text-slate-500 tracking-wider uppercase">
+              <tr className="border-b border-slate-200 bg-slate-50/80 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                 <th className="py-2.5 px-3 w-10">
                   <input
                     type="checkbox"
@@ -2121,7 +2259,7 @@ export function Reservations({
                     }`}
                   >
                     {/* Checkbox */}
-                    <td className="py-2.5 px-3">
+                    <td className="px-3 py-3">
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -2142,7 +2280,7 @@ export function Reservations({
                     </td>
 
                     {/* Guest Name & Phone */}
-                    <td className="py-3.5 px-3">
+                    <td className="px-3 py-3">
                       <div className="flex items-center gap-3">
                         <Avatar name={r.guest} size={36} />
                         <div>
@@ -2163,7 +2301,7 @@ export function Reservations({
                     </td>
 
                     {/* Room Thumbnail & Info */}
-                    <td className="py-3.5 px-3">
+                    <td className="px-3 py-3">
                       {r.roomNumber ? (
                         <div className="flex items-center gap-2">
                           <img
@@ -2191,7 +2329,7 @@ export function Reservations({
                     </td>
 
                     {/* Stay Dates */}
-                    <td className="py-3.5 px-3 whitespace-nowrap text-sm text-slate-700">
+                    <td className="whitespace-nowrap px-3 py-3 text-xs text-slate-700">
                       <span className="font-medium">
                         {r.checkIn} → {r.checkOut}
                       </span>{' '}
@@ -2199,7 +2337,7 @@ export function Reservations({
                     </td>
 
                     {/* Guests Count */}
-                    <td className="py-3.5 px-3 whitespace-nowrap text-sm text-slate-700">
+                    <td className="whitespace-nowrap px-3 py-3 text-xs text-slate-700">
                       <span className="inline-flex items-center gap-1.5 font-medium">
                         <Lucide.User size={14} className="text-slate-400" />
                         <span>{r.adults + r.children}</span>
@@ -2207,22 +2345,22 @@ export function Reservations({
                     </td>
 
                     {/* Source Channel */}
-                    <td className="py-3.5 px-3 whitespace-nowrap">
+                    <td className="whitespace-nowrap px-3 py-3">
                       <ChannelBadge channel={r.channel} />
                     </td>
 
                     {/* Status */}
-                    <td className="py-3.5 px-3 whitespace-nowrap">
+                    <td className="whitespace-nowrap px-3 py-3">
                       <StatusPill status={r.status} />
                     </td>
 
                     {/* Total */}
-                    <td className="py-3.5 px-3 text-right font-bold text-slate-900 text-sm whitespace-nowrap tnum">
+                    <td className="whitespace-nowrap px-3 py-3 text-right text-xs font-bold text-slate-900 tnum">
                       ₹{r.total.toLocaleString('en-IN')}.00
                     </td>
 
                     {/* Actions: Open & More */}
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                    <td className="whitespace-nowrap px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"
@@ -2330,7 +2468,7 @@ export function Reservations({
             </div>
           </div>
         </div>
-      </div>
+      </section>
       </>
       )}
 

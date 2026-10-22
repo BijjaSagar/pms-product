@@ -120,7 +120,7 @@ export function CheckOut() {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
                 Guest Check-out
               </h1>
               <span className="flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200/60">
@@ -131,15 +131,15 @@ export function CheckOut() {
                 Departures Terminal
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1">
-              Review folio balances, settle final payments, inspect rooms, and process departures
+            <p className="text-xs text-ink-secondary mt-1">
+              Review the final folio, settle any balance, and complete check-out.
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 shadow-2xs flex items-center gap-1.5">
             <Lucide.Users size={14} className="text-amber-600" />
-            <span>{list.length} In-House Stay{list.length === 1 ? '' : 's'}</span>
+            <span>{list.length} open folio{list.length === 1 ? '' : 's'}</span>
           </span>
           <button
             type="button"
@@ -166,8 +166,8 @@ export function CheckOut() {
         <CardTitle
           icon={Lucide.Users}
           iconBg="bg-gradient-to-tr from-rose-500 to-amber-600 text-white shadow-xs shadow-rose-500/20"
-          title="In-House Folios"
-          subtitle={resource.loading ? 'Loading open folios…' : `${list.length} staying guests`}
+          title="Open folios"
+          subtitle={resource.loading ? 'Loading folios…' : `${list.length} ${list.length === 1 ? 'folio ready' : 'folios ready'} for check-out`}
           badge={
             <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200/60">
               {list.length} Open
@@ -179,8 +179,8 @@ export function CheckOut() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Guest, room or folio ID…"
-            aria-label="Search in-house guests"
+            placeholder="Search by guest, room, or folio ID…"
+            aria-label="Search open folios"
             className={`${inputClass()} pl-9 w-full`}
           />
         </div>
@@ -203,27 +203,34 @@ export function CheckOut() {
               >
                 <Avatar name={f.guest} size={36} />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13.5px] font-bold text-ink">
-                    {f.guest} · Rm {f.room}
+                  <span className="block truncate text-sm font-semibold text-ink">
+                    {f.guest} · Room {f.room}
                   </span>
-                  <span className="tnum block text-[12px] text-ink-secondary">
-                    {f.id} · due {formatCurrency(folioBalance(f), f.currencyCode)}
+                  <span className="tnum block text-xs leading-relaxed text-ink-secondary">
+                    {f.id} · Balance due {formatCurrency(folioBalance(f), f.currencyCode)}
                   </span>
                 </span>
                 <Badge tone={folioBalance(f) > 0 ? 'warning' : 'success'}>
-                  {folioBalance(f) > 0 ? 'Balance' : 'Clear'}
+                  {folioBalance(f) > 0 ? 'Due' : 'Settled'}
                 </Badge>
               </button>
             </li>
           ))}
-          {list.length === 0 ? <p className="pms-helper py-6 text-center">No open folios match.</p> : null}
+          {list.length === 0 ? (
+            <div className="py-8 text-center">
+              <p className="text-sm font-semibold text-ink">{q.trim() ? 'No matching folios' : 'No open folios'}</p>
+              <p className="pms-helper mt-1">
+                {q.trim() ? 'Try another guest name, room number, or folio ID.' : 'Open guest folios will appear here when they are ready for check-out.'}
+              </p>
+            </div>
+          ) : null}
         </ul>
 
         {doneList.length > 0 ? (
           <div className="mt-4 rounded-xl border p-3" style={{ borderColor: 'var(--color-success-border)', background: 'var(--color-success-bg)' }}>
             <p className="text-[12.5px] font-bold text-success-text flex items-center gap-1.5">
               <Lucide.CheckCircle2 size={15} />
-              <span>Checked out this session</span>
+              <span>Departures completed this session</span>
             </p>
             <ul className="mt-2 flex flex-col gap-1 text-[12px] text-success-text">
               {doneList.map((d) => (
@@ -242,8 +249,8 @@ export function CheckOut() {
         {!folio ? (
           <div className="py-16 text-center">
             <Lucide.Receipt size={40} className="mx-auto text-ink-muted mb-3 opacity-40" />
-            <p className="font-semibold text-ink">No folio selected</p>
-            <p className="pms-helper mt-1">Select an in-house folio from the left to review the final bill and check out.</p>
+            <p className="text-base font-semibold tracking-tight text-ink">Select a folio</p>
+            <p className="pms-helper mt-1">Choose a guest from the open folios list to review the final bill and check out.</p>
           </div>
         ) : (
           <>
@@ -251,7 +258,7 @@ export function CheckOut() {
               icon={Lucide.ReceiptText}
               iconBg="bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20"
               title={`Folio ${folio.id}`}
-              subtitle={`${folio.guest} · Room ${folio.room} · ${folio.reservationId}`}
+              subtitle={`${folio.guest} · Room ${folio.room} · Booking ${folio.reservationId}`}
               badge={
                 <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${folioBalance(folio) > 0 ? 'bg-amber-50 text-amber-700 border-amber-200/60' : 'bg-emerald-50 text-emerald-700 border-emerald-200/60'}`}>
                   {folioBalance(folio) > 0 ? 'Unsettled' : 'Settled'}
@@ -262,8 +269,8 @@ export function CheckOut() {
               <table className="pms-table min-w-[480px]">
                 <thead>
                   <tr>
-                    <th>Item</th>
-                    <th>Detail</th>
+                    <th>Charge</th>
+                    <th>Details</th>
                     <th className="text-right">Amount</th>
                   </tr>
                 </thead>
@@ -305,7 +312,7 @@ export function CheckOut() {
                 </span>
               </li>
               <li className="pms-summary-row px-3.5 py-3" style={{ background: 'var(--color-muted-surface)' }}>
-                <span className="text-[15px] font-bold text-ink">Amount due</span>
+                <span className="text-[15px] font-bold text-ink">Balance due</span>
                 <span
                   className="tnum text-[20px] font-bold"
                   style={{ color: balance > 0 ? 'var(--color-danger-text)' : 'var(--color-success-text)' }}
@@ -325,7 +332,7 @@ export function CheckOut() {
               </Field>
               <Field
                 label={`Collect now (${folio.currencyCode ?? 'INR'})`}
-                hint={balance === 0 ? 'Nothing due — confirm check-out directly.' : 'Outstanding balance must be settled.'}
+                hint={balance === 0 ? 'No balance is due. You can check out now.' : 'The full balance must be collected before check-out.'}
               >
                 <input
                   type="number"
@@ -381,13 +388,13 @@ export function CheckOut() {
         open={confirming}
         onClose={() => setConfirming(false)}
         onConfirm={settle}
-        title="Complete check-out?"
+        title="Check out this guest?"
         body={
           folio
-            ? `${folio.guest} · Room ${folio.room} will be checked out. The backend will automatically trigger turnover housekeeping.`
+            ? `${folio.guest} in Room ${folio.room} will be checked out. Housekeeping turnover starts automatically.`
             : ''
         }
-        confirmLabel="Check out"
+        confirmLabel="Confirm check-out"
       />
 
       {/* Extend Stay Modal */}
@@ -395,12 +402,12 @@ export function CheckOut() {
         open={extendingFolio !== null}
         onClose={() => setExtendingFolio(null)}
         onSubmit={handleExtendSubmit}
-        title="Extend Stay"
-        subtitle={`Update departure date for ${extendingFolio?.guest} (Room ${extendingFolio?.room})`}
-        label="New check-out date (YYYY-MM-DD)"
+        title="Extend stay"
+        subtitle={`Set a new departure date for ${extendingFolio?.guest} · Room ${extendingFolio?.room}`}
+        label="New check-out date"
         inputType="date"
         defaultValue={extendingFolio?.checkOutDate ?? ''}
-        confirmLabel="Extend Stay"
+        confirmLabel="Extend stay"
       />
     </div>
   );

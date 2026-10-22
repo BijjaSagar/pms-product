@@ -12,7 +12,7 @@ import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { formatCurrency } from '../../lib/api/format';
 
-const STEPS = ['Find', 'Verify', 'Guests', 'Room', 'Payment', 'Review', 'Done'] as const;
+const STEPS = ['Find stay', 'Verify ID', 'Guests', 'Room', 'Balance', 'Review', 'Complete'] as const;
 
 export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
   const loadBoard = useCallback(async () => {
@@ -143,7 +143,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
                 Guest Check-in
               </h1>
               <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
@@ -154,15 +154,15 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                 Terminal Active
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1">
-              Verify guest identities, assign inspected rooms, collect key deposits, and complete arrivals
+            <p className="text-xs text-ink-secondary mt-1">
+              Verify each guest, assign a ready room, and complete check-in.
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 shadow-2xs flex items-center gap-1.5">
             <Lucide.Users size={14} className="text-emerald-600" />
-            <span>{arrivals.length} Pending Arrival{arrivals.length === 1 ? '' : 's'}</span>
+            <span>{arrivals.length} arrival{arrivals.length === 1 ? '' : 's'} due</span>
           </span>
           <button
             type="button"
@@ -189,8 +189,8 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
         <CardTitle
           icon={Lucide.Users}
           iconBg="bg-gradient-to-tr from-emerald-500 to-teal-600 text-white shadow-xs shadow-emerald-500/20"
-          title="Expected Arrivals"
-          subtitle={resource.loading ? 'Loading arrivals…' : `${arrivals.length} pending check-ins today`}
+          title="Arrival queue"
+          subtitle={resource.loading ? 'Loading arrivals…' : `${arrivals.length} ${arrivals.length === 1 ? 'guest is' : 'guests are'} waiting to check in`}
           badge={
             <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
               {arrivals.length} Due
@@ -202,7 +202,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search booking ID, guest name…"
+            placeholder="Search by guest or booking ID…"
             aria-label="Find reservation"
             className={`${inputClass()} pl-9 w-full`}
           />
@@ -223,8 +223,8 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
               >
                 <Avatar name={r.guest} size={36} />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13.5px] font-bold text-ink">{r.guest}</span>
-                  <span className="tnum block text-[12px] text-ink-secondary">
+                  <span className="block truncate text-sm font-semibold text-ink">{r.guest}</span>
+                  <span className="tnum block text-xs leading-relaxed text-ink-secondary">
                     {r.id} · {r.roomType} · {r.nights} night{r.nights === 1 ? '' : 's'}
                   </span>
                 </span>
@@ -235,7 +235,10 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
           {arrivals.length === 0 ? (
             <div className="py-8 text-center">
               <Lucide.UserCheck size={36} className="mx-auto text-ink-muted mb-2 opacity-40" />
-              <p className="pms-helper">No pending arrivals matching criteria.</p>
+              <p className="text-sm font-semibold text-ink">{q.trim() ? 'No matching arrivals' : 'No arrivals waiting'}</p>
+              <p className="pms-helper mt-1">
+                {q.trim() ? 'Try another guest name or booking ID.' : 'New arrivals will appear here when they are ready to check in.'}
+              </p>
             </div>
           ) : null}
         </ul>
@@ -272,8 +275,8 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
         {!current ? (
           <div className="py-16 text-center">
             <Lucide.LogIn size={40} className="mx-auto text-ink-muted mb-3 opacity-40" />
-            <p className="font-semibold text-ink">No arrival selected</p>
-            <p className="pms-helper mt-1">Select an expected arrival from the left queue to begin registration.</p>
+            <p className="text-base font-semibold tracking-tight text-ink">Select an arrival</p>
+            <p className="pms-helper mt-1">Choose a guest from the arrival queue to begin check-in.</p>
           </div>
         ) : step === 6 ? (
           <div className="flex flex-col items-center gap-3 py-10 text-center">
@@ -284,9 +287,9 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
             >
               <Lucide.CheckCircle2 size={36} />
             </span>
-            <h3 className="pms-section-title text-xl font-bold">{current.guest} is checked in!</h3>
-            <p className="tnum text-[14px] text-ink-secondary">
-              Rooms {roomLines.map((line) => roomAssignments[line.id] || line.roomNumber).filter(Boolean).join(', ')} assigned · key cards ready · turnover tasks scheduled
+            <h3 className="text-xl font-bold tracking-tight text-ink">{current.guest} is checked in</h3>
+            <p className="tnum text-sm text-ink-secondary">
+              Assigned {roomLines.length === 1 ? 'room' : 'rooms'} {roomLines.map((line) => roomAssignments[line.id] || line.roomNumber).filter(Boolean).join(', ')} · Check-in complete
             </p>
             <button
               type="button"
@@ -301,21 +304,21 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
           <div className="flex flex-col gap-5">
             {step === 1 && (
               <div>
-                <h3 className="pms-section-title mb-3">Verify Guest Identity</h3>
+                <h3 className="mb-3 text-lg font-semibold tracking-tight text-ink">Verify guest identity</h3>
                 <div className="grid grid-cols-1 gap-2.5 text-[13.5px] sm:grid-cols-2">
                   {[
-                    ['Guest Name', current.guest],
-                    ['Contact & Email', 'On file in reservation record'],
-                    ['Stay Duration', `${current.checkIn} → ${current.checkOut} (${current.nights} nights)`],
-                    ['Booking Channel', `${current.channel} · ${current.ratePlan}`],
+                    ['Guest', current.guest],
+                    ['Contact details', 'Available in the reservation record'],
+                    ['Stay dates', `${current.checkIn} → ${current.checkOut} (${current.nights} nights)`],
+                    ['Booking source', `${current.channel} · ${current.ratePlan}`],
                   ].map(([k, v]) => (
                     <div
                       key={k}
                       className="rounded-xl border p-3"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
-                      <p className="text-xs text-ink-muted">{k}</p>
-                      <p className="font-semibold text-ink mt-0.5">{v}</p>
+                      <p className="text-xs font-medium text-ink-secondary">{k}</p>
+                      <p className="mt-0.5 text-sm font-semibold text-ink">{v}</p>
                     </div>
                   ))}
                 </div>
@@ -327,10 +330,10 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                       onChange={(e) => setIdChecked(e.target.checked)}
                       className="h-4 w-4 accent-[var(--color-primary)] rounded"
                     />
-                    <span>Government photo ID / passport physically verified at reception</span>
+                    <span>Government-issued photo ID or passport verified in person</span>
                   </label>
                   {!idChecked ? (
-                    <p className="text-xs text-amber-600 mt-1 pl-6">ID verification is mandatory before issuing keys.</p>
+                    <p className="pms-helper mt-1 pl-6 text-amber-700">Verify the guest’s ID before issuing room keys.</p>
                   ) : null}
                 </div>
               </div>
@@ -338,7 +341,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
 
             {step === 2 && (
               <div>
-                <h3 className="pms-section-title mb-3">Confirm Occupants & Stay Details</h3>
+                <h3 className="mb-3 text-lg font-semibold tracking-tight text-ink">Confirm guests and stay</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Adults (18+)">
                     <input
@@ -362,24 +365,24 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                   </Field>
                 </div>
                 <p className="pms-helper mt-2 text-xs">
-                  Booked details: {current.adults} adult(s){current.children ? `, ${current.children} child(ren)` : ''} · {current.checkIn} to {current.checkOut}.
+                  Reservation: {current.adults} adult{current.adults === 1 ? '' : 's'}{current.children ? ` · ${current.children} child${current.children === 1 ? '' : 'ren'}` : ''} · {current.checkIn} to {current.checkOut}.
                 </p>
               </div>
             )}
 
             {step === 3 && (
               <div>
-                <h3 className="pms-section-title mb-1">Assign Ready Rooms</h3>
+                <h3 className="mb-1 text-lg font-semibold tracking-tight text-ink">Choose a ready room</h3>
                 <p className="pms-helper mb-3 text-xs">
-                  Choose a clean, inspected room for every room type in this booking.
+                  Select an available, inspected room for each room in this reservation.
                 </p>
                 <div className="flex flex-col gap-4">
                   {roomLines.map((line, index) => {
                     const options = roomOptions(line.id, line.roomTypeId);
                     const selectedRoomNo = roomAssignments[line.id] || '';
                     return <section key={line.id} className="rounded-xl border p-3" style={{ borderColor: 'var(--color-border)' }}>
-                      <div className="mb-2 flex items-center justify-between gap-2"><div><p className="text-sm font-bold text-ink">Room {index + 1} · {line.roomTypeName ?? current.roomType}</p><p className="text-xs text-ink-secondary">{line.roomNumber ? `Currently assigned: ${line.roomNumber}` : 'Not pre-assigned'}</p></div><span className="text-xs font-semibold text-ink-secondary">{selectedRoomNo ? `Selected ${selectedRoomNo}` : 'Choose room'}</span></div>
-                      {options.length === 0 ? <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800" role="alert"><span className="font-bold">No ready {line.roomTypeName ?? current.roomType} rooms available.</span> Check housekeeping or change the room type.</div> :
+                      <div className="mb-2 flex items-center justify-between gap-2"><div><p className="text-sm font-semibold text-ink">Room {index + 1} · {line.roomTypeName ?? current.roomType}</p><p className="text-xs text-ink-secondary">{line.roomNumber ? `Currently assigned: ${line.roomNumber}` : 'No room assigned yet'}</p></div><span className="text-xs font-medium text-ink-secondary">{selectedRoomNo ? `Selected: ${selectedRoomNo}` : 'Select a room'}</span></div>
+                      {options.length === 0 ? <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs leading-relaxed text-rose-800" role="alert"><span className="font-semibold">No ready {line.roomTypeName ?? current.roomType} rooms available.</span> Check housekeeping or choose another room type.</div> :
                         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3" role="radiogroup" aria-label={`Ready rooms for reservation room ${index + 1}`}>
                           {options.map((candidate) => <button
                             key={candidate.number}
@@ -397,7 +400,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                               boxShadow: selectedRoomNo === candidate.number ? '0 0 0 1px var(--color-primary)' : 'none',
                             }}
                           >
-                            <span className="tnum block text-lg font-bold text-ink">Room {candidate.number}</span>
+                            <span className="tnum block text-lg font-semibold text-ink">Room {candidate.number}</span>
                             <span className="mt-1 block"><Badge tone={roomTone(candidate.status)}>{candidate.status}</Badge></span>
                             <span className="tnum mt-1 block text-xs text-ink-secondary">Floor {candidate.floor} · {formatCurrency(candidate.rate, current.currencyCode)}/night</span>
                           </button>)}
@@ -410,7 +413,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
 
             {step === 4 && (
               <div>
-                <h3 className="pms-section-title mb-3">Deposit & Folio Balance</h3>
+                <h3 className="mb-3 text-lg font-semibold tracking-tight text-ink">Review folio balance and deposit</h3>
                 <ul className="rounded-xl border overflow-hidden text-[13.5px]" style={{ borderColor: 'var(--color-border)' }}>
                   <li className="pms-summary-row border-b px-3.5 py-2.5" style={{ borderColor: 'var(--color-divider)' }}>
                     <span className="text-ink-secondary">Stay Total</span>
@@ -421,7 +424,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                     <span className="tnum font-semibold text-emerald-600">{formatCurrency(current.paid, current.currencyCode)}</span>
                   </li>
                   <li className="pms-summary-row px-3.5 py-3" style={{ background: 'var(--color-muted-surface)' }}>
-                    <span className="font-bold text-[14px] text-ink">Balance Due at Departure</span>
+                    <span className="font-bold text-[14px] text-ink">Balance due at departure</span>
                     <span
                       className="tnum font-bold text-[18px]"
                       style={{ color: balance > 0 ? 'var(--color-danger-text)' : 'var(--color-success-text)' }}
@@ -438,7 +441,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                       onChange={(e) => setDepositOk(e.target.checked)}
                       className="h-4 w-4 accent-[var(--color-primary)] rounded"
                     />
-                    <span>Card pre-authorization / incidentals guarantee secured</span>
+                    <span>Card pre-authorization or incidental deposit secured</span>
                   </label>
                 </div>
               </div>
@@ -446,23 +449,23 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
 
             {step === 5 && (
               <div>
-                <h3 className="pms-section-title mb-3">Review & Authorize Registration</h3>
+                <h3 className="mb-3 text-lg font-semibold tracking-tight text-ink">Review check-in details</h3>
                 <dl className="grid grid-cols-1 gap-2.5 text-[13.5px] sm:grid-cols-2">
                   {[
-                    ['Guest Name', current.guest],
-                    ['Registered Occupants', `${adults} adult(s)${children ? `, ${children} child(ren)` : ''}`],
-                    ['Assigned Rooms', roomLines.map((line) => `${line.roomTypeName ?? current.roomType}: ${roomAssignments[line.id] || line.roomNumber || 'not selected'}`).join(' · ')],
-                    ['Dates of Stay', `${current.checkIn} → ${current.checkOut}`],
-                    ['Folio Balance', formatCurrency(balance, current.currencyCode)],
-                    ['Special Instructions', current.specialRequests || 'None'],
+                    ['Guest', current.guest],
+                    ['Guests', `${adults} adult${adults === 1 ? '' : 's'}${children ? ` · ${children} child${children === 1 ? '' : 'ren'}` : ''}`],
+                    ['Assigned rooms', roomLines.map((line) => `${line.roomTypeName ?? current.roomType}: ${roomAssignments[line.id] || line.roomNumber || 'not selected'}`).join(' · ')],
+                    ['Stay dates', `${current.checkIn} → ${current.checkOut}`],
+                    ['Folio balance', formatCurrency(balance, current.currencyCode)],
+                    ['Special requests', current.specialRequests || 'None'],
                   ].map(([k, v]) => (
                     <div
                       key={k}
                       className="rounded-xl border p-3"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
-                      <dt className="text-xs text-ink-muted">{k}</dt>
-                      <dd className="font-semibold text-ink mt-0.5">{v}</dd>
+                      <dt className="text-xs font-medium text-ink-secondary">{k}</dt>
+                      <dd className="mt-0.5 text-sm font-semibold text-ink">{v}</dd>
                     </div>
                   ))}
                 </dl>

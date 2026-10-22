@@ -462,16 +462,16 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
 
   return (
-    <div className="w-full text-slate-900 font-sans pb-8 flex flex-col gap-4">
+    <div className="w-full text-xs text-slate-900 font-sans pb-8 flex flex-col gap-4">
       {/* ================= 1. PAGE HEADER ================= */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Left Welcome Title */}
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-amber-50 text-amber-500 shadow-2xs mt-0.5">
-            <Lucide.Sun size={24} className="animate-pulse" />
+          <div className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-amber-50 text-amber-500 shadow-2xs mt-0.5">
+            <Lucide.Sun size={26} className="animate-pulse" />
           </div>
           <div>
-            <h1 className="text-[28px] font-bold tracking-tight text-slate-900 leading-tight">
+            <h1 className="text-[22px] font-bold tracking-tight text-slate-900 leading-tight">
               Good morning, {me?.user.fullName ? me.user.fullName.split(' ')[0] : 'Admin'}
             </h1>
             <p className="text-xs text-slate-500 mt-1 font-normal">
@@ -496,8 +496,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">Today&apos;s Activity Timeline</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                    <h2 className="text-[14px] font-bold text-slate-900 tracking-tight">Today&apos;s Activity Timeline</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200/60">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
@@ -505,7 +505,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                       Live Feed
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Real-time guest movements & operations</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Real-time guest movements & operations</p>
                 </div>
               </div>
 
@@ -567,15 +567,15 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         {/* Meta Row: Time, Room, Status, Action */}
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                            <span className="font-mono text-[11px] font-bold text-slate-700 bg-slate-100/90 border border-slate-200/60 px-2 py-0.5 rounded-md shadow-2xs">
+                            <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100/90 border border-slate-200/60 px-2 py-0.5 rounded-md shadow-2xs">
                               {item.time}
                             </span>
                             {item.room && (
-                              <span className="text-[11px] font-semibold text-slate-700 bg-slate-100/80 px-2 py-0.5 rounded-md">
+                              <span className="text-xs font-semibold text-slate-700 bg-slate-100/80 px-2 py-0.5 rounded-md">
                                 {item.room}
                               </span>
                             )}
-                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${item.statusTone}`}>
+                            <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full border ${item.statusTone}`}>
                               {item.status}
                             </span>
                           </div>
@@ -601,7 +601,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                           <h4 className="text-[13px] font-bold text-slate-900 group-hover:text-[var(--color-primary)] transition-colors">
                             {item.title}
                           </h4>
-                          <p className="text-[11.5px] text-slate-500 mt-0.5 truncate">
+                          <p className="text-xs text-slate-500 mt-0.5 truncate">
                             {item.subtitle}
                           </p>
                         </div>
@@ -617,7 +617,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           <div className="pt-3.5 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
             <div className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span className="text-[11.5px] text-slate-500 font-medium">
+              <span className="text-xs text-slate-500 font-medium">
                 Showing {filteredTimeline.slice(0, 5).length} of 5 operational activities
               </span>
             </div>
@@ -645,8 +645,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Pending Check-ins</h2>
-                      <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                      <h2 className="text-[14px] font-bold text-slate-900 tracking-tight">Pending Check-ins</h2>
+                      <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200/60">
                         <span className="relative flex h-1.5 w-1.5">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
@@ -654,14 +654,14 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         {pendingCheckins.length} Expected
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Today&apos;s arrivals awaiting front desk check-in</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Today&apos;s arrivals awaiting front desk check-in</p>
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => go({ view: 'check-in' })}
-                  className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-sm font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                  className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-xs font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
                   title="Open Check-in Terminal"
                 >
                   <span>Terminal</span>
@@ -674,12 +674,11 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
                   <thead>
                     <tr>
-                      <th className="w-8 text-center whitespace-nowrap text-xs font-semibold">#</th>
-                      <th className="whitespace-nowrap text-xs font-semibold">GUEST & BOOKING</th>
-                      <th className="whitespace-nowrap text-xs font-semibold">ASSIGNED ROOM</th>
-                      <th className="whitespace-nowrap text-xs font-semibold">ETA & STAY</th>
-                      <th className="whitespace-nowrap text-xs font-semibold">FOLIO / TOTAL</th>
-                      <th className="text-right whitespace-nowrap pr-3.5 text-xs font-semibold">ACTION</th>
+                      <th className="text-center whitespace-nowrap text-[12px] font-semibold">#</th>
+                      <th className="whitespace-nowrap text-[12px] ">Guest & Booking</th>
+                      <th className="whitespace-nowrap text-[12px] font-semibold">Assigned Room</th>
+                      <th className="whitespace-nowrap text-[12px] font-semibold">ETA & Stay</th>
+                      <th className="text-right whitespace-nowrap pr-3.5 text-[12px] font-semibold">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -693,7 +692,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                             <Avatar name={r.guest} size={30} />
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <span className="font-semibold text-ink text-sm truncate max-w-[130px]">{r.guest}</span>
+                                <span className="font-semibold text-ink text-xs truncate max-w-[130px]">{r.guest}</span>
                                 {r.isVip && (
                                   <span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
                                     VIP
@@ -720,24 +719,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                           <span className="text-xs text-ink-secondary block mt-0.5">{r.roomType}</span>
                         </td>
                         <td className="whitespace-nowrap">
-                          <span className="font-mono font-bold text-ink text-sm block">{r.eta}</span>
+                          <span className="font-mono font-bold text-ink text-xs block">{r.eta}</span>
                           <span className="text-xs text-ink-secondary block">{r.dates} ({r.nights}n)</span>
                         </td>
-                        <td className="whitespace-nowrap">
-                          <span className="font-bold text-ink text-sm font-mono block">
-                            ₹{r.total.toLocaleString('en-IN')}.00
-                          </span>
-                          {r.balance === 0 ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                              <Lucide.CheckCircle2 size={12} /> Paid
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                              Due ₹{r.balance.toLocaleString('en-IN')}
-                            </span>
-                          )}
-                        </td>
-                        <td className="text-right whitespace-nowrap pr-3.5">
+                        <td className="text-right whitespace-nowrap pr-2">
                           <button
                             type="button"
                             onClick={() => {
@@ -746,7 +731,6 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                             }}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
                           >
-                            <Lucide.DoorOpen size={14} />
                             <span>Check in</span>
                           </button>
                         </td>
@@ -782,8 +766,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Pending Check-outs</h2>
-                      <span className="flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200/60">
+                      <h2 className="text-[14px] font-bold text-slate-900 tracking-tight">Pending Check-outs</h2>
+                      <span className="flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-700 border border-amber-200/60">
                         <span className="relative flex h-1.5 w-1.5">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
@@ -791,14 +775,14 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         {pendingCheckouts.length} Due Out
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Departures scheduled today awaiting key return & folio balance</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Departures scheduled today awaiting key return & folio balance</p>
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => go({ view: 'check-out' })}
-                  className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-sm font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                  className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-xs font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
                   title="Open Check-out Terminal"
                 >
                   <span>Terminal</span>
@@ -811,12 +795,11 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
                   <thead>
                     <tr>
-                      <th className="w-8 text-center whitespace-nowrap text-xs font-semibold">#</th>
-                      <th className="whitespace-nowrap text-xs font-semibold">GUEST & BOOKING</th>
-                      <th className="whitespace-nowrap text-xs font-semibold">ASSIGNED ROOM</th>
-                      <th className="whitespace-nowrap text-xs font-semibold">OUT TIME & STAY</th>
-                      <th className="whitespace-nowrap text-xs font-semibold">FOLIO BALANCE</th>
-                      <th className="text-right whitespace-nowrap pr-3.5 text-xs font-semibold">ACTION</th>
+                      <th className="w-8 text-center whitespace-nowrap text-[12px] font-semibold">#</th>
+                      <th className="whitespace-nowrap text-[12px] font-semibold">GUEST & BOOKING</th>
+                      <th className="whitespace-nowrap text-[12px] font-semibold">ASSIGNED ROOM</th>
+                      <th className="whitespace-nowrap text-[12px] font-semibold">OUT TIME & STAY</th>
+                      <th className="text-right whitespace-nowrap pr-3.5 text-[12px] font-semibold">ACTION</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -830,7 +813,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                             <Avatar name={d.guest} size={30} />
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <span className="font-semibold text-ink text-sm truncate max-w-[130px]">{d.guest}</span>
+                                <span className="font-semibold text-ink text-xs truncate max-w-[130px]">{d.guest}</span>
                                 {d.isLateCheckout && (
                                   <span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
                                     Late
@@ -864,22 +847,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                           <span className="text-xs text-ink-secondary block mt-0.5">{d.roomType}</span>
                         </td>
                         <td className="whitespace-nowrap">
-                          <span className="font-mono font-bold text-ink text-sm block">{d.outTime}</span>
+                          <span className="font-mono font-bold text-ink text-xs block">{d.outTime}</span>
                           <span className="text-xs text-ink-secondary block">{d.dates} ({d.nights}n)</span>
-                        </td>
-                        <td className="whitespace-nowrap">
-                          <span className={`font-bold text-sm font-mono block ${d.folioBalance === 0 ? 'text-ink' : 'text-rose-600'}`}>
-                            ₹{d.folioBalance.toLocaleString('en-IN')}.00
-                          </span>
-                          {d.folioBalance === 0 ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                              <Lucide.CheckCircle2 size={12} /> Settled
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
-                              Due ₹{d.folioBalance.toLocaleString('en-IN')}
-                            </span>
-                          )}
                         </td>
                         <td className="text-right whitespace-nowrap pr-3.5">
                           <button
@@ -894,7 +863,6 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                             }}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
                           >
-                            <Lucide.DoorClosed size={14} />
                             <span>Check out</span>
                           </button>
                         </td>
@@ -935,8 +903,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">Recent Reservations</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-200/60">
+                    <h2 className="text-[14px] font-bold text-slate-900 tracking-tight">Recent Reservations</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700 border border-blue-200/60">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
@@ -944,14 +912,14 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                       {recentReservations.length} Bookings
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Latest confirmed bookings & stays across property</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Latest confirmed bookings & stays across property</p>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => go({ view: 'reservations' })}
-                className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-sm font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-xs font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
                 title="View all reservations"
               >
                 <span>View all</span>
@@ -964,12 +932,12 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
               <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
                 <thead>
                   <tr>
-                    <th className="w-8 text-center whitespace-nowrap text-xs font-semibold">#</th>
-                    <th className="whitespace-nowrap text-xs font-semibold">GUEST & BOOKING</th>
-                    <th className="whitespace-nowrap text-xs font-semibold">ROOM & DATES</th>
-                    <th className="whitespace-nowrap text-center text-xs font-semibold">STATUS</th>
-                    <th className="text-right whitespace-nowrap text-xs font-semibold">TOTAL</th>
-                    <th className="text-right w-12 whitespace-nowrap pr-3.5 text-xs font-semibold">ACTION</th>
+                    <th className="w-8 text-center whitespace-nowrap text-[12px] font-semibold">#</th>
+                    <th className="whitespace-nowrap text-[12px] font-semibold">GUEST & BOOKING</th>
+                    <th className="whitespace-nowrap text-[12px] font-semibold">ROOM & DATES</th>
+                    <th className="whitespace-nowrap text-center text-[12px] font-semibold">STATUS</th>
+                    <th className="text-right whitespace-nowrap text-[12px] font-semibold">TOTAL</th>
+                    <th className="text-right w-12 whitespace-nowrap pr-3.5 text-[12px] font-semibold">ACTION</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -982,13 +950,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         <div className="flex items-center gap-2">
                           <Avatar name={r.guest} size={30} />
                           <div className="min-w-0">
-                            <span className="font-semibold text-ink text-sm block truncate max-w-[130px]">{r.guest}</span>
+                            <span className="font-semibold text-ink text-xs block truncate max-w-[130px]">{r.guest}</span>
                             <span className="font-mono text-xs text-ink-secondary block">{r.id}</span>
                           </div>
                         </div>
                       </td>
                       <td className="whitespace-nowrap">
-                        <span className="font-medium text-ink text-sm block">{r.room}</span>
+                        <span className="font-medium text-ink text-xs block">{r.room}</span>
                         <span className="text-xs text-ink-secondary block">{r.dates}</span>
                       </td>
                       <td className="whitespace-nowrap text-center">
@@ -996,7 +964,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                           {r.status}
                         </Badge>
                       </td>
-                      <td className="text-right font-bold text-ink text-sm font-mono whitespace-nowrap">
+                      <td className="text-right font-bold text-ink text-xs font-mono whitespace-nowrap">
                         ₹{r.total.toLocaleString('en-IN')}.00
                       </td>
                       <td className="text-right whitespace-nowrap pr-3.5">
@@ -1040,8 +1008,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">Recent Transactions</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-purple-50 px-2.5 py-0.5 text-[10px] font-bold text-purple-700 border border-purple-200/60">
+                    <h2 className="text-[14px] font-bold text-slate-900 tracking-tight">Recent Transactions</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-purple-50 px-2.5 py-0.5 text-xs font-bold text-purple-700 border border-purple-200/60">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-purple-500"></span>
@@ -1049,14 +1017,14 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                       {recentPayments.length} Settlements
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Latest settled folios, payments & guest transactions</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Latest settled folios, payments & guest transactions</p>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => go({ view: 'payments' })}
-                className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-sm font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-xs font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
                 title="View all transactions"
               >
                 <span>View all</span>
@@ -1069,12 +1037,12 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
               <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
                 <thead>
                   <tr>
-                    <th className="w-8 text-center whitespace-nowrap text-xs font-semibold">#</th>
-                    <th className="whitespace-nowrap text-xs font-semibold">GUEST & REFERENCE</th>
-                    <th className="whitespace-nowrap text-xs font-semibold">DATE & METHOD</th>
-                    <th className="whitespace-nowrap text-center text-xs font-semibold">STATUS</th>
-                    <th className="text-right whitespace-nowrap text-xs font-semibold">AMOUNT</th>
-                    <th className="text-right w-12 whitespace-nowrap pr-3.5 text-xs font-semibold">ACTION</th>
+                    <th className="w-8 text-center whitespace-nowrap text-[12px] font-semibold">#</th>
+                    <th className="whitespace-nowrap text-[12px] font-semibold">GUEST & REFERENCE</th>
+                    <th className="whitespace-nowrap text-[12px] font-semibold">DATE & METHOD</th>
+                    <th className="whitespace-nowrap text-center text-[12px] font-semibold">STATUS</th>
+                    <th className="text-right whitespace-nowrap text-[12px] font-semibold">AMOUNT</th>
+                    <th className="text-right w-12 whitespace-nowrap pr-3.5 text-[12px] font-semibold">ACTION</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1087,13 +1055,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         <div className="flex items-center gap-2">
                           <Avatar name={p.guest} size={30} />
                           <div className="min-w-0">
-                            <span className="font-semibold text-ink text-sm block truncate max-w-[130px]">{p.guest}</span>
+                            <span className="font-semibold text-ink text-xs block truncate max-w-[130px]">{p.guest}</span>
                             <span className="font-mono text-xs text-ink-secondary block">{p.ref}</span>
                           </div>
                         </div>
                       </td>
                       <td className="whitespace-nowrap">
-                        <span className="font-medium text-ink text-sm block">{p.date}</span>
+                        <span className="font-medium text-ink text-xs block">{p.date}</span>
                         <span className="text-xs text-ink-secondary block">{p.method}</span>
                       </td>
                       <td className="whitespace-nowrap text-center">
@@ -1101,7 +1069,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                           {p.status}
                         </Badge>
                       </td>
-                      <td className="text-right font-bold text-ink text-sm font-mono whitespace-nowrap">
+                      <td className="text-right font-bold text-ink text-xs font-mono whitespace-nowrap">
                         ₹{p.amount.toLocaleString('en-IN')}.00
                       </td>
                       <td className="text-right whitespace-nowrap pr-3.5">
@@ -1150,8 +1118,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">Housekeeping Progress</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-sky-50 px-2.5 py-0.5 text-[10px] font-bold text-sky-700 border border-sky-200/60">
+                    <h2 className="text-[14px] font-bold text-slate-900 tracking-tight">Housekeeping Progress</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-bold text-sky-700 border border-sky-200/60">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-sky-500"></span>
@@ -1159,7 +1127,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                       Live Status
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Turnaround status & inspection</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Turnaround status & inspection</p>
                 </div>
               </div>
               <button
@@ -1175,10 +1143,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             {/* Progress Summary */}
             <div className="flex items-baseline justify-between mb-1.5">
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-bold text-slate-900">18%</span>
+                <span className="text-xs font-bold text-slate-900">18%</span>
                 <span className="text-xs text-slate-500 font-normal">9 of 50 rooms cleaned</span>
               </div>
-              <span className="text-[11px] font-semibold text-slate-400">Target: 85% by 2:00 PM</span>
+              <span className="text-xs font-semibold text-slate-400">Target: 85% by 2:00 PM</span>
             </div>
 
             {/* Progress Bar */}
@@ -1189,28 +1157,28 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             {/* 4 Stat Boxes */}
             <div className="grid grid-cols-4 gap-2 text-center mb-3.5">
               <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-2">
-                <span className="text-[11px] font-medium text-emerald-800 block">✓ Cleaned</span>
-                <span className="text-base font-bold text-emerald-900 mt-0.5 block">9</span>
+                <span className="text-xs font-medium text-emerald-800 block">✓ Cleaned</span>
+                <span className="text-xs font-bold text-emerald-900 mt-0.5 block">9</span>
               </div>
               <div className="rounded-xl border border-[var(--color-primary)]/20 bg-[var(--color-muted-surface)] p-2">
-                <span className="text-[11px] font-medium text-[var(--color-primary)] block">In progress</span>
-                <span className="text-base font-bold text-[var(--color-primary-active)] mt-0.5 block">6</span>
+                <span className="text-xs font-medium text-[var(--color-primary)] block">In progress</span>
+                <span className="text-xs font-bold text-[var(--color-primary-active)] mt-0.5 block">6</span>
               </div>
               <div className="rounded-xl border border-slate-200/60 bg-slate-50 p-2">
-                <span className="text-[11px] font-medium text-slate-600 block">● Pending</span>
-                <span className="text-base font-bold text-slate-800 mt-0.5 block">31</span>
+                <span className="text-xs font-medium text-slate-600 block">● Pending</span>
+                <span className="text-xs font-bold text-slate-800 mt-0.5 block">31</span>
               </div>
               <div className="rounded-xl border border-rose-100 bg-rose-50/60 p-2">
-                <span className="text-[11px] font-medium text-rose-800 block">! Issues</span>
-                <span className="text-base font-bold text-rose-900 mt-0.5 block">4</span>
+                <span className="text-xs font-medium text-rose-800 block">! Issues</span>
+                <span className="text-xs font-bold text-rose-900 mt-0.5 block">4</span>
               </div>
             </div>
 
             {/* Priority Turnaround Queue */}
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+              <div className="flex items-center justify-between text-[14px] font-semibold text-slate-700">
                 <span>Priority Turnaround Queue</span>
-                <span className="text-[10.5px] text-slate-400 font-normal">Release for check-in</span>
+                <span className="text-xs text-slate-400 font-normal">Release for check-in</span>
               </div>
 
               <div className="flex items-center justify-between gap-2 p-2 rounded-xl border border-slate-200/60 bg-slate-50/50 hover:bg-slate-50 transition-colors">
@@ -1218,13 +1186,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   <span className="h-2 w-2 rounded-full bg-amber-500 flex-none" />
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-slate-800 truncate">Room 201 · Deluxe King</p>
-                    <p className="text-[10.5px] text-slate-400">Assigned: Anita S. · Turnover due 12:00 PM</p>
+                    <p className="text-xs text-slate-400">Assigned: Anita S. · Turnover due 12:00 PM</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => toast('Room 201 verified', { detail: 'Marked clean & ready for check-in.', tone: 'success' })}
-                  className="flex-none text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                  className="flex-none text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                 >
                   Mark Clean
                 </button>
@@ -1235,13 +1203,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   <span className="h-2 w-2 rounded-full bg-purple-500 flex-none" />
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-slate-800 truncate">Room 304 · Executive Suite</p>
-                    <p className="text-[10.5px] text-slate-400">VIP arrival 02:00 PM · Needs supervisor inspection</p>
+                    <p className="text-xs text-slate-400">VIP arrival 02:00 PM · Needs supervisor inspection</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => toast('Inspection queued', { detail: 'Supervisor alerted for Room 304.', tone: 'info' })}
-                  className="flex-none text-[11px] font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                  className="flex-none text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                 >
                   Inspect
                 </button>
@@ -1251,7 +1219,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
           {/* Footer */}
           <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span className="text-[11.5px] text-slate-400">4 priority turnovers due before 2:00 PM</span>
+            <span className="text-xs text-slate-400">4 priority turnovers due before 2:00 PM</span>
             <button
               type="button"
               onClick={() => go({ view: 'housekeeping' })}
@@ -1274,8 +1242,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">Department Tasks</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] font-bold text-indigo-700 border border-indigo-200/60">
+                    <h2 className="text-[14px] font-bold text-slate-900 tracking-tight">Department Tasks</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-bold text-indigo-700 border border-indigo-200/60">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
@@ -1283,7 +1251,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                       4 Actions
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Operational follow-ups & alerts</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Operational follow-ups & alerts</p>
                 </div>
               </div>
               <button
@@ -1304,17 +1272,17 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   <span className="h-2 w-2 rounded-full bg-amber-500 mt-1.5 flex-none" />
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-slate-800 leading-tight">4 rooms pending inspection</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">Rooms 204, 305, 408, 501 · Ready for release</p>
+                    <p className="text-xs text-slate-400 mt-0.5 truncate">Rooms 204, 305, 408, 501 · Ready for release</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700">
                     High
                   </span>
                   <button
                     type="button"
                     onClick={() => toast('Inspection alert sent', { detail: 'Floor supervisor notified.', tone: 'info' })}
-                    className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     Release
                   </button>
@@ -1327,17 +1295,17 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   <span className="h-2 w-2 rounded-full bg-rose-500 mt-1.5 flex-none" />
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-slate-800 leading-tight">2 maintenance requests</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">AC thermostat in 305 · TV issue in 118</p>
+                    <p className="text-xs text-slate-400 mt-0.5 truncate">AC thermostat in 305 · TV issue in 118</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-700">
+                  <span className="rounded-full bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">
                     Urgent
                   </span>
                   <button
                     type="button"
                     onClick={() => go({ view: 'maintenance' })}
-                    className="text-[11px] font-semibold text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="text-xs font-semibold text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     Assign
                   </button>
@@ -1350,17 +1318,17 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   <span className="h-2 w-2 rounded-full bg-amber-500 mt-1.5 flex-none" />
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-slate-800 leading-tight">3 late check-out requests</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">101 (1:00 PM), 305 (2:00 PM), 501 (1:30 PM)</p>
+                    <p className="text-xs text-slate-400 mt-0.5 truncate">101 (1:00 PM), 305 (2:00 PM), 501 (1:30 PM)</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700">
                     Attention
                   </span>
                   <button
                     type="button"
                     onClick={() => go({ view: 'check-out' })}
-                    className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     Review
                   </button>
@@ -1373,17 +1341,17 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   <span className="h-2 w-2 rounded-full bg-sky-500 mt-1.5 flex-none" />
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-slate-800 leading-tight">1 VIP arrival today</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">Amelia Hart · Deluxe Suite 204 · Amenity set</p>
+                    <p className="text-xs text-slate-400 mt-0.5 truncate">Amelia Hart · Deluxe Suite 204 · Amenity set</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-[var(--color-muted-surface)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-primary)]">
+                  <span className="rounded-full bg-[var(--color-muted-surface)] px-2 py-0.5 text-xs font-bold text-[var(--color-primary)]">
                     VIP Elite
                   </span>
                   <button
                     type="button"
                     onClick={() => go({ view: 'arrivals-departures' })}
-                    className="text-[11px] font-semibold text-indigo-700 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="text-xs font-semibold text-indigo-700 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     Prepare
                   </button>
@@ -1394,7 +1362,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
           {/* Footer */}
           <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span className="text-[11.5px] text-slate-400">5 active tickets · 2 high priority</span>
+            <span className="text-xs text-slate-400">5 active tickets · 2 high priority</span>
             <button
               type="button"
               onClick={() => go({ view: 'maintenance' })}

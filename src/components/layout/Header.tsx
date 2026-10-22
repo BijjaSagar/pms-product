@@ -495,7 +495,7 @@ export function Header({
               className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Pending Payments: 3 (₹28,160 outstanding)"
             >
-              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-rose-500 to-red-600 text-white shadow-xs shadow-rose-500/25 group-hover:scale-105 transition-transform animate-pulse">
+              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-rose-500 to-red-600 text-white shadow-xs shadow-rose-500/25 group-hover:scale-105 transition-transform">
                 <Lucide.AlertCircle size={14} strokeWidth={2.3} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
