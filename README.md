@@ -45,78 +45,21 @@ npm run lint    # run ESLint
 The production bundle in `dist/` is completely self-contained and can be served
 from any static host.
 
-## Template notes
+## Project structure
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+- `src/App.tsx` owns providers, navigation, and the application shell.
+- `src/features/<domain>/` contains pages and domain-specific UI for analytics,
+  dashboard, distribution, finance, front desk, guests, housekeeping, maintenance,
+  reservations, rooms, settings, and staff.
+- `src/features/reservations/room-calendar/` contains calendar models,
+  validation, and reservation dialogs.
+- `src/components/` contains shared UI primitives, overlays, navigation, and
+  error handling.
+- `src/theme/` contains the nine theme presets, runtime theme provider, and
+  semantic design tokens.
+- `src/data/` contains the demo catalog, fixtures, and in-memory store;
+  `src/lib/api/` preserves feature-facing contracts and adapters.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
-
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+When adding a screen, place it in its domain feature and lazy-load it from
+`src/App.tsx`. Shared controls belong in `src/components/`; avoid adding
+page-specific copies of existing buttons, tables, or theme tokens.

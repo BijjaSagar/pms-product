@@ -2,7 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react
 import { Header, Sidebar } from './components/layout';
 import type { NavTarget } from './components/nav';
 import { viewPermission } from './components/nav';
-import { ThemeSwatcher } from './components/ThemeSwatcher';
+import { ThemeSwatcher } from './theme/ThemeSwatcher';
 import { AppCrashFallback, ErrorBoundary, PanelCrashFallback } from './components/ErrorBoundary';
 import { ForbiddenPage, NotFoundPage } from './components/ErrorPages';
 import { ThemeProvider } from './theme/ThemeContext';
@@ -10,7 +10,7 @@ import { useTheme } from './theme/useTheme';
 import { THEME_PRESETS } from './theme/presets';
 import type { ThemePresetId } from './theme/presets';
 import { Toaster } from './components/overlays';
-import { Dashboard } from './pages/Dashboard';
+import { Dashboard } from './features/dashboard/DashboardPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { themeApi } from './lib/api/themeApi';
 import type { ThemeKey } from './types';
@@ -28,35 +28,35 @@ const THEME_KEY_TO_PRESET: Record<ThemeKey, ThemePresetId> = {
 };
 const PRESET_TO_THEME_KEY = Object.fromEntries(Object.entries(THEME_KEY_TO_PRESET).map(([key, value]) => [value, key])) as Record<string, ThemeKey>;
 
-const Reservations = lazy(() => import('./pages/Reservations').then((m) => ({ default: m.Reservations })));
-const NewReservation = lazy(() => import('./pages/NewReservation').then((m) => ({ default: m.NewReservation })));
-const RateManagement = lazy(() => import('./pages/RateManagement').then((m) => ({ default: m.RateManagement })));
-const ChannelManager = lazy(() => import('./pages/ChannelManager').then((m) => ({ default: m.ChannelManager })));
-const CheckIn = lazy(() => import('./pages/CheckIn').then((m) => ({ default: m.CheckIn })));
-const CheckOut = lazy(() => import('./pages/CheckOut').then((m) => ({ default: m.CheckOut })));
-const Guests = lazy(() => import('./pages/Guests').then((m) => ({ default: m.Guests })));
-const Rooms = lazy(() => import('./pages/Rooms').then((m) => ({ default: m.Rooms })));
-const StatusBoard = lazy(() => import('./pages/StatusBoard').then((m) => ({ default: m.StatusBoard })));
-const Housekeeping = lazy(() => import('./pages/Housekeeping').then((m) => ({ default: m.Housekeeping })));
-const Maintenance = lazy(() => import('./pages/Maintenance').then((m) => ({ default: m.Maintenance })));
-const Billing = lazy(() => import('./pages/Billing').then((m) => ({ default: m.Billing })));
-const Payments = lazy(() => import('./pages/Payments').then((m) => ({ default: m.Payments })));
-const Invoices = lazy(() => import('./pages/Invoices').then((m) => ({ default: m.Invoices })));
-const NightAudit = lazy(() => import('./pages/NightAudit').then((m) => ({ default: m.NightAudit })));
-const Reports = lazy(() => import('./pages/Reports').then((m) => ({ default: m.Reports })));
-const Staff = lazy(() => import('./pages/Staff').then((m) => ({ default: m.Staff })));
-const Settings = lazy(() => import('./pages/Settings').then((m) => ({ default: m.Settings })));
+const Reservations = lazy(() => import('./features/reservations/ReservationsPage').then((m) => ({ default: m.Reservations })));
+const NewReservation = lazy(() => import('./features/reservations/NewReservationPage').then((m) => ({ default: m.NewReservation })));
+const RateManagement = lazy(() => import('./features/distribution/RateManagementPage').then((m) => ({ default: m.RateManagement })));
+const ChannelManager = lazy(() => import('./features/distribution/ChannelManagerPage').then((m) => ({ default: m.ChannelManager })));
+const CheckIn = lazy(() => import('./features/front-desk/CheckInPage').then((m) => ({ default: m.CheckIn })));
+const CheckOut = lazy(() => import('./features/front-desk/CheckOutPage').then((m) => ({ default: m.CheckOut })));
+const Guests = lazy(() => import('./features/guests/GuestsPage').then((m) => ({ default: m.Guests })));
+const Rooms = lazy(() => import('./features/rooms/RoomsPage').then((m) => ({ default: m.Rooms })));
+const StatusBoard = lazy(() => import('./features/rooms/StatusBoardPage').then((m) => ({ default: m.StatusBoard })));
+const Housekeeping = lazy(() => import('./features/housekeeping/HousekeepingPage').then((m) => ({ default: m.Housekeeping })));
+const Maintenance = lazy(() => import('./features/maintenance/MaintenancePage').then((m) => ({ default: m.Maintenance })));
+const Billing = lazy(() => import('./features/finance/BillingPage').then((m) => ({ default: m.Billing })));
+const Payments = lazy(() => import('./features/finance/PaymentsPage').then((m) => ({ default: m.Payments })));
+const Invoices = lazy(() => import('./features/finance/InvoicesPage').then((m) => ({ default: m.Invoices })));
+const NightAudit = lazy(() => import('./features/finance/NightAuditPage').then((m) => ({ default: m.NightAudit })));
+const Reports = lazy(() => import('./features/analytics/ReportsPage').then((m) => ({ default: m.Reports })));
+const Staff = lazy(() => import('./features/staff/StaffPage').then((m) => ({ default: m.Staff })));
+const Settings = lazy(() => import('./features/settings/SettingsPage').then((m) => ({ default: m.Settings })));
 
 function PageFallback() {
   return (
     <div className="flex flex-col gap-3" aria-busy="true" aria-label="Loading page">
       <div className="pms-card p-4 sm:p-5">
-        <div className="h-5 w-40 rounded-full" style={{ background: 'var(--color-muted-surface)' }} />
-        <div className="mt-2 h-4 w-64 max-w-full rounded-full" style={{ background: 'var(--color-divider)' }} />
+        <div className="pms-skeleton h-5 w-40 rounded-full" />
+        <div className="pms-skeleton mt-2 h-4 w-64 max-w-full rounded-full" />
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="pms-card min-h-[112px] p-4" />
+          <div key={i} className="pms-card pms-skeleton min-h-[112px] p-4" />
         ))}
       </div>
     </div>
@@ -98,13 +98,13 @@ function Shell() {
     }
     switch (view) {
       case 'dashboard':
-        return <Dashboard go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
+        return <Dashboard go={go} />;
       case 'reservations':
-        return <Reservations initialViewMode="list" initialQuery={target.query} focusId={target.focusId} go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
+        return <Reservations initialViewMode="list" initialQuery={target.query} focusId={target.focusId} go={go} />;
       case 'room-calendar':
-        return <Reservations initialViewMode="calendar" initialQuery={target.query} focusId={target.focusId} go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
+        return <Reservations initialViewMode="calendar" initialQuery={target.query} focusId={target.focusId} go={go} />;
       case 'new-reservation':
-        return <NewReservation go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
+        return <NewReservation go={go} />;
       case 'rate-management':
         return <RateManagement />;
       case 'channel-manager':
@@ -132,7 +132,7 @@ function Shell() {
       case 'invoices':
         return <Invoices />;
       case 'night-audit':
-        return <NightAudit go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
+        return <NightAudit go={go} />;
       case 'reports':
         return <Reports initialTab="overview" go={go} />;
       case 'occupancy-report':

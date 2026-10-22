@@ -55,14 +55,6 @@ export function dismissToast(id: number): void {
 }
 
 /**
- * Removes a toast immediately without waiting for exit animation.
- */
-export function forceDismissToast(id: number): void {
-  items = items.filter((t) => t.id !== id);
-  emit();
-}
-
-/**
  * Dismisses all active toasts with exit animations.
  */
 export function clearToasts(): void {

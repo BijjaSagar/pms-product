@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-preset="midnight">
+<html lang="en" data-preset="crimson">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -15,9 +15,9 @@
     <script>
       (function () {
         try {
-          var preset = localStorage.getItem('pms-theme-preset') || 'midnight';
-          var valid = ['midnight', 'ocean', 'beige', 'sage', 'slate', 'eucalyptus', 'olive', 'lavender'];
-          if (valid.indexOf(preset) === -1) preset = 'midnight';
+          var preset = localStorage.getItem('pms-theme-preset') || 'crimson';
+          var valid = ['crimson', 'ocean', 'beige', 'sage', 'slate', 'eucalyptus', 'olive', 'lavender', 'midnight'];
+          if (valid.indexOf(preset) === -1) preset = 'crimson';
           var root = document.documentElement;
           root.dataset.preset = preset;
           root.style.colorScheme = 'light';

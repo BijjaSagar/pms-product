@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { dismissToast, snapshotToasts, subscribeToasts } from './toastStore';
 import type { ToastItem } from './toastStore';
@@ -74,23 +74,23 @@ function ToastCard({ toast: t, onDismiss }: ToastCardProps) {
 
   const [isHovered, setIsHovered] = useState(false);
   const remainingRef = useRef(duration);
-  const startTimeRef = useRef(Date.now());
+  const startTimeRef = useRef(0);
   const timerRef = useRef<number | null>(null);
 
-  const startTimer = (ms: number) => {
+  const startTimer = useCallback((ms: number) => {
     if (ms <= 0 || ms === Infinity) return;
     startTimeRef.current = Date.now();
     timerRef.current = window.setTimeout(() => {
       onDismiss(t.id);
     }, ms);
-  };
+  }, [onDismiss, t.id]);
 
   useEffect(() => {
     startTimer(duration);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [t.id, duration]);
+  }, [duration, startTimer]);
 
   const handleMouseEnter = () => {
     setIsHovered(true);

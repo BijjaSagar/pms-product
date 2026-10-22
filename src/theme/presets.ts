@@ -84,23 +84,8 @@ export const PRESET_LIST: PresetMeta[] = PRESET_IDS.map((id) => THEME_PRESETS[id
 
 export const STORAGE_KEYS = {
   preset: 'pms-theme-preset',
-  accent: 'pms-theme-accent',
 } as const;
 
 export function isPresetId(value: string | null): value is ThemePresetId {
-  return (
-    value === 'ocean' ||
-    value === 'crimson' ||
-    value === 'beige' ||
-    value === 'sage' ||
-    value === 'slate' ||
-    value === 'eucalyptus' ||
-    value === 'olive' ||
-    value === 'lavender' ||
-    value === 'midnight'
-  );
-}
-
-export function isHexColor(value: string): boolean {
-  return /^#[0-9a-fA-F]{6}$/.test(value.trim());
+  return value !== null && (PRESET_IDS as readonly string[]).includes(value);
 }

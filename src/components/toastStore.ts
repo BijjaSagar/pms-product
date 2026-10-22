@@ -2,7 +2,6 @@ export type { ToastItem, ToastOptions, ToastAction, ToastCallable } from '../uti
 export {
   toast,
   dismissToast,
-  forceDismissToast,
   clearToasts,
   subscribeToasts,
   snapshotToasts,

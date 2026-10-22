@@ -44,6 +44,20 @@
   --color-neutral-text: var(--color-neutral-text);
   --color-neutral-border: var(--color-neutral-border);
 
+  /* Bridge the legacy Tailwind slate palette to semantic PMS tokens. This lets
+     older screens follow the active preset while they are migrated to tokens. */
+  --color-white: var(--color-surface);
+  --color-slate-50: var(--color-page);
+  --color-slate-100: var(--color-muted-surface);
+  --color-slate-200: var(--color-border);
+  --color-slate-300: color-mix(in srgb, var(--color-border) 72%, var(--color-ink-muted));
+  --color-slate-400: var(--color-ink-muted);
+  --color-slate-500: var(--color-ink-secondary);
+  --color-slate-600: var(--color-ink-secondary);
+  --color-slate-700: var(--color-ink-secondary);
+  --color-slate-800: var(--color-ink);
+  --color-slate-900: var(--color-ink);
+
   --radius-control: var(--radius-control);
   --radius-card: var(--radius-card);
   --radius-modal: var(--radius-modal);
@@ -101,6 +115,22 @@ body {
 
 ::selection {
   background: var(--color-selection);
+}
+
+@layer base {
+  button:not(:disabled) {
+    transition-property: background-color, border-color, color, box-shadow, opacity, transform;
+    transition-duration: var(--transition-fast);
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  button:not(:disabled):active:not([class*='active:scale']) {
+    transform: scale(0.985);
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
 }
 
 .tnum {
@@ -162,6 +192,20 @@ textarea {
 }
 
 @layer components {
+  main h1 {
+    color: var(--color-ink);
+    font-size: clamp(1.5rem, 1.2rem + 0.8vw, 1.9rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+  }
+
+  main h2,
+  main h3,
+  main h4 {
+    color: var(--color-ink);
+  }
+
   .pms-card {
     position: relative;
     background:
@@ -199,11 +243,6 @@ textarea {
     box-shadow: var(--shadow-sm);
   }
 
-  .pms-card-elevated {
-    box-shadow: var(--shadow-lg);
-    border-color: color-mix(in srgb, var(--color-border) 80%, white);
-  }
-
   .pms-card-interactive {
     cursor: pointer;
   }
@@ -213,12 +252,9 @@ textarea {
     transform: translateY(-2px);
   }
 
-  .pms-glass {
-    background: color-mix(in srgb, var(--color-surface) 82%, transparent);
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
-    border: 1px solid color-mix(in srgb, var(--color-border) 78%, white);
+  .pms-card-elevated {
     box-shadow: var(--shadow-lg);
+    border-color: color-mix(in srgb, var(--color-border) 80%, var(--color-primary) 8%);
   }
 
   .pms-btn-primary {
@@ -382,13 +418,13 @@ textarea {
     border-collapse: collapse;
     font-size: 14px;
     min-width: 0;
-    background: #ffffff;
+    background: var(--color-surface);
   }
 
   .pms-table thead tr,
   div.overflow-x-auto > table thead tr {
-    background: #f8fafc !important;
-    border-bottom: 1px solid #e2e8f0 !important;
+    background: var(--color-muted-surface) !important;
+    border-bottom: 1px solid var(--color-border) !important;
   }
 
   .pms-table thead th,
@@ -401,22 +437,22 @@ textarea {
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: #64748b;
+    color: var(--color-ink-secondary);
     padding: 12px 16px;
-    border-bottom: 1px solid #e2e8f0;
-    background: #f8fafc;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-muted-surface);
     white-space: nowrap;
   }
 
   .pms-table tbody td,
   div.overflow-x-auto > table tbody td {
     padding: 13px 16px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #1e293b;
+    border-bottom: 1px solid var(--color-divider);
+    color: var(--color-ink);
     vertical-align: middle;
     font-size: 14px;
     font-weight: 400;
-    background: #ffffff;
+    background: var(--color-surface);
   }
 
   .pms-table tbody tr:last-child td,
@@ -426,41 +462,18 @@ textarea {
 
   .pms-table tbody tr,
   div.overflow-x-auto > table tbody tr {
-    background: #ffffff;
+    background: var(--color-surface);
     transition: background-color 150ms ease;
   }
 
   .pms-table tbody tr:hover,
   div.overflow-x-auto > table tbody tr:hover {
-    background: #f8fafc !important;
+    background: var(--color-hover-surface) !important;
   }
 
   .pms-table tbody tr:hover td,
   div.overflow-x-auto > table tbody tr:hover td {
-    background: #f8fafc !important;
-  }
-
-  .pms-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 1;
-    padding: 6px 11px;
-    border-radius: var(--radius-pill);
-    border: 1px solid transparent;
-    white-space: nowrap;
-    box-shadow: var(--shadow-xs), inset 0 1px 0 rgb(255 255 255 / 0.5);
-  }
-
-  .pms-badge-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 999px;
-    background: currentColor;
-    flex: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent);
+    background: var(--color-hover-surface) !important;
   }
 
   .pms-label {
@@ -477,60 +490,13 @@ textarea {
     line-height: 1.5;
   }
 
-  /* Standard Headings System (H1-H4) */
-  .pms-h1 {
-    font-size: clamp(28px, 2vw + 16px, 32px);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.25;
-    color: var(--color-ink);
-  }
-
-  .pms-h2,
+  /* Shared section typography used by page and card primitives. */
   .pms-section-title {
     font-size: clamp(22px, 1.2vw + 16px, 26px);
     font-weight: 600;
     letter-spacing: -0.015em;
     line-height: 1.3;
     color: var(--color-ink);
-  }
-
-  .pms-h3 {
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    line-height: 1.35;
-    color: var(--color-ink);
-  }
-
-  .pms-h4,
-  .pms-card-heading {
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: -0.005em;
-    line-height: 1.4;
-    color: var(--color-ink);
-  }
-
-  .pms-body {
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1.5;
-    color: var(--color-ink);
-  }
-
-  .pms-secondary {
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 1.45;
-    color: var(--color-ink-secondary);
-  }
-
-  .pms-caption {
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 1.4;
-    color: var(--color-ink-muted);
   }
 
   .pms-kpi-value {
@@ -560,22 +526,6 @@ textarea {
     text-align: right;
   }
 
-  .pms-form-grid {
-    display: grid;
-    gap: 12px;
-    grid-template-columns: 1fr;
-  }
-
-  @media (min-width: 640px) {
-    .pms-form-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .pms-form-grid .span-2 {
-      grid-column: span 2;
-    }
-  }
-
   .pms-chip-row {
     display: flex;
     gap: 8px;
@@ -589,25 +539,6 @@ textarea {
     display: none;
   }
 
-  .pms-divider {
-    height: 1px;
-    background: var(--color-divider);
-    border: 0;
-  }
-
-  .pms-row-card {
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    background: var(--color-surface);
-    box-shadow: var(--shadow-xs);
-    transition: box-shadow var(--transition-base), transform var(--transition-base), border-color var(--transition-fast);
-  }
-
-  .pms-row-card:hover {
-    box-shadow: var(--shadow-md);
-    border-color: color-mix(in srgb, var(--color-primary) 24%, var(--color-border));
-    transform: translateY(-1px);
-  }
 }
 
 @keyframes pms-overlay-in {
@@ -632,6 +563,11 @@ textarea {
     opacity: 1;
     transform: none;
   }
+}
+
+@keyframes pms-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes pms-pop-in {
@@ -664,8 +600,23 @@ textarea {
   animation: pms-fade-up 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
+.pms-animate-fade-in {
+  animation: pms-fade-in 220ms ease-out both;
+}
+
 .pms-animate-pop {
   animation: pms-pop-in 200ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+.pms-skeleton {
+  background: linear-gradient(
+    100deg,
+    var(--color-muted-surface) 25%,
+    color-mix(in srgb, var(--color-surface) 72%, var(--color-border)) 42%,
+    var(--color-muted-surface) 62%
+  );
+  background-size: 220% 100%;
+  animation: pms-shimmer 1.5s ease-in-out infinite;
 }
 
 .pms-overlay-backdrop {
@@ -737,6 +688,16 @@ textarea {
   }
 }
 
+@media (hover: none) {
+  .pms-card-hover:hover,
+  .pms-card-interactive:hover,
+  .pms-btn-primary:hover,
+  .pms-btn-danger:hover,
+  .pms-btn-ghost:hover {
+    transform: none;
+  }
+}
+
 /* Low-end performance: cut costly blur/shadow on small screens, keep glass only on capable widths */
 @media (max-width: 767px) {
 
@@ -746,7 +707,6 @@ textarea {
     -webkit-backdrop-filter: none;
   }
 
-  .pms-glass,
   .pms-overlay-backdrop {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -768,8 +728,10 @@ textarea {
 
   .pms-stagger>*,
   .pms-animate-fade-up,
+  .pms-animate-fade-in,
   .pms-animate-pop,
-  .pms-overlay-enter {
+  .pms-overlay-enter,
+  .pms-skeleton {
     animation: none !important;
   }
 
@@ -777,6 +739,10 @@ textarea {
   .pms-card-interactive:hover,
   .pms-btn-primary:hover,
   .pms-btn-ghost:hover {
+    transform: none !important;
+  }
+
+  button:not(:disabled):active:not([class*='active:scale']) {
     transform: none !important;
   }
 
@@ -827,10 +793,10 @@ main {
 .pms-table-container,
 div.overflow-x-auto:has(> table.pms-table),
 div.overflow-x-auto:has(> table) {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
   scrollbar-gutter: stable;
 }
 
@@ -840,7 +806,7 @@ div.overflow-x-auto {
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f8fafc;
+  scrollbar-color: var(--color-border) var(--color-muted-surface);
 }
 
 div.overflow-x-auto::-webkit-scrollbar {
@@ -848,18 +814,18 @@ div.overflow-x-auto::-webkit-scrollbar {
 }
 
 div.overflow-x-auto::-webkit-scrollbar-track {
-  background: #f8fafc;
+  background: var(--color-muted-surface);
   border-radius: 9999px;
 }
 
 div.overflow-x-auto::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--color-border);
   border-radius: 9999px;
-  border: 1.5px solid #f8fafc;
+  border: 1.5px solid var(--color-muted-surface);
 }
 
 div.overflow-x-auto::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--color-ink-muted);
 }
 
 .pms-table-container table thead th:first-child,
@@ -957,4 +923,4 @@ li .rounded-control.border {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
-}
+}
