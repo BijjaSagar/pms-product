@@ -166,7 +166,7 @@ export function NotFoundPage({ onGo }: { onGo: (t: NavTarget) => void }) {
           {[
             { label: 'Front Desk Bookings', view: 'reservations' as const, icon: Lucide.CalendarDays },
             { label: 'Live Room Overview', view: 'room-overview' as const, icon: Lucide.BedDouble },
-            { label: 'In-House Guests', view: 'in-house' as const, icon: Lucide.Users },
+            { label: 'Guest Directory', view: 'guests' as const, icon: Lucide.BookUser },
             { label: 'System Settings', view: 'settings' as const, icon: Lucide.Settings },
           ].map((item) => (
             <button

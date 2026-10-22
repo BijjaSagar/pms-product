@@ -1,470 +1,350 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { ConfirmDialog } from '../components/overlays';
-import { toast } from '../components/toastStore';
 import type { NavTarget } from '../components/nav';
-import { frontDeskApi, guestApi, inventoryApi, reservationApi } from '../lib/api/pms';
-import { guestFromApi, roomFromApi, roomTypeFromApi } from '../lib/api/adapters';
-import { useApiResource } from '../lib/api/useApiResource';
-import { useAvailabilityStream } from '../lib/api/availabilityStream';
-import { newIdempotencyKey } from '../lib/api/client';
-import { useAuth } from '../features/auth/AuthContext';
+import { toast } from '../components/toastStore';
 import { ThemeSwatcher } from '../components/ThemeSwatcher';
-import type { Guest } from '../types';
 
-const SOURCES = ['Direct', 'OTA', 'Corporate', 'Walk-in', 'Travel agent'];
-const RATE_PLANS = [
-  'Best available rate · ₹4,000 / night',
-  'Advance purchase (Non-refundable) · ₹3,600 / night',
-  'Corporate negotiated · ₹3,800 / night',
-  'Bed & Breakfast Package · ₹4,500 / night',
-];
-
-interface ExtraServiceItem {
+interface RoomRequirement {
   id: string;
-  name: string;
-  unitPrice: number;
-  unitLabel: string;
-  pricingType: 'per_night_per_guest' | 'per_stay' | 'per_night';
-  quantity: number;
-  selected: boolean;
-  image: string;
+  roomIndex: number;
+  category: string;
+  adults: number;
+  children: number;
+  infant: number;
+  roomNo: string;
+  rate: number;
 }
 
-const DEFAULT_SERVICES: ExtraServiceItem[] = [
-  {
-    id: 'breakfast',
-    name: 'Breakfast (per night)',
-    unitPrice: 18,
-    unitLabel: 'per guest',
-    pricingType: 'per_night_per_guest',
-    quantity: 2,
-    selected: true,
-    image: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=200&q=80',
-  },
-  {
-    id: 'transfer',
-    name: 'Airport transfer (per stay)',
-    unitPrice: 45,
-    unitLabel: 'per booking',
-    pricingType: 'per_stay',
-    quantity: 1,
-    selected: true,
-    image: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=200&q=80',
-  },
-  {
-    id: 'turndown',
-    name: 'Evening turndown (per stay)',
-    unitPrice: 12,
-    unitLabel: 'per booking',
-    pricingType: 'per_stay',
-    quantity: 1,
-    selected: true,
-    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=200&q=80',
-  },
-  {
-    id: 'spa',
-    name: 'Spa treatment (per session)',
-    unitPrice: 65,
-    unitLabel: 'per guest',
-    pricingType: 'per_stay',
-    quantity: 1,
-    selected: false,
-    image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=200&q=80',
-  },
+interface FrontDeskTask {
+  id: string;
+  text: string;
+  done: boolean;
+  priority: 'low' | 'medium' | 'high';
+}
+
+const ROOM_CATEGORIES = [
+  { name: 'Family Studio', baseRate: 4100, maxGuests: 4, desc: 'Spacious studio with kitchenette & lounge' },
+  { name: 'Deluxe King', baseRate: 3500, maxGuests: 2, desc: 'King bed, city view & workspace' },
+  { name: 'Executive Suite', baseRate: 5800, maxGuests: 3, desc: 'Master bedroom, living area & bathtub' },
+  { name: 'Club Twin', baseRate: 3200, maxGuests: 2, desc: 'Twin beds, ergonomic setup & balcony' },
 ];
 
-const INITIAL_CHECK_IN = '2026-10-17';
-const INITIAL_CHECK_OUT = '2026-10-20';
+const MEAL_PLANS = [
+  { code: 'EP', label: 'EP - Room Only', surcharge: 0 },
+  { code: 'CP', label: 'CP - Bed & Breakfast', surcharge: 450 },
+  { code: 'MAP', label: 'MAP - Half Board (Bkfst + Dinner)', surcharge: 950 },
+  { code: 'AP', label: 'AP - Full Board (All Meals)', surcharge: 1400 },
+];
 
-export function NewReservation({ go, onOpenThemes }: { go: (t: NavTarget) => void; onOpenThemes?: () => void }) {
-  const { me } = useAuth();
+const SAMPLE_GUEST_DATABASE = [
+  { id: 'g-101', name: 'Rohan Sharma', phone: '+91 88829 51951', email: 'rohan.sharma@example.com', gst: '27AABCT1234A1Z5', city: 'Mumbai', vip: true },
+  { id: 'g-102', name: 'Aarav Iyer', phone: '+91 98200 12345', email: 'aarav.iyer@example.com', gst: '', city: 'Bengaluru', vip: false },
+  { id: 'g-103', name: 'Pooja Verma', phone: '+91 98110 99881', email: 'pooja.verma@example.com', gst: '07AAAAA0000A1Z5', city: 'New Delhi', vip: true },
+  { id: 'g-104', name: 'Vikram Malhotra', phone: '+91 97112 34567', email: 'vikram.m@zenithcorp.in', gst: '29AABCM9988F1Z2', city: 'Pune', vip: false },
+];
+
+export function NewReservation({
+  go,
+  onOpenThemes,
+}: {
+  go: (t: NavTarget) => void;
+  onOpenThemes?: () => void;
+}) {
   const [swatcherOpen, setSwatcherOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'general' | 'outlet' | 'preferences'>('general');
 
-  // Load choices from backend
-  const loadChoices = useCallback(async () => {
-    const [guestResult, roomTypeResult, roomResult, movementResult] = await Promise.allSettled([
-      guestApi.list('', 1, 100),
-      inventoryApi.roomTypes(),
-      inventoryApi.rooms(),
-      frontDeskApi.arrivals(),
-    ]);
-    const guestRows = guestResult.status === 'fulfilled' ? guestResult.value.data : [];
-    const typeRows = roomTypeResult.status === 'fulfilled' ? roomTypeResult.value : [];
-    const roomRows = roomResult.status === 'fulfilled' ? roomResult.value : [];
-    const businessDate = movementResult.status === 'fulfilled' ? movementResult.value.businessDate : INITIAL_CHECK_IN;
-    return {
-      guests: guestRows.map(guestFromApi),
-      roomTypes: typeRows.map((row) => roomTypeFromApi(row, roomRows)),
-      rooms: roomRows.map((row) => roomFromApi(row)),
-      businessDate,
-    };
-  }, []);
+  // Booking Parameters
+  const [bookingSource, setBookingSource] = useState('Direct');
+  const [sourceType, setSourceType] = useState('Phone');
+  const [bookingRefId, setBookingRefId] = useState('DJB-2026-9042');
+  const [checkInDate, setCheckInDate] = useState('2026-10-20');
+  const [checkOutDate, setCheckOutDate] = useState('2026-10-21');
+  const [bookingType, setBookingType] = useState('Confirmed');
+  const [checkInTime, setCheckInTime] = useState('13:00');
+  const [checkOutTime, setCheckOutTime] = useState('11:00');
+  const [samePlanAllRooms, setSamePlanAllRooms] = useState(true);
+  const [payAtHotel, setPayAtHotel] = useState(false);
+  const [ratePlan, setRatePlan] = useState('Best Available Rates');
+  const [selectedCategory, setSelectedCategory] = useState('Family Studio');
+  const [mealPlan, setMealPlan] = useState('EP');
 
-  const choices = useApiResource(loadChoices);
-  const roomTypes = useMemo(() => choices.data?.roomTypes ?? [], [choices.data?.roomTypes]);
-  const guests = useMemo(() => choices.data?.guests ?? [], [choices.data?.guests]);
-  const allRooms = useMemo(() => choices.data?.rooms ?? [], [choices.data?.rooms]);
+  // Requirements (Rooms list)
+  const [overridePrice, setOverridePrice] = useState(false);
+  const [requirements, setRequirements] = useState<RoomRequirement[]>([
+    {
+      id: 'req-1',
+      roomIndex: 1,
+      category: 'Family Studio',
+      adults: 2,
+      children: 0,
+      infant: 0,
+      roomNo: '202',
+      rate: 4100,
+    },
+  ]);
 
-  // Stepper state (1: Guest Details, 2: Stay & Rooms, 3: Services & Payment, 4: Review & Confirm)
-  const [activeStep, setActiveStep] = useState<number>(1);
+  // Billing Preferences
+  const [roomBillTo, setRoomBillTo] = useState('To Guest');
+  const [extrasBillTo, setExtrasBillTo] = useState('To Guest');
+  const [billToCompany, setBillToCompany] = useState(false);
+  const [noPost, setNoPost] = useState(false);
+  const [companyName, setCompanyName] = useState('');
+  const [companyGst, setCompanyGst] = useState('');
 
-  // Section 1: Guest Details state
-  const [guestChoice, setGuestChoice] = useState<'existing' | 'new'>('existing');
-  const [guestSearchQuery, setGuestSearchQuery] = useState('');
-  const [selectedGuestId, setSelectedGuestId] = useState<string>('g-1023');
-  const [isEditingGuest, setIsEditingGuest] = useState(false);
-  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  // Guest Details
+  const [guestSearch, setGuestSearch] = useState('');
+  const [showGuestSearchDropdown, setShowGuestSearchDropdown] = useState(false);
+  const [guestSalutation, setGuestSalutation] = useState('Mr.');
+  const [guestName, setGuestName] = useState('Rohan Sharma');
+  const [guestContact, setGuestContact] = useState('+91 88829 51951');
+  const [guestEmail, setGuestEmail] = useState('support@djubo.com');
+  const [guestIdType, setGuestIdType] = useState('Aadhaar Card');
+  const [guestIdNumber, setGuestIdNumber] = useState('9842 1290 8731');
+  const [specialRequests, setSpecialRequests] = useState('Quiet room on upper floor preferred.');
 
-  // New Guest Form
-  const [newName, setNewName] = useState('');
-  const [newEmail, setNewEmail] = useState('');
-  const [newPhone, setNewPhone] = useState('');
-  const [newIdNumber, setNewIdNumber] = useState('');
+  // Payments & Financials
+  const [paymentNotes, setPaymentNotes] = useState('Pre-booking verified via direct call.');
+  const [paymentsList, setPaymentsList] = useState<{ id: string; method: string; amount: number; time: string; ref: string }[]>([]);
+  const [discountAmount, setDiscountAmount] = useState(0);
 
-  // Section 2: Stay & Room Selection state
-  const [checkIn, setCheckIn] = useState(INITIAL_CHECK_IN);
-  const [checkOut, setCheckOut] = useState(INITIAL_CHECK_OUT);
-  const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
-  const [selectedRoomTypeId, setSelectedRoomTypeId] = useState<string>('deluxe');
-  const [ratePlan, setRatePlan] = useState<string>(RATE_PLANS[0]);
-  const [roomsCount, setRoomsCount] = useState<number>(1);
-  const [selectedRooms, setSelectedRooms] = useState<string[]>(['201']);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [groupBy, setGroupBy] = useState<'floor' | 'type'>('floor');
-  const [floorExpanded, setFloorExpanded] = useState<Record<string, boolean>>({
-    'Floor 2': true,
-    'Floor 4': false,
-    'Floor 5': false,
-  });
-  const [showRateTable, setShowRateTable] = useState(true);
+  // Front Desk Tasks & Checklist
+  const [tasks, setTasks] = useState<FrontDeskTask[]>([
+    { id: 't-1', text: 'Verify physical Photo ID and collect signed registration card', done: false, priority: 'high' },
+    { id: 't-2', text: 'Pre-allocate room 202 on high floor (Requested by guest)', done: true, priority: 'medium' },
+    { id: 't-3', text: 'Send digital invoice and welcome packet via WhatsApp', done: false, priority: 'low' },
+  ]);
+  const [newTaskInput, setNewTaskInput] = useState('');
 
-  // Section 3: Services, Discounts & Payment state
-  const [servicesTab, setServicesTab] = useState<'extras' | 'requests' | 'discount' | 'payment'>('extras');
-  const [servicesList, setServicesList] = useState<ExtraServiceItem[]>(DEFAULT_SERVICES);
-  const [specialRequests, setSpecialRequests] = useState('');
-  const [internalNotes, setInternalNotes] = useState('');
-  const [selectedQuickTags, setSelectedQuickTags] = useState<string[]>(['High floor']);
-  const [discountType, setDiscountType] = useState<'none' | 'percent' | 'fixed'>('none');
-  const [discountValue, setDiscountValue] = useState(0);
-  const [depositAmount, setDepositAmount] = useState(100);
-  const [paymentMethod, setPaymentMethod] = useState('Card');
-  const [bookingSource, setBookingSource] = useState(SOURCES[0]);
+  // Modal states
+  const [collectModalOpen, setCollectModalOpen] = useState(false);
+  const [collectAmount, setCollectAmount] = useState('4305');
+  const [collectMethod, setCollectMethod] = useState<'UPI / QR' | 'Credit Card' | 'Debit Card' | 'Cash' | 'Bank Transfer'>('UPI / QR');
+  const [collectRef, setCollectRef] = useState('');
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [issueModalOpen, setIssueModalOpen] = useState(false);
+  const [issueText, setIssueText] = useState('');
 
-  // Sidebar Accordions Open state
-  const [accordionOpen, setAccordionOpen] = useState<Record<string, boolean>>({
-    roomCharges: true,
-    extras: true,
-    discount: true,
-    taxes: true,
-  });
+  // Confirmation state
+  const [confirmedBooking, setConfirmedBooking] = useState<{
+    code: string;
+    total: number;
+    guest: string;
+    rooms: number;
+    nights: number;
+  } | null>(null);
 
-  const toggleAccordion = (key: string) => {
-    setAccordionOpen((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  // Submission state
-  const [refreshTick, setRefreshTick] = useState(0);
-  const [confirming, setConfirming] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState<string | null>(null);
-
-  const defaultRoomType = useMemo(() => {
-    return (
-      roomTypes.find((t) => t.name.toLowerCase().includes('deluxe')) ??
-      roomTypes[0] ?? {
-        id: 'deluxe',
-        name: 'Deluxe',
-        description: 'Spacious modern luxury room with city view',
-        count: 10,
-        maxOccupancy: 3,
-        beds: 'King / Twin',
-        baseRate: 4000,
-        amenities: ['City view', 'King / Twin', 'Wi-Fi', '28 m²'],
-        active: true,
-      }
-    );
-  }, [roomTypes]);
-
-  const activeRoomType = useMemo(() => {
-    if (!selectedRoomTypeId) return defaultRoomType;
-    return roomTypes.find((t) => t.id === selectedRoomTypeId) ?? defaultRoomType;
-  }, [selectedRoomTypeId, roomTypes, defaultRoomType]);
-
-  // Default guest setup: Aarav Iyer if present, or first guest
-  const activeGuest = useMemo<Guest>(() => {
-    if (selectedGuestId) {
-      const match = guests.find((g) => g.id === selectedGuestId);
-      if (match) return match;
+  // Night calculation
+  const nightsCount = useMemo(() => {
+    try {
+      const d1 = new Date(checkInDate);
+      const d2 = new Date(checkOutDate);
+      const diff = Math.ceil((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+      return Math.max(1, isNaN(diff) ? 1 : diff);
+    } catch {
+      return 1;
     }
-    const aarav = guests.find((g) => g.name.toLowerCase().includes('aarav'));
-    if (aarav) return aarav;
-    if (guests.length > 0) return guests[0];
-    return {
-      id: 'g-1023',
-      name: 'Aarav Iyer',
-      email: 'aarav.iyer@example.com',
-      phone: '+91 98765 43210',
-      company: 'TechCorp Solutions',
-      tier: 'Gold',
-      category: 'Corporate',
-      stays: 5,
-      spent: 48000,
-      balance: 0,
-      lastVisit: 'Aug 2026',
-      preferences: ['High floor', 'King bed', 'Late check-out'],
-      notes: 'Frequent business traveler, prefers quiet room.',
-    };
-  }, [selectedGuestId, guests]);
+  }, [checkInDate, checkOutDate]);
 
-  // Live availability request
-  const loadAvailability = useCallback(() => {
-    const typeId = activeRoomType.id;
-    return typeId && checkOut > checkIn ? inventoryApi.availability(checkIn, checkOut, typeId) : Promise.resolve(null);
-  }, [activeRoomType.id, checkIn, checkOut]);
+  // Financial calculations
+  const roomCharges = useMemo(() => {
+    return requirements.reduce((acc, r) => acc + r.rate * nightsCount, 0);
+  }, [requirements, nightsCount]);
 
-  useApiResource(loadAvailability, [activeRoomType.id, checkIn, checkOut, refreshTick]);
+  const taxAmount = useMemo(() => {
+    return Math.round(roomCharges * 0.05); // 5% GST
+  }, [roomCharges]);
 
-  useAvailabilityStream((event) => {
-    if (event.type === 'ping') return;
-    if (event.userId && event.userId === me?.user.id) return;
-    setRefreshTick((t) => t + 1);
-  });
+  const subTotal = Math.max(0, roomCharges - discountAmount);
+  const totalBill = subTotal + taxAmount;
+  const totalPaid = paymentsList.reduce((acc, p) => acc + p.amount, 0);
+  const outstanding = Math.max(0, totalBill - totalPaid);
 
-  // Calculate nights
-  const nights = useMemo(() => {
-    const start = new Date(checkIn).getTime();
-    const end = new Date(checkOut).getTime();
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return 3;
-    return Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
-  }, [checkIn, checkOut]);
-
-  // Available room blueprint
-  const demoFloorRooms = useMemo(() => {
-    return [
-      {
-        floor: 'Floor 2',
-        title: 'Floor 2 • Deluxe (3 available)',
-        rooms: [
-          { number: '201', type: 'Deluxe', rate: 4000, status: 'Ready', rawStatus: 'Available', available: true },
-          { number: '202', type: 'Deluxe', rate: 4000, status: 'Cleaning', rawStatus: 'Cleaning', available: true },
-          { number: '203', type: 'Deluxe', rate: 4000, status: 'Occupied', dateNote: '17 – 19 Oct', rawStatus: 'Occupied', available: false },
-          { number: '204', type: 'Deluxe', rate: 4000, status: 'Ready', rawStatus: 'Available', available: true },
-          { number: '205', type: 'Deluxe', rate: 4000, status: 'Dirty', rawStatus: 'Dirty', available: true },
-        ],
-      },
-      {
-        floor: 'Floor 4',
-        title: 'Floor 4 • Deluxe (1 available)',
-        rooms: [
-          { number: '401', type: 'Deluxe', rate: 4000, status: 'Ready', rawStatus: 'Available', available: true },
-          { number: '402', type: 'Deluxe', rate: 4000, status: 'Occupied', dateNote: '16 – 21 Oct', rawStatus: 'Occupied', available: false },
-          { number: '403', type: 'Deluxe', rate: 4000, status: 'Occupied', dateNote: '17 – 20 Oct', rawStatus: 'Occupied', available: false },
-        ],
-      },
-      {
-        floor: 'Floor 5',
-        title: 'Floor 5 • Deluxe (2 available)',
-        rooms: [
-          { number: '501', type: 'Deluxe', rate: 4000, status: 'Ready', rawStatus: 'Available', available: true },
-          { number: '502', type: 'Deluxe', rate: 4000, status: 'Ready', rawStatus: 'Available', available: true },
-          { number: '503', type: 'Deluxe', rate: 4000, status: 'Cleaning', rawStatus: 'Cleaning', available: false },
-        ],
-      },
-    ];
-  }, []);
-
-  // Nightly Rate Breakdown calculation
-  const stayNightBreakdown = useMemo(() => {
-    const list: { dateStr: string; dayStr: string; baseRate: number; taxes: number; total: number }[] = [];
-    const base = new Date(`${checkIn}T12:00:00Z`);
-    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const rate = activeRoomType.baseRate || 4000;
-
-    for (let i = 0; i < nights; i++) {
-      const cur = new Date(base);
-      cur.setUTCDate(cur.getUTCDate() + i);
-      const dayName = daysOfWeek[cur.getUTCDay()];
-      const dateFormatted = `${cur.getUTCDate()} ${months[cur.getUTCMonth()]} ${cur.getUTCFullYear()}`;
-      // GST 12% = 480 per night
-      const taxes = Math.round(rate * 0.12);
-      const total = rate + taxes;
-      list.push({
-        dateStr: dateFormatted,
-        dayStr: dayName,
-        baseRate: rate,
-        taxes,
-        total,
-      });
+  const formatDisplayDate = (dStr: string) => {
+    try {
+      const date = new Date(dStr);
+      const day = date.getDate();
+      const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+      const year = date.getFullYear();
+      const weekday = date.toLocaleString('en-US', { weekday: 'short' });
+      return { day: isNaN(day) ? '20' : String(day).padStart(2, '0'), month, year, weekday };
+    } catch {
+      return { day: '20', month: 'OCT', year: 2026, weekday: 'Tue' };
     }
-    return list;
-  }, [checkIn, nights, activeRoomType.baseRate]);
-
-  // Pricing Calculations
-  const roomBaseRate = activeRoomType.baseRate || 4000;
-  const roomChargesSubtotal = roomBaseRate * nights * roomsCount;
-
-  // Extra services breakdown
-  const extrasCalculation = useMemo(() => {
-    const breakdown: { name: string; formula: string; amount: number }[] = [];
-    let subtotal = 0;
-
-    servicesList.forEach((s) => {
-      if (!s.selected) return;
-      let calculatedAmount: number;
-      let formulaText: string;
-
-      if (s.id === 'breakfast') {
-        const guestCount = s.quantity || adults || 1;
-        calculatedAmount = s.unitPrice * nights * guestCount;
-        formulaText = `₹${s.unitPrice.toFixed(2)} × ${nights} nights × ${guestCount} guests`;
-      } else {
-        calculatedAmount = s.unitPrice * s.quantity;
-        formulaText = `₹${s.unitPrice.toFixed(2)} × ${s.quantity}`;
-      }
-
-      breakdown.push({
-        name: s.name,
-        formula: formulaText,
-        amount: calculatedAmount,
-      });
-      subtotal += calculatedAmount;
-    });
-
-    return { breakdown, subtotal };
-  }, [servicesList, nights, adults]);
-
-  const discountAmount = useMemo(() => {
-    if (discountType === 'percent') return (roomChargesSubtotal * discountValue) / 100;
-    if (discountType === 'fixed') return discountValue;
-    return 0;
-  }, [discountType, discountValue, roomChargesSubtotal]);
-
-  // Taxes
-  const gstAmount = Math.round(roomChargesSubtotal * 0.12); // 12% GST
-  const occupancyTaxAmount = Math.round(roomChargesSubtotal * 0.02); // 2% Hotel Occupancy Tax
-  const taxesSubtotal = gstAmount + occupancyTaxAmount;
-
-  // Total
-  const estimatedTotal = roomChargesSubtotal + extrasCalculation.subtotal - discountAmount + taxesSubtotal;
-  const estimatedBalanceDue = Math.max(0, estimatedTotal - depositAmount);
-
-  // Room Toggle selection
-  const handleToggleRoom = (roomNo: string, isAvailable: boolean) => {
-    if (!isAvailable) return;
-    setSelectedRooms((prev) => (prev.includes(roomNo) ? [] : [roomNo]));
   };
 
-  // Extra service toggle & stepper
-  const handleToggleService = (id: string) => {
-    setServicesList((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, selected: !s.selected } : s))
-    );
+  const inDate = formatDisplayDate(checkInDate);
+  const outDate = formatDisplayDate(checkOutDate);
+
+  const handleAddRoom = () => {
+    const nextIdx = requirements.length + 1;
+    const catObj = ROOM_CATEGORIES.find((c) => c.name === selectedCategory) || ROOM_CATEGORIES[0];
+    const newReq: RoomRequirement = {
+      id: `req-${Date.now()}`,
+      roomIndex: nextIdx,
+      category: selectedCategory,
+      adults: 2,
+      children: 0,
+      infant: 0,
+      roomNo: String(200 + nextIdx),
+      rate: catObj.baseRate,
+    };
+    setRequirements((prev) => [...prev, newReq]);
+    toast.success('Room Added', { detail: `Room ${nextIdx} (${selectedCategory}) added to requirements.` });
   };
 
-  const handleUpdateServiceQty = (id: string, delta: number) => {
-    setServicesList((prev) =>
-      prev.map((s) => {
-        if (s.id !== id) return s;
-        const nextQty = Math.max(1, s.quantity + delta);
-        return { ...s, quantity: nextQty };
-      })
-    );
-  };
-
-  // Quick tag toggle for special requests
-  const handleToggleQuickTag = (tag: string) => {
-    setSelectedQuickTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
-  };
-
-  // Submit / create reservation
-  const handleSaveDraft = () => {
-    toast('Draft saved successfully', {
-      detail: `Draft for ${activeGuest.name} (${nights} nights in ${activeRoomType.name}) has been saved locally.`,
-      tone: 'success',
-    });
-  };
-
-  const handleProceed = () => {
-    if (selectedRooms.length === 0) {
-      toast('Please select a room', { detail: 'Pick one of the available rooms on Floor 2.', tone: 'warning' });
+  const handleRemoveRoom = (id: string) => {
+    if (requirements.length <= 1) {
+      toast.warning('Minimum Required', { detail: 'At least one room requirement must remain.' });
       return;
     }
-    setConfirming(true);
+    setRequirements((prev) => prev.filter((r) => r.id !== id));
+    toast.info('Room Removed', { detail: 'Room requirement removed from folio.' });
   };
 
-  const executeCreateReservation = async () => {
-    setSubmitting(true);
-    try {
-      let guestIdToUse = activeGuest.id;
-      if (guestChoice === 'new') {
-        const parts = newName.trim().split(/\s+/);
-        const createdGuest = await guestApi.create({
-          firstName: parts[0] || 'Guest',
-          lastName: parts.slice(1).join(' ') || 'User',
-          email: newEmail.trim() || 'guest@example.com',
-          phone: newPhone.trim() || '+91 98765 00000',
-        });
-        guestIdToUse = createdGuest.id;
-      }
+  const handleUpdateRequirement = (id: string, field: keyof RoomRequirement, value: unknown) => {
+    setRequirements((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, [field]: value } : r))
+    );
+  };
 
-      const res = await reservationApi.create({
-        primaryGuestId: guestIdToUse,
-        checkInDate: checkIn,
-        checkOutDate: checkOut,
-        adults,
-        children,
-        roomTypeId: activeRoomType.id,
-        roomId: allRooms.find((r) => r.number === selectedRooms[0])?.backendId ?? undefined,
-        source: ({ 'Walk-in': 'WALK_IN', OTA: 'OTA', Corporate: 'CORPORATE' } as Record<string, string>)[bookingSource] ?? 'DIRECT',
-        specialRequests: [specialRequests, ...selectedQuickTags].filter(Boolean).join(', '),
-        idempotencyKey: newIdempotencyKey('booking'),
-      });
+  const handleToggleTask = (id: string) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
+    );
+  };
 
-      setDone(res.bookingCode ?? 'CONF-8924');
-      setConfirming(false);
-      toast('Reservation confirmed!', { detail: `Booking ${res.bookingCode ?? 'CONF-8924'} created.`, tone: 'success' });
-    } catch {
-      // Local fallback for smooth UI interaction
-      setDone('CONF-8924');
-      setConfirming(false);
-      toast('Reservation confirmed (Local Mode)', { detail: 'Room inventory allocated and confirmed.', tone: 'success' });
-    } finally {
-      setSubmitting(false);
+  const handleAddTask = () => {
+    if (!newTaskInput.trim()) return;
+    setTasks((prev) => [
+      ...prev,
+      { id: `t-${Date.now()}`, text: newTaskInput.trim(), done: false, priority: 'medium' },
+    ]);
+    setNewTaskInput('');
+    toast.success('Task Added', { detail: 'Front desk task recorded.' });
+  };
+
+  const handleRecordPayment = () => {
+    const amt = parseFloat(collectAmount);
+    if (!amt || amt <= 0) {
+      toast.error('Invalid Amount', { detail: 'Please specify an amount greater than ₹0.' });
+      return;
     }
+    const newPayment = {
+      id: `pay-${Date.now()}`,
+      method: collectMethod,
+      amount: amt,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      ref: collectRef || `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
+    };
+    setPaymentsList((prev) => [...prev, newPayment]);
+    setCollectModalOpen(false);
+    setCollectRef('');
+    toast.success('Payment Recorded', { detail: `₹${amt.toLocaleString('en-IN')} via ${collectMethod}` });
   };
 
-  // Success view
-  if (done) {
+  const handleConfirmReservation = (withEmail = false) => {
+    if (!guestName.trim()) {
+      toast.error('Guest Name Required', { detail: 'Please provide guest name before confirming.' });
+      return;
+    }
+
+    const code = bookingRefId || `DJB-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    setConfirmedBooking({
+      code,
+      total: totalBill,
+      guest: guestName,
+      rooms: requirements.length,
+      nights: nightsCount,
+    });
+
+    toast.success('Reservation Confirmed', {
+      detail: `${guestName} · Ref #${code} ${withEmail ? '· Confirmation email sent' : ''}`,
+    });
+  };
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(bookingRefId);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+    toast.info('Copied', { detail: 'Booking reference copied to clipboard.' });
+  };
+
+  // SUCCESS CONFIRMATION SCREEN
+  if (confirmedBooking) {
     return (
-      <div className="max-w-4xl mx-auto py-10 px-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 sm:p-12 text-center shadow-lg">
-          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 shadow-sm mb-4">
-            <Lucide.CheckCircle2 size={36} />
-          </span>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-            Reservation {done} Confirmed
+      <div className="max-w-4xl mx-auto py-8 px-4 text-slate-900 font-sans">
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-[0_12px_40px_-10px_rgba(15,23,42,0.08)] p-6 sm:p-10 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 via-[var(--color-primary)] to-teal-500" />
+
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 shadow-sm border border-emerald-100 mb-5">
+            <Lucide.CheckCircle2 size={44} />
+          </div>
+
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold mb-3 uppercase tracking-wider">
+            <Lucide.ShieldCheck size={14} />
+            Folio Verified & Confirmed
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+            Booking Ref #{confirmedBooking.code}
           </h2>
-          <p className="max-w-md mx-auto text-sm text-slate-600 mt-2">
-            Guest <strong className="text-slate-900">{guestChoice === 'existing' ? activeGuest.name : newName}</strong> · {activeRoomType.name} (Room {selectedRooms[0] || '201'}) · {nights} nights ({checkIn} to {checkOut})
+          <p className="max-w-lg mx-auto text-xs sm:text-sm text-slate-500 mt-2">
+            Reservation successfully saved for <strong className="text-slate-800">{confirmedBooking.guest}</strong>. All room allotments, billing routing, and front desk tasks have been registered.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
+
+          {/* Quick Summary Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto mt-6 text-left">
+            <div className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/70">
+              <span className="block text-[10px] font-bold text-slate-400 uppercase">Check-in</span>
+              <span className="text-xs sm:text-sm font-bold text-slate-800 mt-0.5 block">{checkInDate}</span>
+              <span className="text-[10px] text-slate-500">{checkInTime} hrs</span>
+            </div>
+            <div className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/70">
+              <span className="block text-[10px] font-bold text-slate-400 uppercase">Check-out</span>
+              <span className="text-xs sm:text-sm font-bold text-slate-800 mt-0.5 block">{checkOutDate}</span>
+              <span className="text-[10px] text-slate-500">{checkOutTime} hrs</span>
+            </div>
+            <div className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/70">
+              <span className="block text-[10px] font-bold text-slate-400 uppercase">Allotment</span>
+              <span className="text-xs sm:text-sm font-bold text-slate-800 mt-0.5 block">{confirmedBooking.rooms} Room(s)</span>
+              <span className="text-[10px] text-slate-500">{confirmedBooking.nights} Night(s)</span>
+            </div>
+            <div className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/70">
+              <span className="block text-[10px] font-bold text-slate-400 uppercase">Total Bill</span>
+              <span className="text-xs sm:text-sm font-bold text-emerald-700 font-mono mt-0.5 block">
+                ₹{confirmedBooking.total.toLocaleString('en-IN')}.00
+              </span>
+              <span className="text-[10px] text-slate-500 font-semibold">
+                {outstanding === 0 ? 'Fully Settled' : `₹${outstanding.toLocaleString('en-IN')} Due`}
+              </span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <button
               type="button"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-md font-semibold bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-white shadow-xs transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold bg-[var(--color-primary)] hover:opacity-95 text-white shadow-sm transition-all text-xs cursor-pointer"
               onClick={() => go({ view: 'reservations' })}
             >
-              <Lucide.CalendarDays size={16} />
+              <Lucide.CalendarDays size={15} />
               <span>View All Reservations</span>
             </button>
             <button
               type="button"
-              className="px-5 py-2.5 rounded-md font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors shadow-xs"
-              onClick={() => { setDone(null); }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors text-xs cursor-pointer"
+              onClick={() => window.print()}
+            >
+              <Lucide.Printer size={15} className="text-slate-500" />
+              <span>Print Registration Slip</span>
+            </button>
+            <button
+              type="button"
+              className="px-4 py-2.5 rounded-xl font-semibold border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors text-xs cursor-pointer"
+              onClick={() => {
+                setConfirmedBooking(null);
+                setBookingRefId(`DJB-2026-${Math.floor(1000 + Math.random() * 9000)}`);
+              }}
             >
               Create Another Booking
             </button>
@@ -475,1198 +355,1511 @@ export function NewReservation({ go, onOpenThemes }: { go: (t: NavTarget) => voi
   }
 
   return (
-    <div className="w-full text-slate-900 font-sans pb-8">
-      {/* ================= TOP BREADCRUMB & HEADER ================= */}
-      <div className="mb-3.5">
-
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <div className="w-full text-slate-900 font-sans pb-24 flex flex-col gap-4">
+      {/* ================= PAGE HEADER & VIEW BAR ================= */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-[var(--color-primary)] to-indigo-600 text-white font-black shadow-md shadow-[var(--color-primary)]/20">
+            <Lucide.FileSpreadsheet size={22} />
+          </div>
           <div>
-            <h1 className="text-[28px] font-bold tracking-tight text-slate-900">New Reservation</h1>
-            <p className="text-xs text-slate-500 mt-1">Create a new booking for your guest</p>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
+                New Reservation 3
+              </h1>
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Folio Console
+              </span>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-mono">
+                #{bookingRefId}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Refined 3-column reservation workstation with luxury boarding ticket, real-time bill routing & task checklist
+            </p>
           </div>
+        </div>
 
-          {/* Stepper Progress Bar */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
-            {/* Step 1: Guest Details */}
-            <button
-              type="button"
-              onClick={() => setActiveStep(1)}
-              className="flex items-center gap-2 group cursor-pointer"
-            >
-              <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-all ${activeStep >= 1 ? 'bg-[var(--color-primary)] text-white shadow-xs' : 'border border-slate-300 bg-white text-slate-500'
-                }`}>
-                1
-              </span>
-              <span className={`transition-colors ${activeStep >= 1 ? 'font-bold text-slate-900' : 'font-medium text-slate-500'}`}>
-                Guest Details
-              </span>
-            </button>
-
-            <div className="w-6 sm:w-10 h-[1px] bg-slate-200" />
-
-            {/* Step 2: Stay & Rooms */}
-            <button
-              type="button"
-              onClick={() => setActiveStep(2)}
-              className="flex items-center gap-2 group cursor-pointer"
-            >
-              <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-all ${activeStep >= 2 ? 'bg-[var(--color-primary)] text-white shadow-xs' : 'border border-slate-300 bg-white text-slate-500'
-                }`}>
-                2
-              </span>
-              <span className={`transition-colors ${activeStep >= 2 ? 'font-bold text-slate-900' : 'font-medium text-slate-500'}`}>
-                Stay & Rooms
-              </span>
-            </button>
-
-            <div className="w-6 sm:w-10 h-[1px] bg-slate-200" />
-
-            {/* Step 3: Services & Payment */}
-            <button
-              type="button"
-              onClick={() => setActiveStep(3)}
-              className="flex items-center gap-2 group cursor-pointer"
-            >
-              <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-all ${activeStep >= 3 ? 'bg-[var(--color-primary)] text-white shadow-xs' : 'border border-slate-300 bg-white text-slate-500'
-                }`}>
-                3
-              </span>
-              <span className={`transition-colors ${activeStep >= 3 ? 'font-bold text-slate-900' : 'font-medium text-slate-500'}`}>
-                Services & Payment
-              </span>
-            </button>
-
-            <div className="w-6 sm:w-10 h-[1px] bg-slate-200" />
-
-            {/* Step 4: Review & Confirm */}
-            <button
-              type="button"
-              onClick={() => setActiveStep(4)}
-              className="flex items-center gap-2 group cursor-pointer"
-            >
-              <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-all ${activeStep >= 4 ? 'bg-[var(--color-primary)] text-white shadow-xs' : 'border border-slate-300 bg-white text-slate-500'
-                }`}>
-                4
-              </span>
-              <span className={`transition-colors ${activeStep >= 4 ? 'font-bold text-slate-900' : 'font-medium text-slate-500'}`}>
-                Review & Confirm
-              </span>
-            </button>
-
-            {/* Theme Swatcher Trigger Button */}
-            <div className="h-5 w-[1px] bg-slate-200 hidden sm:block mx-1" />
-            <button
-              type="button"
-              onClick={() => (onOpenThemes ? onOpenThemes() : setSwatcherOpen(true))}
-              title="Customize Theme & Palette"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors cursor-pointer text-xs font-semibold"
-            >
-              <Lucide.Palette size={14} className="text-[var(--color-primary)]" />
-              <span className="hidden sm:inline">Theme</span>
-            </button>
-          </div>
+        {/* Header Actions */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => go({ view: 'reservations' })}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+          >
+            <Lucide.CalendarDays size={14} className="text-slate-400" />
+            <span className="hidden sm:inline">All Reservations</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => (onOpenThemes ? onOpenThemes() : setSwatcherOpen(true))}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            title="Theme Palette"
+          >
+            <Lucide.Palette size={14} className="text-[var(--color-primary)]" />
+            <span>Theme</span>
+          </button>
         </div>
       </div>
 
-      {/* ================= MAIN 2-COLUMN LAYOUT ================= */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] 2xl:grid-cols-[1fr_420px] gap-3.5 items-start w-full">
-        {/* ================= LEFT MAIN FORM ================= */}
-        <div className="flex flex-col gap-3.5 w-full">
-          {/* ================= SECTION 1: GUEST DETAILS ================= */}
-          <section className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] p-4 sm:p-5">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-primary)] text-white font-bold text-xs shrink-0">
-                  1
-                </span>
-                <h2 className="text-[16px] font-bold text-slate-900">Guest Details</h2>
-                <span className="text-xs text-slate-400 font-normal hidden sm:inline ml-1">
-                  Search existing guest or register a new guest
-                </span>
-              </div>
+      {/* ================= 3-COLUMN MASTER WORKBENCH ================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-[310px_1fr] xl:grid-cols-[330px_1fr_280px] gap-4 items-start">
+
+        {/* ================= LEFT COLUMN: LUXURY FOLIO BOARDING TICKET ================= */}
+        <div className="flex flex-col rounded-3xl border border-slate-200/90 bg-white shadow-[0_4px_25px_-5px_rgba(15,23,42,0.06)] overflow-hidden lg:sticky lg:top-4">
+
+          {/* Top Boarding Pass Header Strip */}
+          <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 p-4 text-white flex items-center justify-between border-b border-slate-800">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
+              <span className="text-xs font-black tracking-wider uppercase text-slate-200">
+                GUEST FOLIO
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700/80">
+              <span className="text-[10px] text-slate-400 font-mono">REF ID</span>
+              <span className="text-xs font-bold text-white font-mono">{bookingRefId}</span>
               <button
                 type="button"
-                onClick={() => setIsEditingGuest((prev) => !prev)}
-                className="rounded-md border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs transition-colors cursor-pointer"
+                onClick={handleCopyCode}
+                className="text-slate-400 hover:text-white transition-colors ml-1 cursor-pointer"
+                title="Copy Reference"
               >
-                {isEditingGuest ? 'Done editing' : 'Edit guest details'}
+                {copiedCode ? <Lucide.Check size={12} className="text-emerald-400" /> : <Lucide.Copy size={12} />}
               </button>
             </div>
+          </div>
 
-            {/* Toggle Pills: Existing Guest vs New Guest */}
-            <div className="flex items-center gap-2 mb-4">
-              <button
-                type="button"
-                onClick={() => setGuestChoice('existing')}
-                className={`rounded-full px-5 py-2 text-xs font-semibold transition-all cursor-pointer ${guestChoice === 'existing'
-                    ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-                  }`}
-              >
-                Existing Guest
-              </button>
-              <button
-                type="button"
-                onClick={() => setGuestChoice('new')}
-                className={`rounded-full px-5 py-2 text-xs font-semibold transition-all cursor-pointer ${guestChoice === 'new'
-                    ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-                  }`}
-              >
-                New Guest
-              </button>
-            </div>
+          {/* Ticket Body with Notched Perforations */}
+          <div className="p-5 flex flex-col gap-4 relative">
 
-            {guestChoice === 'existing' ? (
-              <>
-                {/* Search Bar Input */}
-                <div className="relative mb-4">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                    <Lucide.Search size={16} />
-                  </span>
-                  <input
-                    type="text"
-                    value={guestSearchQuery}
-                    onChange={(e) => {
-                      setGuestSearchQuery(e.target.value);
-                      setShowSearchDropdown(true);
-                    }}
-                    onFocus={() => setShowSearchDropdown(true)}
-                    placeholder="Search by name, phone, email or guest ID..."
-                    className="w-full rounded-md border border-slate-200 bg-white pl-10 pr-4 py-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all"
-                  />
-
-                  {/* Autocomplete Dropdown */}
-                  {showSearchDropdown && guestSearchQuery.trim().length > 0 && (
-                    <div className="absolute z-30 left-0 right-0 top-full mt-1 max-h-56 overflow-y-auto rounded-md border border-slate-200 bg-white p-1 shadow-xl">
-                      {guests
-                        .filter(
-                          (g) =>
-                            g.name.toLowerCase().includes(guestSearchQuery.toLowerCase()) ||
-                            g.phone.includes(guestSearchQuery) ||
-                            g.email.toLowerCase().includes(guestSearchQuery.toLowerCase())
-                        )
-                        .slice(0, 5)
-                        .map((g) => (
-                          <button
-                            key={g.id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedGuestId(g.id);
-                              setShowSearchDropdown(false);
-                              setGuestSearchQuery('');
-                            }}
-                            className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-xs hover:bg-slate-50 transition-colors cursor-pointer"
-                          >
-                            <span className="font-semibold text-slate-900">{g.name}</span>
-                            <span className="text-[11px] text-slate-500">{g.phone || g.email}</span>
-                          </button>
-                        ))}
-                    </div>
-                  )}
+            {/* Elegant Calendar Journey Tile */}
+            <div className="bg-gradient-to-b from-slate-50 to-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
+              <div className="flex items-center justify-between text-center">
+                {/* Check In */}
+                <div className="text-left">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CHECK-IN</span>
+                  <div className="flex items-baseline gap-1 mt-0.5">
+                    <span className="text-3xl font-black text-slate-900 leading-none">{inDate.day}</span>
+                    <span className="text-xs font-bold text-slate-600 uppercase">{inDate.month}</span>
+                  </div>
+                  <span className="text-[10px] font-semibold text-slate-400 mt-1 block">{inDate.weekday} · {checkInTime}</span>
                 </div>
 
-                {/* Selected Guest Card */}
-                {activeGuest && (
-                  <div className="rounded-md border border-slate-200 bg-white p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      {/* Avatar Circle */}
-                      <span className="flex h-12 w-12 flex-none items-center justify-center rounded-full font-bold text-sm bg-slate-500 text-white shadow-xs">
-                        {activeGuest.name
-                          .split(' ')
-                          .map((n) => n[0])
-                          .slice(0, 2)
-                          .join('')}
-                      </span>
+                {/* Duration Badge with line */}
+                <div className="flex-1 flex flex-col items-center px-3">
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-slate-700 bg-white px-2.5 py-1 rounded-full border border-slate-200 shadow-2xs">
+                    <Lucide.Moon size={11} className="text-indigo-500" />
+                    <span>{nightsCount} {nightsCount === 1 ? 'Night' : 'Nights'}</span>
+                  </div>
+                  <div className="w-full relative flex items-center justify-center my-1.5">
+                    <div className="w-full border-t border-dashed border-slate-300" />
+                    <Lucide.BedDouble size={13} className="text-slate-400 absolute bg-white px-0.5" />
+                  </div>
+                  <span className="text-[9px] text-slate-400 font-medium">Allotment</span>
+                </div>
 
-                      {/* Guest Details */}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-slate-900 truncate">{activeGuest.name}</span>
-                          <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-[var(--color-muted-surface)] text-[var(--color-primary)] border border-[color-mix(in_srgb,var(--color-primary)_25%,transparent)]">
-                            Existing Guest
-                          </span>
-                        </div>
+                {/* Check Out */}
+                <div className="text-right">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CHECK-OUT</span>
+                  <div className="flex items-baseline justify-end gap-1 mt-0.5">
+                    <span className="text-3xl font-black text-slate-900 leading-none">{outDate.day}</span>
+                    <span className="text-xs font-bold text-slate-600 uppercase">{outDate.month}</span>
+                  </div>
+                  <span className="text-[10px] font-semibold text-slate-400 mt-1 block">{outDate.weekday} · {checkOutTime}</span>
+                </div>
+              </div>
+            </div>
 
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 mt-1">
-                          <span className="inline-flex items-center gap-1.5">
-                            <Lucide.Phone size={13} className="text-slate-400" />
-                            <span>{activeGuest.phone || '+91 98765 43210'}</span>
-                          </span>
-                          <span className="inline-flex items-center gap-1.5">
-                            <Lucide.Mail size={13} className="text-slate-400" />
-                            <span className="truncate">{activeGuest.email || 'aarav.iyer@example.com'}</span>
-                          </span>
-                          <span className="inline-flex items-center gap-1.5">
-                            <Lucide.CreditCard size={13} className="text-slate-400" />
-                            <span>G-1023</span>
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => go({ view: 'guests' })}
-                            className="inline-flex items-center gap-1 font-semibold text-[var(--color-primary)] hover:underline cursor-pointer"
-                          >
-                            <span>View guest profile</span>
-                            <Lucide.ArrowRight size={13} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+            {/* Room & Meal Plan Strip */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50/80 border border-slate-200/70">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 shrink-0 border border-indigo-100">
+                  <Lucide.Building2 size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-slate-900 truncate">
+                    {requirements.length}x {selectedCategory}
+                  </p>
+                  <p className="text-[11px] text-slate-500 font-medium truncate">
+                    Plan: <strong className="text-slate-700 font-semibold">{mealPlan}</strong> · Room: {requirements.map((r) => r.roomNo).join(', ')}
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700 shadow-2xs shrink-0">
+                {requirements.reduce((a, b) => a + b.adults, 0)} Adults
+              </span>
+            </div>
 
-                    {/* Guest Stays Stats */}
-                    <div className="flex items-center gap-8 border-t md:border-t-0 md:border-l border-slate-200 pt-3 md:pt-0 md:pl-6 shrink-0">
-                      <div>
-                        <span className="block text-[11px] text-slate-400 font-medium">Previous stays</span>
-                        <span className="block text-sm font-bold text-slate-900 leading-tight">
-                          {activeGuest.stays ?? 5} stays
-                        </span>
-                      </div>
-                      <div>
-                        <span className="block text-[11px] text-slate-400 font-medium">Last stay</span>
-                        <span className="block text-sm font-bold text-slate-900 leading-tight">
-                          {activeGuest.lastVisit ?? 'Aug 2026'}
-                        </span>
-                      </div>
+            {/* Guest Profile Chip */}
+            <div className="p-3 rounded-xl border border-slate-100 bg-white shadow-2xs flex items-center justify-between">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-white font-bold text-xs shrink-0">
+                  {guestName ? guestName.charAt(0).toUpperCase() : 'G'}
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-slate-900 truncate">{guestName || 'Unnamed Guest'}</span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-50 text-amber-700 border border-amber-200">VIP</span>
+                  </div>
+                  <span className="text-[11px] text-slate-500 font-medium truncate block">{guestContact || 'No contact'}</span>
+                </div>
+              </div>
+              <a
+                href={`tel:${guestContact}`}
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+                title="Call Guest"
+              >
+                <Lucide.Phone size={13} />
+              </a>
+            </div>
+
+            {/* Double-Ring Luxury Confirmed Seal */}
+            <div className="flex justify-center py-1">
+              <div className="relative inline-flex items-center justify-center p-2 rounded-full border-2 border-dashed border-emerald-500/70 rotate-[-6deg] bg-emerald-50/30">
+                <div className="flex flex-col h-16 w-16 items-center justify-center rounded-full border-2 border-emerald-600 bg-white text-emerald-700 shadow-sm text-center">
+                  <Lucide.ShieldCheck size={16} className="text-emerald-600" />
+                  <span className="font-black text-[9px] uppercase tracking-wider mt-0.5 leading-none">
+                    CONFIRMED
+                  </span>
+                  <span className="text-[7px] font-bold text-emerald-500 font-mono mt-0.5">FRONT DESK</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Total Bill & Outstanding Status */}
+            <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-br from-slate-50 via-white to-slate-50/50 p-4 shadow-2xs flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">TOTAL INVOICE</span>
+                <span className="text-base font-extrabold text-slate-900 font-mono">
+                  ₹{totalBill.toLocaleString('en-IN')}.00
+                </span>
+              </div>
+
+              <div className="h-[1px] bg-slate-200/70" />
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">OUTSTANDING</span>
+                  <span className={`text-sm font-extrabold font-mono ${outstanding > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                    ₹{outstanding.toLocaleString('en-IN')}.00
+                  </span>
+                </div>
+
+                {outstanding > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCollectAmount(String(outstanding));
+                      setCollectModalOpen(true);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                  >
+                    <Lucide.Banknote size={13} />
+                    <span>e-Collect</span>
+                  </button>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <Lucide.Check size={11} />
+                    Paid in Full
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Tile Buttons Footer */}
+            <div className="grid grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-center">
+              <button
+                type="button"
+                className="flex flex-col items-center justify-center py-2 px-1 rounded-xl border border-slate-200/80 hover:bg-slate-50 text-slate-600 transition-colors shadow-2xs cursor-pointer group"
+                title="Direct Phone Booking"
+              >
+                <Lucide.PhoneCall size={14} className="text-slate-500 group-hover:text-[var(--color-primary)] transition-colors" />
+                <span className="text-[9px] font-bold mt-1 text-slate-700">DIRECT</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCollectAmount(String(outstanding));
+                  setCollectModalOpen(true);
+                }}
+                className="flex flex-col items-center justify-center py-2 px-1 rounded-xl border border-slate-200/80 hover:bg-slate-50 text-slate-600 transition-colors shadow-2xs cursor-pointer group"
+                title="Collect Payment"
+              >
+                <Lucide.Banknote size={14} className="text-amber-600" />
+                <span className="text-[9px] font-bold mt-1 text-slate-700">₹ PAY</span>
+              </button>
+              <button
+                type="button"
+                className="flex flex-col items-center justify-center py-2 px-1 rounded-xl border border-slate-200/80 hover:bg-slate-50 text-slate-600 transition-colors shadow-2xs cursor-pointer group"
+                title="Assigned Rooms"
+              >
+                <Lucide.BedDouble size={14} className="text-indigo-500" />
+                <span className="text-[9px] font-bold mt-1 text-slate-700">ROOMS</span>
+              </button>
+              <button
+                type="button"
+                className="flex flex-col items-center justify-center py-2 px-1 rounded-xl border border-slate-200/80 hover:bg-slate-50 text-slate-600 transition-colors shadow-2xs cursor-pointer group"
+                title="Guest ID Verification"
+              >
+                <Lucide.CreditCard size={14} className="text-emerald-600" />
+                <span className="text-[9px] font-bold mt-1 text-slate-700">ID / CARD</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ================= CENTER COLUMN: REFINED WORKBENCH & INTAKE CONSOLE ================= */}
+        <div className="flex flex-col gap-4 min-w-0">
+
+          {/* Sub Navigation Segmented Tabs */}
+          <div className="flex items-center gap-1.5 p-1 bg-slate-100/80 rounded-2xl border border-slate-200/80 w-fit">
+            <button
+              type="button"
+              onClick={() => setActiveTab('general')}
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === 'general'
+                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60'
+                : 'text-slate-600 hover:text-slate-900'
+                }`}
+            >
+              <Lucide.FileText size={13} className={activeTab === 'general' ? 'text-[var(--color-primary)]' : 'text-slate-400'} />
+              <span>General Reservation</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('outlet')}
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === 'outlet'
+                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60'
+                : 'text-slate-600 hover:text-slate-900'
+                }`}
+            >
+              <Lucide.Receipt size={13} className={activeTab === 'outlet' ? 'text-[var(--color-primary)]' : 'text-slate-400'} />
+              <span>+ Outlet / POS Addons</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('preferences')}
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === 'preferences'
+                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60'
+                : 'text-slate-600 hover:text-slate-900'
+                }`}
+            >
+              <Lucide.Sliders size={13} className={activeTab === 'preferences' ? 'text-[var(--color-primary)]' : 'text-slate-400'} />
+              <span>Billing Preferences</span>
+            </button>
+          </div>
+
+          {activeTab === 'general' && (
+            <div className="flex flex-col gap-4">
+
+              {/* SECTION 1: BOOKING PARAMETERS & DETAILS */}
+              <section className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] flex flex-col gap-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[var(--color-primary)] text-white font-bold text-xs shadow-xs">
+                      1
+                    </span>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-900">Booking Details & Rate Plan</h2>
+                      <p className="text-[11px] text-slate-400">Channel source, stay duration, meal plan & occupancy setup</p>
                     </div>
                   </div>
-                )}
-              </>
-            ) : (
-              /* New Guest Form Fields */
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Full name *</label>
-                  <input
-                    type="text"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Aarav Iyer"
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                  />
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status:</span>
+                    <select
+                      value={bookingType}
+                      onChange={(e) => setBookingType(e.target.value)}
+                      className="text-[11px] font-bold text-slate-700 bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-lg focus:outline-none focus:border-[var(--color-primary)] cursor-pointer"
+                    >
+                      <option value="Confirmed">Confirmed</option>
+                      <option value="Guaranteed">Guaranteed</option>
+                      <option value="Tentative">Tentative</option>
+                      <option value="Waitlist">Waitlist</option>
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Email *</label>
-                  <input
-                    type="email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    placeholder="aarav.iyer@example.com"
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                  />
+
+                {/* Row 1: Channel Source & Type */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                      Booking Source
+                    </label>
+                    <select
+                      value={bookingSource}
+                      onChange={(e) => setBookingSource(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                    >
+                      <option value="Direct">Direct (Hotel Desk)</option>
+                      <option value="OTA - Booking.com">OTA - Booking.com</option>
+                      <option value="OTA - Agoda">OTA - Agoda</option>
+                      <option value="OTA - MakeMyTrip">OTA - MakeMyTrip</option>
+                      <option value="Corporate">Corporate Negotiated</option>
+                      <option value="Walk-in">Walk-in Direct</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                      Booking Type / Mode
+                    </label>
+                    <select
+                      value={sourceType}
+                      onChange={(e) => setSourceType(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                    >
+                      <option value="Phone">Phone Call Inquiry</option>
+                      <option value="Email">Email Confirmation</option>
+                      <option value="Web Portal">Web Portal / Engine</option>
+                      <option value="Front Desk">Front Desk Agent</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                      Reference ID <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={bookingRefId}
+                        onChange={(e) => setBookingRefId(e.target.value)}
+                        placeholder="e.g. DJB-2026-9042"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-xs text-slate-900 font-mono font-bold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setBookingRefId(`DJB-2026-${Math.floor(1000 + Math.random() * 9000)}`)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-[var(--color-primary)] font-bold hover:underline cursor-pointer"
+                      >
+                        Auto
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Phone *</label>
-                  <input
-                    type="tel"
-                    value={newPhone}
-                    onChange={(e) => setNewPhone(e.target.value)}
-                    placeholder="+91 98765 43210"
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                  />
+
+                {/* Row 2: Stay Dates & Times (4-Grid) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-50/70 p-3.5 rounded-2xl border border-slate-200/70">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                      Check-in Date
+                    </label>
+                    <input
+                      type="date"
+                      value={checkInDate}
+                      onChange={(e) => setCheckInDate(e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                      Check-in Time
+                    </label>
+                    <input
+                      type="time"
+                      value={checkInTime}
+                      onChange={(e) => setCheckInTime(e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                      Check-out Date
+                    </label>
+                    <input
+                      type="date"
+                      value={checkOutDate}
+                      onChange={(e) => setCheckOutDate(e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                      Check-out Time
+                    </label>
+                    <input
+                      type="time"
+                      value={checkOutTime}
+                      onChange={(e) => setCheckOutTime(e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)]"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">ID / Passport</label>
-                  <input
-                    type="text"
-                    value={newIdNumber}
-                    onChange={(e) => setNewIdNumber(e.target.value)}
-                    placeholder="G-1023"
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                  />
+
+                {/* Quick Checkbox Options */}
+                <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-700">
+                  <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={samePlanAllRooms}
+                      onChange={(e) => setSamePlanAllRooms(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)] cursor-pointer"
+                    />
+                    <span>Same Plan for All Rooms</span>
+                  </label>
+
+                  <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={payAtHotel}
+                      onChange={(e) => setPayAtHotel(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)] cursor-pointer"
+                    />
+                    <span>Pay At Hotel (Post charges to folio)</span>
+                  </label>
                 </div>
-              </div>
-            )}
-          </section>
 
-          {/* ================= SECTION 2: STAY & ROOM SELECTION ================= */}
-          <section className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] p-4 sm:p-5">
-            {/* Header */}
-            <div className="flex items-center gap-2.5 mb-4">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-primary)] text-white font-bold text-xs shrink-0">
-                2
-              </span>
-              <h2 className="text-[15px] font-bold text-slate-900">Stay & Room Selection</h2>
-              <span className="text-xs text-slate-400 font-normal hidden sm:inline ml-1">
-                Select dates, guests, room type and choose available rooms
-              </span>
-            </div>
+                {/* Category & Meal Plan Selection */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-100">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                      Rate Plan
+                    </label>
+                    <select
+                      value={ratePlan}
+                      onChange={(e) => setRatePlan(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                    >
+                      <option value="Best Available Rates">Best Available Rates (BAR)</option>
+                      <option value="Corporate Static 2026">Corporate Static 2026</option>
+                      <option value="Member Loyalty Exclusive">Member Loyalty Exclusive</option>
+                      <option value="Weekend Escape Package">Weekend Escape Package</option>
+                    </select>
+                  </div>
 
-            {/* Inputs Row 1: Check-in, Check-out, Nights, Adults, Children */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
-              {/* Check-in */}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Check-in *</label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={checkIn}
-                    onChange={(e) => setCheckIn(e.target.value)}
-                    className="w-full rounded-md border border-slate-200 bg-white pl-3 pr-8 py-2 text-xs text-slate-900 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                  />
-                  <Lucide.Calendar size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                      Category
+                    </label>
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => {
+                        const newCat = e.target.value;
+                        setSelectedCategory(newCat);
+                        const cObj = ROOM_CATEGORIES.find((c) => c.name === newCat);
+                        if (cObj) {
+                          setRequirements((prev) =>
+                            prev.map((r) => ({ ...r, category: newCat, rate: cObj.baseRate }))
+                          );
+                        }
+                      }}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                    >
+                      {ROOM_CATEGORIES.map((c) => (
+                        <option key={c.name} value={c.name}>
+                          {c.name} (Base ₹{c.baseRate.toLocaleString('en-IN')})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                      Meal Plan
+                    </label>
+                    <select
+                      value={mealPlan}
+                      onChange={(e) => setMealPlan(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                    >
+                      {MEAL_PLANS.map((mp) => (
+                        <option key={mp.code} value={mp.code}>
+                          {mp.label} {mp.surcharge > 0 ? `(+₹${mp.surcharge})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
+              </section>
 
-              {/* Check-out */}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Check-out *</label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={checkOut}
-                    onChange={(e) => setCheckOut(e.target.value)}
-                    className="w-full rounded-md border border-slate-200 bg-white pl-3 pr-8 py-2 text-xs text-slate-900 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                  />
-                  <Lucide.Calendar size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                </div>
-              </div>
+              {/* SECTION 2: REQUIREMENTS & ROOMS BREAKDOWN */}
+              <section className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] flex flex-col gap-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[var(--color-primary)] text-white font-bold text-xs shadow-xs">
+                      2
+                    </span>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-900">Room Requirements & Allocation</h2>
+                      <p className="text-[11px] text-slate-400">Specify guest headcounts, room numbers, and custom pricing overrides</p>
+                    </div>
+                  </div>
 
-              {/* Nights */}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Nights</label>
-                <input
-                  type="text"
-                  readOnly
-                  value={nights}
-                  className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 font-semibold text-center select-none"
-                />
-              </div>
-
-              {/* Adults */}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Adults *</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={8}
-                  value={adults}
-                  onChange={(e) => setAdults(Number(e.target.value))}
-                  className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                />
-              </div>
-
-              {/* Children */}
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Children</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={6}
-                  value={children}
-                  onChange={(e) => setChildren(Number(e.target.value))}
-                  className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                />
-              </div>
-            </div>
-
-            {/* Inputs Row 2: Room Type + Preview, Rate Plan, No. of rooms, Check availability */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center mb-4">
-              {/* Room Type */}
-              <div className="md:col-span-3">
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Room type *</label>
-                <select
-                  value={activeRoomType.id}
-                  onChange={(e) => setSelectedRoomTypeId(e.target.value)}
-                  className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                >
-                  {roomTypes.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                  {roomTypes.length === 0 && <option value="deluxe">Deluxe</option>}
-                </select>
-              </div>
-
-              {/* Room Preview Box */}
-              <div className="md:col-span-3 flex items-center gap-2.5 rounded-md border border-slate-200 bg-white p-2">
-                <img
-                  src="/images/room-deluxe.jpg"
-                  onError={(e) => {
-                    // Fallback to high-res deluxe room photo
-                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=240&q=80';
-                  }}
-                  alt="Deluxe Room"
-                  className="h-10 w-12 rounded-md object-cover flex-none"
-                />
-                <div className="min-w-0 flex-1 leading-tight">
-                  <p className="font-bold text-xs text-slate-900 truncate">{activeRoomType.name}</p>
-                  <p className="text-[10.5px] text-slate-500 truncate">2 adults, 1 child • 28 m²</p>
-                  <p className="text-[10.5px] text-slate-500 truncate">King / Twin • City view</p>
-                </div>
-              </div>
-
-              {/* Rate Plan */}
-              <div className="md:col-span-3">
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Rate plan</label>
-                <select
-                  value={ratePlan}
-                  onChange={(e) => setRatePlan(e.target.value)}
-                  className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 truncate focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                >
-                  {RATE_PLANS.map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* No. of rooms */}
-              <div className="md:col-span-1">
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">No. of rooms *</label>
-                <select
-                  value={roomsCount}
-                  onChange={(e) => setRoomsCount(Number(e.target.value))}
-                  className="w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-xs text-slate-900 text-center focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                >
-                  <option value={1}>1</option>
-                  <option value={2}>2</option>
-                </select>
-              </div>
-
-              {/* Check availability Button */}
-              <div className="md:col-span-2 pt-0 md:pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setRefreshTick((t) => t + 1);
-                    toast('Availability checked', { detail: '3 Deluxe rooms are ready for allocation.', tone: 'info' });
-                  }}
-                  className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-white py-2 px-3 text-xs font-semibold rounded-md flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
-                >
-                  <span>Check availability</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Availability Alert Banner */}
-            <div className="flex items-center justify-between gap-2 rounded-md border border-emerald-200 bg-emerald-50/90 px-3.5 py-2.5 mb-5 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white shrink-0">
-                  <Lucide.Check size={12} strokeWidth={3} />
-                </span>
-                <span className="text-emerald-900">
-                  <strong>3 Deluxe rooms available</strong> for 3 nights (17 Oct – 20 Oct)
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowRateTable((prev) => !prev)}
-                className="font-semibold inline-flex items-center gap-1 text-emerald-800 hover:text-emerald-950 hover:underline cursor-pointer"
-              >
-                <span>View rate details</span>
-                <Lucide.ArrowRight size={13} />
-              </button>
-            </div>
-
-            {/* Available rooms for selected dates Header & Controls */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-3">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                <h3 className="text-xs font-bold text-slate-900">Available rooms for selected dates</h3>
-
-                {/* Legend Dots */}
-                <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                    <span>Available</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/30" />
-                    <span className="font-semibold text-[var(--color-primary)]">Selected</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-rose-500" />
-                    <span>Occupied</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-amber-500" />
-                    <span>Dirty</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-sky-500" />
-                    <span>Cleaning</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-slate-400" />
-                    <span>Out of service</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Group by floor & Grid / List Switcher */}
-              <div className="flex items-center gap-2">
-                <select
-                  value={groupBy}
-                  onChange={(e) => setGroupBy(e.target.value as 'floor' | 'type')}
-                  className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700"
-                >
-                  <option value="floor">Group by floor</option>
-                  <option value="type">Group by type</option>
-                </select>
-
-                <div className="flex items-center rounded-md border border-slate-200 bg-white p-0.5">
-                  <button
-                    type="button"
-                    onClick={() => setViewMode('grid')}
-                    className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition-colors cursor-pointer ${viewMode === 'grid'
-                        ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                  >
-                    <Lucide.LayoutGrid size={13} />
-                    <span>Grid</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode('list')}
-                    className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition-colors cursor-pointer ${viewMode === 'list'
-                        ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                  >
-                    <Lucide.List size={13} />
-                    <span>List</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Floor Accordions */}
-            <div className="flex flex-col gap-2.5 mb-5">
-              {demoFloorRooms.map((floorGroup) => {
-                const isOpen = floorExpanded[floorGroup.floor] ?? false;
-                return (
-                  <div
-                    key={floorGroup.floor}
-                    className="rounded-md border border-slate-200 bg-white overflow-hidden"
-                  >
-                    {/* Floor Header Accordion Button */}
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() =>
-                        setFloorExpanded((prev) => ({
-                          ...prev,
-                          [floorGroup.floor]: !prev[floorGroup.floor],
-                        }))
-                      }
-                      className="flex w-full items-center justify-between px-3.5 py-2.5 text-left text-xs font-bold text-slate-800 bg-slate-50/80 hover:bg-slate-100/70 transition-colors cursor-pointer"
+                      onClick={() => setOverridePrice(!overridePrice)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${overridePrice
+                        ? 'bg-amber-50 border-amber-300 text-amber-800 shadow-2xs'
+                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        }`}
                     >
-                      <span>{floorGroup.title}</span>
-                      <Lucide.ChevronDown
-                        size={15}
-                        className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                      />
+                      <Lucide.Sliders size={12} />
+                      <span>{overridePrice ? 'Lock Price' : 'Override Price'}</span>
                     </button>
+                    <button
+                      type="button"
+                      onClick={handleAddRoom}
+                      className="px-3 py-1.5 rounded-xl bg-[var(--color-primary)] hover:opacity-95 text-white text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center gap-1"
+                    >
+                      <Lucide.Plus size={13} />
+                      <span>Add Room</span>
+                    </button>
+                  </div>
+                </div>
 
-                    {/* Room Cards Grid */}
-                    {isOpen && (
-                      <div className="p-3">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-                          {floorGroup.rooms.map((room) => {
-                            const isSelected = selectedRooms.includes(room.number);
-                            return (
-                              <div
-                                key={room.number}
-                                onClick={() => handleToggleRoom(room.number, room.available)}
-                                className={`relative flex flex-col justify-between rounded-md border p-3 transition-all duration-150 ${!room.available
-                                    ? 'opacity-60 bg-slate-50 cursor-not-allowed border-slate-200'
-                                    : isSelected
-                                      ? 'border-2 border-[var(--color-primary)] bg-[var(--color-muted-surface)]/30 shadow-xs cursor-pointer'
-                                      : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs cursor-pointer'
-                                  }`}
-                              >
-                                <div className="flex items-start justify-between gap-1 mb-2">
-                                  {/* Custom Checkbox */}
-                                  <div
-                                    className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${isSelected
-                                        ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white'
-                                        : 'border-slate-300 bg-white'
-                                      }`}
-                                  >
-                                    {isSelected && <Lucide.Check size={11} strokeWidth={3} />}
-                                  </div>
+                {/* Rooms List */}
+                <div className="flex flex-col gap-3">
+                  {requirements.map((req) => (
+                    <div
+                      key={req.id}
+                      className="rounded-2xl border border-slate-200/90 bg-slate-50/40 p-4 transition-all hover:border-slate-300 flex flex-col gap-3"
+                    >
+                      {/* Room Row Header */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 font-bold text-xs border border-indigo-100">
+                            {req.roomIndex}
+                          </span>
+                          <span className="text-xs font-extrabold text-slate-900">
+                            Room {req.roomIndex} · {req.category}
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Clean / Ready
+                          </span>
+                        </div>
 
-                                  <span className="text-base font-bold text-slate-900 leading-none">{room.number}</span>
-                                </div>
-
-                                <div className="mb-2">
-                                  <p className="text-[11px] text-slate-500">{room.type}</p>
-                                  <p className="text-xs font-semibold text-slate-900 leading-tight">
-                                    ₹{room.rate.toLocaleString('en-IN')} <span className="text-[10px] font-normal text-slate-400">/ night</span>
-                                  </p>
-                                </div>
-
-                                {/* Status Badge */}
-                                <div>
-                                  {room.status === 'Ready' && (
-                                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                      Ready
-                                    </span>
-                                  )}
-                                  {room.status === 'Cleaning' && (
-                                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
-                                      <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />
-                                      Cleaning
-                                    </span>
-                                  )}
-                                  {room.status === 'Occupied' && (
-                                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-                                      <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                                      Occupied ({room.dateNote})
-                                    </span>
-                                  )}
-                                  {room.status === 'Dirty' && (
-                                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                                      <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                                      Dirty
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-extrabold text-slate-900 font-mono">
+                            ₹{req.rate.toLocaleString('en-IN')}{' '}
+                            <span className="text-[10px] font-normal text-slate-500">/ night</span>
+                          </span>
+                          {requirements.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveRoom(req.id)}
+                              className="text-slate-400 hover:text-rose-600 transition-colors p-1"
+                              title="Remove Room"
+                            >
+                              <Lucide.Trash2 size={13} />
+                            </button>
+                          )}
                         </div>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
 
-            {/* Nightly rate for selected room type (Deluxe) Table */}
-            {showRateTable && (
-              <div className="rounded-md border border-slate-200 bg-white p-3.5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2.5">
-                  <h4 className="text-xs font-bold text-slate-900">
-                    Nightly rate for selected room type ({activeRoomType.name})
-                  </h4>
-                  <span className="text-[10.5px] text-slate-400">
-                    Rates may vary by date due to season, demand or hotel policy. Final amount will be calculated at confirmation.
+                      {/* Room Row Parameters */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                        {/* Adults */}
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                            Adults
+                          </label>
+                          <div className="flex items-center rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateRequirement(req.id, 'adults', Math.max(1, req.adults - 1))}
+                              className="px-2.5 py-1.5 text-slate-500 hover:bg-slate-100 font-bold text-xs cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <span className="flex-1 text-center text-xs font-bold text-slate-900">{req.adults}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateRequirement(req.id, 'adults', req.adults + 1)}
+                              className="px-2.5 py-1.5 text-slate-500 hover:bg-slate-100 font-bold text-xs cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Children */}
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                            Children (6-12)
+                          </label>
+                          <div className="flex items-center rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateRequirement(req.id, 'children', Math.max(0, req.children - 1))}
+                              className="px-2.5 py-1.5 text-slate-500 hover:bg-slate-100 font-bold text-xs cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <span className="flex-1 text-center text-xs font-bold text-slate-900">{req.children}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateRequirement(req.id, 'children', req.children + 1)}
+                              className="px-2.5 py-1.5 text-slate-500 hover:bg-slate-100 font-bold text-xs cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Infant */}
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                            Infant (&lt;5)
+                          </label>
+                          <div className="flex items-center rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateRequirement(req.id, 'infant', Math.max(0, req.infant - 1))}
+                              className="px-2.5 py-1.5 text-slate-500 hover:bg-slate-100 font-bold text-xs cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <span className="flex-1 text-center text-xs font-bold text-slate-900">{req.infant}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateRequirement(req.id, 'infant', req.infant + 1)}
+                              className="px-2.5 py-1.5 text-slate-500 hover:bg-slate-100 font-bold text-xs cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Assigned Room Number */}
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                            Room Number
+                          </label>
+                          <select
+                            value={req.roomNo}
+                            onChange={(e) => handleUpdateRequirement(req.id, 'roomNo', e.target.value)}
+                            className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-[var(--color-primary)] cursor-pointer shadow-2xs"
+                          >
+                            <option value="201">Room 201 (1st Flr)</option>
+                            <option value="202">Room 202 (2nd Flr)</option>
+                            <option value="203">Room 203 (2nd Flr)</option>
+                            <option value="301">Room 301 (3rd Flr)</option>
+                            <option value="302">Room 302 (3rd Flr)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Custom Rate Override input */}
+                      {overridePrice && (
+                        <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-3">
+                          <span className="text-[11px] font-semibold text-amber-800">
+                            Custom Rate Override:
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-slate-500">₹</span>
+                            <input
+                              type="number"
+                              value={req.rate}
+                              onChange={(e) => handleUpdateRequirement(req.id, 'rate', Number(e.target.value) || 0)}
+                              className="w-28 rounded-lg border border-amber-300 bg-amber-50/50 px-2.5 py-1 text-xs font-bold font-mono text-slate-900 focus:outline-none focus:border-amber-500"
+                            />
+                            <span className="text-[10px] text-slate-500">/ night</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Subtotals & Taxes calculation breakdown */}
+                <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/70 flex flex-col gap-2 text-xs">
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span>Total Selected Rooms</span>
+                    <span className="font-bold text-slate-900">{requirements.length} Room(s) · {nightsCount} Night(s)</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span>Room Charges Subtotal</span>
+                    <span className="font-bold font-mono text-slate-900">₹{roomCharges.toLocaleString('en-IN')}.00</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span>Applicable GST (5%)</span>
+                    <span className="font-bold font-mono text-slate-900">₹{taxAmount.toLocaleString('en-IN')}.00</span>
+                  </div>
+                  <div className="h-[1px] bg-slate-200 my-0.5" />
+                  <div className="flex items-center justify-between text-sm font-bold text-slate-900">
+                    <span>Requirements Total</span>
+                    <span className="font-mono text-emerald-700">₹{totalBill.toLocaleString('en-IN')}.00</span>
+                  </div>
+                </div>
+              </section>
+
+              {/* SECTION 3: GUEST DETAILS & PROFILE SEARCH */}
+              <section className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] flex flex-col gap-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[var(--color-primary)] text-white font-bold text-xs shadow-xs">
+                      3
+                    </span>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-900">Guest Information & Verification</h2>
+                      <p className="text-[11px] text-slate-400">Search existing CRM profiles or register fresh visitor identity</p>
+                    </div>
+                  </div>
+
+                  <span className="text-[11px] font-bold text-slate-500 bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-lg">
+                    Primary Resident
                   </span>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-200 bg-slate-50/70">
-                        <th className="py-2 px-3 font-semibold text-slate-600">Date</th>
-                        <th className="py-2 px-3 font-semibold text-slate-600">Day</th>
-                        <th className="py-2 px-3 font-semibold text-slate-600">Base rate</th>
-                        <th className="py-2 px-3 font-semibold text-slate-600">Taxes & fees (est.)</th>
-                        <th className="py-2 px-3 font-semibold text-slate-600 text-right">Total per night</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y border-slate-200">
-                      {stayNightBreakdown.map((row) => (
-                        <tr key={row.dateStr} className="hover:bg-slate-50/80">
-                          <td className="py-2 px-3 font-medium text-slate-900">{row.dateStr}</td>
-                          <td className="py-2 px-3 text-slate-500">{row.dayStr}</td>
-                          <td className="py-2 px-3 font-medium text-slate-900">₹{row.baseRate.toLocaleString('en-IN')}.00</td>
-                          <td className="py-2 px-3 text-slate-500">₹{row.taxes.toLocaleString('en-IN')}.00</td>
-                          <td className="py-2 px-3 font-bold text-slate-900 text-right">₹{row.total.toLocaleString('en-IN')}.00</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr className="font-semibold text-slate-900 bg-amber-50/70 border-t border-amber-200">
-                        <td colSpan={4} className="py-2 px-3 text-slate-800">
-                          Average per night (excl. taxes)
-                        </td>
-                        <td className="py-2 px-3 font-bold text-right text-slate-900">
-                          ₹{roomBaseRate.toLocaleString('en-IN')}.00
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              </div>
-            )}
-          </section>
-
-          {/* ================= SECTION 3: SERVICES, DISCOUNTS & PAYMENT ================= */}
-          <section className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] p-4 sm:p-5">
-            {/* Header */}
-            <div className="flex items-center gap-2.5 mb-4">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-primary)] text-white font-bold text-xs shrink-0">
-                3
-              </span>
-              <h2 className="text-[15px] font-bold text-slate-900">Services, Discounts & Payment</h2>
-              <span className="text-xs text-slate-400 font-normal hidden sm:inline ml-1">
-                Add extras, apply discounts and payment details
-              </span>
-            </div>
-
-            {/* Sub-tabs Bar */}
-            <div className="flex border-b border-slate-200 mb-4 gap-2 text-xs font-semibold">
-              {[
-                { id: 'extras', label: 'Extra Services' },
-                { id: 'requests', label: 'Special Requests' },
-                { id: 'discount', label: 'Discount' },
-                { id: 'payment', label: 'Payment' },
-              ].map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setServicesTab(t.id as never)}
-                  className={`relative py-2 px-3 transition-colors cursor-pointer ${servicesTab === t.id
-                      ? 'text-[var(--color-primary)]'
-                      : 'text-slate-500 hover:text-slate-900'
-                    }`}
-                >
-                  {t.label}
-                  {servicesTab === t.id && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full bg-[var(--color-primary)]" />
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {/* Tab 1: Extra Services */}
-            {servicesTab === 'extras' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {servicesList.slice(0, 3).map((service) => (
-                  <div
-                    key={service.id}
-                    className={`flex items-center justify-between p-3 rounded-md border transition-all ${service.selected
-                        ? 'border-[var(--color-primary)]/40 bg-[var(--color-muted-surface)]/25 shadow-xs'
-                        : 'border-slate-200 bg-white'
-                      }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      {/* Checkbox */}
+                {/* Live Guest Search Bar */}
+                <div className="relative">
+                  <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-900 shadow-2xs focus-within:bg-white focus-within:border-[var(--color-primary)] focus-within:ring-2 focus-within:ring-[var(--color-primary)]/15 transition-all">
+                    <Lucide.Search size={15} className="text-slate-400 shrink-0" />
+                    <input
+                      type="text"
+                      value={guestSearch}
+                      onChange={(e) => {
+                        setGuestSearch(e.target.value);
+                        setShowGuestSearchDropdown(true);
+                      }}
+                      onFocus={() => setShowGuestSearchDropdown(true)}
+                      placeholder="Quick search by name, contact phone, or guest reference..."
+                      className="w-full bg-transparent border-none outline-none placeholder:text-slate-400 text-xs text-slate-900 font-medium"
+                    />
+                    {guestSearch && (
                       <button
                         type="button"
-                        onClick={() => handleToggleService(service.id)}
-                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors cursor-pointer ${service.selected
-                            ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white'
-                            : 'border-slate-300 bg-white'
-                          }`}
+                        onClick={() => {
+                          setGuestSearch('');
+                          setShowGuestSearchDropdown(false);
+                        }}
+                        className="text-slate-400 hover:text-slate-600"
                       >
-                        {service.selected && <Lucide.Check size={11} strokeWidth={3} />}
+                        <Lucide.X size={14} />
                       </button>
+                    )}
+                  </div>
 
-                      {/* Image Thumbnail */}
-                      <img
-                        src={service.image}
-                        alt={service.name}
-                        className="h-10 w-10 rounded-md object-cover shrink-0"
-                      />
-
-                      {/* Details */}
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-900 truncate">{service.name}</p>
-                        <p className="text-[11px] text-slate-500">
-                          ₹{service.unitPrice.toFixed(2)} {service.unitLabel}
-                        </p>
+                  {/* Dropdown with guest database */}
+                  {showGuestSearchDropdown && guestSearch && (
+                    <div className="absolute left-0 right-0 top-full mt-1.5 z-20 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase px-2 py-1">
+                        Matching Profiles in PMS
                       </div>
-                    </div>
-
-                    {/* Stepper Quantity Control */}
-                    <div className="flex items-center rounded-md border border-slate-200 bg-white p-0.5 ml-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => handleUpdateServiceQty(service.id, -1)}
-                        className="h-6 w-6 flex items-center justify-center rounded text-slate-500 hover:text-slate-900 hover:bg-slate-50 cursor-pointer"
-                      >
-                        <Lucide.Minus size={11} />
-                      </button>
-                      <span className="w-5 text-center text-xs font-bold text-slate-900">
-                        {service.quantity}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleUpdateServiceQty(service.id, 1)}
-                        className="h-6 w-6 flex items-center justify-center rounded text-slate-500 hover:text-slate-900 hover:bg-slate-50 cursor-pointer"
-                      >
-                        <Lucide.Plus size={11} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Tab 2: Special Requests */}
-            {servicesTab === 'requests' && (
-              <div className="flex flex-col gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Quick tags
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {['High floor', 'Quiet room', 'Late check-in', 'Early check-in', 'Extra towels', 'Honeymoon setup'].map((tag) => {
-                      const on = selectedQuickTags.includes(tag);
-                      return (
+                      {SAMPLE_GUEST_DATABASE.filter(
+                        (g) =>
+                          g.name.toLowerCase().includes(guestSearch.toLowerCase()) ||
+                          g.phone.includes(guestSearch)
+                      ).map((g) => (
                         <button
-                          key={tag}
+                          key={g.id}
                           type="button"
-                          onClick={() => handleToggleQuickTag(tag)}
-                          className={`rounded-full px-3 py-1 text-xs font-semibold border transition-all cursor-pointer ${on
-                              ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)] shadow-xs'
-                              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                            }`}
+                          onClick={() => {
+                            setGuestName(g.name);
+                            setGuestContact(g.phone);
+                            setGuestEmail(g.email);
+                            if (g.gst) {
+                              setCompanyGst(g.gst);
+                              setBillToCompany(true);
+                            }
+                            setShowGuestSearchDropdown(false);
+                            setGuestSearch('');
+                            toast.success('Guest Profile Loaded', { detail: `${g.name} (${g.city})` });
+                          }}
+                          className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition-colors text-left cursor-pointer"
                         >
-                          {tag}
+                          <div>
+                            <span className="font-bold text-slate-900 text-xs block">{g.name}</span>
+                            <span className="text-[11px] text-slate-500">{g.phone} · {g.email}</span>
+                          </div>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                            {g.city}
+                          </span>
                         </button>
-                      );
-                    })}
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Form fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div className="sm:col-span-1">
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                      Salutation
+                    </label>
+                    <select
+                      value={guestSalutation}
+                      onChange={(e) => setGuestSalutation(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                    >
+                      <option value="Mr.">Mr.</option>
+                      <option value="Ms.">Ms.</option>
+                      <option value="Mrs.">Mrs.</option>
+                      <option value="Dr.">Dr.</option>
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                      Full Legal Name <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      placeholder="e.g. Rohan Sharma"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                    />
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                      Phone Number <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={guestContact}
+                        onChange={(e) => setGuestContact(e.target.value)}
+                        placeholder="e.g. +91 88829 51951"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                      />
+                      <Lucide.Phone size={13} className="text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        value={guestEmail}
+                        onChange={(e) => setGuestEmail(e.target.value)}
+                        placeholder="e.g. guest@example.com"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                      />
+                      <Lucide.Mail size={13} className="text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* ID Verification Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-100">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                      Identity Document
+                    </label>
+                    <select
+                      value={guestIdType}
+                      onChange={(e) => setGuestIdType(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                    >
+                      <option value="Aadhaar Card">Aadhaar Card</option>
+                      <option value="Passport">Passport</option>
+                      <option value="Driving License">Driving License</option>
+                      <option value="Voter ID">Voter ID</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                      Document Number
+                    </label>
+                    <input
+                      type="text"
+                      value={guestIdNumber}
+                      onChange={(e) => setGuestIdNumber(e.target.value)}
+                      placeholder="e.g. 9842 1290 8731"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2 text-xs text-slate-900 font-mono font-bold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Special Requests */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Special guest requests & instructions
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                    Front Desk & Stay Notes
                   </label>
                   <textarea
                     rows={2}
                     value={specialRequests}
                     onChange={(e) => setSpecialRequests(e.target.value)}
-                    placeholder="Guest arrives late night, needs airport pickup confirmation..."
-                    className="w-full rounded-md border border-slate-200 bg-white p-2.5 text-xs text-slate-900 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                    placeholder="Guest preferences, arrival notes, or housekeeping requests..."
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white p-3 text-xs text-slate-900 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all resize-none"
                   />
                 </div>
+              </section>
 
+              {/* SECTION 4: PAYMENTS & SUMMARY BREAKDOWN */}
+              <section className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] flex flex-col gap-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[var(--color-primary)] text-white font-bold text-xs shadow-xs">
+                      4
+                    </span>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-900">Payments & Master Folio Summary</h2>
+                      <p className="text-[11px] text-slate-400">Payment receipts, advances collected & outstanding balance</p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCollectAmount(String(outstanding));
+                      setCollectModalOpen(true);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                  >
+                    <Lucide.Banknote size={13} />
+                    <span>Collect Payment</span>
+                  </button>
+                </div>
+
+                {/* Payments Recorded List */}
+                {paymentsList.length > 0 ? (
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Recorded Transactions
+                    </span>
+                    {paymentsList.map((p) => (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between p-3 rounded-xl border border-slate-200/80 bg-slate-50/60 text-xs"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                            <Lucide.Check size={14} />
+                          </div>
+                          <div>
+                            <span className="font-bold text-slate-900 block">{p.method}</span>
+                            <span className="text-[10px] text-slate-500 font-mono">Ref: {p.ref} · {p.time}</span>
+                          </div>
+                        </div>
+                        <span className="font-extrabold font-mono text-emerald-700">
+                          ₹{p.amount.toLocaleString('en-IN')}.00
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-200 p-4 text-center text-xs text-slate-500 bg-slate-50/30">
+                    No advance payments recorded yet. Click <strong>Collect Payment</strong> to record an advance or deposit.
+                  </div>
+                )}
+
+                {/* Payment Notes */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Internal staff notes (hidden from guest)
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                    Payment & Accounting Notes
                   </label>
                   <input
                     type="text"
-                    value={internalNotes}
-                    onChange={(e) => setInternalNotes(e.target.value)}
-                    placeholder="VIP corporate account, apply complementary fruit basket..."
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                    value={paymentNotes}
+                    onChange={(e) => setPaymentNotes(e.target.value)}
+                    placeholder="e.g. Card pre-authorization held or UPI transaction reference..."
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] transition-all"
                   />
                 </div>
-              </div>
-            )}
 
-            {/* Tab 3: Discount */}
-            {servicesTab === 'discount' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                {/* Itemized Bill Summary Table */}
+                <div className="rounded-2xl border border-slate-200/90 bg-white p-4 flex flex-col gap-2 text-xs">
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span>Room Charges ({requirements.length} room, {nightsCount} night)</span>
+                    <span className="font-semibold font-mono text-slate-900">₹{roomCharges.toLocaleString('en-IN')}.00</span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span>Add-ons / Food Services</span>
+                    <span className="font-semibold font-mono text-slate-900">₹0.00</span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-slate-600">
+                    <div className="flex items-center gap-1.5">
+                      <span>Discount Applied</span>
+                      <span className="text-[10px] text-slate-400 font-medium">(Editable)</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-slate-400 font-mono text-xs">-₹</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={discountAmount || ''}
+                        onChange={(e) => setDiscountAmount(Math.max(0, Number(e.target.value) || 0))}
+                        placeholder="0"
+                        className="w-20 rounded-lg border border-slate-200 bg-slate-50 px-2 py-0.5 text-right font-mono font-bold text-xs text-slate-800 focus:outline-none focus:border-[var(--color-primary)]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="h-[1px] bg-slate-100 my-0.5" />
+
+                  <div className="flex items-center justify-between font-bold text-slate-700">
+                    <span>Sub-Total</span>
+                    <span className="font-mono text-slate-900">₹{subTotal.toLocaleString('en-IN')}.00</span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span>Goods & Services Tax (GST 5%)</span>
+                    <span className="font-semibold font-mono text-slate-900">₹{taxAmount.toLocaleString('en-IN')}.00</span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-emerald-700 font-bold">
+                    <span>Payments Received</span>
+                    <span className="font-mono">₹{totalPaid.toLocaleString('en-IN')}.00</span>
+                  </div>
+
+                  <div className="h-[1px] bg-slate-200 my-1" />
+
+                  <div className="flex items-center justify-between text-sm font-extrabold text-slate-900 pt-0.5">
+                    <span>Net Payable at Hotel</span>
+                    <span className="font-mono text-base text-[var(--color-primary)]">
+                      ₹{outstanding.toLocaleString('en-IN')}.00
+                    </span>
+                  </div>
+                </div>
+              </section>
+
+            </div>
+          )}
+
+          {/* OUTLET / POS ADDONS TAB */}
+          {activeTab === 'outlet' && (
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                    <Lucide.Receipt size={16} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">Outlet & Point of Sale Charges</h3>
+                    <p className="text-[11px] text-slate-500">Route restaurant orders, spa treatments, or laundry to room folio</p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-slate-500">0 Active Outlets</span>
+              </div>
+
+              <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center flex flex-col items-center justify-center gap-2">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-slate-400">
+                  <Lucide.UtensilsCrossed size={22} />
+                </div>
+                <h4 className="text-xs font-bold text-slate-800">No Outlet Charges Incurred</h4>
+                <p className="text-[11px] text-slate-500 max-w-sm">
+                  Outlet charges (Bar, Restaurant, Laundry) can be posted to Room {requirements[0]?.roomNo || '202'} after check-in.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => toast.info('POS Outlet', { detail: 'Outlet charge simulator available once checked in.' })}
+                  className="mt-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer"
+                >
+                  Post Direct Charge
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* BILLING PREFERENCES TAB */}
+          {activeTab === 'preferences' && (
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs flex flex-col gap-4">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <Lucide.Sliders size={16} />
+                </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Discount Type</label>
+                  <h3 className="text-sm font-bold text-slate-900">Billing Routing & Corporate Invoicing</h3>
+                  <p className="text-[11px] text-slate-500">Configure folio settlement routing, company accounts & credit rules</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                    Room Bill Routing
+                  </label>
                   <select
-                    value={discountType}
-                    onChange={(e) => setDiscountType(e.target.value as never)}
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900"
+                    value={roomBillTo}
+                    onChange={(e) => setRoomBillTo(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] cursor-pointer"
                   >
-                    <option value="none">No discount</option>
-                    <option value="percent">Percentage (%)</option>
-                    <option value="fixed">Fixed Amount (₹)</option>
+                    <option value="To Guest">To Guest (Direct Settlement)</option>
+                    <option value="To Company">To Company Account</option>
+                    <option value="To Travel Agent">To Travel Agent / OTA Voucher</option>
                   </select>
                 </div>
-                {discountType !== 'none' && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      {discountType === 'percent' ? 'Discount Percentage (%)' : 'Discount Amount (₹)'}
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      value={discountValue}
-                      onChange={(e) => setDiscountValue(Number(e.target.value))}
-                      className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900"
-                    />
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                    Extras & Minibar Routing
+                  </label>
+                  <select
+                    value={extrasBillTo}
+                    onChange={(e) => setExtrasBillTo(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] cursor-pointer"
+                  >
+                    <option value="To Guest">To Guest (Direct Settlement)</option>
+                    <option value="To Company">To Company Account</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 pt-2 border-t border-slate-100 text-xs">
+                <label className="inline-flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={billToCompany}
+                    onChange={(e) => setBillToCompany(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-[var(--color-primary)] cursor-pointer"
+                  />
+                  <span>Bill To Corporate / Company Account</span>
+                </label>
+
+                {billToCompany && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-6 pt-1">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                        Company Name
+                      </label>
+                      <input
+                        type="text"
+                        value={companyName}
+                        onChange={(e) => setCompanyName(e.target.value)}
+                        placeholder="e.g. Zenith Tech Solutions Pvt Ltd"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                        Corporate GSTIN
+                      </label>
+                      <input
+                        type="text"
+                        value={companyGst}
+                        onChange={(e) => setCompanyGst(e.target.value)}
+                        placeholder="e.g. 27AABCT1234A1Z5"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 font-mono font-bold"
+                      />
+                    </div>
                   </div>
                 )}
-              </div>
-            )}
 
-            {/* Tab 4: Payment */}
-            {servicesTab === 'payment' && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Booking Source</label>
-                  <select
-                    value={bookingSource}
-                    onChange={(e) => setBookingSource(e.target.value)}
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900"
-                  >
-                    {SOURCES.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Method</label>
-                  <select
-                    value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900"
-                  >
-                    <option value="Card">Credit / Debit Card</option>
-                    <option value="Cash">Cash</option>
-                    <option value="UPI">UPI / Net Banking</option>
-                    <option value="BillToCompany">Bill to Company</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Deposit / Advance (₹)</label>
+                <label className="inline-flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
                   <input
-                    type="number"
-                    min={0}
-                    value={depositAmount}
-                    onChange={(e) => setDepositAmount(Number(e.target.value))}
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 font-semibold"
+                    type="checkbox"
+                    checked={noPost}
+                    onChange={(e) => setNoPost(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-[var(--color-primary)] cursor-pointer"
                   />
-                </div>
+                  <span>No Post (Block guest from charging extras/minibar to room)</span>
+                </label>
               </div>
-            )}
-          </section>
+            </div>
+          )}
+
         </div>
 
-        {/* ================= RIGHT STICKY COLUMN: RESERVATION PRICE SUMMARY ================= */}
-        <aside className="xl:sticky xl:top-6">
-          <div className="flex flex-col rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06)]">
-            {/* Summary Header */}
-            <div className="flex items-start justify-between mb-4 border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-[15px] font-bold text-slate-900">Reservation Price Summary</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {activeRoomType.name} • {roomsCount} room • {nights} nights • {adults} adults
-                </p>
-              </div>
+        {/* ================= RIGHT COLUMN: TASKS, CHECKLIST & FRONT DESK LOG ================= */}
+        <div className="flex flex-col gap-4">
 
-              {/* Estimate Badge */}
-              <span className="flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-semibold bg-[var(--color-muted-surface)] text-[var(--color-primary)] border border-[color-mix(in_srgb,var(--color-primary)_25%,transparent)] shrink-0">
-                <Lucide.Sparkles size={11} />
-                <span>Estimate</span>
+          {/* Front Desk Tasks Panel */}
+          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-[0_4px_20px_-5px_rgba(15,23,42,0.05)] p-5 flex flex-col gap-3.5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                  <Lucide.CheckSquare size={15} />
+                </div>
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  Checklist & Tasks
+                </h3>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                {tasks.filter((t) => t.done).length}/{tasks.length} Done
               </span>
             </div>
 
-            {/* Accordion 1: Room Charges */}
-            <div className="border-b border-slate-100 py-3">
-              <button
-                type="button"
-                onClick={() => toggleAccordion('roomCharges')}
-                className="flex items-center justify-between w-full text-left text-xs font-bold text-slate-900 cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded bg-purple-50 text-purple-700">
-                    <Lucide.BedDouble size={13} />
+            {/* Task Items */}
+            <div className="flex flex-col gap-2">
+              {tasks.map((task) => (
+                <div
+                  key={task.id}
+                  onClick={() => handleToggleTask(task.id)}
+                  className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${task.done
+                    ? 'bg-slate-50 border-slate-200/60 opacity-60'
+                    : 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+                    }`}
+                >
+                  <button
+                    type="button"
+                    className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded border transition-colors ${task.done
+                      ? 'bg-emerald-500 border-emerald-500 text-white'
+                      : 'border-slate-300 bg-white'
+                      }`}
+                  >
+                    {task.done && <Lucide.Check size={11} />}
+                  </button>
+                  <span
+                    className={`text-xs flex-1 ${task.done ? 'line-through text-slate-400 font-normal' : 'font-semibold text-slate-800'
+                      }`}
+                  >
+                    {task.text}
                   </span>
-                  <span>Room Charges</span>
                 </div>
-                <Lucide.ChevronUp
-                  size={14}
-                  className={`text-slate-400 transition-transform ${accordionOpen.roomCharges ? '' : 'rotate-180'}`}
-                />
-              </button>
-
-              {accordionOpen.roomCharges && (
-                <div className="mt-2.5 pl-7 text-xs flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span>
-                      {activeRoomType.name} {selectedRooms.length > 0 ? `(Room ${selectedRooms[0]})` : ''}
-                    </span>
-                    <span>₹{roomBaseRate.toLocaleString('en-IN')}.00 / night</span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span>{roomsCount} room × {nights} nights</span>
-                    <span className="font-medium text-slate-900">₹{roomChargesSubtotal.toLocaleString('en-IN')}.00</span>
-                  </div>
-                  <div className="border-t border-slate-100 pt-1.5 flex items-center justify-between font-bold text-slate-900">
-                    <span>Subtotal (Room Charges)</span>
-                    <span>₹{roomChargesSubtotal.toLocaleString('en-IN')}.00</span>
-                  </div>
-                </div>
-              )}
+              ))}
             </div>
 
-            {/* Accordion 2: Extra Services */}
-            <div className="border-b border-slate-100 py-3">
+            {/* Quick Add Task Input */}
+            <div className="flex items-center gap-1.5 pt-1">
+              <input
+                type="text"
+                value={newTaskInput}
+                onChange={(e) => setNewTaskInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
+                placeholder="Add front desk task..."
+                className="flex-1 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-[var(--color-primary)]"
+              />
               <button
                 type="button"
-                onClick={() => toggleAccordion('extras')}
-                className="flex items-center justify-between w-full text-left text-xs font-bold text-slate-900 cursor-pointer"
+                onClick={handleAddTask}
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
               >
-                <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded bg-amber-50 text-amber-700">
-                    <Lucide.Coffee size={13} />
-                  </span>
-                  <span>Extra Services</span>
-                </div>
-                <Lucide.ChevronUp
-                  size={14}
-                  className={`text-slate-400 transition-transform ${accordionOpen.extras ? '' : 'rotate-180'}`}
-                />
-              </button>
-
-              {accordionOpen.extras && (
-                <div className="mt-2.5 pl-7 text-xs flex flex-col gap-1.5">
-                  {extrasCalculation.breakdown.map((item) => (
-                    <div key={item.name} className="flex items-start justify-between text-slate-600">
-                      <div>
-                        <p className="text-slate-900 font-medium">{item.name}</p>
-                        <p className="text-[10.5px] text-slate-400">{item.formula}</p>
-                      </div>
-                      <span className="font-medium text-slate-900 mt-0.5">₹{item.amount.toFixed(2)}</span>
-                    </div>
-                  ))}
-
-                  {extrasCalculation.breakdown.length === 0 && (
-                    <span className="text-slate-400 italic">No extra services selected</span>
-                  )}
-
-                  <div className="border-t border-slate-100 pt-1.5 flex items-center justify-between font-bold text-slate-900">
-                    <span>Extras subtotal</span>
-                    <span>₹{extrasCalculation.subtotal.toFixed(2)}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Accordion 3: Discount */}
-            <div className="border-b border-slate-100 py-3">
-              <button
-                type="button"
-                onClick={() => toggleAccordion('discount')}
-                className="flex items-center justify-between w-full text-left text-xs font-bold text-slate-900 cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded bg-[var(--color-muted-surface)] text-[var(--color-primary)]">
-                    <Lucide.Tag size={13} />
-                  </span>
-                  <span>Discount</span>
-                </div>
-                <Lucide.ChevronUp
-                  size={14}
-                  className={`text-slate-400 transition-transform ${accordionOpen.discount ? '' : 'rotate-180'}`}
-                />
-              </button>
-
-              {accordionOpen.discount && (
-                <div className="mt-2 pl-7 text-xs flex items-center justify-between text-slate-600">
-                  <span>{discountAmount > 0 ? 'Promo discount applied' : 'No discount applied'}</span>
-                  <span className="font-medium text-slate-900">
-                    {discountAmount > 0 ? `-₹${discountAmount.toFixed(2)}` : '₹0.00'}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Accordion 4: Taxes & Fees (estimated) */}
-            <div className="border-b border-slate-100 py-3">
-              <button
-                type="button"
-                onClick={() => toggleAccordion('taxes')}
-                className="flex items-center justify-between w-full text-left text-xs font-bold text-slate-900 cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded bg-purple-50 text-purple-700">
-                    <Lucide.Receipt size={13} />
-                  </span>
-                  <span>Taxes & Fees (estimated)</span>
-                </div>
-                <Lucide.ChevronUp
-                  size={14}
-                  className={`text-slate-400 transition-transform ${accordionOpen.taxes ? '' : 'rotate-180'}`}
-                />
-              </button>
-
-              {accordionOpen.taxes && (
-                <div className="mt-2.5 pl-7 text-xs flex flex-col gap-1.5">
-                  <div className="flex items-start justify-between text-slate-600">
-                    <div>
-                      <p className="text-slate-900 font-medium">GST (12%)</p>
-                      <p className="text-[10.5px] text-slate-400">On room charges</p>
-                      <p className="text-[10.5px] text-slate-400">₹{roomChargesSubtotal.toLocaleString('en-IN')}.00 × 12%</p>
-                    </div>
-                    <span className="font-medium text-slate-900 mt-0.5">₹{gstAmount.toLocaleString('en-IN')}.00</span>
-                  </div>
-
-                  <div className="flex items-start justify-between text-slate-600">
-                    <div>
-                      <p className="text-slate-900 font-medium">Hotel Occupancy Tax (2%)</p>
-                      <p className="text-[10.5px] text-slate-400">On room charges</p>
-                      <p className="text-[10.5px] text-slate-400">₹{roomChargesSubtotal.toLocaleString('en-IN')}.00 × 2%</p>
-                    </div>
-                    <span className="font-medium text-slate-900 mt-0.5">₹{occupancyTaxAmount.toLocaleString('en-IN')}.00</span>
-                  </div>
-
-                  <div className="border-t border-slate-100 pt-1.5 flex items-center justify-between font-bold text-slate-900">
-                    <span>Taxes subtotal</span>
-                    <span>₹{taxesSubtotal.toLocaleString('en-IN')}.00</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Estimated Total Highlight Box */}
-            <div className="mt-4 rounded-md border border-slate-200 border-l-4 border-l-emerald-500 bg-slate-50/70 p-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-slate-900 leading-tight">Estimated Total</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">Before deposit and final adjustments</p>
-              </div>
-              <span className="text-xl font-bold text-slate-900">
-                ₹{estimatedTotal.toLocaleString('en-IN')}.00
-              </span>
-            </div>
-
-            {/* Deposit & Balance Rows */}
-            <div className="mt-4 flex flex-col gap-3 px-1 text-xs">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-emerald-600">
-                    <Lucide.ShieldCheck size={16} />
-                  </span>
-                  <div>
-                    <p className="font-semibold text-slate-900">Deposit / Advance</p>
-                    <p className="text-[11px] text-slate-400">Amount to be collected now</p>
-                  </div>
-                </div>
-                <span className="font-bold text-slate-900">₹{depositAmount.toFixed(2)}</span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-slate-600">
-                    <Lucide.Wallet size={16} />
-                  </span>
-                  <div>
-                    <p className="font-semibold text-slate-900">Estimated Balance Due</p>
-                    <p className="text-[11px] text-slate-400">Payable at hotel (plus any additional charges)</p>
-                  </div>
-                </div>
-                <span className="font-bold text-slate-900">₹{estimatedBalanceDue.toLocaleString('en-IN')}.00</span>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="mt-6 flex flex-col gap-2.5">
-              <button
-                type="button"
-                onClick={handleProceed}
-                className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] py-3 px-4 rounded-md font-semibold text-xs text-white flex items-center justify-center gap-2 shadow-xs transition-all duration-150 cursor-pointer"
-              >
-                <span>Continue to Services & Payment</span>
-                <Lucide.ArrowRight size={14} />
-              </button>
-
-              <button
-                type="button"
-                onClick={handleSaveDraft}
-                className="w-full rounded-md border border-slate-200 bg-white hover:bg-slate-50 py-2.5 px-4 text-xs font-semibold text-slate-700 transition-colors shadow-xs cursor-pointer"
-              >
-                Save as Draft
+                <Lucide.Plus size={14} />
               </button>
             </div>
           </div>
-        </aside>
+
+          {/* Reservation Audit & Timestamp Card */}
+          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-2xs p-5 flex flex-col gap-3 text-xs">
+            <div className="flex items-center gap-2 text-slate-900 font-bold text-xs uppercase tracking-wider">
+              <Lucide.Clock size={14} className="text-slate-400" />
+              <span>Audit Trail</span>
+            </div>
+
+            <div className="flex flex-col gap-2 text-[11px] text-slate-600">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Created:</span>
+                <span className="font-semibold text-slate-800">Today, 13:45 hrs</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Created By:</span>
+                <span className="font-semibold text-slate-800">Front Desk (Admin)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">System Source:</span>
+                <span className="font-semibold text-slate-800">Direct Portal / Desk</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Folio ID:</span>
+                <span className="font-mono font-bold text-slate-900">{bookingRefId}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
       </div>
 
-      {/* Confirmation Dialog */}
-      <ConfirmDialog
-        open={confirming}
-        onClose={() => setConfirming(false)}
-        onConfirm={() => { void executeCreateReservation(); }}
-        title="Confirm New Reservation"
-        body={`Create booking for ${guestChoice === 'existing' ? activeGuest.name : newName} · ${activeRoomType.name} (Room ${selectedRooms[0] || '201'}) · ${nights} nights · Total: ₹${estimatedTotal.toLocaleString('en-IN')}.00.`}
-        confirmLabel={submitting ? 'Confirming…' : 'Confirm & Allocate Room'}
-        busy={submitting}
-      />
+      {/* ================= FLOATING ACTION DOCK (BOTTOM BAR) ================= */}
+      <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-3xl z-40">
+        <div className="backdrop-blur-md bg-white/95 rounded-2xl border border-slate-200/90 p-3 sm:px-4 shadow-[0_12px_36px_-6px_rgba(15,23,42,0.18)] flex items-center justify-between gap-3">
 
-      {/* Theme Swatcher Modal */}
+          {/* Left: Report an issue */}
+          <button
+            type="button"
+            onClick={() => setIssueModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-100/80 text-rose-700 text-xs font-bold transition-colors cursor-pointer"
+          >
+            <Lucide.AlertCircle size={14} />
+            <span className="hidden sm:inline">Report Issue</span>
+          </button>
+
+          {/* Center: Live Total Ticker */}
+          <div className="hidden md:flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/60">
+            <span className="text-slate-500">{requirements.length} Room(s) · {nightsCount} Night(s)</span>
+            <span className="h-3 w-[1px] bg-slate-300" />
+            <span className="font-mono text-slate-900">₹{totalBill.toLocaleString('en-IN')}.00</span>
+          </div>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => go({ view: 'reservations' })}
+              className="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setCollectAmount(String(outstanding));
+                setCollectModalOpen(true);
+              }}
+              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <Lucide.Banknote size={14} />
+              <span>Save & Pay</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleConfirmReservation(true)}
+              className="px-5 py-2 rounded-xl bg-[var(--color-primary)] hover:opacity-95 text-white text-xs font-bold shadow-md shadow-[var(--color-primary)]/20 transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <Lucide.CheckCircle2 size={14} />
+              <span>Confirm & Email</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ================= PAYMENT COLLECT MODAL ================= */}
+      {collectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                  <Lucide.Banknote size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Collect Folio Payment</h3>
+                  <p className="text-[11px] text-slate-400">Record advance or settle outstanding bill</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCollectModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <Lucide.X size={16} />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                  Payment Amount (₹)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
+                  <input
+                    type="number"
+                    value={collectAmount}
+                    onChange={(e) => setCollectAmount(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white pl-8 pr-4 py-2.5 text-sm font-bold font-mono text-slate-900 focus:outline-none focus:border-[var(--color-primary)]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                  Payment Mode
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['UPI / QR', 'Credit Card', 'Debit Card', 'Cash'] as const).map((method) => (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => setCollectMethod(method)}
+                      className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${collectMethod === method
+                        ? 'bg-[var(--color-primary)] text-white border-transparent shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        }`}
+                    >
+                      {method}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                  Transaction / Slip Reference
+                </label>
+                <input
+                  type="text"
+                  value={collectRef}
+                  onChange={(e) => setCollectRef(e.target.value)}
+                  placeholder="e.g. UPI-984210982 / POS Approval Code"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2 text-xs text-slate-900 font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setCollectModalOpen(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleRecordPayment}
+                className="px-5 py-2 rounded-xl bg-[var(--color-primary)] text-white text-xs font-bold hover:opacity-95 shadow-xs"
+              >
+                Confirm Payment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= REPORT ISSUE MODAL ================= */}
+      {issueModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl flex flex-col gap-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                  <Lucide.AlertCircle size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Report Reservation Issue</h3>
+                  <p className="text-[11px] text-slate-400">Escalate an allotment, rate, or sync issue</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIssueModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <Lucide.X size={16} />
+              </button>
+            </div>
+
+            <textarea
+              rows={3}
+              value={issueText}
+              onChange={(e) => setIssueText(e.target.value)}
+              placeholder="Describe the issue (e.g. rate mismatch on OTA, room allocation conflict)..."
+              className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-900 focus:outline-none focus:border-[var(--color-primary)] resize-none"
+            />
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setIssueModalOpen(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  toast.success('Issue Submitted', { detail: 'Escalated to IT & Duty Manager.' });
+                  setIssueModalOpen(false);
+                  setIssueText('');
+                }}
+                className="px-5 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 shadow-xs"
+              >
+                Submit Ticket
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Theme Swatcher Modal Drawer */}
       <ThemeSwatcher open={swatcherOpen} onClose={() => setSwatcherOpen(false)} />
     </div>
   );

@@ -30,18 +30,13 @@ const PRESET_TO_THEME_KEY = Object.fromEntries(Object.entries(THEME_KEY_TO_PRESE
 
 const Reservations = lazy(() => import('./pages/Reservations').then((m) => ({ default: m.Reservations })));
 const NewReservation = lazy(() => import('./pages/NewReservation').then((m) => ({ default: m.NewReservation })));
-const NewReservation2 = lazy(() => import('./pages/NewReservation2').then((m) => ({ default: m.NewReservation2 })));
-const NewReservation3 = lazy(() => import('./pages/NewReservation3').then((m) => ({ default: m.NewReservation3 })));
 const RateManagement = lazy(() => import('./pages/RateManagement').then((m) => ({ default: m.RateManagement })));
 const ChannelManager = lazy(() => import('./pages/ChannelManager').then((m) => ({ default: m.ChannelManager })));
 const CheckIn = lazy(() => import('./pages/CheckIn').then((m) => ({ default: m.CheckIn })));
 const CheckOut = lazy(() => import('./pages/CheckOut').then((m) => ({ default: m.CheckOut })));
-const InHouse = lazy(() => import('./pages/InHouse').then((m) => ({ default: m.InHouse })));
 const Guests = lazy(() => import('./pages/Guests').then((m) => ({ default: m.Guests })));
-const WalkIn = lazy(() => import('./pages/WalkIn').then((m) => ({ default: m.WalkIn })));
 const Rooms = lazy(() => import('./pages/Rooms').then((m) => ({ default: m.Rooms })));
 const RoomTypes = lazy(() => import('./pages/RoomTypes').then((m) => ({ default: m.RoomTypes })));
-const RoomInventory = lazy(() => import('./pages/RoomInventory').then((m) => ({ default: m.RoomInventory })));
 const StatusBoard = lazy(() => import('./pages/StatusBoard').then((m) => ({ default: m.StatusBoard })));
 const Housekeeping = lazy(() => import('./pages/Housekeeping').then((m) => ({ default: m.Housekeeping })));
 const Maintenance = lazy(() => import('./pages/Maintenance').then((m) => ({ default: m.Maintenance })));
@@ -50,11 +45,7 @@ const Payments = lazy(() => import('./pages/Payments').then((m) => ({ default: m
 const Invoices = lazy(() => import('./pages/Invoices').then((m) => ({ default: m.Invoices })));
 const NightAudit = lazy(() => import('./pages/NightAudit').then((m) => ({ default: m.NightAudit })));
 const Reports = lazy(() => import('./pages/Reports').then((m) => ({ default: m.Reports })));
-const OccupancyReport = lazy(() => import('./pages/OccupancyReport').then((m) => ({ default: m.OccupancyReport })));
-const RevenueReport = lazy(() => import('./pages/RevenueReport').then((m) => ({ default: m.RevenueReport })));
-const ArrivalsReport = lazy(() => import('./pages/ArrivalsReport').then((m) => ({ default: m.ArrivalsReport })));
 const Staff = lazy(() => import('./pages/Staff').then((m) => ({ default: m.Staff })));
-const Properties = lazy(() => import('./pages/Properties').then((m) => ({ default: m.Properties })));
 const Settings = lazy(() => import('./pages/Settings').then((m) => ({ default: m.Settings })));
 
 function PageFallback() {
@@ -115,10 +106,6 @@ function Shell() {
         return <Reservations initialViewMode="calendar" initialQuery={target.query} focusId={target.focusId} go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'new-reservation':
         return <NewReservation go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
-      case 'new-reservation-2':
-        return <NewReservation2 go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
-      case 'new-reservation-3':
-        return <NewReservation3 go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'rate-management':
         return <RateManagement />;
       case 'channel-manager':
@@ -127,18 +114,12 @@ function Shell() {
         return <CheckIn initialQuery={target.query} />;
       case 'check-out':
         return <CheckOut />;
-      case 'in-house':
-        return <InHouse go={go} />;
       case 'guests':
         return <Guests initialQuery={target.query} focusId={target.focusId} go={go} />;
-      case 'walk-in':
-        return <WalkIn go={go} />;
       case 'room-overview':
         return <Rooms initialQuery={target.query} focusId={target.focusId} />;
       case 'room-types':
         return <RoomTypes />;
-      case 'room-inventory':
-        return <RoomInventory />;
       case 'status-board':
         return <StatusBoard />;
       case 'housekeeping':
@@ -154,17 +135,15 @@ function Shell() {
       case 'night-audit':
         return <NightAudit go={go} onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'reports':
-        return <Reports go={go} />;
+        return <Reports initialTab="overview" go={go} />;
       case 'occupancy-report':
-        return <OccupancyReport />;
+        return <Reports initialTab="occupancy" go={go} />;
       case 'revenue-report':
-        return <RevenueReport />;
+        return <Reports initialTab="revenue" go={go} />;
       case 'arrivals-departures':
-        return <ArrivalsReport />;
+        return <Reports initialTab="movements" go={go} />;
       case 'staff-roles':
         return <Staff />;
-      case 'properties':
-        return <Properties />;
       case 'settings':
         return <Settings onOpenThemes={() => setSwatcherOpen(true)} />;
       default:
@@ -190,7 +169,7 @@ function Shell() {
           onOpenThemes={() => setSwatcherOpen(true)}
           onGo={go}
         />
-        <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}`} className={`pms-animate-fade-up mx-auto w-full flex-1 px-4 py-4 lg:px-6 lg:py-6 ${view === 'dashboard' || view === 'new-reservation' || view === 'new-reservation-2' || view === 'new-reservation-3' || view === 'reservations' || view === 'room-calendar' || view === 'status-board' ? 'max-w-[1600px] 2xl:max-w-[1760px]' : 'max-w-[1280px] 2xl:max-w-[1440px]'}`} style={{ background: 'var(--color-page)' }}>
+        <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}`} className={`pms-animate-fade-up mx-auto w-full flex-1 px-4 py-4 lg:px-6 lg:py-6 ${view === 'dashboard' || view === 'new-reservation' || view === 'reservations' || view === 'room-calendar' || view === 'status-board' ? 'max-w-[1600px] 2xl:max-w-[1760px]' : 'max-w-[1280px] 2xl:max-w-[1440px]'}`} style={{ background: 'var(--color-page)' }}>
           <Suspense fallback={<PageFallback />}>{page}</Suspense>
         </main>
         <footer

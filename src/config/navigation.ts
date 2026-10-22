@@ -3,16 +3,11 @@ export type ViewId =
   | 'reservations'
   | 'room-calendar'
   | 'new-reservation'
-  | 'new-reservation-2'
-  | 'new-reservation-3'
   | 'check-in'
   | 'check-out'
-  | 'in-house'
   | 'guests'
-  | 'walk-in'
   | 'room-overview'
   | 'room-types'
-  | 'room-inventory'
   | 'status-board'
   | 'housekeeping'
   | 'maintenance'
@@ -25,7 +20,6 @@ export type ViewId =
   | 'revenue-report'
   | 'arrivals-departures'
   | 'staff-roles'
-  | 'properties'
   | 'rate-management'
   | 'channel-manager'
   | 'settings';
@@ -57,15 +51,10 @@ export const NAV_SECTIONS: NavSection[] = [
     title: 'Front Office',
     items: [
       { id: 'reservations', label: 'Reservations', hint: 'Bookings & calendar' },
-      { id: 'room-calendar', label: 'Room Calendar', hint: 'Drag-and-drop room rack' },
       { id: 'new-reservation', label: 'New Reservation', hint: 'Create a booking' },
-      { id: 'new-reservation-2', label: 'New Reservation 2', hint: 'Visitor & guest intake' },
-      { id: 'new-reservation-3', label: 'New Reservation 3', hint: 'Folio booking console' },
       { id: 'check-in', label: 'Check-in', hint: "Today's arrivals" },
       { id: 'check-out', label: 'Check-out', hint: 'Departures & folios' },
-      { id: 'in-house', label: 'In-house Guests', hint: 'Currently staying' },
       { id: 'guests', label: 'Guest Directory', hint: 'Profiles & loyalty' },
-      { id: 'walk-in', label: 'Walk-in Guests', hint: 'Register without booking' },
     ],
   },
   {
@@ -73,7 +62,6 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { id: 'room-overview', label: 'Room Overview', hint: 'Cards & status' },
       { id: 'room-types', label: 'Room Types', hint: 'Categories & rates' },
-      { id: 'room-inventory', label: 'Room Inventory', hint: 'Full room table' },
       { id: 'status-board', label: 'Status Board', hint: 'Compact live board' },
       { id: 'housekeeping', label: 'Housekeeping', hint: 'Tasks & upkeep' },
       { id: 'maintenance', label: 'Maintenance', hint: 'Requests & work orders' },
@@ -98,17 +86,13 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: 'Analytics',
     items: [
-      { id: 'reports', label: 'Reports', hint: 'All reports' },
-      { id: 'occupancy-report', label: 'Occupancy Report', hint: 'Occupancy trends' },
-      { id: 'revenue-report', label: 'Revenue Report', hint: 'Revenue & ADR' },
-      { id: 'arrivals-departures', label: 'Arrivals & Departures', hint: 'Movement report' },
+      { id: 'reports', label: 'Analytics', hint: 'Performance & reports hub' },
     ],
   },
   {
     title: 'Administration',
     items: [
       { id: 'staff-roles', label: 'Staff & Roles', hint: 'Team & permissions' },
-      { id: 'properties', label: 'Properties', hint: 'Branches' },
       { id: 'settings', label: 'Settings', hint: 'Property & appearance' },
     ],
   },
@@ -137,18 +121,13 @@ export const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
   reservations: 'reservation.read',
   'room-calendar': 'reservation.read',
   'new-reservation': 'reservation.create',
-  'new-reservation-2': 'reservation.create',
-  'new-reservation-3': 'reservation.create',
   'rate-management': 'reservation.read',
   'channel-manager': 'reservation.read',
   'check-in': 'stay.check-in',
   'check-out': 'stay.check-out',
-  'in-house': 'reservation.read',
   guests: 'guest.read',
-  'walk-in': 'reservation.create',
   'room-overview': 'room.read',
   'room-types': 'room.read',
-  'room-inventory': 'room.read',
   'status-board': 'room.read',
   housekeeping: 'housekeeping.read',
   maintenance: 'maintenance.read',
@@ -161,7 +140,6 @@ export const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
   'revenue-report': 'report.read.financial',
   'arrivals-departures': 'report.read.operations',
   'staff-roles': 'user.read',
-  properties: 'property.read',
   settings: 'theme.update',
 };
 

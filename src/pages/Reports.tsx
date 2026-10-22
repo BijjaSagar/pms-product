@@ -1,13 +1,34 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { Badge, Card, CardTitle } from '../components/ui';
+import { Avatar, Badge, Card, CardTitle } from '../components/ui';
+import { BarChart, DonutChart } from '../components/charts';
+import { Tabs } from '../components/controls';
+import { reservationTone } from '../components/status';
+import { inputClass } from '../components/inputClass';
 import type { NavTarget } from '../components/nav';
 import { auditApi, nightAuditApi, reportsApi } from '../lib/api/pms';
+import { apiReservationStatus } from '../lib/api/adapters';
+import { formatCurrency } from '../lib/api/format';
 import { useApiResource } from '../lib/api/useApiResource';
 import { useAuth } from '../features/auth/AuthContext';
 import { newIdempotencyKey, displayApiError, downloadApiFile } from '../lib/api/client';
 import { toast } from '../components/toastStore';
 import { PromptDialog } from '../components/overlays';
+
+const RANGES = ['7 days', '14 days', '30 days'] as const;
+const daysFor = (range: (typeof RANGES)[number]) => Number.parseInt(range, 10);
+
+function subtractDays(day: string, amount: number): string {
+  const date = new Date(`${day}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() - amount);
+  return date.toISOString().slice(0, 10);
+}
+
+function shiftDate(dateStr: string, deltaDays: number): string {
+  const d = new Date(`${dateStr}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + deltaDays);
+  return d.toISOString().slice(0, 10);
+}
 
 const OCCUPANCY_CHART_DATA = [
   { day: '14 Oct', occ: 88, adr: 4600 },
@@ -26,10 +47,28 @@ const OCCUPANCY_CHART_DATA = [
   { day: '27 Oct', occ: 58, adr: 5300 },
 ];
 
-export function Reports({ go }: { go: (t: NavTarget) => void }) {
-  const { can } = useAuth();
+export type AnalyticsTab = 'overview' | 'occupancy' | 'revenue' | 'movements' | 'audits';
+
+export function Reports({
+  go,
+  initialTab = 'overview',
+}: {
+  go: (t: NavTarget) => void;
+  initialTab?: AnalyticsTab;
+}) {
+  const { can, me } = useAuth();
+  const [activeTab, setActiveTab] = useState<AnalyticsTab>(initialTab);
   const [reopenModal, setReopenModal] = useState(false);
 
+  // Range and Date Filters
+  const [occRange, setOccRange] = useState<(typeof RANGES)[number]>('14 days');
+  const [revRange, setRevRange] = useState<(typeof RANGES)[number]>('14 days');
+  const [movementDay, setMovementDay] = useState(() => new Date().toISOString().slice(0, 10));
+
+  const currencyCode =
+    me?.user.propertyMemberships.find((m) => m.propertyId === me.activePropertyId)?.property.currencyCode ?? 'INR';
+
+  // SVG trend curve points for 14-day projection in Executive Overview
   const adrPoints = useMemo(() => {
     const minAdr = 3500;
     const maxAdr = 7000;
@@ -41,21 +80,28 @@ export function Reports({ go }: { go: (t: NavTarget) => void }) {
     });
   }, []);
 
+  // Primary Data Loader
   const load = useCallback(async () => {
     const flash = await reportsApi.dailyFlash();
     const date = flash.businessDate;
-    const [occupancy, revenue, audit, housekeeping] = await Promise.all([
-      reportsApi.occupancy(date, date),
-      can('report.read.financial') ? reportsApi.revenue(date, date) : Promise.resolve(null),
-      can('audit-log.read') ? auditApi.list(10) : Promise.resolve(null),
+    const occFrom = subtractDays(date, daysFor(occRange) - 1);
+    const revFrom = subtractDays(date, daysFor(revRange) - 1);
+
+    const [rangeOccupancy, revenue, movements, audit, housekeeping] = await Promise.all([
+      reportsApi.occupancy(occFrom, date),
+      can('report.read.financial') ? reportsApi.revenue(revFrom, date) : Promise.resolve(null),
+      reportsApi.movement(movementDay, movementDay),
+      can('audit-log.read') ? auditApi.list(15) : Promise.resolve(null),
       reportsApi.housekeeping(date, date),
     ]);
-    return { flash, occupancy, revenue, audit, housekeeping };
-  }, [can]);
 
-  const resource = useApiResource(load);
+    return { flash, rangeOccupancy, revenue, movements, audit, housekeeping };
+  }, [can, occRange, revRange, movementDay]);
+
+  const resource = useApiResource(load, [occRange, revRange, movementDay]);
   const data = resource.data;
   const auditDate = data?.flash.businessDate ?? '';
+
   const nightAuditResource = useApiResource(
     () => (auditDate && can('night-audit.read') ? nightAuditApi.get(auditDate) : Promise.resolve(null)),
     [auditDate, can],
@@ -85,539 +131,1097 @@ export function Reports({ go }: { go: (t: NavTarget) => void }) {
     }
   };
 
-  const tiles = [
-    {
-      title: 'Occupancy Report',
-      desc: 'Available and sold room-nights breakdown',
-      target: { view: 'occupancy-report' } as NavTarget,
-      Icon: Lucide.BedDouble,
-    },
-    ...(can('report.read.financial')
-      ? [
-          {
-            title: 'Revenue Report',
-            desc: 'ADR, RevPAR, gross revenue and tax breakdown',
-            target: { view: 'revenue-report' } as NavTarget,
-            Icon: Lucide.TrendingUp,
-          },
-        ]
-      : []),
-    {
-      title: 'Arrivals & Departures',
-      desc: 'Daily guest movements, check-ins and check-outs',
-      target: { view: 'arrivals-departures' } as NavTarget,
-      Icon: Lucide.ArrowLeftRight,
-    },
-  ];
+  // Movements extraction
+  const movementRows = useMemo(() => data?.movements?.rows ?? [], [data?.movements?.rows]);
+  const arrivals = useMemo(() => movementRows.filter((row) => row.checkInDate === movementDay), [movementRows, movementDay]);
+  const departures = useMemo(() => movementRows.filter((row) => row.checkOutDate === movementDay), [movementRows, movementDay]);
+  const netMovements = arrivals.length - departures.length;
+
+  const occupancy = data?.rangeOccupancy;
+  const revenue = data?.revenue;
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="w-full flex flex-col gap-4 text-slate-900 font-sans pb-10">
+      {/* ================= 1. PAGE HEADER & TAB NAVIGATION ================= */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)]">
         <div>
-          <h1 className="text-[28px] font-bold tracking-tight text-ink flex items-center gap-2.5">
-            <Lucide.BarChart3 className="text-primary" size={28} />
-            <span>Operational & Financial Reports</span>
-          </h1>
-          <p className="mt-1 text-xs text-ink-secondary">
-            Property performance analytics, occupancy forecasts, daily flash metrics, and manager audits
-          </p>
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20">
+              <Lucide.BarChart3 size={20} strokeWidth={2.4} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900">Analytics & Reports</h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Comprehensive hotel operations, occupancy projections, revenue intelligence, and daily manifests
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        {/* Action Controls: Refresh & Tabs Switcher */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* View Mode Tabs Switcher */}
+          <div className="flex items-center p-1 rounded-2xl border border-slate-200 bg-slate-50 shadow-2xs overflow-x-auto no-scrollbar">
+            {[
+              { id: 'overview', label: 'Overview', icon: Lucide.LayoutDashboard },
+              { id: 'occupancy', label: 'Occupancy', icon: Lucide.BedDouble },
+              { id: 'revenue', label: 'Revenue & ADR', icon: Lucide.TrendingUp },
+              { id: 'movements', label: 'Movements', icon: Lucide.ArrowLeftRight },
+              { id: 'audits', label: 'Audits & Ops', icon: Lucide.ShieldCheck },
+            ].map((tab) => {
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id as AnalyticsTab)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                    active
+                      ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/60'
+                      : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'
+                  }`}
+                >
+                  <tab.icon size={14} className={active ? 'text-[var(--color-primary)]' : 'text-slate-400'} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Refresh Data Button */}
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-ghost flex items-center gap-1.5 text-sm font-medium px-3.5 py-2 rounded-xl border border-border"
-            title="Refresh analytics"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs transition-colors cursor-pointer"
+            title="Refresh analytics data"
           >
-            <Lucide.RefreshCw size={14} className={resource.loading ? 'animate-spin' : ''} />
-            <span>Refresh</span>
+            <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : 'text-slate-400'} />
+            <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
       </div>
 
-      {resource.error ? (
-        <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          <Lucide.AlertCircle size={18} />
-          <span>Could not load reports: {resource.error}</span>
+      {resource.error && (
+        <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-red-700">
+          <Lucide.AlertCircle size={16} />
+          <span>Could not load analytics: {resource.error}</span>
         </div>
-      ) : null}
+      )}
 
-      {/* Navigation Quick Tiles */}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-        {tiles.map((tile) => (
-          <button
-            key={tile.title}
-            type="button"
-            onClick={() => go(tile.target)}
-            className="pms-card pms-card-hover p-3 sm:p-3.5 text-left flex flex-col justify-between transition-all duration-200"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-black/[0.03] text-primary">
-                  <tile.Icon size={20} />
+      {/* ========================================================================= */}
+      {/* TAB 1: EXECUTIVE OVERVIEW                                                 */}
+      {/* ========================================================================= */}
+      {activeTab === 'overview' && (
+        <div className="flex flex-col gap-4">
+          {/* 4 Executive KPI Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Occupancy Rate */}
+            <div
+              onClick={() => setActiveTab('occupancy')}
+              className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">Current Occupancy</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                  <Lucide.BedDouble size={16} />
                 </span>
-                <Lucide.ArrowUpRight size={18} className="text-ink-muted" />
               </div>
-              <p className="pms-section-title font-bold text-ink text-[16px]">{tile.title}</p>
-              <p className="pms-helper mt-1 text-xs leading-relaxed">{tile.desc}</p>
+              <div className="mt-2">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-slate-900 tnum">{occupancy?.occupancyPct ?? 68}%</span>
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+                    +12% vs last wk
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  {data?.flash.rooms.ready ?? 10} rooms available tonight
+                </p>
+              </div>
             </div>
-            <p className="mt-4 text-xs font-semibold text-primary flex items-center gap-1">
-              <span>View detailed report</span>
-              <Lucide.ChevronRight size={13} />
-            </p>
-          </button>
-        ))}
-      </div>
 
-      {/* ================= 14-DAY OCCUPANCY & ROOM STATUS OVERVIEW ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-        {/* Card: Occupancy (Next 14 Days) - col-8 */}
-        <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between h-full">
-          <div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 text-sky-600 border border-sky-200/70 shadow-2xs">
-                  <Lucide.BarChart3 size={18} strokeWidth={2.4} />
+            {/* Total Revenue */}
+            <div
+              onClick={() => setActiveTab('revenue')}
+              className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">Revenue (Period)</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                  <Lucide.TrendingUp size={16} />
+                </span>
+              </div>
+              <div className="mt-2">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-slate-900 tnum">
+                    {revenue ? formatCurrency(Number(revenue.grossRevenue), currencyCode) : '₹1,48,200'}
+                  </span>
                 </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-900 tracking-tight">Occupancy (Next 14 Days)</h2>
-                  <p className="text-[11px] text-slate-400">Demand forecast and Average Daily Rate (ADR) projection</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Net collected: {revenue ? formatCurrency(Number(revenue.paymentsNetCollected), currencyCode) : '₹1,24,000'}
+                </p>
+              </div>
+            </div>
+
+            {/* Average Daily Rate (ADR) */}
+            <div
+              onClick={() => setActiveTab('revenue')}
+              className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">Average Daily Rate (ADR)</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <Lucide.BarChart3 size={16} />
+                </span>
+              </div>
+              <div className="mt-2">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-slate-900 tnum">
+                    {revenue ? formatCurrency(Number(revenue.adr), currencyCode) : '₹4,850'}
+                  </span>
+                  <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md">
+                    Target: ₹4,500
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  RevPAR: {revenue ? formatCurrency(Number(revenue.revpar), currencyCode) : '₹3,298'}
+                </p>
+              </div>
+            </div>
+
+            {/* Daily Movements (Arrivals/Departures) */}
+            <div
+              onClick={() => setActiveTab('movements')}
+              className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">Today's Guest Turn</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                  <Lucide.ArrowLeftRight size={16} />
+                </span>
+              </div>
+              <div className="mt-2">
+                <div className="flex items-center gap-3">
+                  <div>
+                    <span className="text-lg font-black text-slate-900 tnum">{data?.flash.arrivals.length ?? 8}</span>
+                    <span className="text-[10px] font-bold text-slate-400 ml-1">Arrivals</span>
+                  </div>
+                  <span className="text-slate-300">/</span>
+                  <div>
+                    <span className="text-lg font-black text-slate-900 tnum">{data?.flash.departures.length ?? 7}</span>
+                    <span className="text-[10px] font-bold text-slate-400 ml-1">Departures</span>
+                  </div>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  {data?.flash.inHouseCount ?? 34} currently in-house
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 14-Day Demand Forecast & Room Status Distribution */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+            {/* 14-Day Demand Forecast Chart */}
+            <div className="lg:col-span-8 bg-white rounded-3xl border border-slate-200/90 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
+              <div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 text-sky-600 border border-sky-200/70 shadow-2xs">
+                      <Lucide.BarChart3 size={18} strokeWidth={2.4} />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-bold text-slate-900 tracking-tight">Occupancy & ADR Demand Forecast (14 Days)</h2>
+                      <p className="text-[11px] text-slate-400">Demand forecast and projected Average Daily Rate</p>
+                    </div>
+                  </div>
+
+                  {/* Legend & Tab Trigger */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3 text-xs text-slate-500 bg-slate-50 px-3 py-1 rounded-xl border border-slate-200/60 shadow-2xs">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <span className="h-2.5 w-2.5 rounded-xs bg-[var(--color-primary)]" />
+                        <span>Occupancy %</span>
+                      </span>
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <span className="h-2 w-2 rounded-full border-2 border-sky-400 bg-white" />
+                        <span>ADR (₹)</span>
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('occupancy')}
+                      className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                    >
+                      <span>Deep Dive</span>
+                      <Lucide.ArrowRight size={12} className="text-slate-400" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Bar + Line Combo Chart */}
+                <div className="relative h-48 w-full flex items-end pt-3">
+                  {/* Y-axis left lines */}
+                  <div className="absolute inset-0 flex flex-col justify-between text-[9.5px] text-slate-400 pointer-events-none select-none">
+                    <div className="border-b border-dashed border-slate-100 pb-0.5">100%</div>
+                    <div className="border-b border-dashed border-slate-100 pb-0.5">80%</div>
+                    <div className="border-b border-dashed border-slate-100 pb-0.5">60%</div>
+                    <div className="border-b border-dashed border-slate-100 pb-0.5">40%</div>
+                    <div className="border-b border-dashed border-slate-100 pb-0.5">20%</div>
+                    <div className="border-b border-slate-200 pb-0.5">0%</div>
+                  </div>
+
+                  {/* Y-axis right labels */}
+                  <div className="absolute right-0 inset-y-0 flex flex-col justify-between text-[9.5px] text-slate-400 pointer-events-none select-none text-right">
+                    <div>₹7K</div>
+                    <div>₹6K</div>
+                    <div>₹5K</div>
+                    <div>₹4K</div>
+                    <div>₹3K</div>
+                    <div>₹0</div>
+                  </div>
+
+                  {/* 14 Day Bars */}
+                  <div className="relative z-10 w-full pl-7 pr-8 flex items-end justify-between h-40">
+                    {OCCUPANCY_CHART_DATA.map((item, idx) => (
+                      <div key={idx} className="flex flex-col items-center flex-1 h-full justify-end group relative">
+                        {/* Tooltip on hover */}
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5 text-[9.5px] font-bold bg-slate-900 text-white rounded-md px-1.5 py-0.5 pointer-events-none z-30 whitespace-nowrap shadow-md">
+                          {item.day}: {item.occ}% · ₹{item.adr}
+                        </div>
+                        {/* The bar */}
+                        <div
+                          className="w-3.5 sm:w-5 md:w-6 rounded-t bg-[var(--color-primary)] group-hover:bg-[var(--color-primary-hover)] transition-all cursor-pointer shadow-2xs"
+                          style={{ height: `${item.occ}%` }}
+                        />
+                        <span className="text-[10px] text-slate-500 mt-2 leading-tight text-center font-medium">
+                          {item.day.split(' ')[0]}<br />
+                          <span className="text-slate-400 text-[9px]">{item.day.split(' ')[1]}</span>
+                        </span>
+                      </div>
+                    ))}
+
+                    {/* Simulated ADR Trend Line (SVG Overlay) */}
+                    <svg className="absolute inset-0 h-40 w-full pointer-events-none overflow-visible pl-7 pr-8" viewBox="0 0 1000 140" preserveAspectRatio="none">
+                      <polyline
+                        fill="none"
+                        stroke="#38bdf8"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        points={adrPoints.map((p) => `${p.x},${p.y}`).join(' ')}
+                      />
+                      {adrPoints.map((p, i) => (
+                        <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="#ffffff" stroke="#0284c7" strokeWidth="2" />
+                      ))}
+                    </svg>
+                  </div>
                 </div>
               </div>
 
-              {/* Legend & Action */}
-              <div className="flex items-center gap-3 self-start sm:self-auto">
-                <div className="flex items-center gap-3 text-xs text-slate-500 bg-slate-50 px-3 py-1 rounded-lg border border-slate-200/60">
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <span className="h-2.5 w-2.5 rounded-xs bg-[var(--color-primary)]" />
-                    <span>Occupancy %</span>
-                  </span>
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <span className="h-2 w-2 rounded-full border-2 border-sky-400 bg-white" />
-                    <span>ADR (₹)</span>
-                  </span>
-                </div>
-
+              <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span className="text-[11.5px] text-slate-400">Peak demand: 24 Oct (95% Occupancy · ₹6,500 ADR)</span>
                 <button
                   type="button"
-                  onClick={() => go({ view: 'occupancy-report' })}
-                  className="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                  onClick={() => setActiveTab('occupancy')}
+                  className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
                 >
-                  <span>Report</span>
-                  <Lucide.ArrowRight size={12} className="text-slate-400" />
+                  <span>View occupancy ledger</span>
+                  <Lucide.ArrowRight size={12} />
                 </button>
               </div>
             </div>
 
-            {/* Bar + Line Combo Chart */}
-            <div className="relative h-48 w-full flex items-end pt-3">
-              {/* Y-axis left lines */}
-              <div className="absolute inset-0 flex flex-col justify-between text-[9.5px] text-slate-400 pointer-events-none select-none">
-                <div className="border-b border-dashed border-slate-100 pb-0.5">100%</div>
-                <div className="border-b border-dashed border-slate-100 pb-0.5">80%</div>
-                <div className="border-b border-dashed border-slate-100 pb-0.5">60%</div>
-                <div className="border-b border-dashed border-slate-100 pb-0.5">40%</div>
-                <div className="border-b border-dashed border-slate-100 pb-0.5">20%</div>
-                <div className="border-b border-slate-200 pb-0.5">0%</div>
-              </div>
-
-              {/* Y-axis right labels */}
-              <div className="absolute right-0 inset-y-0 flex flex-col justify-between text-[9.5px] text-slate-400 pointer-events-none select-none text-right">
-                <div>₹7K</div>
-                <div>₹6K</div>
-                <div>₹5K</div>
-                <div>₹4K</div>
-                <div>₹3K</div>
-                <div>₹0</div>
-              </div>
-
-              {/* 14 Day Bars */}
-              <div className="relative z-10 w-full pl-7 pr-8 flex items-end justify-between h-40">
-                {OCCUPANCY_CHART_DATA.map((item, idx) => (
-                  <div key={idx} className="flex flex-col items-center flex-1 h-full justify-end group relative">
-                    {/* Tooltip on hover */}
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5 text-[9.5px] font-bold bg-slate-900 text-white rounded px-1.5 py-0.5 pointer-events-none z-30 whitespace-nowrap shadow-md">
-                      {item.day}: {item.occ}% · ₹{item.adr}
+            {/* Room Status Overview (Donut Chart) */}
+            <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-200/90 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 shadow-2xs">
+                      <Lucide.BedDouble size={18} strokeWidth={2.4} />
                     </div>
-                    {/* The bar */}
-                    <div
-                      className="w-3.5 sm:w-5 md:w-6 rounded-t bg-[var(--color-primary)] group-hover:bg-[var(--color-primary-hover)] transition-all cursor-pointer shadow-2xs"
-                      style={{ height: `${item.occ}%` }}
-                    />
-                    <span className="text-[10px] text-slate-500 mt-2 leading-tight text-center font-medium">
-                      {item.day.split(' ')[0]}<br />
-                      <span className="text-slate-400 text-[9px]">{item.day.split(' ')[1]}</span>
-                    </span>
+                    <div>
+                      <h2 className="text-base font-bold text-slate-900 tracking-tight">Room Status Breakdown</h2>
+                      <p className="text-[11px] text-slate-400">Live operational room allocation</p>
+                    </div>
                   </div>
-                ))}
-
-                {/* Simulated ADR Trend Line (SVG Overlay) */}
-                <svg className="absolute inset-0 h-40 w-full pointer-events-none overflow-visible pl-7 pr-8" viewBox="0 0 1000 140" preserveAspectRatio="none">
-                  <polyline
-                    fill="none"
-                    stroke="#38bdf8"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    points={adrPoints.map((p) => `${p.x},${p.y}`).join(' ')}
-                  />
-                  {adrPoints.map((p, i) => (
-                    <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="#ffffff" stroke="#0284c7" strokeWidth="2" />
-                  ))}
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span className="text-[11.5px] text-slate-400">Peak demand: 24 Oct (95% Occupancy · ₹6,500 ADR)</span>
-            <button
-              type="button"
-              onClick={() => go({ view: 'occupancy-report' })}
-              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
-            >
-              <span>14-day projection report</span>
-              <Lucide.ArrowRight size={12} />
-            </button>
-          </div>
-        </div>
-
-        {/* Card: Room Status Overview - col-4 */}
-        <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between h-full">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 shadow-2xs">
-                  <Lucide.BedDouble size={18} strokeWidth={2.4} />
+                  <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200/60">
+                    50 Rooms
+                  </span>
                 </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-900 tracking-tight">Room Status Overview</h2>
-                  <p className="text-[11px] text-slate-400">Current live inventory distribution</p>
-                </div>
-              </div>
-              <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/60">
-                50 Rooms
-              </span>
-            </div>
 
-            <div className="flex items-center justify-between gap-4 py-2">
-              {/* SVG Donut Chart */}
-              <div className="relative h-32 w-32 flex-none flex items-center justify-center">
-                <svg viewBox="0 0 160 160" className="h-full w-full -rotate-90">
-                  <circle cx="80" cy="80" r="60" fill="none" stroke="var(--color-primary)" strokeWidth="18" strokeDasharray="256.35 376.99" strokeDashoffset="0" />
-                  <circle cx="80" cy="80" r="60" fill="none" stroke="#10b981" strokeWidth="18" strokeDasharray="75.40 376.99" strokeDashoffset="-256.35" />
-                  <circle cx="80" cy="80" r="60" fill="none" stroke="#f59e0b" strokeWidth="18" strokeDasharray="30.16 376.99" strokeDashoffset="-331.75" />
-                  <circle cx="80" cy="80" r="60" fill="none" stroke="#0ea5e9" strokeWidth="18" strokeDasharray="7.54 376.99" strokeDashoffset="-361.91" />
-                  <circle cx="80" cy="80" r="60" fill="none" stroke="#ef4444" strokeWidth="18" strokeDasharray="7.54 376.99" strokeDashoffset="-369.45" />
-                </svg>
+                <div className="flex items-center justify-between gap-4 py-2">
+                  {/* SVG Donut Chart */}
+                  <div className="relative h-32 w-32 flex-none flex items-center justify-center">
+                    <svg viewBox="0 0 160 160" className="h-full w-full -rotate-90">
+                      <circle cx="80" cy="80" r="60" fill="none" stroke="var(--color-primary)" strokeWidth="18" strokeDasharray="256.35 376.99" strokeDashoffset="0" />
+                      <circle cx="80" cy="80" r="60" fill="none" stroke="#10b981" strokeWidth="18" strokeDasharray="75.40 376.99" strokeDashoffset="-256.35" />
+                      <circle cx="80" cy="80" r="60" fill="none" stroke="#f59e0b" strokeWidth="18" strokeDasharray="30.16 376.99" strokeDashoffset="-331.75" />
+                      <circle cx="80" cy="80" r="60" fill="none" stroke="#0ea5e9" strokeWidth="18" strokeDasharray="7.54 376.99" strokeDashoffset="-361.91" />
+                      <circle cx="80" cy="80" r="60" fill="none" stroke="#ef4444" strokeWidth="18" strokeDasharray="7.54 376.99" strokeDashoffset="-369.45" />
+                    </svg>
 
-                {/* Center Label */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-2xl font-bold text-slate-900 leading-none">50</span>
-                  <span className="text-[10px] text-slate-400 font-medium mt-0.5">Total Rooms</span>
+                    {/* Center Label */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <span className="text-2xl font-bold text-slate-900 leading-none">50</span>
+                      <span className="text-[10px] text-slate-400 font-medium mt-0.5">Total Rooms</span>
+                    </div>
+                  </div>
+
+                  {/* Legend List */}
+                  <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-1.5 text-slate-700 truncate">
+                        <span className="h-2 w-2 rounded-full bg-[var(--color-primary)] flex-none" />
+                        <span className="font-medium">34 Occupied</span>
+                      </span>
+                      <span className="font-bold text-slate-800">68%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-1.5 text-slate-700 truncate">
+                        <span className="h-2 w-2 rounded-full bg-[#10b981] flex-none" />
+                        <span className="font-medium">10 Available</span>
+                      </span>
+                      <span className="font-bold text-slate-800">20%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-1.5 text-slate-700 truncate">
+                        <span className="h-2 w-2 rounded-full bg-[#f59e0b] flex-none" />
+                        <span className="font-medium">4 Dirty</span>
+                      </span>
+                      <span className="font-bold text-slate-800">8%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-1.5 text-slate-700 truncate">
+                        <span className="h-2 w-2 rounded-full bg-[#0ea5e9] flex-none" />
+                        <span className="font-medium">1 Cleaning</span>
+                      </span>
+                      <span className="font-bold text-slate-800">2%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-1.5 text-slate-700 truncate">
+                        <span className="h-2 w-2 rounded-full bg-[#ef4444] flex-none" />
+                        <span className="font-medium">1 Out of order</span>
+                      </span>
+                      <span className="font-bold text-slate-800">2%</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Legend List */}
-              <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-700 truncate">
-                    <span className="h-2 w-2 rounded-full bg-[var(--color-primary)] flex-none" />
-                    <span className="font-medium">34 Occupied</span>
-                  </span>
-                  <span className="font-bold text-slate-800">68%</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-700 truncate">
-                    <span className="h-2 w-2 rounded-full bg-[#10b981] flex-none" />
-                    <span className="font-medium">10 Available</span>
-                  </span>
-                  <span className="font-bold text-slate-800">20%</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-700 truncate">
-                    <span className="h-2 w-2 rounded-full bg-[#f59e0b] flex-none" />
-                    <span className="font-medium">4 Dirty</span>
-                  </span>
-                  <span className="font-bold text-slate-800">8%</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-700 truncate">
-                    <span className="h-2 w-2 rounded-full bg-[#0ea5e9] flex-none" />
-                    <span className="font-medium">1 Cleaning</span>
-                  </span>
-                  <span className="font-bold text-slate-800">2%</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-700 truncate">
-                    <span className="h-2 w-2 rounded-full bg-[#ef4444] flex-none" />
-                    <span className="font-medium">1 Out of order</span>
-                  </span>
-                  <span className="font-bold text-slate-800">2%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-[11.5px] text-slate-400">Available to sell: 10 units</span>
-            <button
-              type="button"
-              onClick={() => go({ view: 'room-inventory' })}
-              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
-            >
-              <span>Room inventory</span>
-              <Lucide.ArrowRight size={12} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Operational and Financial Snapshots */}
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-        <Card>
-          <CardTitle
-            title="Operational Snapshot"
-            subtitle="Current property front-desk movements"
-            action={
-              data && can('report.export') ? (
+              <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span className="text-[11.5px] text-slate-400">Available to sell: 10 units</span>
                 <button
                   type="button"
-                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold"
+                  onClick={() => go({ view: 'room-overview' })}
+                  className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Room overview</span>
+                  <Lucide.ArrowRight size={12} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Operational & Financial Snapshot Cards */}
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            {/* Operational Snapshot */}
+            <Card>
+              <CardTitle
+                title="Operational Snapshot"
+                subtitle="Front-desk movements and facility tasks"
+                action={
+                  data && can('report.export') ? (
+                    <button
+                      type="button"
+                      className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl"
+                      onClick={() =>
+                        void downloadApiFile(
+                          reportsApi.exportDailyFlash(data.flash.businessDate),
+                          `daily-flash-${data.flash.businessDate}.csv`,
+                        ).catch((error: unknown) =>
+                          toast('Export failed', { detail: displayApiError(error), tone: 'danger' }),
+                        )
+                      }
+                    >
+                      <Lucide.Download size={13} />
+                      <span>Export CSV</span>
+                    </button>
+                  ) : undefined
+                }
+              />
+              {data ? (
+                <ul className="flex flex-col gap-2 mt-2">
+                  {[
+                    { label: 'Expected Arrivals Today', value: data.flash.arrivals.length, icon: Lucide.LogIn },
+                    { label: 'Expected Departures Today', value: data.flash.departures.length, icon: Lucide.LogOut },
+                    { label: 'Active In-house Guests', value: data.flash.inHouseCount, icon: Lucide.Users },
+                    { label: 'Open Housekeeping Tasks', value: data.flash.housekeeping.open, icon: Lucide.Sparkles },
+                    { label: 'Open Maintenance Tickets', value: data.flash.maintenance.open, icon: Lucide.Wrench },
+                  ].map(({ label, value, icon: Icon }) => (
+                    <li
+                      key={label}
+                      className="flex items-center justify-between rounded-xl border border-slate-100 px-3.5 py-2.5 bg-slate-50/50"
+                    >
+                      <span className="flex items-center gap-2 text-xs font-medium text-slate-700">
+                        <Icon size={14} className="text-slate-400" />
+                        <span>{label}</span>
+                      </span>
+                      <Badge tone="neutral">{value}</Badge>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </Card>
+
+            {/* Financial Snapshot */}
+            <Card>
+              <CardTitle
+                title="Financial Snapshot"
+                subtitle={
+                  revenue
+                    ? `${revenue.currencyCode} · ${revenue.from} through ${revenue.to}`
+                    : 'Financial permission required for revenue data'
+                }
+                action={
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('revenue')}
+                    className="pms-btn-ghost flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-xl"
+                  >
+                    <span>Full Ledger</span>
+                    <Lucide.ChevronRight size={13} />
+                  </button>
+                }
+              />
+              {revenue ? (
+                <ul className="flex flex-col gap-2 mt-2">
+                  {[
+                    ['Room Revenue', formatCurrency(Number(revenue.roomRevenue), currencyCode)],
+                    ['Other Incidental Revenue', formatCurrency(Number(revenue.otherRevenue), currencyCode)],
+                    ['Taxes Total Collected', formatCurrency(Number(revenue.taxTotal), currencyCode)],
+                    ['Net Payments Collected', formatCurrency(Number(revenue.paymentsNetCollected), currencyCode)],
+                    ['Average Daily Rate / RevPAR', `${formatCurrency(Number(revenue.adr), currencyCode)} / ${formatCurrency(Number(revenue.revpar), currencyCode)}`],
+                  ].map(([label, value]) => (
+                    <li
+                      key={label}
+                      className="flex items-center justify-between border-b border-slate-100 py-2.5 last:border-0 text-xs"
+                    >
+                      <span className="text-slate-500 font-medium">{label}</span>
+                      <span className="tnum font-bold text-slate-800">{value}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="pms-helper py-8 text-center text-xs text-slate-400">
+                  This role cannot read financial reports or no revenue data is available.
+                </p>
+              )}
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 2: OCCUPANCY REPORT                                                   */}
+      {/* ========================================================================= */}
+      {activeTab === 'occupancy' && (
+        <div className="flex flex-col gap-4">
+          {/* Top Controls Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                <Lucide.BedDouble className="text-[var(--color-primary)]" size={18} />
+                <span>Occupancy Trends & Utilization</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Sold room nights, availability forecast, and inventory reconciliation
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Tabs
+                label="Date Range"
+                tabs={RANGES.map((r) => ({ id: r, label: r }))}
+                active={occRange}
+                onChange={setOccRange}
+              />
+              {can('report.export') && (
+                <button
+                  type="button"
+                  disabled={!occupancy}
+                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-slate-200"
                   onClick={() =>
-                    void downloadApiFile(
-                      reportsApi.exportDailyFlash(data.flash.businessDate),
-                      `daily-flash-${data.flash.businessDate}.csv`,
-                    ).catch((error: unknown) =>
-                      toast('Export failed', { detail: displayApiError(error), tone: 'danger' }),
+                    occupancy &&
+                    void downloadApiFile(reportsApi.exportOccupancy(occupancy.from, occupancy.to), 'occupancy.csv').catch(
+                      (error: unknown) => toast('Export failed', { detail: displayApiError(error), tone: 'danger' }),
                     )
                   }
                 >
-                  <Lucide.Download size={14} />
+                  <Lucide.Download size={13} />
                   <span>Export CSV</span>
                 </button>
-              ) : undefined
-            }
-          />
-          {data ? (
-            <ul className="flex flex-col gap-2 mt-2">
-              {[
-                { label: 'Arrivals', value: data.flash.arrivals.length, icon: Lucide.LogIn },
-                { label: 'Departures', value: data.flash.departures.length, icon: Lucide.LogOut },
-                { label: 'In-house Guests', value: data.flash.inHouseCount, icon: Lucide.Users },
-                { label: 'Open Housekeeping Tasks', value: data.flash.housekeeping.open, icon: Lucide.Sparkles },
-                { label: 'Open Maintenance Tickets', value: data.flash.maintenance.open, icon: Lucide.Wrench },
-              ].map(({ label, value, icon: Icon }) => (
-                <li
-                  key={label}
-                  className="flex items-center justify-between rounded-xl border px-3.5 py-2.5 transition-colors hover:bg-black/[0.01]"
-                  style={{ borderColor: 'var(--color-border)' }}
-                >
-                  <span className="flex items-center gap-2 text-[13px] font-medium text-ink">
-                    <Icon size={15} className="text-ink-muted" />
-                    <span>{label}</span>
-                  </span>
-                  <Badge tone="neutral">{value}</Badge>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </Card>
+              )}
+            </div>
+          </div>
 
-        <Card>
-          <CardTitle
-            title="Financial Snapshot"
-            subtitle={
-              data?.revenue
-                ? `${data.revenue.currencyCode} · ${data.revenue.from} to ${data.revenue.to}`
-                : 'Financial permission required for revenue data'
-            }
-          />
-          {data?.revenue ? (
-            <ul className="flex flex-col gap-2 mt-2">
-              {[
-                ['Room Revenue', data.revenue.roomRevenue],
-                ['Other Revenue', data.revenue.otherRevenue],
-                ['Taxes Total', data.revenue.taxTotal],
-                ['Payments Net Collected', data.revenue.paymentsNetCollected],
-                ['ADR / RevPAR', `${data.revenue.adr} / ${data.revenue.revpar}`],
-              ].map(([label, value]) => (
-                <li
-                  key={label}
-                  className="flex items-center justify-between gap-2 border-b py-2.5 last:border-0"
-                  style={{ borderColor: 'var(--color-divider)' }}
-                >
-                  <span className="text-[13px] text-ink-secondary">{label}</span>
-                  <span className="tnum font-bold text-ink">{value}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="pms-helper py-8 text-center">
-              This role cannot read financial reports, or the backend returned no report data.
-            </p>
-          )}
-        </Card>
-      </div>
-
-      {/* Housekeeping Performance */}
-      {data?.housekeeping ? (
-        <Card>
-          <CardTitle
-            title="Housekeeping Performance"
-            subtitle={`${data.housekeeping.from} · ${data.housekeeping.completionRate}% completion · ${data.housekeeping.avgTurnaroundHours}h avg turnaround`}
-          />
-          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 mt-2">
+          {/* 4 Occupancy Metric Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
-              ['Total Tasks', String(data.housekeeping.totalTasks)],
-              ['Completed', String(data.housekeeping.completed)],
-              ['Blocked', String(data.housekeeping.blocked)],
-              ['Rooms Serviced', `${data.housekeeping.roomsTouched} / ${data.housekeeping.roomsTotal}`],
-            ].map(([label, value]) => (
-              <div
-                key={label}
-                className="rounded-xl border p-3 shadow-xs"
-                style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
-              >
-                <p className="text-xs text-ink-muted">{label}</p>
-                <p className="tnum text-[20px] font-bold text-ink mt-0.5">{value}</p>
+              { label: 'Occupancy Rate', value: occupancy ? `${occupancy.occupancyPct}%` : '—', icon: Lucide.TrendingUp, color: 'text-[var(--color-primary)]', bg: 'bg-indigo-50' },
+              { label: 'Total Room Nights', value: occupancy?.nights ?? '—', icon: Lucide.Moon, color: 'text-slate-700', bg: 'bg-slate-100' },
+              { label: 'Sold Room Nights', value: occupancy?.soldRoomNights ?? '—', icon: Lucide.CalendarCheck, color: 'text-emerald-700', bg: 'bg-emerald-50' },
+              { label: 'Available Tonight', value: data?.flash.rooms.ready ?? '—', icon: Lucide.BedDouble, color: 'text-sky-700', bg: 'bg-sky-50' },
+            ].map((item) => (
+              <div key={item.label} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-500">{item.label}</span>
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${item.bg} ${item.color}`}>
+                    <item.icon size={16} />
+                  </span>
+                </div>
+                <p className="text-2xl font-black text-slate-900 tnum mt-2">{item.value}</p>
               </div>
             ))}
           </div>
-          <div className="mt-4 overflow-x-auto rounded-xl border" style={{ borderColor: 'var(--color-border)' }}>
-            <table className="pms-table min-w-[480px]">
-              <thead>
-                <tr>
-                  <th>Task Type</th>
-                  <th className="text-right">Total</th>
-                  <th className="text-right">Completed</th>
-                  <th className="text-right">Blocked</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.housekeeping.byType.map((row) => (
-                  <tr key={row.type}>
-                    <td className="font-semibold text-ink">{row.type.replace(/_/g, ' ')}</td>
-                    <td className="tnum text-right">{row.total}</td>
-                    <td className="tnum text-right font-semibold text-emerald-600">{row.completed}</td>
-                    <td className="tnum text-right text-rose-600">{row.blocked}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      ) : null}
 
-      {/* Night Audit Card */}
-      {can('night-audit.read') ? (
-        <Card>
-          <CardTitle
-            title="Night Audit"
-            subtitle={`Business date ${auditDate} · Advisory and day-close workflow`}
-          />
-          {nightAuditResource.error ? (
-            <p role="alert" className="pms-helper mb-2 text-danger">
-              {nightAuditResource.error}
-            </p>
-          ) : null}
-          <div className="mt-3 flex flex-wrap items-center gap-2.5">
-            <Badge tone={nightAuditResource.data?.status === 'COMPLETED' ? 'success' : 'neutral'}>
-              {nightAuditResource.data?.status ?? 'Not previewed'}
-            </Badge>
-            {nightAuditResource.data?.previewSummary?.exceptionCount !== undefined ? (
-              <span className="pms-helper text-xs">
-                {nightAuditResource.data.previewSummary.exceptionCount} preview exceptions
-              </span>
+          {/* Occupancy Trend BarChart */}
+          <Card elevated>
+            <CardTitle
+              title={`Occupancy Trend (${occRange})`}
+              subtitle={occupancy ? `${occupancy.from} through ${occupancy.to}` : 'Loading occupancy data…'}
+            />
+            {occupancy ? (
+              <div className="mt-3">
+                <BarChart
+                  label={`Occupancy over ${occRange}`}
+                  data={[{ label: occRange, value: Number(occupancy.occupancyPct), highlight: true }]}
+                />
+              </div>
             ) : null}
-            {can('night-audit.run') ? (
-              <button
-                type="button"
-                className="pms-btn-ghost px-3.5 py-2 text-xs font-semibold"
-                onClick={() => void runNightAudit('preview')}
-              >
-                Run preview
-              </button>
-            ) : null}
-            {can('night-audit.approve') && nightAuditResource.data?.status !== 'COMPLETED' ? (
-              <button
-                type="button"
-                className="pms-btn-primary px-3.5 py-2 text-xs font-semibold"
-                onClick={() => void runNightAudit('close')}
-              >
-                Close business date
-              </button>
-            ) : null}
-            {can('night-audit.approve') && nightAuditResource.data?.status === 'COMPLETED' ? (
-              <button
-                type="button"
-                className="pms-btn-ghost px-3.5 py-2 text-xs text-amber-600 font-semibold"
-                onClick={() => setReopenModal(true)}
-              >
-                Reopen business date
-              </button>
-            ) : null}
-          </div>
-        </Card>
-      ) : null}
+          </Card>
 
-      {/* Audit Log Card */}
-      {data?.audit ? (
-        <Card>
-          <CardTitle
-            title="Recent Audit Events"
-            subtitle={`${data.audit.total} events recorded · latest ${data.audit.returned} shown`}
-            action={
-              can('audit-log.export') ? (
+          {/* Sold vs Unsold and Reconciliation */}
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            <Card elevated>
+              <CardTitle title="Sold vs. Unsold Inventory" subtitle="Room-night utilization in this selected range" />
+              {occupancy ? (
+                <div className="mt-2">
+                  <DonutChart
+                    label="Sold versus unsold room nights"
+                    slices={[
+                      { label: 'Sold', value: occupancy.soldRoomNights, color: 'var(--color-primary)' },
+                      { label: 'Unsold', value: occupancy.unsoldRoomNights, color: '#f59e0b' },
+                    ]}
+                  />
+                </div>
+              ) : null}
+            </Card>
+
+            <Card elevated>
+              <CardTitle title="Inventory Reconciliation" subtitle="Reservation counts compared against allocated room-nights" />
+              {occupancy ? (
+                <div className="flex flex-col gap-2.5 text-xs pt-1">
+                  {[
+                    { label: 'Total rooms in property', value: occupancy.rooms },
+                    { label: 'Overlapping active reservations', value: occupancy.reconciliation.overlappingReservations },
+                    { label: 'Expected room nights', value: occupancy.reconciliation.expectedRoomNights },
+                    { label: 'Claimed room nights', value: occupancy.reconciliation.claimedRoomNights },
+                  ].map((row) => (
+                    <div key={row.label} className="flex items-center justify-between border-b border-slate-100 py-2.5 last:border-0">
+                      <span className="text-slate-500 font-medium">{row.label}</span>
+                      <span className="tnum font-bold text-slate-800">{row.value}</span>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between border-t border-slate-200 pt-3 mt-1">
+                    <span className="font-semibold text-slate-800">Reconciliation Audit</span>
+                    {occupancy.reconciliation.matches ? (
+                      <span className="flex items-center gap-1.5 text-emerald-600 font-bold text-xs bg-emerald-50 px-2.5 py-1 rounded-lg">
+                        <Lucide.CheckCircle2 size={14} />
+                        <span>Balanced & Verified</span>
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1.5 text-amber-600 font-bold text-xs bg-amber-50 px-2.5 py-1 rounded-lg">
+                        <Lucide.AlertTriangle size={14} />
+                        <span>Discrepancy Found</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 3: REVENUE & ADR REPORT                                               */}
+      {/* ========================================================================= */}
+      {activeTab === 'revenue' && (
+        <div className="flex flex-col gap-4">
+          {/* Top Controls Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                <Lucide.TrendingUp className="text-emerald-600" size={18} />
+                <span>Revenue & Financial Analytics</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Average Daily Rate (ADR), RevPAR, gross lodging revenues, and tax collections
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Tabs
+                label="Date Range"
+                tabs={RANGES.map((r) => ({ id: r, label: r }))}
+                active={revRange}
+                onChange={setRevRange}
+              />
+              {can('report.export') && (
                 <button
                   type="button"
-                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold"
+                  disabled={!revenue}
+                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-slate-200"
                   onClick={() =>
-                    void downloadApiFile(auditApi.export(), 'audit-log.csv').catch((error: unknown) =>
-                      toast('Audit export failed', { detail: displayApiError(error), tone: 'danger' }),
+                    revenue &&
+                    void downloadApiFile(reportsApi.exportRevenue(revenue.from, revenue.to), 'revenue.csv').catch(
+                      (error: unknown) => toast('Export failed', { detail: displayApiError(error), tone: 'danger' }),
                     )
                   }
                 >
-                  <Lucide.Download size={14} />
+                  <Lucide.Download size={13} />
                   <span>Export CSV</span>
                 </button>
-              ) : undefined
-            }
-          />
-          <div className="mt-3 overflow-x-auto">
-            <table className="pms-table min-w-[680px]">
-              <thead>
-                <tr>
-                  <th>Timestamp</th>
-                  <th>Action</th>
-                  <th>Actor</th>
-                  <th>Resource</th>
-                  <th>Outcome</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.audit.rows.map((event) => (
-                  <tr key={event.id} className="transition-colors hover:bg-black/[0.01]">
-                    <td className="tnum text-xs text-ink-secondary">{event.createdAt}</td>
-                    <td className="font-semibold text-ink">{event.action}</td>
-                    <td>{event.actorName ?? 'System'}</td>
-                    <td className="font-mono text-xs text-ink-secondary">
-                      {event.resourceType}
-                      {event.resourceId ? ` · ${event.resourceId}` : ''}
-                    </td>
-                    <td>
-                      <Badge tone={event.outcome === 'SUCCESS' ? 'success' : 'danger'}>
-                        {event.outcome}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              )}
+            </div>
           </div>
-        </Card>
-      ) : null}
+
+          {/* 4 Financial KPI Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              {
+                label: 'Gross Lodging Revenue',
+                val: revenue ? formatCurrency(Number(revenue.grossRevenue), currencyCode) : '—',
+                Icon: Lucide.TrendingUp,
+                color: 'text-emerald-600',
+                bg: 'bg-emerald-50',
+              },
+              {
+                label: 'Average Daily Rate (ADR)',
+                val: revenue ? formatCurrency(Number(revenue.adr), currencyCode) : '—',
+                Icon: Lucide.BarChart3,
+                color: 'text-indigo-600',
+                bg: 'bg-indigo-50',
+              },
+              {
+                label: 'Revenue per Available Room',
+                val: revenue ? formatCurrency(Number(revenue.revpar), currencyCode) : '—',
+                Icon: Lucide.LineChart,
+                color: 'text-sky-600',
+                bg: 'bg-sky-50',
+              },
+              {
+                label: 'Net Payments Collected',
+                val: revenue ? formatCurrency(Number(revenue.paymentsNetCollected), currencyCode) : '—',
+                Icon: Lucide.CreditCard,
+                color: 'text-violet-600',
+                bg: 'bg-violet-50',
+              },
+            ].map(({ label, val, Icon, color, bg }) => (
+              <div key={label} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-slate-500">{label}</p>
+                  <p className="text-2xl font-black text-slate-900 tnum mt-2">{val}</p>
+                </div>
+                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${bg} ${color}`}>
+                  <Icon size={18} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Revenue Breakdown Chart */}
+          <Card>
+            <CardTitle
+              title="Revenue Components Breakdown"
+              subtitle={revenue ? `${revenue.from} through ${revenue.to} · ${currencyCode}` : 'Loading revenue data…'}
+            />
+            {revenue ? (
+              <div className="mt-3">
+                <BarChart
+                  label="Revenue components"
+                  data={[
+                    { label: 'Room Revenue', value: Number(revenue.roomRevenue) },
+                    { label: 'Other Revenue', value: Number(revenue.otherRevenue) },
+                    { label: 'Taxes Total', value: Number(revenue.taxTotal) },
+                    { label: 'Gross Revenue', value: Number(revenue.grossRevenue), highlight: true },
+                  ]}
+                />
+              </div>
+            ) : null}
+          </Card>
+
+          {/* Revenue and Collections Accounting Ledger */}
+          <Card>
+            <CardTitle title="Revenue and Collections Ledger" subtitle="Accounting metrics from backend financial engine" />
+            {revenue ? (
+              <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-200">
+                <table className="pms-table min-w-[480px]">
+                  <thead>
+                    <tr>
+                      <th>Financial Metric</th>
+                      <th className="text-right">Amount / Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      ['Room Revenue', formatCurrency(Number(revenue.roomRevenue), currencyCode)],
+                      ['Other Incidental Revenue', formatCurrency(Number(revenue.otherRevenue), currencyCode)],
+                      ['Tax Total Collected', formatCurrency(Number(revenue.taxTotal), currencyCode)],
+                      ['Gross Revenue Total', formatCurrency(Number(revenue.grossRevenue), currencyCode)],
+                      ['Gross Payments Collected', formatCurrency(Number(revenue.paymentsCollected), currencyCode)],
+                      ['Payments Refunded', formatCurrency(Number(revenue.paymentsRefunded), currencyCode)],
+                      ['Net Collections', formatCurrency(Number(revenue.paymentsNetCollected), currencyCode)],
+                      ['Sold Room Nights', String(revenue.soldRoomNights)],
+                      ['Available Room Nights', String(revenue.availableRoomNights)],
+                    ].map(([label, value]) => (
+                      <tr key={label} className="transition-colors hover:bg-slate-50/60">
+                        <td className="font-semibold text-slate-800 text-xs">{label}</td>
+                        <td className="tnum text-right font-bold text-slate-900 text-xs">{value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
+          </Card>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 4: GUEST MOVEMENTS (ARRIVALS & DEPARTURES)                            */}
+      {/* ========================================================================= */}
+      {activeTab === 'movements' && (
+        <div className="flex flex-col gap-4">
+          {/* Top Controls Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                <Lucide.ArrowLeftRight className="text-[var(--color-primary)]" size={18} />
+                <span>Daily Guest Movements Manifest</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Check-in manifests, scheduled departures, and net inventory changes
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Date Stepper */}
+              <div className="flex items-center rounded-xl border border-slate-200 bg-slate-50 p-0.5">
+                <button
+                  type="button"
+                  title="Previous day"
+                  className="pms-btn-ghost h-8 w-8 p-0 flex items-center justify-center rounded-lg"
+                  onClick={() => setMovementDay((d) => shiftDate(d, -1))}
+                >
+                  <Lucide.ChevronLeft size={16} />
+                </button>
+                <input
+                  type="date"
+                  value={movementDay}
+                  onChange={(e) => e.target.value && setMovementDay(e.target.value)}
+                  className={inputClass('border-0 bg-transparent py-1 px-2.5 tnum text-xs font-bold')}
+                  aria-label="Manifest business date"
+                />
+                <button
+                  type="button"
+                  title="Next day"
+                  className="pms-btn-ghost h-8 w-8 p-0 flex items-center justify-center rounded-lg"
+                  onClick={() => setMovementDay((d) => shiftDate(d, 1))}
+                >
+                  <Lucide.ChevronRight size={16} />
+                </button>
+              </div>
+
+              {can('report.export') && (
+                <button
+                  type="button"
+                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-slate-200"
+                  onClick={() =>
+                    void downloadApiFile(reportsApi.exportMovement(movementDay, movementDay), `movement-${movementDay}.csv`).catch(
+                      (error: unknown) => toast('Export failed', { detail: displayApiError(error), tone: 'danger' }),
+                    )
+                  }
+                >
+                  <Lucide.Download size={13} />
+                  <span>Export CSV</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 4 Movement Metric Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: 'Expected Arrivals', value: arrivals.length, icon: Lucide.ArrowDownLeft, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+              { label: 'Expected Departures', value: departures.length, icon: Lucide.ArrowUpRight, color: 'text-amber-600', bg: 'bg-amber-50' },
+              { label: 'Net Room Change', value: netMovements >= 0 ? `+${netMovements}` : `${netMovements}`, icon: Lucide.Activity, color: netMovements >= 0 ? 'text-emerald-600' : 'text-rose-600', bg: netMovements >= 0 ? 'bg-emerald-50' : 'bg-rose-50' },
+              { label: 'Manifest Date', value: movementDay, icon: Lucide.Calendar, color: 'text-slate-600', bg: 'bg-slate-100' },
+            ].map((item) => (
+              <div key={item.label} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-500">{item.label}</span>
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${item.bg} ${item.color}`}>
+                    <item.icon size={16} />
+                  </span>
+                </div>
+                <p className="text-2xl font-black text-slate-900 tnum mt-2">{item.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Dual-Column Manifest Board */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {/* Arrivals Column */}
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-xs">
+              <div className="flex items-center justify-between mb-3.5 pb-2.5 border-b border-slate-100">
+                <span className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                  <Lucide.ArrowDownLeft size={16} className="text-[var(--color-primary)]" />
+                  <span>Arrivals Manifest</span>
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-[var(--color-primary)]">
+                  {arrivals.length} expected
+                </span>
+              </div>
+
+              <ul className="flex flex-col gap-2.5">
+                {arrivals.length === 0 ? (
+                  <p className="py-8 text-center text-xs text-slate-400">No arrivals scheduled for {movementDay}.</p>
+                ) : (
+                  arrivals.map((row) => (
+                    <li
+                      key={`${row.bookingCode}-arrival`}
+                      className="flex items-center gap-3 rounded-2xl border border-slate-200/80 p-3 bg-slate-50/50 hover:bg-white hover:shadow-xs transition-all"
+                    >
+                      <Avatar name={row.guestName ?? 'Guest'} size={34} />
+                      <div className="min-w-0 flex-1">
+                        <span className="block truncate text-xs font-bold text-slate-900">{row.guestName ?? 'Guest'}</span>
+                        <span className="tnum block text-[11px] text-slate-400 mt-0.5">
+                          {row.bookingCode} · Rm {row.roomNumber ?? 'Unassigned'} · {row.nights} night{row.nights > 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <Badge tone={reservationTone(apiReservationStatus(row.status))}>
+                        {apiReservationStatus(row.status)}
+                      </Badge>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
+
+            {/* Departures Column */}
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-xs">
+              <div className="flex items-center justify-between mb-3.5 pb-2.5 border-b border-slate-100">
+                <span className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                  <Lucide.ArrowUpRight size={16} className="text-amber-500" />
+                  <span>Departures Manifest</span>
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700">
+                  {departures.length} scheduled
+                </span>
+              </div>
+
+              <ul className="flex flex-col gap-2.5">
+                {departures.length === 0 ? (
+                  <p className="py-8 text-center text-xs text-slate-400">No departures scheduled for {movementDay}.</p>
+                ) : (
+                  departures.map((row) => (
+                    <li
+                      key={`${row.bookingCode}-departure`}
+                      className="flex items-center gap-3 rounded-2xl border border-slate-200/80 p-3 bg-slate-50/50 hover:bg-white hover:shadow-xs transition-all"
+                    >
+                      <Avatar name={row.guestName ?? 'Guest'} size={34} />
+                      <div className="min-w-0 flex-1">
+                        <span className="block truncate text-xs font-bold text-slate-900">{row.guestName ?? 'Guest'}</span>
+                        <span className="tnum block text-[11px] text-slate-400 mt-0.5">
+                          {row.bookingCode} · Rm {row.roomNumber ?? 'Unassigned'}
+                        </span>
+                      </div>
+                      <Badge tone={reservationTone(apiReservationStatus(row.status))}>
+                        {apiReservationStatus(row.status)}
+                      </Badge>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 5: AUDITS & OPERATIONS                                                */}
+      {/* ========================================================================= */}
+      {activeTab === 'audits' && (
+        <div className="flex flex-col gap-4">
+          {/* Housekeeping Performance */}
+          {data?.housekeeping ? (
+            <Card>
+              <CardTitle
+                title="Housekeeping Performance"
+                subtitle={`${data.housekeeping.from} · ${data.housekeeping.completionRate}% completion · ${data.housekeeping.avgTurnaroundHours}h avg turnaround`}
+              />
+              <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 mt-2">
+                {[
+                  ['Total Tasks', String(data.housekeeping.totalTasks)],
+                  ['Completed', String(data.housekeeping.completed)],
+                  ['Blocked', String(data.housekeeping.blocked)],
+                  ['Rooms Serviced', `${data.housekeeping.roomsTouched} / ${data.housekeeping.roomsTotal}`],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="rounded-2xl border border-slate-200 p-3 shadow-2xs bg-slate-50/50"
+                  >
+                    <p className="text-xs text-slate-400 font-medium">{label}</p>
+                    <p className="tnum text-xl font-bold text-slate-900 mt-1">{value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200">
+                <table className="pms-table min-w-[480px]">
+                  <thead>
+                    <tr>
+                      <th>Task Type</th>
+                      <th className="text-right">Total</th>
+                      <th className="text-right">Completed</th>
+                      <th className="text-right">Blocked</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.housekeeping.byType.map((row) => (
+                      <tr key={row.type}>
+                        <td className="font-semibold text-slate-800 text-xs">{row.type.replace(/_/g, ' ')}</td>
+                        <td className="tnum text-right text-xs">{row.total}</td>
+                        <td className="tnum text-right font-semibold text-emerald-600 text-xs">{row.completed}</td>
+                        <td className="tnum text-right text-rose-600 text-xs">{row.blocked}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          ) : null}
+
+          {/* Night Audit Card */}
+          {can('night-audit.read') ? (
+            <Card>
+              <CardTitle
+                title="Night Audit Day Close"
+                subtitle={`Business date ${auditDate} · Advisory and day-close workflow`}
+              />
+              {nightAuditResource.error ? (
+                <p role="alert" className="pms-helper mb-2 text-danger text-xs">
+                  {nightAuditResource.error}
+                </p>
+              ) : null}
+              <div className="mt-3 flex flex-wrap items-center gap-2.5">
+                <Badge tone={nightAuditResource.data?.status === 'COMPLETED' ? 'success' : 'neutral'}>
+                  {nightAuditResource.data?.status ?? 'Not previewed'}
+                </Badge>
+                {nightAuditResource.data?.previewSummary?.exceptionCount !== undefined ? (
+                  <span className="pms-helper text-xs">
+                    {nightAuditResource.data.previewSummary.exceptionCount} preview exceptions
+                  </span>
+                ) : null}
+                {can('night-audit.run') ? (
+                  <button
+                    type="button"
+                    className="pms-btn-ghost px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200"
+                    onClick={() => void runNightAudit('preview')}
+                  >
+                    Run Preview
+                  </button>
+                ) : null}
+                {can('night-audit.approve') && nightAuditResource.data?.status !== 'COMPLETED' ? (
+                  <button
+                    type="button"
+                    className="pms-btn-primary px-3.5 py-2 text-xs font-semibold rounded-xl"
+                    onClick={() => void runNightAudit('close')}
+                  >
+                    Close Business Date
+                  </button>
+                ) : null}
+                {can('night-audit.approve') && nightAuditResource.data?.status === 'COMPLETED' ? (
+                  <button
+                    type="button"
+                    className="pms-btn-ghost px-3.5 py-2 text-xs text-amber-600 font-semibold rounded-xl border border-amber-200 bg-amber-50"
+                    onClick={() => setReopenModal(true)}
+                  >
+                    Reopen Business Date
+                  </button>
+                ) : null}
+              </div>
+            </Card>
+          ) : null}
+
+          {/* Audit Events Table */}
+          {data?.audit ? (
+            <Card>
+              <CardTitle
+                title="Recent Managerial & System Audits"
+                subtitle={`${data.audit.total} events recorded · latest ${data.audit.returned} shown`}
+                action={
+                  can('audit-log.export') ? (
+                    <button
+                      type="button"
+                      className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-slate-200"
+                      onClick={() =>
+                        void downloadApiFile(auditApi.export(), 'audit-log.csv').catch((error: unknown) =>
+                          toast('Audit export failed', { detail: displayApiError(error), tone: 'danger' }),
+                        )
+                      }
+                    >
+                      <Lucide.Download size={13} />
+                      <span>Export CSV</span>
+                    </button>
+                  ) : undefined
+                }
+              />
+              <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-200">
+                <table className="pms-table min-w-[680px]">
+                  <thead>
+                    <tr>
+                      <th>Timestamp</th>
+                      <th>Action</th>
+                      <th>Actor</th>
+                      <th>Resource</th>
+                      <th>Outcome</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.audit.rows.map((event) => (
+                      <tr key={event.id} className="transition-colors hover:bg-slate-50/60">
+                        <td className="tnum text-xs text-slate-500">{event.createdAt}</td>
+                        <td className="font-semibold text-slate-900 text-xs">{event.action}</td>
+                        <td className="text-xs text-slate-700">{event.actorName ?? 'System'}</td>
+                        <td className="font-mono text-xs text-slate-500">
+                          {event.resourceType}
+                          {event.resourceId ? ` · ${event.resourceId}` : ''}
+                        </td>
+                        <td>
+                          <Badge tone={event.outcome === 'SUCCESS' ? 'success' : 'danger'}>
+                            {event.outcome}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          ) : null}
+        </div>
+      )}
 
       {/* Night Audit Reopen PromptDialog */}
       <PromptDialog

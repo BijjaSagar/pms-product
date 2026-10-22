@@ -16,18 +16,13 @@ const NAV_ICONS: Record<ViewId, Lucide.LucideIcon> = {
   reservations: Lucide.CalendarDays,
   'room-calendar': Lucide.CalendarRange,
   'new-reservation': Lucide.CalendarPlus,
-  'new-reservation-2': Lucide.UserPlus,
-  'new-reservation-3': Lucide.FileSpreadsheet,
   'rate-management': Lucide.SlidersHorizontal,
   'channel-manager': Lucide.Globe,
   'check-in': Lucide.DoorOpen,
   'check-out': Lucide.DoorClosed,
-  'in-house': Lucide.Users,
   guests: Lucide.BookUser,
-  'walk-in': Lucide.Footprints,
   'room-overview': Lucide.BedDouble,
   'room-types': Lucide.Layers,
-  'room-inventory': Lucide.Boxes,
   'status-board': Lucide.LayoutGrid,
   housekeeping: Lucide.Sparkles,
   maintenance: Lucide.Wrench,
@@ -40,7 +35,6 @@ const NAV_ICONS: Record<ViewId, Lucide.LucideIcon> = {
   'revenue-report': Lucide.TrendingUp,
   'arrivals-departures': Lucide.ArrowLeftRight,
   'staff-roles': Lucide.UserCog,
-  properties: Lucide.Building2,
   settings: Lucide.Settings,
 };
 
@@ -71,18 +65,18 @@ function NavButton({
       style={
         selected
           ? {
-              background: fourthColor || 'var(--color-sidebar-active-bg)',
-              color: 'var(--color-primary)',
-              border: '1.5px solid var(--color-primary)',
-              boxShadow: 'var(--shadow-xs)',
-              fontWeight: 650,
-            }
+            background: fourthColor || 'var(--color-sidebar-active-bg)',
+            color: 'var(--color-primary)',
+            border: '1.5px solid var(--color-primary)',
+            boxShadow: 'var(--shadow-xs)',
+            fontWeight: 650,
+          }
           : {
-              background: 'transparent',
-              color: '#475569',
-              border: '1.5px solid transparent',
-              fontWeight: 500,
-            }
+            background: 'transparent',
+            color: '#475569',
+            border: '1.5px solid transparent',
+            fontWeight: 500,
+          }
       }
     >
       <span className="flex-none" style={{ color: selected ? 'var(--color-primary)' : '#64748b' }}>
@@ -435,22 +429,21 @@ export function Sidebar({
                 onMouseLeave={handleMouseLeave}
                 aria-label={section.title}
                 aria-expanded={isFlyoutOpen}
-                className={`relative flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-150 cursor-pointer ${
-                  isFlyoutOpen
+                className={`relative flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-150 cursor-pointer ${isFlyoutOpen
                     ? 'ring-2 ring-slate-300 scale-105'
                     : 'hover:bg-slate-100 hover:scale-105 active:scale-95'
-                }`}
+                  }`}
                 style={
                   isSectionActive
                     ? {
-                        background: fourthColor,
-                        border: '1.5px solid var(--color-primary)',
-                        boxShadow: 'var(--shadow-xs)',
-                      }
+                      background: fourthColor,
+                      border: '1.5px solid var(--color-primary)',
+                      boxShadow: 'var(--shadow-xs)',
+                    }
                     : {
-                        background: isFlyoutOpen ? '#f1f5f9' : 'transparent',
-                        border: '1.5px solid transparent',
-                      }
+                      background: isFlyoutOpen ? '#f1f5f9' : 'transparent',
+                      border: '1.5px solid transparent',
+                    }
                 }
               >
                 <Icon
@@ -512,9 +505,8 @@ export function Sidebar({
     <>
       {/* Desktop Sidebar: Smoothly transitions between compact 72px icon rail and full 260px panel */}
       <aside
-        className={`hidden flex-none self-start border-r lg:sticky lg:top-0 lg:block lg:h-screen transition-[width] duration-200 ease-in-out ${
-          collapsed ? 'w-[72px]' : 'w-[260px]'
-        }`}
+        className={`hidden flex-none self-start border-r lg:sticky lg:top-0 lg:block lg:h-screen transition-[width] duration-200 ease-in-out ${collapsed ? 'w-[72px]' : 'w-[260px]'
+          }`}
         style={{ borderColor: 'var(--color-border)', background: '#ffffff' }}
       >
         {collapsed ? compactRail : fullPanel}
@@ -617,31 +609,30 @@ export function Sidebar({
                       style={
                         isItemActive
                           ? {
-                              background: fourthColor,
-                              border: '1.5px solid var(--color-primary)',
-                            }
+                            background: fourthColor,
+                            border: '1.5px solid var(--color-primary)',
+                          }
                           : {
-                              border: '1.5px solid transparent',
-                            }
+                            border: '1.5px solid transparent',
+                          }
                       }
-                      className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-all cursor-pointer ${
-                        isItemActive
+                      className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-all cursor-pointer ${isItemActive
                           ? 'font-semibold shadow-2xs'
                           : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900'
-                      }`}
+                        }`}
                     >
                       <div
                         className="flex h-8 w-8 flex-none items-center justify-center rounded-lg transition-colors"
                         style={
                           isItemActive
                             ? {
-                                background: 'transparent',
-                                color: 'var(--color-primary)',
-                              }
+                              background: 'transparent',
+                              color: 'var(--color-primary)',
+                            }
                             : {
-                                background: '#f1f5f9',
-                                color: '#64748b',
-                              }
+                              background: '#f1f5f9',
+                              color: '#64748b',
+                            }
                         }
                       >
                         <NavIcon id={item.id} />
@@ -749,21 +740,16 @@ const NOTICE_TONE_CONFIG: Record<
 
 const SEARCH_KEYWORDS: Record<ViewId, string[]> = {
   dashboard: ['home', 'overview', 'summary', 'metrics', 'kpi', 'revenue', 'occupancy', 'analytics'],
-  reservations: ['booking', 'bookings', 'calendar', 'calendar view', 'schedule', 'stays', 'guest reservation'],
+  reservations: ['booking', 'bookings', 'calendar', 'room calendar', 'room rack', 'tape chart', 'calendar view', 'schedule', 'stays', 'guest reservation', 'list view', 'table view', 'timeline', 'grid', 'reallocate'],
   'room-calendar': ['room calendar', 'room rack', 'drag and drop', 'timeline', 'grid', 'reservations calendar', 'reallocate', 'tape chart'],
-  'new-reservation': ['create booking', 'add reservation', 'new booking', 'book room', 'reservation create', 'make reservation'],
-  'new-reservation-2': ['visitor check in', 'new reservation 2', 'visitor intake', 'visitor registration', 'guest intake', 'visitor form', 'id verification'],
-  'new-reservation-3': ['new reservation 3', 'djubo booking', 'folio reservation', 'quick reservation', 'board pass booking', 'e collect'],
+  'new-reservation': ['create booking', 'add reservation', 'new booking', 'book room', 'reservation create', 'make reservation', 'folio reservation', 'quick reservation', 'booking console'],
   'rate-management': ['rate', 'rates', 'pricing', 'seasonal pricing', 'restrictions', 'minimum stay', 'stop sell', 'cta', 'ctd', 'rate plan', 'bar', 'rate calendar', 'rate management'],
   'channel-manager': ['channel', 'channels', 'ota', 'otas', 'booking.com', 'airbnb', 'expedia', 'agoda', 'makemytrip', 'goibibo', 'rate sync', 'inventory sync', 'distribution', 'channel manager'],
   'check-in': ['arrival', 'arrivals', 'check in', 'guest arrival', 'reception', 'front desk', 'key handover', 'today arrivals'],
   'check-out': ['departure', 'departures', 'check out', 'guest departure', 'settle folio', 'bill settle', 'leave hotel'],
-  'in-house': ['active guests', 'staying', 'residents', 'occupied rooms', 'current guests', 'in house'],
   guests: ['guest list', 'profiles', 'directory', 'customers', 'clients', 'loyalty', 'history', 'vip', 'guest history'],
-  'walk-in': ['walk in', 'no reservation', 'direct booking', 'instant check in', 'immediate guest', 'walk in guest'],
-  'room-overview': ['rooms', 'beds', 'room matrix', 'floor plan', 'available rooms', 'room status', 'grid'],
+  'room-overview': ['rooms', 'beds', 'room matrix', 'floor plan', 'available rooms', 'room status', 'grid', 'inventory', 'room list', 'room numbers'],
   'room-types': ['categories', 'suites', 'deluxe', 'rates', 'pricing', 'amenities', 'bedding', 'room category'],
-  'room-inventory': ['inventory', 'room list', 'room numbers', 'room table', 'all rooms', 'bed list'],
   'status-board': ['grid', 'live board', 'room board', 'occupancy board', 'status grid'],
   housekeeping: ['cleaning', 'clean', 'dirty', 'maid', 'linen', 'housekeeper', 'turn down', 'inspected', 'room cleaning'],
   maintenance: ['repairs', 'broken', 'leak', 'ac', 'plumbing', 'work order', 'issue', 'ticket', 'fix', 'engineer'],
@@ -771,12 +757,11 @@ const SEARCH_KEYWORDS: Record<ViewId, string[]> = {
   payments: ['cash', 'card', 'credit', 'payment ledger', 'transactions', 'receipt', 'settlement', 'refund'],
   invoices: ['tax invoice', 'bills', 'printable bill', 'pdf invoice', 'corporate billing', 'receipts'],
   'night-audit': ['night audit', 'day close', 'end of day', 'eod', 'post room charges', 'rollover', 'audit summary', 'pre-audit checks', 'close day', 'audit logs'],
-  reports: ['analytics', 'metrics', 'audit', 'daily report', 'financials', 'manager report', 'summary report'],
+  reports: ['analytics', 'metrics', 'audit', 'daily report', 'financials', 'manager report', 'summary report', 'occupancy', 'occupancy report', 'revenue', 'revenue report', 'adr', 'revpar', 'arrivals', 'departures', 'movements', 'guest manifest'],
   'occupancy-report': ['occupancy', 'percentage', 'fill rate', 'room nights', 'adr', 'capacity'],
   'revenue-report': ['income', 'earnings', 'revpar', 'adr', 'sales', 'financial performance', 'money made'],
   'arrivals-departures': ['movements', 'daily movement', 'transfers', 'today arrivals', 'today departures'],
   'staff-roles': ['team', 'employees', 'permissions', 'users', 'access control', 'rbac', 'security', 'hotel staff'],
-  properties: ['hotels', 'branches', 'resorts', 'locations', 'chains', 'multi property', 'locations'],
   settings: ['configuration', 'preferences', 'theme', 'color theme', 'hotel details', 'taxes', 'policies', 'profile'],
 };
 
@@ -984,17 +969,17 @@ export function Header({
 
   const matchedNavItems = query
     ? NAV_ITEMS.filter((item) => {
-        const perm = viewPermission(item.id);
-        if (perm && !can(perm)) return false;
+      const perm = viewPermission(item.id);
+      if (perm && !can(perm)) return false;
 
-        const inLabel = item.label.toLowerCase().includes(query);
-        const inHint = item.hint.toLowerCase().includes(query);
-        const inId = item.id.toLowerCase().includes(query);
-        const keywords = SEARCH_KEYWORDS[item.id] ?? [];
-        const inKeywords = keywords.some((kw) => kw.includes(query) || query.includes(kw));
+      const inLabel = item.label.toLowerCase().includes(query);
+      const inHint = item.hint.toLowerCase().includes(query);
+      const inId = item.id.toLowerCase().includes(query);
+      const keywords = SEARCH_KEYWORDS[item.id] ?? [];
+      const inKeywords = keywords.some((kw) => kw.includes(query) || query.includes(kw));
 
-        return inLabel || inHint || inId || inKeywords;
-      })
+      return inLabel || inHint || inId || inKeywords;
+    })
     : [];
 
   // Total selectable items in search dialog for keyboard navigation
@@ -1138,7 +1123,7 @@ export function Header({
             {/* 4. In-house Guests */}
             <button
               type="button"
-              onClick={() => onGo({ view: 'in-house' })}
+              onClick={() => onGo({ view: 'reservations' })}
               className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="In-house Guests: 8 (28 rooms • 4 extra guests)"
             >
@@ -1214,7 +1199,6 @@ export function Header({
                 title="Create a new reservation"
               >
                 <Lucide.Plus size={15} strokeWidth={2.6} />
-                <span className="hidden sm:inline">New Booking</span>
               </button>
             ) : null}
 
@@ -1325,11 +1309,10 @@ export function Header({
                       <button
                         type="button"
                         onClick={() => setNoticeTab('all')}
-                        className={`flex-1 rounded-lg py-1.5 text-center text-[12px] font-bold transition-all ${
-                          noticeTab === 'all'
+                        className={`flex-1 rounded-lg py-1.5 text-center text-[12px] font-bold transition-all ${noticeTab === 'all'
                             ? 'bg-white shadow-xs text-ink'
                             : 'text-ink-secondary hover:text-ink'
-                        }`}
+                          }`}
                         style={noticeTab === 'all' ? { background: 'var(--color-surface)' } : undefined}
                       >
                         All ({visibleNotices.length})
@@ -1337,11 +1320,10 @@ export function Header({
                       <button
                         type="button"
                         onClick={() => setNoticeTab('unread')}
-                        className={`flex-1 rounded-lg py-1.5 text-center text-[12px] font-bold transition-all ${
-                          noticeTab === 'unread'
+                        className={`flex-1 rounded-lg py-1.5 text-center text-[12px] font-bold transition-all ${noticeTab === 'unread'
                             ? 'bg-white shadow-xs text-ink'
                             : 'text-ink-secondary hover:text-ink'
-                        }`}
+                          }`}
                         style={noticeTab === 'unread' ? { background: 'var(--color-surface)' } : undefined}
                       >
                         Unread ({unreadCount})
@@ -1349,11 +1331,10 @@ export function Header({
                       <button
                         type="button"
                         onClick={() => setNoticeTab('urgent')}
-                        className={`flex-1 rounded-lg py-1.5 text-center text-[12px] font-bold transition-all ${
-                          noticeTab === 'urgent'
+                        className={`flex-1 rounded-lg py-1.5 text-center text-[12px] font-bold transition-all ${noticeTab === 'urgent'
                             ? 'bg-white shadow-xs text-ink'
                             : 'text-ink-secondary hover:text-ink'
-                        }`}
+                          }`}
                         style={noticeTab === 'urgent' ? { background: 'var(--color-surface)' } : undefined}
                       >
                         Urgent ({urgentCount})
@@ -1372,11 +1353,10 @@ export function Header({
                         return (
                           <div
                             key={n.id}
-                            className={`group relative flex items-start gap-3.5 p-4 transition-all cursor-pointer ${
-                              isRead
+                            className={`group relative flex items-start gap-3.5 p-4 transition-all cursor-pointer ${isRead
                                 ? 'opacity-70 hover:opacity-100 hover:bg-black/[0.02]'
                                 : 'hover:bg-primary/[0.04]'
-                            }`}
+                              }`}
                             style={!isRead ? { background: 'color-mix(in srgb, var(--color-primary) 3.5%, var(--color-surface))' } : undefined}
                             onClick={() => openNotice(n.target, n.id)}
                           >
@@ -1507,35 +1487,26 @@ export function Header({
               ) : null}
             </div>
 
-            {/* User Profile Pill & Dropdown */}
+            {/* User Profile Avatar & Dropdown */}
             <div className="relative" ref={panel === 'profile' ? dismissRef : undefined}>
               <button
                 type="button"
                 onClick={() => setPanel(panel === 'profile' ? 'none' : 'profile')}
                 aria-label="Open user profile menu"
                 aria-expanded={panel === 'profile'}
-                className="group flex items-center gap-2 rounded-xl border p-1 sm:pr-2.5 transition-all hover:shadow-xs cursor-pointer flex-none"
+                className="group flex h-10 w-10 items-center justify-center rounded-full border transition-all hover:shadow-xs cursor-pointer flex-none"
                 style={{
                   borderColor: panel === 'profile' ? 'var(--color-primary)' : 'var(--color-border)',
                   background: 'var(--color-surface)',
                 }}
               >
                 <div
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-[12px] font-bold shadow-xs transition-transform group-hover:scale-105"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-bold shadow-xs transition-transform group-hover:scale-105"
                   style={{ background: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
                   aria-hidden="true"
                 >
                   {initials}
                 </div>
-                <div className="hidden text-left sm:block">
-                  <span className="block text-[12.5px] font-bold leading-tight truncate max-w-[120px]" style={{ color: 'var(--color-ink)' }}>
-                    {fullName}
-                  </span>
-                  <span className="block text-[11px] font-medium leading-tight text-ink-muted">
-                    {roleName}
-                  </span>
-                </div>
-                <Lucide.ChevronDown size={14} className="text-ink-muted hidden sm:block group-hover:text-ink transition-colors" />
               </button>
 
               {panel === 'profile' ? (
@@ -1552,7 +1523,7 @@ export function Header({
                   <div className="border-b p-4" style={{ borderColor: 'var(--color-border)' }}>
                     <div className="flex items-center gap-3">
                       <div
-                        className="flex h-10 w-10 flex-none items-center justify-center rounded-xl text-[14px] font-bold shadow-sm"
+                        className="flex h-10 w-10 flex-none items-center justify-center rounded-full text-[14px] font-bold shadow-sm"
                         style={{ background: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
                       >
                         {initials}
@@ -1671,336 +1642,328 @@ export function Header({
       {/* ================= GLOBAL SEARCH & NAVIGATION MODAL (Ctrl+F) ================= */}
       {searchOpen && typeof document !== 'undefined'
         ? createPortal(
-            <div
-              className="fixed inset-0 z-[100] flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/60 backdrop-blur-md pms-animate-fade-in"
-              onClick={() => setSearchOpen(false)}
-            >
           <div
-            className="w-full max-w-2xl overflow-hidden rounded-2xl border shadow-2xl backdrop-blur-2xl"
-            style={{
-              background: 'var(--color-surface)',
-              borderColor: 'var(--color-border)',
-              boxShadow: '0 30px 70px -15px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--color-border)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={handleSearchKeyDown}
+            className="fixed inset-0 z-[100] flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/60 backdrop-blur-md pms-animate-fade-in"
+            onClick={() => setSearchOpen(false)}
           >
-            {/* Search Input Bar */}
             <div
-              className="flex items-center gap-3 border-b px-4 py-4"
-              style={{ borderColor: 'var(--color-border)' }}
+              className="w-full max-w-2xl overflow-hidden rounded-2xl border shadow-2xl backdrop-blur-2xl"
+              style={{
+                background: 'var(--color-surface)',
+                borderColor: 'var(--color-border)',
+                boxShadow: '0 30px 70px -15px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--color-border)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={handleSearchKeyDown}
             >
+              {/* Search Input Bar */}
               <div
-                className="flex h-9 w-9 items-center justify-center rounded-xl flex-none"
-                style={{
-                  background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)',
-                  color: 'var(--color-primary)',
-                }}
-              >
-                <Lucide.Search size={20} strokeWidth={2.4} />
-              </div>
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setSelectedIndex(0);
-                }}
-                placeholder="Type anything to search (e.g., 'reservations', 'check in', 'cleaning', 'rooms', 'bills')..."
-                className="w-full bg-transparent text-[16px] font-semibold text-ink placeholder:text-ink-muted focus:outline-none"
-              />
-              {searchQuery ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearchQuery('');
-                    setSelectedIndex(0);
-                  }}
-                  className="rounded-lg p-1 text-ink-muted hover:text-ink hover:bg-black/[0.05]"
-                  title="Clear input"
-                >
-                  <Lucide.X size={17} />
-                </button>
-              ) : null}
-              <kbd
-                onClick={() => setSearchOpen(false)}
-                className="rounded-lg border px-2 py-1 text-[11px] font-bold text-ink-muted cursor-pointer hover:bg-black/[0.04]"
+                className="flex items-center gap-3 border-b px-4 py-4"
                 style={{ borderColor: 'var(--color-border)' }}
               >
-                ESC
-              </kbd>
-            </div>
+                <div
+                  className="flex h-9 w-9 items-center justify-center rounded-xl flex-none"
+                  style={{
+                    background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)',
+                    color: 'var(--color-primary)',
+                  }}
+                >
+                  <Lucide.Search size={20} strokeWidth={2.4} />
+                </div>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setSelectedIndex(0);
+                  }}
+                  placeholder="Type anything to search (e.g., 'reservations', 'check in', 'cleaning', 'rooms', 'bills')..."
+                  className="w-full bg-transparent text-[16px] font-semibold text-ink placeholder:text-ink-muted focus:outline-none"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedIndex(0);
+                    }}
+                    className="rounded-lg p-1 text-ink-muted hover:text-ink hover:bg-black/[0.05]"
+                    title="Clear input"
+                  >
+                    <Lucide.X size={17} />
+                  </button>
+                ) : null}
+                <kbd
+                  onClick={() => setSearchOpen(false)}
+                  className="rounded-lg border px-2 py-1 text-[11px] font-bold text-ink-muted cursor-pointer hover:bg-black/[0.04]"
+                  style={{ borderColor: 'var(--color-border)' }}
+                >
+                  ESC
+                </kbd>
+              </div>
 
-            {/* Results or Categorized Shortcuts */}
-            <div className="max-h-[460px] overflow-y-auto p-3">
-              {query ? (
-                <div className="flex flex-col gap-2">
-                  {/* 1. MATCHING PMS SCREENS (At the very top as requested!) */}
-                  {matchedNavItems.length > 0 ? (
-                    <div>
-                      <div className="flex items-center justify-between px-2 py-1 mb-1">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">
-                          Matching Screens & Views ({matchedNavItems.length})
-                        </span>
-                        <span className="text-[11px] text-ink-muted">Click or press Enter to navigate</span>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        {matchedNavItems.map((item, index) => {
-                          const Icon = NAV_ICONS[item.id] ?? Lucide.Circle;
-                          const isSelected = selectedIndex === index;
+              {/* Results or Categorized Shortcuts */}
+              <div className="max-h-[460px] overflow-y-auto p-3">
+                {query ? (
+                  <div className="flex flex-col gap-2">
+                    {/* 1. MATCHING PMS SCREENS (At the very top as requested!) */}
+                    {matchedNavItems.length > 0 ? (
+                      <div>
+                        <div className="flex items-center justify-between px-2 py-1 mb-1">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                            Matching Screens & Views ({matchedNavItems.length})
+                          </span>
+                          <span className="text-[11px] text-ink-muted">Click or press Enter to navigate</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          {matchedNavItems.map((item, index) => {
+                            const Icon = NAV_ICONS[item.id] ?? Lucide.Circle;
+                            const isSelected = selectedIndex === index;
 
-                          // Find section name
-                          const section = NAV_SECTIONS.find((s) => s.items.some((i) => i.id === item.id));
+                            // Find section name
+                            const section = NAV_SECTIONS.find((s) => s.items.some((i) => i.id === item.id));
 
-                          return (
-                            <button
-                              key={item.id}
-                              type="button"
-                              onClick={() => {
-                                setSearchOpen(false);
-                                onGo({ view: item.id });
-                              }}
-                              className={`group flex items-center justify-between rounded-xl px-3.5 py-2.5 text-left transition-all ${
-                                isSelected
-                                  ? 'bg-primary text-white shadow-md'
-                                  : 'hover:bg-primary/[0.07] text-ink'
-                              }`}
-                              style={
-                                !isSelected
-                                  ? {
+                            return (
+                              <button
+                                key={item.id}
+                                type="button"
+                                onClick={() => {
+                                  setSearchOpen(false);
+                                  onGo({ view: item.id });
+                                }}
+                                className={`group flex items-center justify-between rounded-xl px-3.5 py-2.5 text-left transition-all ${isSelected
+                                    ? 'bg-primary text-white shadow-md'
+                                    : 'hover:bg-primary/[0.07] text-ink'
+                                  }`}
+                                style={
+                                  !isSelected
+                                    ? {
                                       background: 'var(--color-surface)',
                                       border: '1px solid var(--color-border-subtle)',
                                     }
+                                    : undefined
+                                }
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div
+                                    className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl ${isSelected
+                                        ? 'bg-white/20 text-white'
+                                        : 'bg-primary/10 text-primary'
+                                      }`}
+                                  >
+                                    <Icon size={18} strokeWidth={2.2} />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[14px] font-bold truncate">
+                                        {item.label}
+                                      </span>
+                                      {section ? (
+                                        <span
+                                          className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${isSelected
+                                              ? 'bg-white/25 text-white'
+                                              : 'bg-black/[0.05] text-ink-muted'
+                                            }`}
+                                        >
+                                          {section.title}
+                                        </span>
+                                      ) : null}
+                                    </div>
+                                    <p
+                                      className={`text-[12px] truncate mt-0.5 ${isSelected ? 'text-white/80' : 'text-ink-secondary'
+                                        }`}
+                                    >
+                                      {item.hint}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 flex-none ml-2">
+                                  <span
+                                    className={`text-[12px] font-bold ${isSelected ? 'text-white' : 'text-primary group-hover:translate-x-0.5 transition-transform'
+                                      }`}
+                                  >
+                                    Go to page
+                                  </span>
+                                  <Lucide.ArrowRight size={14} strokeWidth={2.4} />
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {/* 2. DEEP SEARCH ACTIONS (Search query inside specific database modules) */}
+                    <div className="mt-2">
+                      <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                        Search "{searchQuery}" inside Modules
+                      </p>
+                      <div className="flex flex-col gap-1 mt-1">
+                        {[
+                          {
+                            idx: matchedNavItems.length,
+                            label: `Search "${searchQuery}" in Reservations`,
+                            sub: 'Find booking codes, guest names, or confirmation numbers',
+                            icon: Lucide.CalendarDays,
+                            action: () => onGo({ view: 'reservations', query: searchQuery }),
+                            color: 'var(--color-primary)',
+                          },
+                          {
+                            idx: matchedNavItems.length + 1,
+                            label: `Search "${searchQuery}" in Guest Directory`,
+                            sub: 'Search guest profiles, emails, phone numbers or loyalty IDs',
+                            icon: Lucide.BookUser,
+                            action: () => onGo({ view: 'guests', query: searchQuery }),
+                            color: '#059669',
+                          },
+                          {
+                            idx: matchedNavItems.length + 2,
+                            label: `Search "${searchQuery}" in Room Overview`,
+                            sub: 'Find room numbers, room types, or floor locations',
+                            icon: Lucide.BedDouble,
+                            action: () => onGo({ view: 'room-overview', query: searchQuery }),
+                            color: '#0284c7',
+                          },
+                        ].map((act) => {
+                          const isSelected = selectedIndex === act.idx;
+                          return (
+                            <button
+                              key={act.idx}
+                              type="button"
+                              onClick={() => {
+                                setSearchOpen(false);
+                                act.action();
+                              }}
+                              className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-left transition-all ${isSelected
+                                  ? 'bg-primary text-white shadow-md'
+                                  : 'hover:bg-black/[0.04] text-ink'
+                                }`}
+                              style={
+                                !isSelected
+                                  ? {
+                                    background: 'var(--color-surface)',
+                                    border: '1px solid var(--color-border-subtle)',
+                                  }
                                   : undefined
                               }
                             >
                               <div className="flex items-center gap-3 min-w-0">
                                 <div
-                                  className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl ${
-                                    isSelected
-                                      ? 'bg-white/20 text-white'
-                                      : 'bg-primary/10 text-primary'
-                                  }`}
+                                  className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl ${isSelected ? 'bg-white/20 text-white' : 'bg-black/[0.04]'
+                                    }`}
+                                  style={!isSelected ? { color: act.color } : undefined}
                                 >
-                                  <Icon size={18} strokeWidth={2.2} />
+                                  <act.icon size={18} strokeWidth={2.2} />
                                 </div>
                                 <div className="min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-[14px] font-bold truncate">
-                                      {item.label}
-                                    </span>
-                                    {section ? (
-                                      <span
-                                        className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                                          isSelected
-                                            ? 'bg-white/25 text-white'
-                                            : 'bg-black/[0.05] text-ink-muted'
-                                        }`}
-                                      >
-                                        {section.title}
-                                      </span>
-                                    ) : null}
-                                  </div>
+                                  <p className="text-[13.5px] font-bold truncate">{act.label}</p>
                                   <p
-                                    className={`text-[12px] truncate mt-0.5 ${
-                                      isSelected ? 'text-white/80' : 'text-ink-secondary'
-                                    }`}
+                                    className={`text-[11.5px] truncate mt-0.5 ${isSelected ? 'text-white/80' : 'text-ink-secondary'
+                                      }`}
                                   >
-                                    {item.hint}
+                                    {act.sub}
                                   </p>
                                 </div>
                               </div>
-
-                              <div className="flex items-center gap-1.5 flex-none ml-2">
-                                <span
-                                  className={`text-[12px] font-bold ${
-                                    isSelected ? 'text-white' : 'text-primary group-hover:translate-x-0.5 transition-transform'
-                                  }`}
-                                >
-                                  Go to page
-                                </span>
-                                <Lucide.ArrowRight size={14} strokeWidth={2.4} />
-                              </div>
+                              <Lucide.ArrowRight size={14} className={isSelected ? 'text-white' : 'text-ink-muted'} />
                             </button>
                           );
                         })}
                       </div>
                     </div>
-                  ) : null}
-
-                  {/* 2. DEEP SEARCH ACTIONS (Search query inside specific database modules) */}
-                  <div className="mt-2">
-                    <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
-                      Search "{searchQuery}" inside Modules
-                    </p>
-                    <div className="flex flex-col gap-1 mt-1">
-                      {[
-                        {
-                          idx: matchedNavItems.length,
-                          label: `Search "${searchQuery}" in Reservations`,
-                          sub: 'Find booking codes, guest names, or confirmation numbers',
-                          icon: Lucide.CalendarDays,
-                          action: () => onGo({ view: 'reservations', query: searchQuery }),
-                          color: 'var(--color-primary)',
-                        },
-                        {
-                          idx: matchedNavItems.length + 1,
-                          label: `Search "${searchQuery}" in Guest Directory`,
-                          sub: 'Search guest profiles, emails, phone numbers or loyalty IDs',
-                          icon: Lucide.BookUser,
-                          action: () => onGo({ view: 'guests', query: searchQuery }),
-                          color: '#059669',
-                        },
-                        {
-                          idx: matchedNavItems.length + 2,
-                          label: `Search "${searchQuery}" in Room Overview`,
-                          sub: 'Find room numbers, room types, or floor locations',
-                          icon: Lucide.BedDouble,
-                          action: () => onGo({ view: 'room-overview', query: searchQuery }),
-                          color: '#0284c7',
-                        },
-                      ].map((act) => {
-                        const isSelected = selectedIndex === act.idx;
-                        return (
+                  </div>
+                ) : (
+                  /* QUICK CATEGORIZED SHORTCUTS WHEN SEARCH INPUT IS EMPTY */
+                  <div className="flex flex-col gap-4 p-1">
+                    <div>
+                      <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                        Front Office & Operations
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1">
+                        {[
+                          { id: 'dashboard' as const, label: 'Dashboard', icon: Lucide.LayoutDashboard },
+                          { id: 'reservations' as const, label: 'Reservations', icon: Lucide.CalendarDays },
+                          { id: 'new-reservation' as const, label: '+ New Booking', icon: Lucide.CalendarPlus },
+                          { id: 'check-in' as const, label: 'Check-In Desk', icon: Lucide.DoorOpen },
+                          { id: 'check-out' as const, label: 'Check-Out Desk', icon: Lucide.DoorClosed },
+                          { id: 'guests' as const, label: 'Guest Directory', icon: Lucide.BookUser },
+                        ].map((item) => (
                           <button
-                            key={act.idx}
+                            key={item.id}
                             type="button"
                             onClick={() => {
                               setSearchOpen(false);
-                              act.action();
+                              onGo({ view: item.id });
                             }}
-                            className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-left transition-all ${
-                              isSelected
-                                ? 'bg-primary text-white shadow-md'
-                                : 'hover:bg-black/[0.04] text-ink'
-                            }`}
-                            style={
-                              !isSelected
-                                ? {
-                                    background: 'var(--color-surface)',
-                                    border: '1px solid var(--color-border-subtle)',
-                                  }
-                                : undefined
-                            }
+                            className="flex items-center gap-2.5 rounded-xl border p-2.5 text-left text-[13px] font-bold transition-all hover:bg-primary/[0.05] hover:border-primary"
+                            style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                           >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div
-                                className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl ${
-                                  isSelected ? 'bg-white/20 text-white' : 'bg-black/[0.04]'
-                                }`}
-                                style={!isSelected ? { color: act.color } : undefined}
-                              >
-                                <act.icon size={18} strokeWidth={2.2} />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-[13.5px] font-bold truncate">{act.label}</p>
-                                <p
-                                  className={`text-[11.5px] truncate mt-0.5 ${
-                                    isSelected ? 'text-white/80' : 'text-ink-secondary'
-                                  }`}
-                                >
-                                  {act.sub}
-                                </p>
-                              </div>
-                            </div>
-                            <Lucide.ArrowRight size={14} className={isSelected ? 'text-white' : 'text-ink-muted'} />
+                            <item.icon size={17} className="text-primary flex-none" />
+                            <span className="truncate">{item.label}</span>
                           </button>
-                        );
-                      })}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ) : (
-                /* QUICK CATEGORIZED SHORTCUTS WHEN SEARCH INPUT IS EMPTY */
-                <div className="flex flex-col gap-4 p-1">
-                  <div>
-                    <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
-                      Front Office & Operations
-                    </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1">
-                      {[
-                        { id: 'dashboard' as const, label: 'Dashboard', icon: Lucide.LayoutDashboard },
-                        { id: 'reservations' as const, label: 'Reservations', icon: Lucide.CalendarDays },
-                        { id: 'new-reservation' as const, label: '+ New Booking', icon: Lucide.CalendarPlus },
-                        { id: 'check-in' as const, label: 'Check-In Desk', icon: Lucide.DoorOpen },
-                        { id: 'check-out' as const, label: 'Check-Out Desk', icon: Lucide.DoorClosed },
-                        { id: 'in-house' as const, label: 'In-House Guests', icon: Lucide.Users },
-                      ].map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => {
-                            setSearchOpen(false);
-                            onGo({ view: item.id });
-                          }}
-                          className="flex items-center gap-2.5 rounded-xl border p-2.5 text-left text-[13px] font-bold transition-all hover:bg-primary/[0.05] hover:border-primary"
-                          style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
-                        >
-                          <item.icon size={17} className="text-primary flex-none" />
-                          <span className="truncate">{item.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
 
-                  <div>
-                    <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
-                      Rooms, Housekeeping & Billing
-                    </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1">
-                      {[
-                        { id: 'room-overview' as const, label: 'Room Matrix', icon: Lucide.BedDouble },
-                        { id: 'status-board' as const, label: 'Status Board', icon: Lucide.LayoutGrid },
-                        { id: 'housekeeping' as const, label: 'Housekeeping', icon: Lucide.Sparkles },
-                        { id: 'maintenance' as const, label: 'Maintenance', icon: Lucide.Wrench },
-                        { id: 'folios' as const, label: 'Folios & Billing', icon: Lucide.ReceiptText },
-                        { id: 'invoices' as const, label: 'Invoices', icon: Lucide.FileText },
-                      ].map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => {
-                            setSearchOpen(false);
-                            onGo({ view: item.id });
-                          }}
-                          className="flex items-center gap-2.5 rounded-xl border p-2.5 text-left text-[13px] font-bold transition-all hover:bg-primary/[0.05] hover:border-primary"
-                          style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
-                        >
-                          <item.icon size={17} className="text-primary flex-none" />
-                          <span className="truncate">{item.label}</span>
-                        </button>
-                      ))}
+                    <div>
+                      <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                        Rooms, Housekeeping & Billing
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1">
+                        {[
+                          { id: 'room-overview' as const, label: 'Room Matrix', icon: Lucide.BedDouble },
+                          { id: 'status-board' as const, label: 'Status Board', icon: Lucide.LayoutGrid },
+                          { id: 'housekeeping' as const, label: 'Housekeeping', icon: Lucide.Sparkles },
+                          { id: 'maintenance' as const, label: 'Maintenance', icon: Lucide.Wrench },
+                          { id: 'folios' as const, label: 'Folios & Billing', icon: Lucide.ReceiptText },
+                          { id: 'invoices' as const, label: 'Invoices', icon: Lucide.FileText },
+                        ].map((item) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => {
+                              setSearchOpen(false);
+                              onGo({ view: item.id });
+                            }}
+                            className="flex items-center gap-2.5 rounded-xl border p-2.5 text-left text-[13px] font-bold transition-all hover:bg-primary/[0.05] hover:border-primary"
+                            style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+                          >
+                            <item.icon size={17} className="text-primary flex-none" />
+                            <span className="truncate">{item.label}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div
-              className="flex items-center justify-between border-t px-4 py-3 text-xs text-ink-muted"
-              style={{
-                background: 'color-mix(in srgb, var(--color-muted-surface) 40%, var(--color-surface))',
-                borderColor: 'var(--color-border)',
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <span>Shortcut:</span>
-                <kbd className="rounded border px-1.5 py-0.5 font-bold text-ink" style={{ borderColor: 'var(--color-border)' }}>Ctrl + F</kbd>
-                <span>or</span>
-                <kbd className="rounded border px-1.5 py-0.5 font-bold text-ink" style={{ borderColor: 'var(--color-border)' }}>Ctrl + K</kbd>
+                )}
               </div>
-              <div className="flex items-center gap-3">
-                <span>Navigate: <kbd className="font-bold text-ink">↑ ↓</kbd></span>
-                <span>Select: <kbd className="font-bold text-ink">Enter ↵</kbd></span>
-                <span>Exit: <kbd className="font-bold text-ink">ESC</kbd></span>
+
+              {/* Modal Footer */}
+              <div
+                className="flex items-center justify-between border-t px-4 py-3 text-xs text-ink-muted"
+                style={{
+                  background: 'color-mix(in srgb, var(--color-muted-surface) 40%, var(--color-surface))',
+                  borderColor: 'var(--color-border)',
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <span>Shortcut:</span>
+                  <kbd className="rounded border px-1.5 py-0.5 font-bold text-ink" style={{ borderColor: 'var(--color-border)' }}>Ctrl + F</kbd>
+                  <span>or</span>
+                  <kbd className="rounded border px-1.5 py-0.5 font-bold text-ink" style={{ borderColor: 'var(--color-border)' }}>Ctrl + K</kbd>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span>Navigate: <kbd className="font-bold text-ink">↑ ↓</kbd></span>
+                  <span>Select: <kbd className="font-bold text-ink">Enter ↵</kbd></span>
+                  <span>Exit: <kbd className="font-bold text-ink">ESC</kbd></span>
+                </div>
               </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      ) : null}
+          </div>,
+          document.body
+        ) : null}
     </>
   );
 }
