@@ -45,7 +45,7 @@ export function RatePlansPanel({ plans, onCreate, onEdit, onToggleStatus }: Prop
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="pms-table-scroll overflow-x-auto">
         <table className="pms-table min-w-[760px]">
           <thead><tr><th>Plan</th><th>Room types</th><th>Meal / cancellation</th><th>Channels</th><th>Adjustment</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
           <tbody>

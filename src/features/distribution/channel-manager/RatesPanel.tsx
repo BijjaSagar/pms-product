@@ -33,7 +33,7 @@ export function RatesPanel({ channels, performance, channelFilter, onChannelFilt
         <div className="rounded-control p-3" style={{ background: 'var(--color-muted-surface)' }}><p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Revenue</p><p className="mt-1 truncate text-lg font-bold text-ink tnum">{money(totals.revenue)}</p></div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="pms-table-scroll overflow-x-auto">
         <table className="pms-table min-w-[620px]">
           <thead><tr><th>Channel</th><th>Bookings</th><th>Room nights</th><th>Booking share</th><th className="text-right">Revenue</th></tr></thead>
           <tbody>

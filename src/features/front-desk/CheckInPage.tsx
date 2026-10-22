@@ -28,8 +28,8 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
       const roomType = roomTypes.find((item) => item.id === firstLine?.roomTypeId);
       return reservationFromApi({
         ...detail,
-        roomTypeName: roomType?.name,
-        roomLines: detail.roomLines?.map((line) => ({ ...line, roomTypeName: roomType?.name })) ?? [],
+        roomTypeName: detail.roomTypeName ?? roomType?.name,
+        roomLines: detail.roomLines?.map((line) => ({ ...line, roomTypeName: roomTypes.find((item) => item.id === line.roomTypeId)?.name })) ?? [],
       });
     });
     const rooms = roomRows.map((row) => {
@@ -48,7 +48,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
   const [idChecked, setIdChecked] = useState(false);
   const [adults, setAdults] = useState(0);
   const [children, setChildren] = useState(0);
-  const [roomNo, setRoomNo] = useState<string | null>(null);
+  const [roomAssignments, setRoomAssignments] = useState<Record<string, string>>({});
   const [depositOk, setDepositOk] = useState(false);
   const [doneIds, setDoneIds] = useState<string[]>([]);
 
@@ -63,10 +63,24 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
   }, [q, doneIds, reservations]);
 
   const current = reservations.find((r) => r.id === resId) ?? null;
-  const options = current
-    ? rooms.filter((room) => room.roomTypeId === current.roomTypeId && ['Available', 'Inspected'].includes(room.status))
-    : [];
-  const room = rooms.find((r) => r.number === roomNo) ?? null;
+  const roomLines = current?.roomLines?.length
+    ? current.roomLines
+    : current ? [{ id: `legacy-${current.backendId ?? current.id}`, roomTypeId: current.roomTypeId ?? '', roomNumber: current.roomNumber, roomTypeName: current.roomType }] : [];
+  const roomOptions = (lineId: string, roomTypeId: string) => {
+    const selectedElsewhere = new Set(Object.entries(roomAssignments)
+      .filter(([selectedLineId, selectedRoomNo]) => selectedLineId !== lineId && selectedRoomNo)
+      .map(([, selectedRoomNo]) => selectedRoomNo));
+    return rooms.filter((candidate) => candidate.roomTypeId === roomTypeId
+      && ['Available', 'Inspected'].includes(candidate.status)
+      && (!selectedElsewhere.has(candidate.number) || roomAssignments[lineId] === candidate.number));
+  };
+  const selectedRoomNumbers = roomLines.map((line) => roomAssignments[line.id] || line.roomNumber).filter(Boolean);
+  const uniqueAssignments = new Set(selectedRoomNumbers).size === selectedRoomNumbers.length;
+  const allRoomsAssigned = uniqueAssignments && roomLines.every((line) => {
+    const selectedNo = roomAssignments[line.id] || line.roomNumber;
+    const selectedRoom = rooms.find((candidate) => candidate.number === selectedNo);
+    return Boolean(selectedRoom && selectedRoom.roomTypeId === line.roomTypeId && ['Available', 'Inspected'].includes(selectedRoom.status));
+  });
   const balance = current ? current.total - current.paid : 0;
 
   const pick = (r: Reservation) => {
@@ -75,10 +89,9 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
     setIdChecked(false);
     setAdults(r.adults);
     setChildren(r.children);
-    const readyForStay = rooms.filter(
-      (item) => item.roomTypeId === r.roomTypeId && ['Available', 'Inspected'].includes(item.status),
-    );
-    setRoomNo(r.roomNumber && readyForStay.some((x) => x.number === r.roomNumber) ? r.roomNumber : null);
+    const assignments = Object.fromEntries((r.roomLines ?? []).map((line) => [line.id, line.roomNumber ?? '']));
+    if (!(r.roomLines?.length)) assignments[`legacy-${r.backendId ?? r.id}`] = r.roomNumber ?? '';
+    setRoomAssignments(assignments);
     setDepositOk(true);
   };
 
@@ -86,22 +99,35 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
     setResId(null);
     setStep(0);
     setQ('');
-    setRoomNo(null);
+    setRoomAssignments({});
     resource.refresh();
   };
 
   const complete = async () => {
     if (!current?.backendId) return;
-    const selectedRoom = options.find((item) => item.number === roomNo);
-    if (!selectedRoom?.backendId) return;
+    const assignments = roomLines.map((line) => ({
+      line,
+      room: rooms.find((candidate) => candidate.number === (roomAssignments[line.id] || line.roomNumber)),
+    }));
+    if (assignments.some((assignment) => !assignment.room?.backendId
+      || !['Available', 'Inspected'].includes(assignment.room.status)
+      || assignment.room.roomTypeId !== assignment.line.roomTypeId)) {
+      toast('Assign every room', { detail: 'Choose an available room for each room line before completing check-in.', tone: 'danger' });
+      return;
+    }
     try {
-      if (!current.roomNumber || current.roomNumber !== selectedRoom.number) {
-        await reservationApi.assignRoom(current.backendId, selectedRoom.backendId);
+      for (const assignment of assignments) {
+        const selectedRoom = assignment.room!;
+        const selectedRoomId = selectedRoom.backendId;
+        if (!selectedRoomId) throw new Error(`Room ${selectedRoom.number} is missing its inventory ID.`);
+        if (assignment.line.roomNumber !== selectedRoom.number) {
+          await reservationApi.assignRoom(current.backendId, selectedRoomId, assignment.line.id.startsWith('legacy-') ? undefined : assignment.line.id);
+        }
       }
       await frontDeskApi.checkIn(current.backendId);
       setDoneIds((ids) => [...ids, current.id]);
       setStep(6);
-      toast('Guest checked in', { detail: `${current.guest} · Room ${selectedRoom.number}.`, tone: 'success' });
+      toast('Guest checked in', { detail: `${current.guest} · Rooms ${assignments.map(({ room: assignedRoom }) => assignedRoom!.number).join(', ')}.`, tone: 'success' });
     } catch (error) {
       toast('Check-in failed', { detail: displayApiError(error), tone: 'danger' });
     }
@@ -240,7 +266,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
             </span>
             <h3 className="pms-section-title text-xl font-bold">{current.guest} is checked in!</h3>
             <p className="tnum text-[14px] text-ink-secondary">
-              Room {roomNo} assigned · key cards ready · turnover task scheduled
+              Rooms {roomLines.map((line) => roomAssignments[line.id] || line.roomNumber).filter(Boolean).join(', ')} assigned · key cards ready · turnover tasks scheduled
             </p>
             <button
               type="button"
@@ -323,45 +349,42 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
 
             {step === 3 && (
               <div>
-                <h3 className="pms-section-title mb-1">Select Ready Room</h3>
+                <h3 className="pms-section-title mb-1">Assign Ready Rooms</h3>
                 <p className="pms-helper mb-3 text-xs">
-                  Only clean, inspected and available {current.roomType} rooms are displayed.
+                  Choose a clean, inspected room for every room type in this booking.
                 </p>
-                {options.length === 0 ? (
-                  <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800" role="alert">
-                    <p className="font-bold flex items-center gap-1.5">
-                      <Lucide.AlertTriangle size={16} />
-                      <span>No ready {current.roomType} rooms right now</span>
-                    </p>
-                    <p className="text-xs mt-1 text-rose-700">Check Housekeeping queue or arrange a complimentary upgrade.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3" role="radiogroup" aria-label="Ready rooms">
-                    {options.map((r) => (
-                      <button
-                        key={r.number}
-                        type="button"
-                        role="radio"
-                        aria-checked={roomNo === r.number}
-                        onClick={() => setRoomNo(r.number)}
-                        className="rounded-xl border p-3.5 text-left transition-all hover:scale-[1.02]"
-                        style={{
-                          borderColor: roomNo === r.number ? 'var(--color-primary)' : 'var(--color-border)',
-                          background: roomNo === r.number ? 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))' : 'var(--color-surface)',
-                          boxShadow: roomNo === r.number ? '0 0 0 1px var(--color-primary)' : 'none',
-                        }}
-                      >
-                        <span className="tnum block text-[20px] font-bold text-ink">Room {r.number}</span>
-                        <span className="mt-1 block">
-                          <Badge tone={roomTone(r.status)}>{r.status}</Badge>
-                        </span>
-                        <span className="tnum mt-1 block text-[12px] text-ink-secondary">
-                          Floor {r.floor} · {formatCurrency(r.rate, current.currencyCode)}/night
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <div className="flex flex-col gap-4">
+                  {roomLines.map((line, index) => {
+                    const options = roomOptions(line.id, line.roomTypeId);
+                    const selectedRoomNo = roomAssignments[line.id] || '';
+                    return <section key={line.id} className="rounded-xl border p-3" style={{ borderColor: 'var(--color-border)' }}>
+                      <div className="mb-2 flex items-center justify-between gap-2"><div><p className="text-sm font-bold text-ink">Room {index + 1} · {line.roomTypeName ?? current.roomType}</p><p className="text-xs text-ink-secondary">{line.roomNumber ? `Currently assigned: ${line.roomNumber}` : 'Not pre-assigned'}</p></div><span className="text-xs font-semibold text-ink-secondary">{selectedRoomNo ? `Selected ${selectedRoomNo}` : 'Choose room'}</span></div>
+                      {options.length === 0 ? <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800" role="alert"><span className="font-bold">No ready {line.roomTypeName ?? current.roomType} rooms available.</span> Check housekeeping or change the room type.</div> :
+                        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3" role="radiogroup" aria-label={`Ready rooms for reservation room ${index + 1}`}>
+                          {options.map((candidate) => <button
+                            key={candidate.number}
+                            type="button"
+                            role="radio"
+                            aria-checked={selectedRoomNo === candidate.number}
+                            onClick={() => {
+                              const next = { ...roomAssignments, [line.id]: candidate.number };
+                              setRoomAssignments(next);
+                            }}
+                            className="rounded-xl border p-3 text-left transition-all hover:scale-[1.02]"
+                            style={{
+                              borderColor: selectedRoomNo === candidate.number ? 'var(--color-primary)' : 'var(--color-border)',
+                              background: selectedRoomNo === candidate.number ? 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))' : 'var(--color-surface)',
+                              boxShadow: selectedRoomNo === candidate.number ? '0 0 0 1px var(--color-primary)' : 'none',
+                            }}
+                          >
+                            <span className="tnum block text-lg font-bold text-ink">Room {candidate.number}</span>
+                            <span className="mt-1 block"><Badge tone={roomTone(candidate.status)}>{candidate.status}</Badge></span>
+                            <span className="tnum mt-1 block text-xs text-ink-secondary">Floor {candidate.floor} · {formatCurrency(candidate.rate, current.currencyCode)}/night</span>
+                          </button>)}
+                        </div>}
+                    </section>;
+                  })}
+                </div>
               </div>
             )}
 
@@ -408,7 +431,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                   {[
                     ['Guest Name', current.guest],
                     ['Registered Occupants', `${adults} adult(s)${children ? `, ${children} child(ren)` : ''}`],
-                    ['Assigned Room', roomNo ? `${room?.type} Room ${roomNo}` : '— not selected —'],
+                    ['Assigned Rooms', roomLines.map((line) => `${line.roomTypeName ?? current.roomType}: ${roomAssignments[line.id] || line.roomNumber || 'not selected'}`).join(' · ')],
                     ['Dates of Stay', `${current.checkIn} → ${current.checkOut}`],
                     ['Folio Balance', formatCurrency(balance, current.currencyCode)],
                     ['Special Instructions', current.specialRequests || 'None'],
@@ -439,7 +462,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
               {step < 5 ? (
                 <button
                   type="button"
-                  disabled={(step === 1 && !idChecked) || (step === 3 && !roomNo) || (step === 4 && !depositOk)}
+                  disabled={(step === 1 && !idChecked) || (step === 3 && !allRoomsAssigned) || (step === 4 && !depositOk)}
                   onClick={() => setStep((s) => s + 1)}
                   className="pms-btn-primary flex-[2] flex items-center justify-center gap-1.5 px-4 py-2.5 font-semibold disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -449,7 +472,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
               ) : (
                 <button
                   type="button"
-                  disabled={!roomNo}
+                  disabled={!allRoomsAssigned}
                   onClick={complete}
                   className="pms-btn-primary flex-[2] flex items-center justify-center gap-1.5 px-4 py-2.5 font-bold disabled:cursor-not-allowed disabled:opacity-50"
                 >

@@ -38,7 +38,13 @@ export const apiReservationStatus = (value: string): ReservationStatus => ({
 export function reservationFromApi(row: ReservationRow): Reservation {
   const guest = row.guest?.name ?? [row.guest?.firstName, row.guest?.lastName].filter(Boolean).join(' ') ?? row.guestName ?? 'Guest';
   const amount = Number(row.totalAmount ?? row.subtotal ?? 0);
-  const firstRoom = row.roomLines?.[0];
+  const roomLines = row.roomLines ?? [];
+  const firstRoom = roomLines[0];
+  const firstAssignedRoom = roomLines.find((line) => line.roomNumber);
+  const roomSummary = row.roomSummary ?? roomLines.map((line) =>
+    `${line.roomTypeName ?? 'Room'}${line.roomNumber ? ` · ${line.roomNumber}` : ' · Unassigned'}`,
+  ).join(' + ');
+  const roomTypeSummary = Array.from(new Set(roomLines.map((line) => line.roomTypeName).filter(Boolean))).join(' + ');
   return {
     id: String(row.bookingCode ?? row.id),
     backendId: String(row.id),
@@ -46,9 +52,11 @@ export function reservationFromApi(row: ReservationRow): Reservation {
     currencyCode: row.currencyCode ?? 'INR',
     guest,
     guestId: String(row.guest?.id ?? row.primaryGuestId ?? ''),
-    room: row.roomNumber ? `${row.roomTypeName ?? 'Room'} · ${row.roomNumber}` : (firstRoom?.roomNumber ? `Room · ${firstRoom.roomNumber}` : 'Unassigned'),
-    roomNumber: row.roomNumber ?? firstRoom?.roomNumber ?? null,
-    roomType: row.roomTypeName ?? 'Room',
+    room: roomSummary || (row.roomNumber ? `${row.roomTypeName ?? 'Room'} · ${row.roomNumber}` : (firstRoom?.roomNumber ? `Room · ${firstRoom.roomNumber}` : 'Unassigned')),
+    roomNumber: row.roomNumber ?? firstAssignedRoom?.roomNumber ?? null,
+    roomSummary: roomSummary || undefined,
+    roomLines: roomLines.map((line) => ({ ...line })),
+    roomType: roomTypeSummary || row.roomTypeName || 'Room',
     roomTypeId: firstRoom?.roomTypeId ?? row.roomTypeId,
     checkIn: shortDate(row.checkInDate),
     checkOut: shortDate(row.checkOutDate),
@@ -206,7 +214,7 @@ export function folioFromApi(row: FolioDetailRow, stay: StayRow): Folio {
     reservationId: row.reservationId,
     guest: row.guestName ?? stay?.guestName ?? 'Guest',
     guestId: stay?.guestId ?? '',
-    room: stay?.roomNumber ?? '—',
+    room: stay?.roomSummary ?? stay?.roomNumber ?? '—',
     status: row.status === 'CLOSED' ? 'Settled' : 'Open',
     charges,
     tax: Number(row.balance?.tax ?? 0),

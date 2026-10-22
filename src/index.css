@@ -421,17 +421,12 @@ textarea {
     background: var(--color-surface);
   }
 
-  .pms-table thead tr,
-  div.overflow-x-auto > table thead tr {
+  .pms-table thead tr {
     background: var(--color-muted-surface) !important;
     border-bottom: 1px solid var(--color-border) !important;
   }
 
-  .pms-table thead th,
-  div.overflow-x-auto > table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 2;
+  .pms-table thead th {
     text-align: left;
     font-size: 12px;
     font-weight: 600;
@@ -444,8 +439,7 @@ textarea {
     white-space: nowrap;
   }
 
-  .pms-table tbody td,
-  div.overflow-x-auto > table tbody td {
+  .pms-table tbody td {
     padding: 13px 16px;
     border-bottom: 1px solid var(--color-divider);
     color: var(--color-ink);
@@ -455,25 +449,29 @@ textarea {
     background: var(--color-surface);
   }
 
-  .pms-table tbody tr:last-child td,
-  div.overflow-x-auto > table tbody tr:last-child td {
+  .pms-table tbody tr:last-child td {
     border-bottom: none !important;
   }
 
-  .pms-table tbody tr,
-  div.overflow-x-auto > table tbody tr {
+  .pms-table tbody tr {
     background: var(--color-surface);
     transition: background-color 150ms ease;
   }
 
-  .pms-table tbody tr:hover,
-  div.overflow-x-auto > table tbody tr:hover {
-    background: var(--color-hover-surface) !important;
+  .pms-table tbody tr:hover {
+    background: var(--color-hover-surface);
   }
 
-  .pms-table tbody tr:hover td,
-  div.overflow-x-auto > table tbody tr:hover td {
-    background: var(--color-hover-surface) !important;
+  .pms-table tbody tr:hover td {
+    background: var(--color-hover-surface);
+  }
+
+  /* Custom matrices own their cell colors and density; they intentionally do
+     not inherit list-table header, padding, or row-hover rules. */
+  .pms-matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-surface);
   }
 
   .pms-label {
@@ -789,52 +787,49 @@ main {
   background-color: var(--color-page);
 }
 
-/* Table scroll wrappers - framed neatly like the reference image */
-.pms-table-container,
-div.overflow-x-auto:has(> table.pms-table),
-div.overflow-x-auto:has(> table) {
+/* The outer frame owns border, radius and elevation. The inner scroll viewport
+   only handles horizontal overflow so it cannot create a second frame. */
+.pms-table-container {
   border: 1px solid var(--color-border);
   border-radius: 12px;
   background: var(--color-surface);
   box-shadow: var(--shadow-xs);
-  scrollbar-gutter: stable;
 }
 
-/* Ensure horizontal scrolling is always enabled and visibly styled for tables */
-div.overflow-x-auto {
-  overflow-x: auto !important;
+/* Table-only scroller: do not apply table overflow behavior to chart, tab, or
+   other horizontal scrolling regions. */
+.pms-table-scroll {
+  overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) var(--color-muted-surface);
 }
 
-div.overflow-x-auto::-webkit-scrollbar {
+.pms-table-scroll::-webkit-scrollbar {
   height: 7px;
 }
 
-div.overflow-x-auto::-webkit-scrollbar-track {
+.pms-table-scroll::-webkit-scrollbar-track {
   background: var(--color-muted-surface);
   border-radius: 9999px;
 }
 
-div.overflow-x-auto::-webkit-scrollbar-thumb {
+.pms-table-scroll::-webkit-scrollbar-thumb {
   background: var(--color-border);
   border-radius: 9999px;
   border: 1.5px solid var(--color-muted-surface);
 }
 
-div.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+.pms-table-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--color-ink-muted);
 }
 
-.pms-table-container table thead th:first-child,
-div.overflow-x-auto > table thead th:first-child {
+.pms-table-container .pms-table thead th:first-child {
   border-top-left-radius: 11px;
 }
 
-.pms-table-container table thead th:last-child,
-div.overflow-x-auto > table thead th:last-child {
+.pms-table-container .pms-table thead th:last-child {
   border-top-right-radius: 11px;
 }
 

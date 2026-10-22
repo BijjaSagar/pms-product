@@ -1,46 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import type { NavTarget } from '../../components/nav';
 import { toast } from '../../components/toastStore';
-
-interface RoomRequirement {
-  id: string;
-  roomIndex: number;
-  category: string;
-  adults: number;
-  children: number;
-  infant: number;
-  roomNo: string;
-  rate: number;
-}
-
-interface FrontDeskTask {
-  id: string;
-  text: string;
-  done: boolean;
-  priority: 'low' | 'medium' | 'high';
-}
-
-const ROOM_CATEGORIES = [
-  { name: 'Family Studio', baseRate: 4100, maxGuests: 4, desc: 'Spacious studio with kitchenette & lounge' },
-  { name: 'Deluxe King', baseRate: 3500, maxGuests: 2, desc: 'King bed, city view & workspace' },
-  { name: 'Executive Suite', baseRate: 5800, maxGuests: 3, desc: 'Master bedroom, living area & bathtub' },
-  { name: 'Club Twin', baseRate: 3200, maxGuests: 2, desc: 'Twin beds, ergonomic setup & balcony' },
-];
-
-const MEAL_PLANS = [
-  { code: 'EP', label: 'EP - Room Only', surcharge: 0 },
-  { code: 'CP', label: 'CP - Bed & Breakfast', surcharge: 450 },
-  { code: 'MAP', label: 'MAP - Half Board (Bkfst + Dinner)', surcharge: 950 },
-  { code: 'AP', label: 'AP - Full Board (All Meals)', surcharge: 1400 },
-];
-
-const SAMPLE_GUEST_DATABASE = [
-  { id: 'g-101', name: 'Rohan Sharma', phone: '+91 88829 51951', email: 'rohan.sharma@example.com', gst: '27AABCT1234A1Z5', city: 'Mumbai', vip: true },
-  { id: 'g-102', name: 'Aarav Iyer', phone: '+91 98200 12345', email: 'aarav.iyer@example.com', gst: '', city: 'Bengaluru', vip: false },
-  { id: 'g-103', name: 'Pooja Verma', phone: '+91 98110 99881', email: 'pooja.verma@example.com', gst: '07AAAAA0000A1Z5', city: 'New Delhi', vip: true },
-  { id: 'g-104', name: 'Vikram Malhotra', phone: '+91 97112 34567', email: 'vikram.m@zenithcorp.in', gst: '29AABCM9988F1Z2', city: 'Pune', vip: false },
-];
+import { inventoryApi, guestApi, reservationApi } from '../../lib/api/pms';
+import type { ReservationPendingPaymentRow, ReservationRoomRow } from '../../lib/api/pms';
+import { useApiResource } from '../../lib/api/useApiResource';
+import { TAX_RATE } from '../../data/catalog';
+import { BillingPreferencesSection } from './new-reservation/BillingPreferencesSection';
+import { OutletPOSSection } from './new-reservation/OutletPOSSection';
+import { RoomRequirementsSection } from './new-reservation/RoomRequirementsSection';
+import { FALLBACK_ROOM_CATEGORIES, MEAL_PLANS, OUTLET_CATALOG, RATE_PLANS, SAMPLE_GUEST_DATABASE } from './new-reservation/data';
+import type { BillingPreferences, FrontDeskTask, OutletAddonLine, OutletCatalogItem, RoomCategoryOption, RoomOccupant, RoomRequirement } from './new-reservation/types';
 
 export function NewReservation({
   go,
@@ -59,10 +29,31 @@ export function NewReservation({
   const [checkInTime, setCheckInTime] = useState('13:00');
   const [checkOutTime, setCheckOutTime] = useState('11:00');
   const [samePlanAllRooms, setSamePlanAllRooms] = useState(true);
-  const [payAtHotel, setPayAtHotel] = useState(false);
   const [ratePlan, setRatePlan] = useState('Best Available Rates');
-  const [selectedCategory, setSelectedCategory] = useState('Family Studio');
+  const [defaultRoomTypeId, setDefaultRoomTypeId] = useState('deluxe');
   const [mealPlan, setMealPlan] = useState('EP');
+
+  const loadInventory = useCallback(async () => {
+    const roomTypes = await inventoryApi.roomTypes();
+    const availabilityEntries = await Promise.all(roomTypes.map(async (roomType) => [
+      roomType.id,
+      await inventoryApi.availability(checkInDate, checkOutDate, roomType.id),
+    ] as const));
+    return {
+      roomTypes: roomTypes.map((roomType) => ({
+        id: roomType.id,
+        name: roomType.name,
+        baseRate: Number(roomType.baseRate),
+        maxAdults: roomType.maxAdults,
+        maxChildren: roomType.maxChildren,
+        desc: roomType.description ?? '',
+      })),
+      availableRoomsByType: Object.fromEntries(availabilityEntries.map(([id, availability]) => [id, availability.available])),
+    };
+  }, [checkInDate, checkOutDate]);
+  const inventoryResource = useApiResource(loadInventory, [checkInDate, checkOutDate]);
+  const roomTypes: RoomCategoryOption[] = inventoryResource.data?.roomTypes ?? FALLBACK_ROOM_CATEGORIES;
+  const availableRoomsByType = inventoryResource.data?.availableRoomsByType ?? {};
 
   // Requirements (Rooms list)
   const [overridePrice, setOverridePrice] = useState(false);
@@ -70,28 +61,38 @@ export function NewReservation({
     {
       id: 'req-1',
       roomIndex: 1,
-      category: 'Family Studio',
+      roomTypeId: 'deluxe',
+      category: 'Deluxe',
       adults: 2,
       children: 0,
       infant: 0,
-      roomNo: '202',
-      rate: 4100,
+      roomId: null,
+      roomNo: '',
+      rate: 4500,
+      ratePlan: 'Best Available Rates',
+      mealPlan: 'EP',
+      billingRoute: 'Default',
+      occupants: [{ id: 'occupant-primary', name: 'Rohan Sharma', role: 'Primary guest' }],
     },
   ]);
 
   // Billing Preferences
-  const [roomBillTo, setRoomBillTo] = useState('To Guest');
-  const [extrasBillTo, setExtrasBillTo] = useState('To Guest');
-  const [billToCompany, setBillToCompany] = useState(false);
-  const [noPost, setNoPost] = useState(false);
-  const [companyName, setCompanyName] = useState('');
-  const [companyGst, setCompanyGst] = useState('');
+  const [billingPreferences, setBillingPreferences] = useState<BillingPreferences>({
+    roomBillTo: 'To Guest',
+    extrasBillTo: 'To Guest',
+    billToCompany: false,
+    noPost: false,
+    companyName: '',
+    companyGst: '',
+  });
+  const [posAddons, setPosAddons] = useState<OutletAddonLine[]>([]);
 
   // Guest Details
   const [guestSearch, setGuestSearch] = useState('');
   const [showGuestSearchDropdown, setShowGuestSearchDropdown] = useState(false);
   const [guestSalutation, setGuestSalutation] = useState('Mr.');
   const [guestName, setGuestName] = useState('Rohan Sharma');
+  const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(null);
   const [guestContact, setGuestContact] = useState('+91 88829 51951');
   const [guestEmail, setGuestEmail] = useState('support@djubo.com');
   const [guestIdType, setGuestIdType] = useState('Aadhaar Card');
@@ -119,6 +120,7 @@ export function NewReservation({
   const [copiedCode, setCopiedCode] = useState(false);
   const [issueModalOpen, setIssueModalOpen] = useState(false);
   const [issueText, setIssueText] = useState('');
+  const [savingReservation, setSavingReservation] = useState(false);
 
   // Confirmation state
   const [confirmedBooking, setConfirmedBooking] = useState<{
@@ -146,14 +148,51 @@ export function NewReservation({
     return requirements.reduce((acc, r) => acc + r.rate * nightsCount, 0);
   }, [requirements, nightsCount]);
 
-  const taxAmount = useMemo(() => {
-    return Math.round(roomCharges * 0.05); // 5% GST
-  }, [roomCharges]);
-
-  const subTotal = Math.max(0, roomCharges - discountAmount);
+  const mealPlanCharges = useMemo(() => requirements.reduce((sum, room) => {
+    const surcharge = MEAL_PLANS.find((plan) => plan.code === room.mealPlan)?.surcharge ?? 0;
+    return sum + surcharge * room.adults * nightsCount;
+  }, 0), [requirements, nightsCount]);
+  const addonSubtotal = useMemo(() => posAddons.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0), [posAddons]);
+  const bookingSubtotal = roomCharges + mealPlanCharges + addonSubtotal;
+  const subTotal = Math.max(0, bookingSubtotal - discountAmount);
+  const taxAmount = Math.round(subTotal * TAX_RATE);
   const totalBill = subTotal + taxAmount;
   const totalPaid = paymentsList.reduce((acc, p) => acc + p.amount, 0);
   const outstanding = Math.max(0, totalBill - totalPaid);
+  const roomTax = Math.round((roomCharges + mealPlanCharges) * TAX_RATE);
+
+  const totalsByRoute = useMemo(() => {
+    const totals: Record<string, number> = {};
+    const resolveRoute = (route: string, fallback: string) => route === 'Default' ? fallback : route;
+    for (const room of requirements) {
+      const route = resolveRoute(room.billingRoute, billingPreferences.roomBillTo);
+      const mealSurcharge = MEAL_PLANS.find((plan) => plan.code === room.mealPlan)?.surcharge ?? 0;
+      totals[route] = (totals[route] ?? 0) + (room.rate + mealSurcharge * room.adults) * nightsCount;
+    }
+    for (const addon of posAddons) {
+      const route = billingPreferences.noPost ? 'Direct Settlement' : resolveRoute(addon.billingRoute, billingPreferences.extrasBillTo);
+      totals[route] = (totals[route] ?? 0) + addon.unitPrice * addon.quantity;
+    }
+    let remainingDiscount = discountAmount;
+    const discountOrder = [billingPreferences.roomBillTo, ...Object.keys(totals).filter((route) => route !== billingPreferences.roomBillTo)];
+    for (const route of discountOrder) {
+      if (remainingDiscount <= 0) break;
+      const reduction = Math.min(totals[route] ?? 0, remainingDiscount);
+      totals[route] = (totals[route] ?? 0) - reduction;
+      remainingDiscount -= reduction;
+    }
+    const netSubtotal = Object.values(totals).reduce((sum, amount) => sum + amount, 0);
+    const tax = Math.round(netSubtotal * TAX_RATE);
+    const entries = Object.entries(totals);
+    const split = entries.map(([route, amount]) => [
+      route,
+      Math.round(amount + (netSubtotal > 0 ? tax * amount / netSubtotal : 0)),
+    ] as const);
+    const roundedTotal = netSubtotal + tax;
+    const roundingDifference = roundedTotal - split.reduce((sum, [, amount]) => sum + amount, 0);
+    if (split.length > 0) split[split.length - 1] = [split[split.length - 1][0], split[split.length - 1][1] + roundingDifference];
+    return Object.fromEntries(split);
+  }, [requirements, posAddons, billingPreferences, nightsCount, discountAmount]);
 
   const formatDisplayDate = (dStr: string) => {
     try {
@@ -173,19 +212,48 @@ export function NewReservation({
 
   const handleAddRoom = () => {
     const nextIdx = requirements.length + 1;
-    const catObj = ROOM_CATEGORIES.find((c) => c.name === selectedCategory) || ROOM_CATEGORIES[0];
+    const category = roomTypes.find((item) => item.id === defaultRoomTypeId) ?? roomTypes[0] ?? FALLBACK_ROOM_CATEGORIES[1];
     const newReq: RoomRequirement = {
       id: `req-${Date.now()}`,
       roomIndex: nextIdx,
-      category: selectedCategory,
+      roomTypeId: category.id,
+      category: category.name,
       adults: 2,
       children: 0,
       infant: 0,
-      roomNo: String(200 + nextIdx),
-      rate: catObj.baseRate,
+      roomId: null,
+      roomNo: '',
+      rate: category.baseRate,
+      ratePlan,
+      mealPlan,
+      billingRoute: 'Default',
+      occupants: [{ id: `occupant-${Date.now()}`, name: '', role: 'Family member' }],
     };
     setRequirements((prev) => [...prev, newReq]);
-    toast.success('Room Added', { detail: `Room ${nextIdx} (${selectedCategory}) added to requirements.` });
+    toast.success('Room Added', { detail: `Room ${nextIdx} (${category.name}) added to requirements.` });
+  };
+
+  const handleAddDriverRoom = () => {
+    const category = roomTypes.find((item) => item.id === 'standard') ?? roomTypes[0] ?? FALLBACK_ROOM_CATEGORIES[0];
+    const nextIdx = requirements.length + 1;
+    const id = `req-${Date.now()}`;
+    setRequirements((prev) => [...prev, {
+      id,
+      roomIndex: nextIdx,
+      roomTypeId: category.id,
+      category: category.name,
+      adults: 1,
+      children: 0,
+      infant: 0,
+      roomId: null,
+      roomNo: '',
+      rate: category.baseRate,
+      ratePlan,
+      mealPlan,
+      billingRoute: 'Default',
+      occupants: [{ id: `occupant-${Date.now()}-driver`, name: '', role: 'Driver' }],
+    }]);
+    toast.success('Driver Room Added', { detail: `Room ${nextIdx} · ${category.name}` });
   };
 
   const handleRemoveRoom = (id: string) => {
@@ -193,14 +261,57 @@ export function NewReservation({
       toast.warning('Minimum Required', { detail: 'At least one room requirement must remain.' });
       return;
     }
-    setRequirements((prev) => prev.filter((r) => r.id !== id));
+    const remaining = requirements.filter((room) => room.id !== id);
+    setRequirements(remaining.map((room, index) => ({ ...room, roomIndex: index + 1 })));
+    setPosAddons((previous) => previous.map((addon) => addon.roomRequirementId === id
+      ? { ...addon, roomRequirementId: remaining[0].id }
+      : addon));
     toast.info('Room Removed', { detail: 'Room requirement removed from folio.' });
   };
 
-  const handleUpdateRequirement = (id: string, field: keyof RoomRequirement, value: unknown) => {
-    setRequirements((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, [field]: value } : r))
-    );
+  const handleUpdateRequirement = (id: string, updates: Partial<RoomRequirement>) => {
+    setRequirements((prev) => prev.map((room) => room.id === id ? { ...room, ...updates } : room));
+  };
+
+  const handleAddOccupant = (roomId: string) => {
+    handleUpdateRequirement(roomId, {
+      occupants: [...(requirements.find((room) => room.id === roomId)?.occupants ?? []), {
+        id: `occupant-${Date.now()}`, name: '', role: 'Family member',
+      }],
+    });
+  };
+
+  const handleUpdateOccupant = (roomId: string, occupantId: string, updates: Partial<RoomOccupant>) => {
+    const room = requirements.find((item) => item.id === roomId);
+    if (!room) return;
+    handleUpdateRequirement(roomId, { occupants: room.occupants.map((occupant) => occupant.id === occupantId ? { ...occupant, ...updates } : occupant) });
+  };
+
+  const handleRemoveOccupant = (roomId: string, occupantId: string) => {
+    const room = requirements.find((item) => item.id === roomId);
+    if (!room || room.occupants.length <= 1) return;
+    handleUpdateRequirement(roomId, { occupants: room.occupants.filter((occupant) => occupant.id !== occupantId) });
+  };
+
+  const handleAddAddon = (item: OutletCatalogItem) => {
+    const firstRoom = requirements[0];
+    if (!firstRoom) return;
+    setPosAddons((previous) => [...previous, {
+      id: `addon-${Date.now()}`,
+      catalogItemId: item.id,
+      outletId: item.outletId,
+      outletName: item.outletName,
+      name: item.name,
+      quantity: 1,
+      unitPrice: item.unitPrice,
+      roomRequirementId: firstRoom.id,
+      billingRoute: 'Default',
+    }]);
+  };
+
+  const handleUpdateAddon = (id: string, updates: Partial<OutletAddonLine>) => {
+    setPosAddons((previous) => previous.map((addon) => addon.id === id ? { ...addon, ...updates } : addon));
+    if (updates.billingRoute === 'To Company') setBillingPreferences((previous) => ({ ...previous, billToCompany: true }));
   };
 
   const handleToggleTask = (id: string) => {
@@ -238,24 +349,125 @@ export function NewReservation({
     toast.success('Payment Recorded', { detail: `₹${amt.toLocaleString('en-IN')} via ${collectMethod}` });
   };
 
-  const handleConfirmReservation = (withEmail = false) => {
+  const handleConfirmReservation = async (withEmail = false) => {
     if (!guestName.trim()) {
       toast.error('Guest Name Required', { detail: 'Please provide guest name before confirming.' });
       return;
     }
-
-    const code = bookingRefId || `DJB-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    setConfirmedBooking({
-      code,
-      total: totalBill,
-      guest: guestName,
-      rooms: requirements.length,
-      nights: nightsCount,
+    if (!guestContact.trim()) {
+      toast.error('Guest Phone Required', { detail: 'Please provide a contact phone number before confirming.' });
+      return;
+    }
+    if (new Date(`${checkOutDate}T00:00:00`).getTime() <= new Date(`${checkInDate}T00:00:00`).getTime()) {
+      toast.error('Invalid Stay Dates', { detail: 'Check-out must be after check-in.' });
+      return;
+    }
+    if (inventoryResource.loading) {
+      toast.info('Inventory Loading', { detail: 'Please wait until room availability has loaded.' });
+      return;
+    }
+    const roomIds = requirements.map((room) => room.roomId).filter(Boolean);
+    if (new Set(roomIds).size !== roomIds.length) {
+      toast.error('Room Assigned Twice', { detail: 'Each reservation room must use a different physical room.' });
+      return;
+    }
+    const overCapacity = requirements.find((room) => {
+      const roomType = roomTypes.find((type) => type.id === room.roomTypeId);
+      return roomType && (room.adults > roomType.maxAdults || room.children > roomType.maxChildren);
     });
+    if (overCapacity) {
+      toast.error('Room Capacity Exceeded', { detail: `Room ${overCapacity.roomIndex} exceeds the ${overCapacity.category} occupancy limit.` });
+      return;
+    }
 
-    toast.success('Reservation Confirmed', {
-      detail: `${guestName} · Ref #${code} ${withEmail ? '· Confirmation email sent' : ''}`,
-    });
+    setSavingReservation(true);
+    try {
+      let guestId = primaryGuestId;
+      if (!guestId) {
+        const nameParts = guestName.trim().split(/\s+/);
+        const createdGuest = await guestApi.create({
+          firstName: nameParts.shift() ?? 'Guest',
+          lastName: nameParts.join(' '),
+          email: guestEmail.trim() || null,
+          phone: guestContact.trim() || null,
+          companyName: billingPreferences.companyName || null,
+        });
+        guestId = createdGuest.id;
+        setPrimaryGuestId(guestId);
+      }
+
+      const persistedRooms: ReservationRoomRow[] = requirements.map((room) => {
+        const mealSurcharge = MEAL_PLANS.find((plan) => plan.code === room.mealPlan)?.surcharge ?? 0;
+        return {
+          id: room.id,
+          roomTypeId: room.roomTypeId,
+          roomId: room.roomId,
+          roomNumber: room.roomNo || null,
+          roomTypeName: room.category,
+          baseRate: String(room.rate),
+          nightlyRate: String(room.rate + mealSurcharge * room.adults),
+          ratePlanName: samePlanAllRooms ? ratePlan : room.ratePlan,
+          adults: room.adults,
+          children: room.children,
+          infants: room.infant,
+          mealPlanName: samePlanAllRooms ? mealPlan : room.mealPlan,
+          billingRoute: room.billingRoute === 'Default' ? billingPreferences.roomBillTo : room.billingRoute,
+          occupants: room.occupants,
+        };
+      });
+      const persistedAddons = posAddons.map((addon) => {
+        const room = requirements.find((candidate) => candidate.id === addon.roomRequirementId) ?? requirements[0];
+        const route = billingPreferences.noPost
+          ? 'Direct Settlement'
+          : addon.billingRoute === 'Default' ? billingPreferences.extrasBillTo : addon.billingRoute;
+        return {
+          id: addon.id,
+          outletId: addon.outletId,
+          outletName: addon.outletName,
+          description: addon.name,
+          quantity: String(addon.quantity),
+          unitAmount: String(addon.unitPrice),
+          billingRoute: route,
+          roomLineId: room.id,
+          roomNumber: room.roomNo || null,
+          postToFolio: !billingPreferences.noPost && route !== 'Direct Settlement',
+        };
+      });
+      const pendingPayments: ReservationPendingPaymentRow[] = paymentsList.map((payment) => ({
+        amount: String(payment.amount),
+        method: payment.method,
+        reference: payment.ref,
+      }));
+      const saved = await reservationApi.create({
+        bookingCode: bookingRefId.trim(),
+        status: bookingType === 'Confirmed' || bookingType === 'Guaranteed' ? 'CONFIRMED' : 'DRAFT',
+        source: bookingSource,
+        sourceType,
+        primaryGuestId: guestId,
+        checkInDate,
+        checkOutDate,
+        adults: persistedRooms.reduce((sum, room) => sum + Number(room.adults ?? 0), 0),
+        children: persistedRooms.reduce((sum, room) => sum + Number(room.children ?? 0), 0),
+        infants: persistedRooms.reduce((sum, room) => sum + Number(room.infants ?? 0), 0),
+        roomLines: persistedRooms,
+        pendingCharges: persistedAddons,
+        pendingPayments,
+        discountAmount: String(discountAmount),
+        billingPreferences,
+        specialRequests,
+        internalNotes: [sourceType && `Booking mode: ${sourceType}`, paymentNotes, ...tasks.map((task) => `${task.done ? '[x]' : '[ ]'} ${task.text}`)].filter(Boolean).join('\n'),
+      });
+      const code = saved.bookingCode;
+      setBookingRefId(code);
+      setConfirmedBooking({ code, total: totalBill, guest: guestName, rooms: requirements.length, nights: nightsCount });
+      toast.success('Reservation Confirmed', {
+        detail: `${guestName} · Ref #${code} ${withEmail ? '· Confirmation email sent' : ''}`,
+      });
+    } catch (error) {
+      toast.error('Reservation Not Saved', { detail: error instanceof Error ? error.message : 'Please check the booking details and try again.' });
+    } finally {
+      setSavingReservation(false);
+    }
   };
 
   const handleCopyCode = () => {
@@ -285,7 +497,7 @@ export function NewReservation({
             Booking Ref #{confirmedBooking.code}
           </h2>
           <p className="max-w-lg mx-auto text-xs sm:text-sm text-slate-500 mt-2">
-            Reservation successfully saved for <strong className="text-slate-800">{confirmedBooking.guest}</strong>. All room allotments, billing routing, and front desk tasks have been registered.
+            Reservation successfully saved for <strong className="text-slate-800">{confirmedBooking.guest}</strong>. Room lines, billing routes, add-ons, and payments are saved to the PMS.
           </p>
 
           {/* Quick Summary Grid */}
@@ -467,10 +679,10 @@ export function NewReservation({
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-slate-900 truncate">
-                    {requirements.length}x {selectedCategory}
+                    {Array.from(new Set(requirements.map((room) => room.category))).join(' + ')}
                   </p>
                   <p className="text-[11px] text-slate-500 font-medium truncate">
-                    Plan: <strong className="text-slate-700 font-semibold">{mealPlan}</strong> · Room: {requirements.map((r) => r.roomNo).join(', ')}
+                    Plans: <strong className="text-slate-700 font-semibold">{Array.from(new Set(requirements.map((room) => room.mealPlan))).join(', ')}</strong> · Rooms: {requirements.map((room) => room.roomNo || 'Unassigned').join(', ')}
                   </p>
                 </div>
               </div>
@@ -777,305 +989,59 @@ export function NewReservation({
                   </div>
                 </div>
 
-                {/* Quick Checkbox Options */}
-                <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-700">
-                  <label className="inline-flex items-center gap-2 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={samePlanAllRooms}
-                      onChange={(e) => setSamePlanAllRooms(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)] cursor-pointer"
-                    />
-                    <span>Same Plan for All Rooms</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-100">
+                  <label className="flex flex-col gap-1.5 text-[11px] font-bold text-slate-600 uppercase tracking-wider">Default rate plan
+                    <select value={ratePlan} onChange={(event) => {
+                      setRatePlan(event.target.value);
+                      if (samePlanAllRooms) setRequirements((previous) => previous.map((room) => ({ ...room, ratePlan: event.target.value })));
+                    }} className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-semibold normal-case text-slate-900 focus:outline-none focus:border-[var(--color-primary)]">
+                      {RATE_PLANS.map((plan) => <option key={plan} value={plan}>{plan}</option>)}
+                    </select>
                   </label>
-
-                  <label className="inline-flex items-center gap-2 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={payAtHotel}
-                      onChange={(e) => setPayAtHotel(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)] cursor-pointer"
-                    />
-                    <span>Pay At Hotel (Post charges to folio)</span>
+                  <label className="flex flex-col gap-1.5 text-[11px] font-bold text-slate-600 uppercase tracking-wider">Default meal plan
+                    <select value={mealPlan} onChange={(event) => {
+                      setMealPlan(event.target.value);
+                      if (samePlanAllRooms) setRequirements((previous) => previous.map((room) => ({ ...room, mealPlan: event.target.value })));
+                    }} className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-semibold normal-case text-slate-900 focus:outline-none focus:border-[var(--color-primary)]">
+                      {MEAL_PLANS.map((plan) => <option key={plan.code} value={plan.code}>{plan.label}{plan.surcharge > 0 ? ` (+₹${plan.surcharge}/adult/night)` : ''}</option>)}
+                    </select>
                   </label>
-                </div>
-
-                {/* Category & Meal Plan Selection */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-100">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
-                      Rate Plan
-                    </label>
-                    <select
-                      value={ratePlan}
-                      onChange={(e) => setRatePlan(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
-                    >
-                      <option value="Best Available Rates">Best Available Rates (BAR)</option>
-                      <option value="Corporate Static 2026">Corporate Static 2026</option>
-                      <option value="Member Loyalty Exclusive">Member Loyalty Exclusive</option>
-                      <option value="Weekend Escape Package">Weekend Escape Package</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
-                      Category
-                    </label>
-                    <select
-                      value={selectedCategory}
-                      onChange={(e) => {
-                        const newCat = e.target.value;
-                        setSelectedCategory(newCat);
-                        const cObj = ROOM_CATEGORIES.find((c) => c.name === newCat);
-                        if (cObj) {
-                          setRequirements((prev) =>
-                            prev.map((r) => ({ ...r, category: newCat, rate: cObj.baseRate }))
-                          );
-                        }
-                      }}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
-                    >
-                      {ROOM_CATEGORIES.map((c) => (
-                        <option key={c.name} value={c.name}>
-                          {c.name} (Base ₹{c.baseRate.toLocaleString('en-IN')})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
-                      Meal Plan
-                    </label>
-                    <select
-                      value={mealPlan}
-                      onChange={(e) => setMealPlan(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
-                    >
-                      {MEAL_PLANS.map((mp) => (
-                        <option key={mp.code} value={mp.code}>
-                          {mp.label} {mp.surcharge > 0 ? `(+₹${mp.surcharge})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
                 </div>
               </section>
 
-              {/* SECTION 2: REQUIREMENTS & ROOMS BREAKDOWN */}
-              <section className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] flex flex-col gap-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[var(--color-primary)] text-white font-bold text-xs shadow-xs">
-                      2
-                    </span>
-                    <div>
-                      <h2 className="text-sm font-bold text-slate-900">Room Requirements & Allocation</h2>
-                      <p className="text-[11px] text-slate-400">Specify guest headcounts, room numbers, and custom pricing overrides</p>
-                    </div>
-                  </div>
+              <RoomRequirementsSection
+                requirements={requirements}
+                roomTypes={roomTypes}
+                availableRoomsByType={availableRoomsByType}
+                defaultRoomTypeId={defaultRoomTypeId}
+                defaultRatePlan={ratePlan}
+                defaultMealPlan={mealPlan}
+                samePlanAllRooms={samePlanAllRooms}
+                overridePrice={overridePrice}
+                roomCharges={roomCharges}
+                mealPlanCharges={mealPlanCharges}
+                roomTax={roomTax}
+                totalRooms={requirements.length}
+                nights={nightsCount}
+                onDefaultRoomTypeChange={setDefaultRoomTypeId}
+                onSamePlanChange={(same) => {
+                  setSamePlanAllRooms(same);
+                  if (same) setRequirements((previous) => previous.map((room) => ({ ...room, ratePlan, mealPlan })));
+                }}
+                onOverridePriceChange={setOverridePrice}
+                onAddRoom={handleAddRoom}
+                onAddDriverRoom={handleAddDriverRoom}
+                onRemoveRoom={handleRemoveRoom}
+                onUpdateRoom={(id, updates) => {
+                  handleUpdateRequirement(id, updates);
+                  if (updates.billingRoute === 'To Company') setBillingPreferences((previous) => ({ ...previous, billToCompany: true }));
+                }}
+                onAddOccupant={handleAddOccupant}
+                onUpdateOccupant={handleUpdateOccupant}
+                onRemoveOccupant={handleRemoveOccupant}
+              />
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setOverridePrice(!overridePrice)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${overridePrice
-                        ? 'bg-amber-50 border-amber-300 text-amber-800 shadow-2xs'
-                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                        }`}
-                    >
-                      <Lucide.Sliders size={12} />
-                      <span>{overridePrice ? 'Lock Price' : 'Override Price'}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleAddRoom}
-                      className="px-3 py-1.5 rounded-xl bg-[var(--color-primary)] hover:opacity-95 text-white text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center gap-1"
-                    >
-                      <Lucide.Plus size={13} />
-                      <span>Add Room</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Rooms List */}
-                <div className="flex flex-col gap-3">
-                  {requirements.map((req) => (
-                    <div
-                      key={req.id}
-                      className="rounded-2xl border border-slate-200/90 bg-slate-50/40 p-4 transition-all hover:border-slate-300 flex flex-col gap-3"
-                    >
-                      {/* Room Row Header */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 font-bold text-xs border border-indigo-100">
-                            {req.roomIndex}
-                          </span>
-                          <span className="text-xs font-extrabold text-slate-900">
-                            Room {req.roomIndex} · {req.category}
-                          </span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            Clean / Ready
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-extrabold text-slate-900 font-mono">
-                            ₹{req.rate.toLocaleString('en-IN')}{' '}
-                            <span className="text-[10px] font-normal text-slate-500">/ night</span>
-                          </span>
-                          {requirements.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveRoom(req.id)}
-                              className="text-slate-400 hover:text-rose-600 transition-colors p-1"
-                              title="Remove Room"
-                            >
-                              <Lucide.Trash2 size={13} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Room Row Parameters */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-                        {/* Adults */}
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                            Adults
-                          </label>
-                          <div className="flex items-center rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateRequirement(req.id, 'adults', Math.max(1, req.adults - 1))}
-                              className="px-2.5 py-1.5 text-slate-500 hover:bg-slate-100 font-bold text-xs cursor-pointer"
-                            >
-                              -
-                            </button>
-                            <span className="flex-1 text-center text-xs font-bold text-slate-900">{req.adults}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateRequirement(req.id, 'adults', req.adults + 1)}
-                              className="px-2.5 py-1.5 text-slate-500 hover:bg-slate-100 font-bold text-xs cursor-pointer"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Children */}
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                            Children (6-12)
-                          </label>
-                          <div className="flex items-center rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateRequirement(req.id, 'children', Math.max(0, req.children - 1))}
-                              className="px-2.5 py-1.5 text-slate-500 hover:bg-slate-100 font-bold text-xs cursor-pointer"
-                            >
-                              -
-                            </button>
-                            <span className="flex-1 text-center text-xs font-bold text-slate-900">{req.children}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateRequirement(req.id, 'children', req.children + 1)}
-                              className="px-2.5 py-1.5 text-slate-500 hover:bg-slate-100 font-bold text-xs cursor-pointer"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Infant */}
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                            Infant (&lt;5)
-                          </label>
-                          <div className="flex items-center rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateRequirement(req.id, 'infant', Math.max(0, req.infant - 1))}
-                              className="px-2.5 py-1.5 text-slate-500 hover:bg-slate-100 font-bold text-xs cursor-pointer"
-                            >
-                              -
-                            </button>
-                            <span className="flex-1 text-center text-xs font-bold text-slate-900">{req.infant}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateRequirement(req.id, 'infant', req.infant + 1)}
-                              className="px-2.5 py-1.5 text-slate-500 hover:bg-slate-100 font-bold text-xs cursor-pointer"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Assigned Room Number */}
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                            Room Number
-                          </label>
-                          <select
-                            value={req.roomNo}
-                            onChange={(e) => handleUpdateRequirement(req.id, 'roomNo', e.target.value)}
-                            className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-[var(--color-primary)] cursor-pointer shadow-2xs"
-                          >
-                            <option value="201">Room 201 (1st Flr)</option>
-                            <option value="202">Room 202 (2nd Flr)</option>
-                            <option value="203">Room 203 (2nd Flr)</option>
-                            <option value="301">Room 301 (3rd Flr)</option>
-                            <option value="302">Room 302 (3rd Flr)</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Custom Rate Override input */}
-                      {overridePrice && (
-                        <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-3">
-                          <span className="text-[11px] font-semibold text-amber-800">
-                            Custom Rate Override:
-                          </span>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-bold text-slate-500">₹</span>
-                            <input
-                              type="number"
-                              value={req.rate}
-                              onChange={(e) => handleUpdateRequirement(req.id, 'rate', Number(e.target.value) || 0)}
-                              className="w-28 rounded-lg border border-amber-300 bg-amber-50/50 px-2.5 py-1 text-xs font-bold font-mono text-slate-900 focus:outline-none focus:border-amber-500"
-                            />
-                            <span className="text-[10px] text-slate-500">/ night</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Subtotals & Taxes calculation breakdown */}
-                <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/70 flex flex-col gap-2 text-xs">
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span>Total Selected Rooms</span>
-                    <span className="font-bold text-slate-900">{requirements.length} Room(s) · {nightsCount} Night(s)</span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span>Room Charges Subtotal</span>
-                    <span className="font-bold font-mono text-slate-900">₹{roomCharges.toLocaleString('en-IN')}.00</span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span>Applicable GST (5%)</span>
-                    <span className="font-bold font-mono text-slate-900">₹{taxAmount.toLocaleString('en-IN')}.00</span>
-                  </div>
-                  <div className="h-[1px] bg-slate-200 my-0.5" />
-                  <div className="flex items-center justify-between text-sm font-bold text-slate-900">
-                    <span>Requirements Total</span>
-                    <span className="font-mono text-emerald-700">₹{totalBill.toLocaleString('en-IN')}.00</span>
-                  </div>
-                </div>
-              </section>
-
-              {/* SECTION 3: GUEST DETAILS & PROFILE SEARCH */}
+                            {/* SECTION 3: GUEST DETAILS & PROFILE SEARCH */}
               <section className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.04)] flex flex-col gap-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center gap-2.5">
@@ -1140,10 +1106,18 @@ export function NewReservation({
                             setGuestName(g.name);
                             setGuestContact(g.phone);
                             setGuestEmail(g.email);
-                            if (g.gst) {
-                              setCompanyGst(g.gst);
-                              setBillToCompany(true);
-                            }
+                            setPrimaryGuestId(g.id);
+                            if (g.gst) setBillingPreferences((previous) => ({
+                              ...previous,
+                              companyGst: g.gst,
+                              companyName: g.companyName || previous.companyName,
+                              billToCompany: true,
+                              roomBillTo: 'To Company',
+                              extrasBillTo: previous.noPost ? 'Direct Settlement' : 'To Company',
+                            }));
+                            setRequirements((previous) => previous.map((room, index) => index === 0
+                              ? { ...room, occupants: room.occupants.map((occupant, occupantIndex) => occupantIndex === 0 ? { ...occupant, name: g.name, role: 'Primary guest' } : occupant) }
+                              : room));
                             setShowGuestSearchDropdown(false);
                             setGuestSearch('');
                             toast.success('Guest Profile Loaded', { detail: `${g.name} (${g.city})` });
@@ -1188,7 +1162,13 @@ export function NewReservation({
                     <input
                       type="text"
                       value={guestName}
-                      onChange={(e) => setGuestName(e.target.value)}
+                      onChange={(e) => {
+                        setGuestName(e.target.value);
+                        setPrimaryGuestId(null);
+                        setRequirements((previous) => previous.map((room, index) => index === 0
+                          ? { ...room, occupants: room.occupants.map((occupant, occupantIndex) => occupantIndex === 0 ? { ...occupant, name: e.target.value } : occupant) }
+                          : room));
+                      }}
                       placeholder="e.g. Rohan Sharma"
                       className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
                     />
@@ -1204,7 +1184,7 @@ export function NewReservation({
                       <input
                         type="text"
                         value={guestContact}
-                        onChange={(e) => setGuestContact(e.target.value)}
+                        onChange={(e) => { setGuestContact(e.target.value); setPrimaryGuestId(null); }}
                         placeholder="e.g. +91 88829 51951"
                         className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
                       />
@@ -1220,7 +1200,7 @@ export function NewReservation({
                       <input
                         type="email"
                         value={guestEmail}
-                        onChange={(e) => setGuestEmail(e.target.value)}
+                        onChange={(e) => { setGuestEmail(e.target.value); setPrimaryGuestId(null); }}
                         placeholder="e.g. guest@example.com"
                         className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
                       />
@@ -1351,13 +1331,18 @@ export function NewReservation({
                 {/* Itemized Bill Summary Table */}
                 <div className="rounded-2xl border border-slate-200/90 bg-white p-4 flex flex-col gap-2 text-xs">
                   <div className="flex items-center justify-between text-slate-600">
-                    <span>Room Charges ({requirements.length} room, {nightsCount} night)</span>
+                    <span>Room Charges ({requirements.length} room(s), {nightsCount} night(s))</span>
                     <span className="font-semibold font-mono text-slate-900">₹{roomCharges.toLocaleString('en-IN')}.00</span>
                   </div>
 
                   <div className="flex items-center justify-between text-slate-600">
-                    <span>Add-ons / Food Services</span>
-                    <span className="font-semibold font-mono text-slate-900">₹0.00</span>
+                    <span>Meal plan supplements</span>
+                    <span className="font-semibold font-mono text-slate-900">₹{mealPlanCharges.toLocaleString('en-IN')}.00</span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span>Outlet / POS add-ons ({posAddons.length})</span>
+                    <span className="font-semibold font-mono text-slate-900">₹{addonSubtotal.toLocaleString('en-IN')}.00</span>
                   </div>
 
                   <div className="flex items-center justify-between text-slate-600">
@@ -1386,7 +1371,7 @@ export function NewReservation({
                   </div>
 
                   <div className="flex items-center justify-between text-slate-600">
-                    <span>Goods & Services Tax (GST 5%)</span>
+                    <span>Goods & Services Tax (GST {TAX_RATE * 100}%)</span>
                     <span className="font-semibold font-mono text-slate-900">₹{taxAmount.toLocaleString('en-IN')}.00</span>
                   </div>
 
@@ -1411,134 +1396,25 @@ export function NewReservation({
 
           {/* OUTLET / POS ADDONS TAB */}
           {activeTab === 'outlet' && (
-            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs flex flex-col gap-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-                    <Lucide.Receipt size={16} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900">Outlet & Point of Sale Charges</h3>
-                    <p className="text-[11px] text-slate-500">Route restaurant orders, spa treatments, or laundry to room folio</p>
-                  </div>
-                </div>
-                <span className="text-xs font-bold text-slate-500">0 Active Outlets</span>
-              </div>
-
-              <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center flex flex-col items-center justify-center gap-2">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-slate-400">
-                  <Lucide.UtensilsCrossed size={22} />
-                </div>
-                <h4 className="text-xs font-bold text-slate-800">No Outlet Charges Incurred</h4>
-                <p className="text-[11px] text-slate-500 max-w-sm">
-                  Outlet charges (Bar, Restaurant, Laundry) can be posted to Room {requirements[0]?.roomNo || '202'} after check-in.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => toast.info('POS Outlet', { detail: 'Outlet charge simulator available once checked in.' })}
-                  className="mt-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer"
-                >
-                  Post Direct Charge
-                </button>
-              </div>
-            </div>
+            <OutletPOSSection
+              requirements={requirements}
+              addons={posAddons}
+              catalog={OUTLET_CATALOG}
+              noPost={billingPreferences.noPost}
+              defaultBillingRoute={billingPreferences.extrasBillTo}
+              onAdd={handleAddAddon}
+              onUpdate={handleUpdateAddon}
+              onRemove={(id) => setPosAddons((previous) => previous.filter((addon) => addon.id !== id))}
+            />
           )}
 
           {/* BILLING PREFERENCES TAB */}
           {activeTab === 'preferences' && (
-            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs flex flex-col gap-4">
-              <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-                  <Lucide.Sliders size={16} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">Billing Routing & Corporate Invoicing</h3>
-                  <p className="text-[11px] text-slate-500">Configure folio settlement routing, company accounts & credit rules</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
-                    Room Bill Routing
-                  </label>
-                  <select
-                    value={roomBillTo}
-                    onChange={(e) => setRoomBillTo(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] cursor-pointer"
-                  >
-                    <option value="To Guest">To Guest (Direct Settlement)</option>
-                    <option value="To Company">To Company Account</option>
-                    <option value="To Travel Agent">To Travel Agent / OTA Voucher</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
-                    Extras & Minibar Routing
-                  </label>
-                  <select
-                    value={extrasBillTo}
-                    onChange={(e) => setExtrasBillTo(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[var(--color-primary)] cursor-pointer"
-                  >
-                    <option value="To Guest">To Guest (Direct Settlement)</option>
-                    <option value="To Company">To Company Account</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-3 pt-2 border-t border-slate-100 text-xs">
-                <label className="inline-flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={billToCompany}
-                    onChange={(e) => setBillToCompany(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-[var(--color-primary)] cursor-pointer"
-                  />
-                  <span>Bill To Corporate / Company Account</span>
-                </label>
-
-                {billToCompany && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-6 pt-1">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                        Company Name
-                      </label>
-                      <input
-                        type="text"
-                        value={companyName}
-                        onChange={(e) => setCompanyName(e.target.value)}
-                        placeholder="e.g. Zenith Tech Solutions Pvt Ltd"
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 font-medium"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                        Corporate GSTIN
-                      </label>
-                      <input
-                        type="text"
-                        value={companyGst}
-                        onChange={(e) => setCompanyGst(e.target.value)}
-                        placeholder="e.g. 27AABCT1234A1Z5"
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 font-mono font-bold"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <label className="inline-flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={noPost}
-                    onChange={(e) => setNoPost(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-[var(--color-primary)] cursor-pointer"
-                  />
-                  <span>No Post (Block guest from charging extras/minibar to room)</span>
-                </label>
-              </div>
-            </div>
+            <BillingPreferencesSection
+              preferences={billingPreferences}
+              totalsByRoute={totalsByRoute}
+              onChange={(updates) => setBillingPreferences((previous) => ({ ...previous, ...updates }))}
+            />
           )}
 
         </div>
@@ -1686,11 +1562,12 @@ export function NewReservation({
             </button>
             <button
               type="button"
-              onClick={() => handleConfirmReservation(true)}
+              disabled={savingReservation}
+              onClick={() => void handleConfirmReservation(true)}
               className="px-5 py-2 rounded-xl bg-[var(--color-primary)] hover:opacity-95 text-white text-xs font-bold shadow-md shadow-[var(--color-primary)]/20 transition-all cursor-pointer flex items-center gap-1.5"
             >
-              <Lucide.CheckCircle2 size={14} />
-              <span>Confirm & Email</span>
+              {savingReservation ? <Lucide.LoaderCircle size={14} className="animate-spin" /> : <Lucide.CheckCircle2 size={14} />}
+              <span>{savingReservation ? 'Saving…' : 'Confirm & Email'}</span>
             </button>
           </div>
 

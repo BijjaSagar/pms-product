@@ -239,7 +239,7 @@ export function Invoices() {
                 </div>
               </div>
 
-              <div className="overflow-x-auto rounded-xl border mt-2" style={{ borderColor: 'var(--color-border)' }}>
+              <div className="pms-table-scroll overflow-x-auto rounded-xl border mt-2" style={{ borderColor: 'var(--color-border)' }}>
                 <table className="pms-table">
                   <thead>
                     <tr>

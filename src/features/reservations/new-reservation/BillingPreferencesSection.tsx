@@ -1,0 +1,54 @@
+import * as Lucide from 'lucide-react';
+import type { BillingPreferences, BillingRoute } from './types';
+
+interface Props {
+  preferences: BillingPreferences;
+  totalsByRoute: Record<string, number>;
+  onChange: (updates: Partial<BillingPreferences>) => void;
+}
+
+const ROOM_ROUTES: Array<Exclude<BillingRoute, 'Default' | 'Direct Settlement'>> = ['To Guest', 'To Company', 'To Travel Agent'];
+const EXTRA_ROUTES: Array<Exclude<BillingRoute, 'Default'>> = ['To Guest', 'To Company', 'To Travel Agent', 'Direct Settlement'];
+
+export function BillingPreferencesSection({ preferences, totalsByRoute, onChange }: Props) {
+  const needsCompany = preferences.billToCompany || preferences.roomBillTo === 'To Company' || preferences.extrasBillTo === 'To Company';
+  return (
+    <section className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
+      <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><Lucide.Sliders size={16} /></div>
+        <div><h2 className="text-sm font-bold text-slate-900">Billing Routing & Corporate Invoicing</h2><p className="text-[11px] text-slate-500">Choose who pays for room charges and outlet add-ons.</p></div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-600">Room charges billed to
+          <select value={preferences.roomBillTo} onChange={(event) => onChange({ roomBillTo: event.target.value as BillingPreferences['roomBillTo'], ...(event.target.value === 'To Company' ? { billToCompany: true } : {}) })} className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-semibold normal-case text-slate-900 focus:border-[var(--color-primary)] focus:outline-none">
+            {ROOM_ROUTES.map((route) => <option key={route} value={route}>{route === 'To Guest' ? 'Guest master folio' : route === 'To Company' ? 'Company account' : 'Travel agent / OTA'}</option>)}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-600">Outlet add-ons billed to
+          <select value={preferences.noPost ? 'Direct Settlement' : preferences.extrasBillTo} disabled={preferences.noPost} onChange={(event) => onChange({ extrasBillTo: event.target.value as BillingPreferences['extrasBillTo'], ...(event.target.value === 'To Company' ? { billToCompany: true } : {}) })} className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-semibold normal-case text-slate-900 focus:border-[var(--color-primary)] focus:outline-none disabled:bg-slate-100">
+            {EXTRA_ROUTES.map((route) => <option key={route} value={route}>{route === 'To Guest' ? 'Guest master folio' : route === 'To Company' ? 'Company account' : route === 'To Travel Agent' ? 'Travel agent / OTA' : 'Direct settlement'}</option>)}
+          </select>
+        </label>
+      </div>
+
+      <div className="flex flex-col gap-3 border-t border-slate-100 pt-3 text-xs">
+        <label className="inline-flex items-center gap-2 font-semibold text-slate-700"><input type="checkbox" checked={preferences.billToCompany} onChange={(event) => onChange(event.target.checked
+          ? { billToCompany: true, roomBillTo: 'To Company', extrasBillTo: preferences.noPost ? 'Direct Settlement' : 'To Company' }
+          : { billToCompany: false, roomBillTo: preferences.roomBillTo === 'To Company' ? 'To Guest' : preferences.roomBillTo, extrasBillTo: preferences.extrasBillTo === 'To Company' ? 'To Guest' : preferences.extrasBillTo })} className="h-4 w-4 rounded border-slate-300 accent-[var(--color-primary)]" /><span>Use a corporate account for this booking</span></label>
+        {needsCompany && <div className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200/80 bg-slate-50/50 p-3 sm:grid-cols-2">
+          <label className="flex flex-col gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">Company name<input type="text" value={preferences.companyName} onChange={(event) => onChange({ companyName: event.target.value })} placeholder="Company or account name" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium normal-case text-slate-900" /></label>
+          <label className="flex flex-col gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">Corporate GSTIN<input type="text" value={preferences.companyGst} onChange={(event) => onChange({ companyGst: event.target.value.toUpperCase() })} placeholder="GSTIN (optional)" className="rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs font-medium normal-case text-slate-900" /></label>
+        </div>}
+        <label className="inline-flex items-start gap-2 font-semibold text-slate-700"><input type="checkbox" checked={preferences.noPost} onChange={(event) => onChange({ noPost: event.target.checked, ...(event.target.checked ? { extrasBillTo: 'Direct Settlement' } : {}) })} className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-[var(--color-primary)]" /><span>No Post <span className="block text-[10px] font-normal text-slate-500">Outlet purchases must be settled directly and cannot be charged to a room.</span></span></label>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-3.5">
+        <div className="mb-2 flex items-center gap-2 text-xs font-bold text-slate-800"><Lucide.ReceiptText size={14} className="text-[var(--color-primary)]" />Estimated billing split</div>
+        <div className="flex flex-col gap-1.5 text-[11px]">
+          {Object.entries(totalsByRoute).map(([route, amount]) => <div key={route} className="flex items-center justify-between gap-3 text-slate-600"><span>{route}</span><span className="font-mono font-semibold text-slate-900">₹{amount.toLocaleString('en-IN')}.00</span></div>)}
+        </div>
+      </div>
+    </section>
+  );
+}

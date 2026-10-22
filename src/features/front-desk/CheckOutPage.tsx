@@ -231,7 +231,7 @@ export function CheckOut() {
               title={`Folio ${folio.id}`}
               subtitle={`${folio.guest} · Room ${folio.room} · ${folio.reservationId}`}
             />
-            <div className="overflow-x-auto rounded-xl border" style={{ borderColor: 'var(--color-border)' }}>
+            <div className="pms-table-scroll overflow-x-auto rounded-xl border" style={{ borderColor: 'var(--color-border)' }}>
               <table className="pms-table min-w-[480px]">
                 <thead>
                   <tr>

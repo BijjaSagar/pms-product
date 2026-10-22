@@ -550,8 +550,8 @@ export function NightAudit({ go }: NightAuditProps) {
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs mt-2">
+            <div className="pms-table-scroll overflow-x-auto">
+              <table className="pms-table w-full text-left text-xs mt-2">
                 <thead>
                   <tr className="text-ink-muted text-[10.5px] font-bold uppercase tracking-wider border-b" style={{ borderColor: 'var(--color-border)' }}>
                     <th className="py-2 pr-2">GUEST NAME</th>
@@ -620,8 +620,8 @@ export function NightAudit({ go }: NightAuditProps) {
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs mt-2">
+            <div className="pms-table-scroll overflow-x-auto">
+              <table className="pms-table w-full text-left text-xs mt-2">
                 <thead>
                   <tr className="text-ink-muted text-[10.5px] font-bold uppercase tracking-wider border-b" style={{ borderColor: 'var(--color-border)' }}>
                     <th className="py-2 pr-2">BOOKING ID</th>
@@ -669,8 +669,8 @@ export function NightAudit({ go }: NightAuditProps) {
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs mt-2">
+            <div className="pms-table-scroll overflow-x-auto">
+              <table className="pms-table w-full text-left text-xs mt-2">
                 <thead>
                   <tr className="text-ink-muted text-[10.5px] font-bold uppercase tracking-wider border-b" style={{ borderColor: 'var(--color-border)' }}>
                     <th className="py-2 pr-2">DATE</th>

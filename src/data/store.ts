@@ -48,6 +48,10 @@ import type {
   PageResult,
   PaymentRow,
   PropertyRow,
+  ReservationBillingPreferencesRow,
+  ReservationChargeRow,
+  ReservationPendingPaymentRow,
+  ReservationRoomRow,
   ReservationRow,
   RevenueReportRow,
   RoleMatrix,
@@ -568,55 +572,137 @@ function listReservations(search: string, status: string | undefined, page: numb
 function createReservation(body: Record<string, unknown>): { id: string; bookingCode: string } {
   const guestId = String(body.primaryGuestId ?? '');
   const guest = guests.find((g) => g.id === guestId);
-  const type = ROOM_TYPES.find((t) => t.id === String(body.roomTypeId)) ?? ROOM_TYPES[1];
   const checkInDate = String(body.checkInDate ?? BUSINESS_DATE);
   const checkOutDate = String(body.checkOutDate ?? addDays(checkInDate, 1));
   const nights = nightsBetween(checkInDate, checkOutDate);
-  const room = rooms.find((r) => r.id === String(body.roomId ?? ''));
-  const rate = Number(type.baseRate);
-  const subtotal = round2(rate * nights);
-  const taxTotal = round2(subtotal * TAX_RATE);
   const id = nextId('res');
-  const bookingCode = `RSV-${++bookingSeq}`;
+  const requestedLines = Array.isArray(body.roomLines) ? body.roomLines as Array<Record<string, unknown>> : [];
+  const legacyType = ROOM_TYPES.find((t) => t.id === String(body.roomTypeId)) ?? ROOM_TYPES[1];
+  const lines = (requestedLines.length ? requestedLines : [{
+    roomTypeId: legacyType.id,
+    roomId: body.roomId,
+    nightlyRate: body.nightlyRate ?? legacyType.baseRate,
+    ratePlanName: body.ratePlanName,
+    adults: body.adults,
+    children: body.children,
+  }]).map((input, index): ReservationRoomRow => {
+    const type = ROOM_TYPES.find((item) => item.id === String(input.roomTypeId)) ?? legacyType;
+    const roomId = input.roomId ? String(input.roomId) : null;
+    const room = roomId ? rooms.find((item) => item.id === roomId) : undefined;
+    if (roomId && (!room || room.roomTypeId !== type.id || !availability(checkInDate, checkOutDate, type.id).available.some((item) => item.id === roomId))) {
+      throw new Error(`Room assignment for ${type.name} is no longer available.`);
+    }
+    return {
+      id: String(input.id ?? `rl-${index + 1}`),
+      roomTypeId: type.id,
+      roomId: room?.id ?? null,
+      roomNumber: room?.roomNumber ?? (roomId && input.roomNumber ? String(input.roomNumber) : null),
+      roomTypeName: type.name,
+      baseRate: money(num(input.baseRate ?? input.nightlyRate ?? type.baseRate)),
+      nightlyRate: money(num(input.nightlyRate ?? input.baseRate ?? type.baseRate)),
+      ratePlanName: String(input.ratePlanName ?? 'Best Available Rate'),
+      adults: Math.max(1, num(input.adults) || (index === 0 ? num(body.adults) || 1 : 1)),
+      children: num(input.children),
+      infants: num(input.infants),
+      mealPlanName: String(input.mealPlanName ?? 'EP'),
+      billingRoute: String(input.billingRoute ?? 'To Guest'),
+      occupants: Array.isArray(input.occupants) ? input.occupants as ReservationRoomRow['occupants'] : [],
+    };
+  });
+  const assignedRoomIds = lines.map((line) => line.roomId).filter((roomId): roomId is string => Boolean(roomId));
+  if (new Set(assignedRoomIds).size !== assignedRoomIds.length) {
+    throw new Error('A physical room cannot be assigned to more than one room line in this booking.');
+  }
+  const roomSubtotal = round2(lines.reduce((sum, line) => sum + num(line.nightlyRate) * nights, 0));
+  const preferences = (body.billingPreferences && typeof body.billingPreferences === 'object'
+    ? body.billingPreferences : {}) as Partial<ReservationBillingPreferencesRow>;
+  const pendingCharges = (Array.isArray(body.pendingCharges) ? body.pendingCharges : []).map((input, index) => {
+    const charge = input as Record<string, unknown>;
+    const quantity = Math.max(1, num(charge.quantity));
+    const unitAmount = Math.max(0, num(charge.unitAmount));
+    const totalAmount = round2(quantity * unitAmount);
+    const billingRoute = String(charge.billingRoute ?? 'To Guest');
+    return {
+      id: String(charge.id ?? `charge-${index + 1}`),
+      outletId: String(charge.outletId ?? ''),
+      outletName: String(charge.outletName ?? 'Outlet'),
+      description: String(charge.description ?? 'POS charge'),
+      quantity: String(quantity),
+      unitAmount: money(unitAmount),
+      taxAmount: money(round2(totalAmount * TAX_RATE)),
+      totalAmount: money(totalAmount),
+      billingRoute,
+      roomLineId: charge.roomLineId ? `rl-${id}-${String(charge.roomLineId)}` : null,
+      roomNumber: charge.roomNumber ? String(charge.roomNumber) : null,
+      postToFolio: Boolean(charge.postToFolio) && !preferences.noPost && billingRoute !== 'Direct Settlement',
+    } satisfies ReservationChargeRow;
+  });
+  const extrasSubtotal = round2(pendingCharges.reduce((sum, charge) => sum + num(charge.totalAmount), 0));
+  const discountAmount = round2(Math.min(Math.max(0, num(body.discountAmount)), roomSubtotal + extrasSubtotal));
+  const subtotal = round2(roomSubtotal + extrasSubtotal - discountAmount);
+  const taxTotal = round2(subtotal * TAX_RATE);
+  const pendingPayments = (Array.isArray(body.pendingPayments) ? body.pendingPayments : []).map((input) => {
+    const payment = input as Record<string, unknown>;
+    return {
+      amount: money(num(payment.amount)),
+      method: String(payment.method ?? 'OTHER'),
+      reference: payment.reference ? String(payment.reference) : null,
+      recordedAt: payment.recordedAt ? String(payment.recordedAt) : stamp(checkInDate),
+    } satisfies ReservationPendingPaymentRow;
+  }).filter((payment) => num(payment.amount) > 0);
+  const firstLine = lines[0];
+  const assignedLines = lines.filter((line) => line.roomNumber);
+  const distinctTypes = Array.from(new Set(lines.map((line) => line.roomTypeName ?? 'Room')));
+  const roomSummary = lines.map((line) => `${line.roomTypeName ?? 'Room'}${line.roomNumber ? ` · ${line.roomNumber}` : ' · Unassigned'}`).join(' + ');
+  const requestedCode = String(body.bookingCode ?? '').trim();
+  const bookingCode = requestedCode && !reservations.some((reservation) => reservation.bookingCode === requestedCode)
+    ? requestedCode
+    : `RSV-${++bookingSeq}`;
   const guestName = guest ? `${guest.firstName} ${guest.lastName}` : 'Guest';
-  const adults = num(body.adults) || 1;
-  const children = num(body.children);
+  const adults = lines.reduce((sum, line) => sum + num(line.adults), 0);
+  const children = lines.reduce((sum, line) => sum + num(line.children), 0);
+  const infants = lines.reduce((sum, line) => sum + num(line.infants), 0);
+  const paid = round2(pendingPayments.reduce((sum, payment) => sum + num(payment.amount), 0));
 
   const reservation: ReservationRow = {
     id,
     bookingCode,
-    status: 'CONFIRMED',
+    status: String(body.status ?? 'CONFIRMED'),
     source: String(body.source ?? 'DIRECT'),
     checkInDate,
     checkOutDate,
     nights,
     adults,
     children,
+    infants,
     currencyCode: 'INR',
     totalAmount: money(subtotal + taxTotal),
     subtotal: money(subtotal),
     taxTotal: money(taxTotal),
     primaryGuestId: guestId || undefined,
-    nightlyRate: money(rate),
-    internalNotes: null,
+    nightlyRate: firstLine.nightlyRate,
+    internalNotes: (body.internalNotes as string) ?? null,
     specialRequests: (body.specialRequests as string) ?? null,
     guest: guest ? { id: guest.id, name: guestName, firstName: guest.firstName, lastName: guest.lastName } : null,
     guestName,
-    roomNumber: room?.roomNumber ?? null,
-    roomTypeId: type.id,
-    roomTypeName: type.name,
-    roomLines: [
-      {
-        id: `rl-${id}`,
-        roomTypeId: type.id,
-        roomId: room?.id ?? null,
-        roomNumber: room?.roomNumber ?? null,
-        roomTypeName: type.name,
-        nightlyRate: money(rate),
-        ratePlanName: String(body.ratePlanName ?? 'Best Available'),
-      },
-    ],
-    paid: 0,
+    roomNumber: assignedLines[0]?.roomNumber ?? null,
+    roomSummary,
+    roomTypeId: firstLine.roomTypeId,
+    roomTypeName: distinctTypes.join(' + '),
+    roomLines: lines.map((line) => ({ ...line, id: `rl-${id}-${line.id}` })),
+    pendingCharges,
+    pendingPayments,
+    billingPreferences: {
+      roomBillTo: String(preferences.roomBillTo ?? 'To Guest'),
+      extrasBillTo: String(preferences.extrasBillTo ?? 'To Guest'),
+      billToCompany: Boolean(preferences.billToCompany),
+      noPost: Boolean(preferences.noPost),
+      companyName: preferences.companyName ?? null,
+      companyGst: preferences.companyGst ?? null,
+      payAtHotel: Boolean(preferences.payAtHotel),
+    },
+    discountAmount: money(discountAmount),
+    paid,
   };
   reservations.unshift(reservation);
   return { id, bookingCode };
@@ -632,38 +718,49 @@ function updateReservation(id: string, body: Record<string, unknown>): Reservati
   if (body.specialRequests !== undefined) reservation.specialRequests = (body.specialRequests as string) ?? null;
   if (body.internalNotes !== undefined) reservation.internalNotes = (body.internalNotes as string) ?? null;
   reservation.nights = nightsBetween(reservation.checkInDate, reservation.checkOutDate);
-  const rate = Number(reservation.nightlyRate ?? 0);
-  const subtotal = round2(rate * reservation.nights);
+  const roomSubtotal = round2((reservation.roomLines ?? []).reduce((sum, line) => sum + num(line.nightlyRate) * reservation.nights!, 0));
+  const extrasSubtotal = round2((reservation.pendingCharges ?? []).reduce((sum, charge) => sum + num(charge.totalAmount), 0));
+  const discountAmount = Math.min(num(reservation.discountAmount), roomSubtotal + extrasSubtotal);
+  const subtotal = round2(roomSubtotal + extrasSubtotal - discountAmount);
   const taxTotal = round2(subtotal * TAX_RATE);
   reservation.subtotal = money(subtotal);
   reservation.taxTotal = money(taxTotal);
   reservation.totalAmount = money(subtotal + taxTotal);
 
   const folio = folioForReservation(id);
-  const roomItem = folio?.items.find((i) => i.type === 'ROOM');
-  if (folio && roomItem) {
-    roomItem.quantity = String(reservation.nights);
-    roomItem.totalAmount = money(subtotal);
-    roomItem.taxAmount = money(taxTotal);
+  if (folio) {
+    for (const line of reservation.roomLines ?? []) {
+      const roomItem = folio.items.find((item) => item.type === 'ROOM' && item.id === `room-${line.id}`);
+      if (roomItem) {
+        const lineSubtotal = round2(num(line.nightlyRate) * reservation.nights!);
+        roomItem.quantity = String(reservation.nights);
+        roomItem.totalAmount = money(lineSubtotal);
+        roomItem.taxAmount = money(round2(lineSubtotal * TAX_RATE));
+      }
+    }
   }
   return clone(reservation);
 }
 
-function assignRoom(id: string, roomId: string): void {
+function assignRoom(id: string, roomId: string, roomLineId?: string): void {
   const reservation = reservations.find((r) => r.id === id);
   const room = rooms.find((r) => r.id === roomId);
   if (!reservation || !room) return;
-  reservation.roomNumber = room.roomNumber;
-  reservation.roomTypeId = room.roomTypeId;
-  reservation.roomTypeName = room.roomTypeName ?? null;
-  reservation.nightlyRate = reservation.nightlyRate ?? money(Number(room.baseRate ?? 0));
-  const line = reservation.roomLines?.[0];
+  const lines = reservation.roomLines ?? [];
+  const line = roomLineId
+    ? lines.find((item) => item.id === roomLineId)
+    : lines.find((item) => !item.roomId) ?? (lines.length === 1 ? lines[0] : undefined);
+  if (roomLineId && !line) throw new Error('Reservation room line was not found.');
+  if (lines.some((item) => item.id !== line?.id && item.roomId === room.id)) {
+    throw new Error('This physical room is already assigned to another room line in the booking.');
+  }
   if (line) {
     line.roomId = room.id;
     line.roomNumber = room.roomNumber;
     line.roomTypeId = room.roomTypeId;
     line.roomTypeName = room.roomTypeName ?? null;
   } else {
+    if (lines.length > 0) throw new Error('Select the reservation room line for this room assignment.');
     reservation.roomLines = [
       {
         id: `rl-${id}`,
@@ -676,20 +773,97 @@ function assignRoom(id: string, roomId: string): void {
       },
     ];
   }
+  const firstLine = reservation.roomLines?.[0];
+  reservation.roomNumber = reservation.roomLines?.find((item) => item.roomNumber)?.roomNumber ?? room.roomNumber;
+  reservation.roomSummary = (reservation.roomLines ?? []).map((item) => `${item.roomTypeName ?? 'Room'}${item.roomNumber ? ` · ${item.roomNumber}` : ' · Unassigned'}`).join(' + ');
+  if (firstLine) {
+    reservation.roomTypeId = firstLine.roomTypeId;
+    reservation.roomTypeName = Array.from(new Set((reservation.roomLines ?? []).map((item) => item.roomTypeName).filter(Boolean))).join(' + ');
+    reservation.nightlyRate = firstLine.nightlyRate;
+  }
 }
 
 function checkIn(id: string): void {
   const reservation = reservations.find((r) => r.id === id);
   if (!reservation) return;
   reservation.status = 'CHECKED_IN';
-  const room = byRoomNumber(reservation.roomNumber);
-  if (room && room.status !== 'OUT_OF_ORDER') room.status = 'OCCUPIED_CLEAN';
+  const roomLines = reservation.roomLines ?? [];
+  for (const line of roomLines) {
+    const room = byRoomNumber(line.roomNumber);
+    if (room && room.status !== 'OUT_OF_ORDER') room.status = 'OCCUPIED_CLEAN';
+  }
+  if (roomLines.length === 0) {
+    const room = byRoomNumber(reservation.roomNumber);
+    if (room && room.status !== 'OUT_OF_ORDER') room.status = 'OCCUPIED_CLEAN';
+  }
   let folio = folioForReservation(id);
   if (!folio) {
     const nights = reservation.nights ?? nightsBetween(reservation.checkInDate, reservation.checkOutDate);
-    const rate = Number(reservation.nightlyRate ?? 0);
-    const subtotal = round2(rate * nights);
+    const lines = roomLines.length ? roomLines : [{
+      id: `rl-${id}`,
+      roomTypeId: reservation.roomTypeId ?? '',
+      roomTypeName: reservation.roomTypeName,
+      roomNumber: reservation.roomNumber,
+      nightlyRate: reservation.nightlyRate ?? '0',
+      mealPlanName: null,
+      billingRoute: reservation.billingPreferences?.roomBillTo ?? 'To Guest',
+    }];
+    const items: FolioItemRow[] = lines.map((line) => {
+      const subtotal = round2(num(line.nightlyRate) * nights);
+      return {
+        id: `room-${line.id}`,
+        type: 'ROOM',
+        description: `Room charge · ${line.roomTypeName ?? 'Room'}${line.roomNumber ? ` ${line.roomNumber}` : ''}${line.mealPlanName && line.mealPlanName !== 'EP' ? ` · ${line.mealPlanName}` : ''}`,
+        quantity: String(nights),
+        unitAmount: line.nightlyRate,
+        taxAmount: money(round2(subtotal * TAX_RATE)),
+        totalAmount: money(subtotal),
+        isVoided: false,
+        createdAt: stamp(reservation.checkInDate, 14, 10),
+        billingRoute: line.billingRoute ?? 'To Guest',
+      };
+    });
+    const postedCharges = (reservation.pendingCharges ?? []).filter((charge) => charge.postToFolio);
+    for (const charge of postedCharges) {
+      const assignedRoomNumber = charge.roomNumber ?? roomLines.find((line) => line.id === charge.roomLineId)?.roomNumber;
+      items.push({
+        id: `pos-${charge.id}`,
+        type: 'POS',
+        description: `${charge.outletName} · ${charge.description}${assignedRoomNumber ? ` · Room ${assignedRoomNumber}` : ''}`,
+        quantity: charge.quantity,
+        unitAmount: charge.unitAmount,
+        taxAmount: charge.taxAmount,
+        totalAmount: charge.totalAmount,
+        isVoided: false,
+        createdAt: stamp(reservation.checkInDate, 14, 15),
+        billingRoute: charge.billingRoute,
+        outletId: charge.outletId,
+      });
+    }
+    const postedSubtotal = items.reduce((sum, item) => sum + num(item.totalAmount), 0);
+    const discount = round2(Math.min(num(reservation.discountAmount), Math.max(0, postedSubtotal)));
+    if (discount > 0) {
+      items.push({
+        id: `discount-${id}`,
+        type: 'DISCOUNT',
+        description: 'Reservation discount',
+        quantity: '1',
+        unitAmount: money(-discount),
+        taxAmount: money(-round2(discount * TAX_RATE)),
+        totalAmount: money(-discount),
+        isVoided: false,
+        createdAt: stamp(reservation.checkInDate, 14, 20),
+        billingRoute: reservation.billingPreferences?.roomBillTo ?? 'To Guest',
+      });
+    }
     const folioId = `folio-${id.replace('res-', '')}`;
+    const paymentMethod = (method: string): string => ({
+      'UPI / QR': 'UPI',
+      'Credit Card': 'CARD_TERMINAL',
+      'Debit Card': 'CARD_TERMINAL',
+      Cash: 'CASH',
+      'Bank Transfer': 'BANK_TRANSFER',
+    }[method] ?? method);
     folio = {
       id: folioId,
       folioNo: `F-${reservation.bookingCode.replace('RSV-', '')}`,
@@ -697,20 +871,19 @@ function checkIn(id: string): void {
       status: 'OPEN',
       currencyCode: reservation.currencyCode ?? 'INR',
       guestName: reservation.guestName ?? 'Guest',
-      items: [
-        {
-          id: nextId('itm'),
-          type: 'ROOM',
-          description: `Room charge · ${reservation.roomTypeName ?? 'Room'}`,
-          quantity: String(nights),
-          unitAmount: money(rate),
-          taxAmount: money(round2(subtotal * TAX_RATE)),
-          totalAmount: money(subtotal),
-          isVoided: false,
-          createdAt: stamp(reservation.checkInDate, 14, 10),
-        },
-      ],
-      payments: [],
+      items,
+      payments: (reservation.pendingPayments ?? []).map((payment, index) => ({
+        id: nextId('pay'),
+        folioId,
+        folioNo: `F-${reservation.bookingCode.replace('RSV-', '')}`,
+        amount: payment.amount,
+        currencyCode: reservation.currencyCode ?? 'INR',
+        method: paymentMethod(payment.method),
+        status: 'SUCCEEDED',
+        reference: payment.reference ?? null,
+        recordedAt: payment.recordedAt ?? stamp(reservation.checkInDate, 14, 25 + index),
+        guestName: reservation.guestName ?? 'Guest',
+      })),
     };
     folios.push(folio);
   }
@@ -743,9 +916,13 @@ function checkOut(id: string, _overrideReason?: string): void {
   const reservation = reservations.find((r) => r.id === id);
   if (!reservation) return;
   reservation.status = 'CHECKED_OUT';
-  const room = byRoomNumber(reservation.roomNumber);
-  if (room) room.status = 'VACANT_DIRTY';
-  createCheckoutTask(reservation.roomNumber);
+  const roomNumbers = new Set((reservation.roomLines ?? []).map((line) => line.roomNumber).filter((number): number is string => Boolean(number)));
+  if (!roomNumbers.size && reservation.roomNumber) roomNumbers.add(reservation.roomNumber);
+  for (const roomNumber of roomNumbers) {
+    const room = byRoomNumber(roomNumber);
+    if (room) room.status = 'VACANT_DIRTY';
+    createCheckoutTask(roomNumber);
+  }
   const folio = folioForReservation(id);
   if (folio) folio.status = 'CLOSED';
 }
@@ -755,18 +932,24 @@ function extend(id: string, newCheckOutDate: string): void {
   if (!reservation) return;
   reservation.checkOutDate = newCheckOutDate;
   reservation.nights = nightsBetween(reservation.checkInDate, newCheckOutDate);
-  const rate = Number(reservation.nightlyRate ?? 0);
-  const subtotal = round2(rate * reservation.nights);
+  const roomSubtotal = round2((reservation.roomLines ?? []).reduce((sum, line) => sum + num(line.nightlyRate) * reservation.nights!, 0));
+  const extrasSubtotal = round2((reservation.pendingCharges ?? []).reduce((sum, charge) => sum + num(charge.totalAmount), 0));
+  const subtotal = round2(Math.max(0, roomSubtotal + extrasSubtotal - num(reservation.discountAmount)));
   const taxTotal = round2(subtotal * TAX_RATE);
   reservation.subtotal = money(subtotal);
   reservation.taxTotal = money(taxTotal);
   reservation.totalAmount = money(subtotal + taxTotal);
   const folio = folioForReservation(id);
-  const roomItem = folio?.items.find((i) => i.type === 'ROOM');
-  if (roomItem) {
-    roomItem.quantity = String(reservation.nights);
-    roomItem.totalAmount = money(subtotal);
-    roomItem.taxAmount = money(taxTotal);
+  if (folio) {
+    for (const line of reservation.roomLines ?? []) {
+      const roomItem = folio.items.find((item) => item.type === 'ROOM' && item.id === `room-${line.id}`);
+      if (roomItem) {
+        const lineSubtotal = round2(num(line.nightlyRate) * reservation.nights);
+        roomItem.quantity = String(reservation.nights);
+        roomItem.totalAmount = money(lineSubtotal);
+        roomItem.taxAmount = money(round2(lineSubtotal * TAX_RATE));
+      }
+    }
   }
 }
 
@@ -775,6 +958,7 @@ function availability(checkIn: string, checkOut: string, roomTypeId: string): Av
   const candidates = rooms.filter((r) => r.isActive && r.status !== 'OUT_OF_ORDER' && r.roomTypeId === roomTypeId);
   const now = Date.now();
   const available = candidates.filter((room) => {
+    if (room.status.startsWith('OCCUPIED')) return false;
     const blocked = reservations.some(
       (r) =>
         (r.status === 'CONFIRMED' || r.status === 'CHECKED_IN') &&

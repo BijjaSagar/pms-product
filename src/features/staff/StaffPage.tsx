@@ -319,7 +319,7 @@ export function Staff() {
           {resource.data.matrix.resources.map((group) => (
             <div key={group.resource}>
               <p className="text-sm font-semibold text-ink mb-1">{group.resource}</p>
-              <div className="overflow-x-auto"><table className="pms-table min-w-[640px]">
+              <div className="pms-table-scroll overflow-x-auto"><table className="pms-table min-w-[640px]">
                 <thead><tr><th className="text-xs font-semibold">Permission</th>{resource.data?.matrix?.roles.map((role) => <th key={role.key} className="text-xs font-semibold">{role.name}</th>)}</tr></thead>
                 <tbody>{group.permissions.map((permission) => <tr key={permission.key}>
                   <td><span className="block font-medium text-sm text-ink">{permission.key}</span><span className="block text-xs text-ink-secondary">{permission.description}</span></td>

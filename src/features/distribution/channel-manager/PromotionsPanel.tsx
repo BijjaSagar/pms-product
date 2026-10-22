@@ -26,7 +26,7 @@ export function PromotionsPanel({ channels, bookings, channelFilter, onChannelFi
           <div><h2 id="recent-channel-bookings-title" className="text-base font-bold text-ink">Recent channel bookings</h2><p className="mt-1 text-xs text-ink-secondary">Latest reservations received from connected OTAs.</p></div>
           <div className="flex gap-2"><label><span className="sr-only">Filter bookings by channel</span><select value={channelFilter} onChange={(event) => onChannelFilterChange(event.target.value)} className="pms-input min-h-[36px] text-xs"><option value="all">All channels</option>{channels.map((channel) => <option key={channel.id} value={channel.id}>{channel.name}</option>)}</select></label><button type="button" onClick={onViewAll} className="pms-btn-ghost min-h-[36px] px-3 py-1 text-xs">View all</button></div>
         </div>
-        <div className="overflow-x-auto">
+        <div className="pms-table-scroll overflow-x-auto">
           <table className="pms-table min-w-[620px]">
             <thead><tr><th>Channel</th><th>Booking</th><th>Guest</th><th>Room</th><th>Stay dates</th><th>Status</th></tr></thead>
             <tbody>

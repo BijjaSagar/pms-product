@@ -395,7 +395,7 @@ export function ChannelManager() {
 
       {showAllBookings && (
         <Modal open onClose={() => setShowAllBookings(false)} title="Recent channel bookings" subtitle="Incoming reservations from connected distribution channels." wide footer={<button type="button" onClick={() => setShowAllBookings(false)} className="pms-btn-primary px-4 py-2 text-xs">Close</button>}>
-          <div className="overflow-x-auto"><table className="pms-table min-w-[620px]"><thead><tr><th>Channel</th><th>Booking ID</th><th>Guest</th><th>Room type</th><th>Stay dates</th><th>Status</th></tr></thead><tbody>{bookings.map((booking) => <tr key={booking.id}><td>{channelNames.get(booking.channelId) ?? booking.channelId}</td><td className="font-mono text-[11px]">{booking.id}</td><td className="font-semibold">{booking.guestName}</td><td>{booking.roomType}</td><td>{booking.checkIn} – {booking.checkOut}</td><td>{booking.status}</td></tr>)}</tbody></table></div>
+          <div className="pms-table-scroll overflow-x-auto"><table className="pms-table min-w-[620px]"><thead><tr><th>Channel</th><th>Booking ID</th><th>Guest</th><th>Room type</th><th>Stay dates</th><th>Status</th></tr></thead><tbody>{bookings.map((booking) => <tr key={booking.id}><td>{channelNames.get(booking.channelId) ?? booking.channelId}</td><td className="font-mono text-[11px]">{booking.id}</td><td className="font-semibold">{booking.guestName}</td><td>{booking.roomType}</td><td>{booking.checkIn} – {booking.checkOut}</td><td>{booking.status}</td></tr>)}</tbody></table></div>
         </Modal>
       )}
 

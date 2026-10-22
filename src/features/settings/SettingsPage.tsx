@@ -225,7 +225,7 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
           </div>
         )}
 
-        <div className="overflow-x-auto">
+        <div className="pms-table-scroll overflow-x-auto">
           <table className="pms-table min-w-[760px] w-full text-left">
             <thead>
               <tr>

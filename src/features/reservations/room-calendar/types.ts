@@ -48,6 +48,7 @@ export interface CalendarRoom {
 export interface CalendarReservation {
   id: string;
   backendId?: string;
+  roomLineId?: string;
   guestName: string;
   guestEmail: string;
   guestPhone: string;

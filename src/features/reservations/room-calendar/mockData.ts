@@ -298,7 +298,7 @@ export function loadSyncedReservations(): CalendarReservation[] {
 
   return result.data
     .filter((r) => r.status !== 'CANCELLED')
-    .map((r) => {
+    .flatMap((r) => {
       const guestId = r.primaryGuestId || r.guest?.id;
       const guest = GUESTS.find((g) => g.id === guestId);
       const guestName =
@@ -310,17 +310,6 @@ export function loadSyncedReservations(): CalendarReservation[] {
       const guestPhone = guest?.phone || '+91 98765 43210';
 
       const curated = resCodeToRoom[r.bookingCode || r.id];
-
-      // Prefer live store room if it's one of the 15 rooms, otherwise use curated/routed room
-      let rawRoom = r.roomNumber || (r.roomLines && r.roomLines[0]?.roomNumber);
-      if (!rawRoom || !roomsMap.has(rawRoom)) {
-        rawRoom = curated?.room || CANONICAL_ROOM_ROUTING[rawRoom || ''] || '101';
-      }
-
-      const matchedRoom = roomsMap.get(rawRoom) || MOCK_ROOMS[0];
-      const roomNumber = matchedRoom.number;
-      const roomId = matchedRoom.id;
-      const roomType = matchedRoom.type;
 
       // Dates
       const checkInDate = curated?.checkIn || String(r.checkInDate).slice(0, 10);
@@ -338,40 +327,69 @@ export function loadSyncedReservations(): CalendarReservation[] {
       };
       const status: ReservationStatus = statusMap[r.status] || 'Confirmed';
 
-      const nightlyRate = matchedRoom.baseRate;
-      const totalAmount = nights * nightlyRate;
+      const sourceLines = r.roomLines?.length
+        ? r.roomLines.filter((line) => line.roomNumber).map((line) => ({
+            id: line.id,
+            roomNumber: line.roomNumber as string,
+            nightlyRate: Number(line.nightlyRate),
+            adults: Number(line.adults ?? 1),
+            children: Number(line.children ?? 0),
+          }))
+        : [{
+            id: `legacy-${r.id}`,
+            roomNumber: r.roomNumber || curated?.room || null,
+            nightlyRate: Number(r.nightlyRate ?? 0),
+            adults: Number(r.adults ?? 1),
+            children: Number(r.children ?? 0),
+          }];
 
-      return {
-        id: r.id,
-        backendId: r.id,
-        guestName,
-        guestEmail,
-        guestPhone,
-        roomId,
-        roomNumber,
-        roomType,
-        checkInDate,
-        checkOutDate,
-        nights,
-        status,
-        bookingSource:
-          r.source === 'OTA'
-            ? 'Booking.com'
-            : r.source === 'CORPORATE'
-            ? 'Corporate'
-            : 'Direct',
-        nightlyRate,
-        totalAmount,
-        paymentStatus:
-          r.paid && Number(r.paid) >= totalAmount
-            ? 'Paid'
-            : Number(r.paid) > 0
-            ? 'Partial'
-            : 'Pending',
-        adults: Number(r.adults ?? 1),
-        children: Number(r.children ?? 0),
-        specialRequests: r.specialRequests || '',
-        notes: r.internalNotes || '',
-      };
+      return sourceLines.flatMap((line) => {
+        let rawRoom = line.roomNumber;
+        if (!rawRoom || !roomsMap.has(rawRoom)) {
+          rawRoom = curated?.room || CANONICAL_ROOM_ROUTING[rawRoom || ''] || (sourceLines.length === 1 ? '101' : null);
+        }
+        if (!rawRoom) return [];
+        const matchedRoom = roomsMap.get(rawRoom) || MOCK_ROOMS[0];
+        const roomNumber = matchedRoom.number;
+        const roomId = matchedRoom.id;
+        const roomType = matchedRoom.type;
+        const nightlyRate = line.nightlyRate || matchedRoom.baseRate;
+        const totalAmount = nights * nightlyRate;
+        const isGroup = sourceLines.length > 1;
+
+        return [{
+          id: isGroup ? `${r.id}::${line.id}` : r.id,
+          backendId: r.id,
+          roomLineId: line.id.startsWith('legacy-') ? undefined : line.id,
+          guestName,
+          guestEmail,
+          guestPhone,
+          roomId,
+          roomNumber,
+          roomType,
+          checkInDate,
+          checkOutDate,
+          nights,
+          status,
+          bookingSource:
+            r.source === 'OTA'
+              ? 'Booking.com'
+              : r.source === 'CORPORATE'
+              ? 'Corporate'
+              : 'Direct',
+          nightlyRate,
+          totalAmount,
+          paymentStatus:
+            r.paid && Number(r.paid) >= totalAmount
+              ? 'Paid'
+              : Number(r.paid) > 0
+              ? 'Partial'
+              : 'Pending',
+          adults: line.adults,
+          children: line.children,
+          specialRequests: r.specialRequests || '',
+          notes: r.internalNotes || '',
+        }];
+      });
     });
 }

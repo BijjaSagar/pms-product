@@ -19,7 +19,7 @@ export function MappingPanel({ mappings, channels, onChange, onAdd, onSave }: Pr
         <div><h2 id="mapping-title" className="text-base font-bold text-ink">Room & rate mapping</h2><p className="mt-1 text-xs text-ink-secondary">Match internal inventory and rate plans to each channel’s product codes.</p></div>
         <div className="flex gap-2"><button type="button" onClick={onAdd} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-xs"><Lucide.Plus size={14} /> Add mapping</button><button type="button" onClick={onSave} className="pms-btn-primary min-h-[38px] px-3 py-1.5 text-xs"><Lucide.Upload size={14} /> Save mappings</button></div>
       </div>
-      <div className="overflow-x-auto">
+      <div className="pms-table-scroll overflow-x-auto">
         <table className="pms-table min-w-[850px]">
           <thead><tr><th>Channel</th><th>Room type</th><th>Rate plan</th><th>External code</th><th>Status</th><th className="text-right">Action</th></tr></thead>
           <tbody>

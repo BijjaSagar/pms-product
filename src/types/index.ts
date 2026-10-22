@@ -59,6 +59,15 @@ export interface Reservation {
   guestId: string;
   room: string;
   roomNumber: string | null;
+  roomSummary?: string;
+  roomLines?: Array<{
+    id: string;
+    roomTypeId: string;
+    roomId?: string | null;
+    roomNumber?: string | null;
+    roomTypeName?: string | null;
+    nightlyRate?: string;
+  }>;
   roomType: string;
   checkIn: string;
   checkOut: string;

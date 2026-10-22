@@ -1435,8 +1435,8 @@ export function Billing() {
               className="rounded-2xl border shadow-xs overflow-hidden"
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[700px]">
+              <div className="pms-table-scroll overflow-x-auto">
+                <table className="pms-table w-full text-left border-collapse min-w-[700px]">
                   <thead>
                     <tr
                       className="border-b text-[11px] font-bold uppercase tracking-wider text-ink-muted bg-slate-50/90"

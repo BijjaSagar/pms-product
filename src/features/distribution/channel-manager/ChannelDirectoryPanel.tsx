@@ -49,7 +49,7 @@ export function ChannelDirectoryPanel({ channels, selectedChannelId, syncingChan
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="pms-table-scroll overflow-x-auto">
         <table className="pms-table min-w-[720px]">
           <thead><tr><th>Channel</th><th>Connection</th><th>Active rooms</th><th>Bookings MTD</th><th>Sync success</th><th>Last sync</th><th className="text-right">Action</th></tr></thead>
           <tbody>

@@ -74,8 +74,8 @@ export function TableContainer({
   className?: string;
 }) {
   return (
-    <div className={`pms-table-container border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-xs min-w-0 w-full ${className}`}>
-      <div className="overflow-x-auto w-full min-w-0">{children}</div>
+    <div className={`pms-table-container overflow-hidden min-w-0 w-full ${className}`}>
+      <div className="pms-table-scroll w-full min-w-0">{children}</div>
     </div>
   );
 }

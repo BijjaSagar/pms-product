@@ -439,7 +439,7 @@ function ReservationDrawer({
         <div className="grid grid-cols-2 gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
           <div>
             <span className="text-[11px] text-slate-400">Room</span>
-            <p className="font-semibold text-slate-900">{r.roomNumber ? `Room ${r.roomNumber}` : 'Unassigned'} ({r.roomType})</p>
+            <p className="font-semibold text-slate-900">{r.roomSummary ?? (r.roomNumber ? `Room ${r.roomNumber} (${r.roomType})` : `Unassigned (${r.roomType})`)}</p>
           </div>
           <div>
             <span className="text-[11px] text-slate-400">Rate Plan</span>
@@ -882,10 +882,11 @@ export function RoomCalendar({
 
     const { reservation, proposedRoom, proposedCheckIn, proposedCheckOut, proposedNights, proposedTotal } =
       pendingChange;
+    const backendId = reservation.backendId ?? reservation.id;
 
     // 1. Update central PMS store for unified multi-page synchronization
     try {
-      store.updateReservation(reservation.id, {
+      store.updateReservation(backendId, {
         roomId: proposedRoom.id,
         roomNumber: proposedRoom.number,
         checkInDate: proposedCheckIn,
@@ -893,7 +894,7 @@ export function RoomCalendar({
         nights: proposedNights,
         totalAmount: String(proposedTotal),
       });
-      store.assignRoom(reservation.id, proposedRoom.id);
+      store.assignRoom(backendId, proposedRoom.id, reservation.roomLineId);
     } catch {
       // In-memory fallback
     }
@@ -901,17 +902,18 @@ export function RoomCalendar({
     // 2. Update local state
     setReservations((prev) =>
       prev.map((r) =>
-        r.id === reservation.id
+        r.backendId === backendId
           ? {
               ...r,
-              roomId: proposedRoom.id,
-              roomNumber: proposedRoom.number,
-              roomType: proposedRoom.type,
+              ...(r.id === reservation.id ? {
+                roomId: proposedRoom.id,
+                roomNumber: proposedRoom.number,
+                roomType: proposedRoom.type,
+              } : {}),
               checkInDate: proposedCheckIn,
               checkOutDate: proposedCheckOut,
               nights: proposedNights,
-              nightlyRate: proposedRoom.baseRate,
-              totalAmount: proposedTotal,
+              totalAmount: proposedNights * r.nightlyRate,
             }
           : r
       )
@@ -932,13 +934,15 @@ export function RoomCalendar({
 
   // Status update from Detail modal
   const handleStatusUpdate = (resId: string, newStatus: CalendarReservationStatus) => {
+    const selected = reservations.find((reservation) => reservation.id === resId);
+    const backendId = selected?.backendId ?? resId;
     setReservations((prev) =>
-      prev.map((r) => (r.id === resId ? { ...r, status: newStatus } : r))
+      prev.map((r) => (r.backendId === backendId ? { ...r, status: newStatus } : r))
     );
     try {
-      if (newStatus === 'Checked-in') store.checkIn(resId);
-      else if (newStatus === 'Checked-out') store.checkOut(resId);
-      else if (newStatus === 'Cancelled') store.cancelReservation(resId, 'Cancelled via calendar');
+      if (newStatus === 'Checked-in') store.checkIn(backendId);
+      else if (newStatus === 'Checked-out') store.checkOut(backendId);
+      else if (newStatus === 'Cancelled') store.cancelReservation(backendId, 'Cancelled via calendar');
     } catch {
       // ignore
     }
@@ -2033,8 +2037,8 @@ export function Reservations({
 
       {/* ================= 5. RESERVATIONS TABLE CARD ================= */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.04)] overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse">
+        <div className="pms-table-scroll overflow-x-auto">
+          <table className="pms-table w-full text-left text-sm border-collapse">
             {/* Table Header */}
             <thead>
               <tr className="bg-slate-50/90 border-b border-slate-200 text-xs font-semibold text-slate-500 tracking-wider uppercase">
@@ -2158,7 +2162,7 @@ export function Reservations({
                             className="h-9 w-9 rounded-md object-cover shrink-0 border border-slate-200"
                           />
                           <div>
-                            <p className="font-bold text-slate-900 text-sm leading-tight">{r.roomNumber}</p>
+                            <p className="font-bold text-slate-900 text-sm leading-tight">{r.roomSummary ?? r.roomNumber}</p>
                             <p className="text-xs text-slate-500">{r.roomType}</p>
                           </div>
                         </div>

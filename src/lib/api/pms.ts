@@ -51,14 +51,30 @@ export interface GuestRow {
 export interface ReservationRoomRow {
   id: string; roomTypeId: string; roomId?: string | null; roomNumber?: string | null;
   roomTypeName?: string | null; nightlyRate: string; ratePlanName?: string | null;
+  baseRate?: string; subtotal?: string; taxAmount?: string;
+  adults?: number; children?: number; infants?: number; mealPlanName?: string | null; billingRoute?: string | null;
+  occupants?: Array<{ id: string; name: string; role: string }>;
+}
+export interface ReservationChargeRow {
+  id: string; outletId: string; outletName: string; description: string; quantity: string;
+  unitAmount: string; taxAmount: string; totalAmount: string; billingRoute: string;
+  roomLineId?: string | null; roomNumber?: string | null; postToFolio: boolean;
+}
+export interface ReservationBillingPreferencesRow {
+  roomBillTo: string; extrasBillTo: string; billToCompany: boolean; noPost: boolean;
+  companyName?: string | null; companyGst?: string | null; payAtHotel?: boolean;
+}
+export interface ReservationPendingPaymentRow {
+  amount: string; method: string; reference?: string | null; recordedAt?: string;
 }
 export interface ReservationRow {
   id: string; bookingCode: string; status: string; source?: string; checkInDate: string; checkOutDate: string;
-  nights?: number; adults: number; children: number; currencyCode?: string; totalAmount?: string; primaryGuestId?: string;
+  nights?: number; adults: number; children: number; infants?: number; currencyCode?: string; totalAmount?: string; primaryGuestId?: string;
   nightlyRate?: string; internalNotes?: string | null;
   subtotal?: string; taxTotal?: string; specialRequests?: string | null; guest?: { id: string; name?: string; firstName?: string; lastName?: string } | null;
-  guestName?: string | null; roomNumber?: string | null; roomTypeName?: string | null; roomTypeId?: string;
-  roomLines?: ReservationRoomRow[]; paid?: number;
+  guestName?: string | null; roomNumber?: string | null; roomSummary?: string | null; roomTypeName?: string | null; roomTypeId?: string;
+  roomLines?: ReservationRoomRow[]; pendingCharges?: ReservationChargeRow[]; pendingPayments?: ReservationPendingPaymentRow[]; billingPreferences?: ReservationBillingPreferencesRow;
+  discountAmount?: string; paid?: number;
 }
 export interface StayRow extends ReservationRow {
   guestId?: string | null;
@@ -71,7 +87,7 @@ export interface AvailabilityResult { nights: string[]; totalRooms: number; avai
 export interface FolioBalanceRow { charges: string; tax: string; total: string; paid: string; balance: string; currencyCode: string }
 export interface FolioItemRow {
   id: string; type: string; description: string; quantity: string; unitAmount: string; taxAmount: string;
-  totalAmount: string; isVoided: boolean; createdAt: string;
+  totalAmount: string; isVoided: boolean; createdAt: string; billingRoute?: string | null; outletId?: string | null;
 }
 export interface PaymentRow {
   id: string; folioId: string; folioNo?: string | null; amount: string; currencyCode: string; method: string;
@@ -199,7 +215,7 @@ export const reservationApi = {
   get: async (id: string) => store.getReservation(id) as ReservationRow,
   create: async (body: Record<string, unknown>) => store.createReservation(body),
   update: async (id: string, body: Record<string, unknown>) => store.updateReservation(id, body) as ReservationRow,
-  assignRoom: async (id: string, roomId: string) => store.assignRoom(id, roomId),
+  assignRoom: async (id: string, roomId: string, roomLineId?: string) => store.assignRoom(id, roomId, roomLineId),
   cancel: async (id: string, reason: string) => store.cancelReservation(id, reason),
 };
 

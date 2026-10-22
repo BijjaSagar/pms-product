@@ -75,8 +75,8 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
         ))}
       </div>
 
-      <div className="hidden overflow-x-auto border-t sm:block" style={{ borderColor: 'var(--color-divider)' }}>
-        <table className="min-w-[1040px] w-full border-collapse text-xs">
+      <div className="pms-table-scroll hidden overflow-x-auto border-t sm:block" style={{ borderColor: 'var(--color-divider)' }}>
+        <table className="pms-matrix-table min-w-[1040px] w-full border-collapse text-xs">
           <thead><tr>
             <th className="sticky left-0 z-20 min-w-[140px] border-r px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-ink-muted" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}>Room type</th>
             <th className="min-w-[72px] border-r px-2 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-ink-muted" style={{ borderColor: 'var(--color-divider)' }}>Total</th>

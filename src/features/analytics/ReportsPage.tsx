@@ -869,7 +869,7 @@ export function Reports({
           <Card>
             <CardTitle title="Revenue and Collections Ledger" subtitle="Accounting metrics from backend financial engine" />
             {revenue ? (
-              <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-200">
+              <div className="pms-table-scroll mt-3 overflow-x-auto rounded-2xl border border-slate-200">
                 <table className="pms-table min-w-[480px]">
                   <thead>
                     <tr>
@@ -1091,7 +1091,7 @@ export function Reports({
                   </div>
                 ))}
               </div>
-              <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200">
+            <div className="pms-table-scroll mt-4 overflow-x-auto rounded-2xl border border-slate-200">
                 <table className="pms-table min-w-[480px]">
                   <thead>
                     <tr>
@@ -1191,7 +1191,7 @@ export function Reports({
                   ) : undefined
                 }
               />
-              <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-200">
+              <div className="pms-table-scroll mt-3 overflow-x-auto rounded-2xl border border-slate-200">
                 <table className="pms-table min-w-[680px]">
                   <thead>
                     <tr>
