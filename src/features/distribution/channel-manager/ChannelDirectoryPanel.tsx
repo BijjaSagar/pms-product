@@ -31,21 +31,21 @@ export function ChannelDirectoryPanel({ channels, selectedChannelId, syncingChan
     <section className="pms-card min-w-0 overflow-hidden" aria-labelledby="channel-directory-title">
       <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5" style={{ borderColor: 'var(--color-border)' }}>
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
             <Lucide.Network size={17} strokeWidth={2.4} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 id="channel-directory-title" className="text-sm font-bold text-slate-900 tracking-tight">Channel Connections</h2>
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+              <h2 id="channel-directory-title" className="text-sm font-bold text-ink tracking-tight">Channel Connections</h2>
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
                 </span>
                 Live Feed
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Monitor health and run a channel sync.</p>
+            <p className="text-[11px] text-ink-muted mt-0.5">Monitor health and run a channel sync.</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -83,7 +83,7 @@ export function ChannelDirectoryPanel({ channels, selectedChannelId, syncingChan
                       <span className="min-w-0"><span className="block truncate font-semibold text-ink">{channel.name}</span><span className="mt-0.5 block text-[10px] uppercase tracking-wider text-ink-muted">{channel.code}</span></span>
                     </button>
                   </td>
-                  <td><span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold" style={statusStyle}><span className={`h-1.5 w-1.5 rounded-full ${channel.status === 'connected' ? 'bg-emerald-500' : channel.status === 'error' ? 'bg-rose-500' : 'bg-slate-400'}`} />{STATUS_LABEL[channel.status]}</span></td>
+                  <td><span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold" style={statusStyle}><span className={`h-1.5 w-1.5 rounded-full ${channel.status === 'connected' ? 'bg-success-text' : channel.status === 'error' ? 'bg-danger-text' : 'bg-ink-disabled'}`} />{STATUS_LABEL[channel.status]}</span></td>
                   <td className="tnum font-medium">{channel.activeRooms}</td>
                   <td className="tnum font-medium">{channel.bookingsMtd}</td>
                   <td>

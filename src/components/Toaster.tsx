@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { dismissToast, snapshotToasts, subscribeToasts } from './toastStore';
 import type { ToastItem } from './toastStore';
+import { TONE_VARS } from '../theme/tone';
+import type { Tone } from '../theme/tone';
 
 interface ToneConfig {
   icon: Lucide.LucideIcon;
@@ -15,51 +17,26 @@ interface ToneConfig {
   tag: { text: string; bg: string; color: string };
 }
 
+function buildToneConfig(icon: Lucide.LucideIcon, label: string, tone: Tone): ToneConfig {
+  const vars = TONE_VARS[tone];
+  return {
+    icon,
+    accentColor: vars.text,
+    accentGrad: vars.border,
+    badgeBg: vars.bg,
+    badgeBorder: vars.border,
+    badgeText: vars.text,
+    borderColor: `color-mix(in srgb, ${vars.text} 32%, var(--color-border))`,
+    ringColor: `color-mix(in srgb, ${vars.text} 14%, transparent)`,
+    tag: { text: label, bg: vars.bg, color: vars.text },
+  };
+}
+
 const TOAST_CONFIG: Record<ToastItem['tone'], ToneConfig> = {
-  success: {
-    icon: Lucide.CheckCircle2,
-    accentColor: '#10b981',
-    accentGrad: '#059669',
-    badgeBg: 'rgba(16, 185, 129, 0.12)',
-    badgeBorder: 'rgba(16, 185, 129, 0.28)',
-    badgeText: '#059669',
-    borderColor: 'color-mix(in srgb, #10b981 32%, var(--color-border))',
-    ringColor: 'rgba(16, 185, 129, 0.14)',
-    tag: { text: 'Success', bg: 'rgba(16, 185, 129, 0.12)', color: '#059669' },
-  },
-  danger: {
-    icon: Lucide.AlertCircle,
-    accentColor: '#f43f5e',
-    accentGrad: '#e11d48',
-    badgeBg: 'rgba(244, 63, 94, 0.12)',
-    badgeBorder: 'rgba(244, 63, 94, 0.28)',
-    badgeText: '#e11d48',
-    borderColor: 'color-mix(in srgb, #f43f5e 32%, var(--color-border))',
-    ringColor: 'rgba(244, 63, 94, 0.14)',
-    tag: { text: 'Alert', bg: 'rgba(244, 63, 94, 0.12)', color: '#e11d48' },
-  },
-  warning: {
-    icon: Lucide.AlertTriangle,
-    accentColor: '#f59e0b',
-    accentGrad: '#d97706',
-    badgeBg: 'rgba(245, 158, 11, 0.14)',
-    badgeBorder: 'rgba(245, 158, 11, 0.3)',
-    badgeText: '#d97706',
-    borderColor: 'color-mix(in srgb, #f59e0b 32%, var(--color-border))',
-    ringColor: 'rgba(245, 158, 11, 0.14)',
-    tag: { text: 'Notice', bg: 'rgba(245, 158, 11, 0.14)', color: '#d97706' },
-  },
-  info: {
-    icon: Lucide.Sparkles,
-    accentColor: '#0ea5e9',
-    accentGrad: '#0284c7',
-    badgeBg: 'rgba(14, 165, 233, 0.12)',
-    badgeBorder: 'rgba(14, 165, 233, 0.28)',
-    badgeText: '#0284c7',
-    borderColor: 'color-mix(in srgb, #0ea5e9 32%, var(--color-border))',
-    ringColor: 'rgba(14, 165, 233, 0.14)',
-    tag: { text: 'Update', bg: 'rgba(14, 165, 233, 0.12)', color: '#0284c7' },
-  },
+  success: buildToneConfig(Lucide.CheckCircle2, 'Success', 'success'),
+  danger: buildToneConfig(Lucide.AlertCircle, 'Alert', 'danger'),
+  warning: buildToneConfig(Lucide.AlertTriangle, 'Notice', 'warning'),
+  info: buildToneConfig(Lucide.Sparkles, 'Update', 'info'),
 };
 
 interface ToastCardProps {
@@ -118,7 +95,7 @@ function ToastCard({ toast: t, onDismiss }: ToastCardProps) {
       style={{
         backgroundColor: 'var(--color-surface)',
         borderColor: cfg.borderColor,
-        boxShadow: `0 20px 42px -10px rgba(15, 23, 42, 0.18), 0 8px 18px -4px rgba(15, 23, 42, 0.08), 0 0 0 1px ${cfg.ringColor}`,
+        boxShadow: `var(--shadow-xl), 0 0 0 1px ${cfg.ringColor}`,
       }}
     >
       {/* Top subtle tone highlight gradient */}

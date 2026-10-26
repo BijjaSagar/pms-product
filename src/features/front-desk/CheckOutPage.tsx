@@ -115,7 +115,7 @@ export function CheckOut() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-rose-500 to-amber-600 text-white shadow-xs shadow-rose-500/20 mt-0.5">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-danger-text to-warning-border text-white shadow-xs shadow-danger-text/20 mt-0.5">
             <Lucide.LogOut size={20} strokeWidth={2.4} />
           </div>
           <div>
@@ -123,10 +123,10 @@ export function CheckOut() {
               <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
                 Guest Check-out
               </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200/60">
+              <span className="flex items-center gap-1.5 rounded-full bg-warning-bg px-2.5 py-0.5 text-[10px] font-bold text-warning-text border border-warning-border/60">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning-text opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-warning-text"></span>
                 </span>
                 Departures Terminal
               </span>
@@ -137,14 +137,14 @@ export function CheckOut() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 shadow-2xs flex items-center gap-1.5">
-            <Lucide.Users size={14} className="text-amber-600" />
+          <span className="text-xs font-bold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink shadow-2xs flex items-center gap-1.5">
+            <Lucide.Users size={14} className="text-warning-text" />
             <span>{list.length} open folio{list.length === 1 ? '' : 's'}</span>
           </span>
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
             title="Refresh folios"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
@@ -155,7 +155,7 @@ export function CheckOut() {
 
       <div className="grid grid-cols-1 gap-3.5 xl:grid-cols-5">
         {resource.error ? (
-          <div className="xl:col-span-5 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="xl:col-span-5 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-sm text-danger-text">
             <Lucide.AlertCircle size={18} />
             <span>Could not load open folios: {resource.error}</span>
           </div>
@@ -165,11 +165,11 @@ export function CheckOut() {
       <Card className="xl:col-span-2">
         <CardTitle
           icon={Lucide.Users}
-          iconBg="bg-gradient-to-tr from-rose-500 to-amber-600 text-white shadow-xs shadow-rose-500/20"
+          iconBg="bg-gradient-to-tr from-danger-text to-warning-border text-white shadow-xs shadow-danger-text/20"
           title="Open folios"
           subtitle={resource.loading ? 'Loading folios…' : `${list.length} ${list.length === 1 ? 'folio ready' : 'folios ready'} for check-out`}
           badge={
-            <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200/60">
+            <span className="flex items-center gap-1 rounded-full bg-warning-bg px-2 py-0.5 text-[10px] font-bold text-warning-text border border-warning-border/60">
               {list.length} Open
             </span>
           }
@@ -235,7 +235,7 @@ export function CheckOut() {
             <ul className="mt-2 flex flex-col gap-1 text-[12px] text-success-text">
               {doneList.map((d) => (
                 <li key={d} className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-success-text" />
                   <span>{d}</span>
                 </li>
               ))}
@@ -256,11 +256,11 @@ export function CheckOut() {
           <>
             <CardTitle
               icon={Lucide.ReceiptText}
-              iconBg="bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20"
+              iconBg="bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20"
               title={`Folio ${folio.id}`}
               subtitle={`${folio.guest} · Room ${folio.room} · Booking ${folio.reservationId}`}
               badge={
-                <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${folioBalance(folio) > 0 ? 'bg-amber-50 text-amber-700 border-amber-200/60' : 'bg-emerald-50 text-emerald-700 border-emerald-200/60'}`}>
+                <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${folioBalance(folio) > 0 ? 'bg-warning-bg text-warning-text border-warning-border/60' : 'bg-success-bg text-success-text border-success-border/60'}`}>
                   {folioBalance(folio) > 0 ? 'Unsettled' : 'Settled'}
                 </span>
               }

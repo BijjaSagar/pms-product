@@ -43,7 +43,7 @@ export function Tabs<T extends string>({
       className="pms-chip-row gap-1 rounded-[12px] border p-1"
       role="tablist"
       aria-label={label}
-      style={{ borderColor: 'var(--color-border)', background: 'color-mix(in srgb, var(--color-muted-surface) 78%, white)', boxShadow: 'var(--shadow-xs), inset 0 1px 2px rgb(40 30 20 / 0.05)' }}
+      style={{ borderColor: 'var(--color-border)', background: 'color-mix(in srgb, var(--color-muted-surface) 78%, var(--color-surface))', boxShadow: 'var(--shadow-xs), var(--shadow-inner)' }}
     >
       {tabs.map((t) => {
         const selected = t.id === active;
@@ -58,7 +58,7 @@ export function Tabs<T extends string>({
             style={{
               background: selected ? 'var(--color-surface)' : 'transparent',
               color: selected ? 'var(--color-ink)' : 'var(--color-ink-secondary)',
-              boxShadow: selected ? 'var(--shadow-md), inset 0 1px 0 white' : 'none',
+              boxShadow: selected ? 'var(--shadow-md), inset 0 1px 0 var(--color-surface)' : 'none',
               border: selected ? '1px solid var(--color-border)' : '1px solid transparent',
             }}
           >
@@ -81,19 +81,19 @@ export function Pagination({
   onChange: (p: number) => void;
   summary: string;
 }) {
-  if (totalPages <= 1) return <p className="text-sm text-slate-500">{summary}</p>;
+  if (totalPages <= 1) return <p className="text-sm text-ink-secondary">{summary}</p>;
   const windowPages = Array.from({ length: totalPages }, (_, i) => i).filter(
     (i) => i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1,
   );
   return (
-    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-slate-500">
-      <p className="text-sm text-slate-500 font-normal">{summary}</p>
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-ink-secondary">
+      <p className="text-sm text-ink-secondary font-normal">{summary}</p>
       <div className="flex max-w-full items-center gap-1.5 overflow-x-auto pb-0.5" role="navigation" aria-label="Pagination">
         <button
           type="button"
           disabled={page === 0}
           onClick={() => onChange(page - 1)}
-          className="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-border text-ink-secondary hover:bg-hover-surface disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           aria-label="Previous page"
         >
           ‹
@@ -103,7 +103,7 @@ export function Pagination({
           const isCurrent = i === page;
           return (
             <span key={i} className="flex flex-none items-center gap-1.5">
-              {showEllipsis ? <span className="px-1 text-slate-400">…</span> : null}
+              {showEllipsis ? <span className="px-1 text-ink-muted">…</span> : null}
               <button
                 type="button"
                 onClick={() => onChange(i)}
@@ -111,13 +111,13 @@ export function Pagination({
                 aria-label={`Page ${i + 1}`}
                 className={`flex h-8 w-8 flex-none items-center justify-center rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   isCurrent
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'border border-border bg-surface text-ink hover:bg-hover-surface'
                 }`}
                 style={{
-                  background: isCurrent ? 'var(--color-primary)' : '#ffffff',
-                  borderColor: isCurrent ? 'var(--color-primary)' : '#e2e8f0',
-                  color: isCurrent ? '#ffffff' : '#334155',
+                  background: isCurrent ? 'var(--color-primary)' : 'var(--color-surface)',
+                  borderColor: isCurrent ? 'var(--color-primary)' : 'var(--color-border)',
+                  color: isCurrent ? 'var(--color-primary-foreground)' : 'var(--color-ink)',
                 }}
               >
                 {i + 1}
@@ -129,7 +129,7 @@ export function Pagination({
           type="button"
           disabled={page === totalPages - 1}
           onClick={() => onChange(page + 1)}
-          className="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-border text-ink-secondary hover:bg-hover-surface disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           aria-label="Next page"
         >
           ›

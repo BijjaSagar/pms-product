@@ -56,23 +56,23 @@ export function Invoices() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xs shadow-blue-500/20 mt-0.5">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20 mt-0.5">
             <Lucide.FileText size={20} strokeWidth={2.4} />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
                 Invoices & Billing Documents
               </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
                 </span>
                 Official Records
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-ink-secondary mt-1">
               Official tax invoices, credit notes, guest billing records, and audit receipts
             </p>
           </div>
@@ -81,7 +81,7 @@ export function Invoices() {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
             title="Refresh invoices"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
@@ -103,7 +103,7 @@ export function Invoices() {
               <p className="pms-kpi-value tnum mt-1 text-2xl font-bold">{val}</p>
               <p className="pms-helper mt-1">{sub}</p>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black/[0.03] text-primary">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink/[0.03] text-primary">
               <Icon size={20} />
             </div>
           </section>
@@ -113,17 +113,17 @@ export function Invoices() {
       <Card>
         <CardTitle
           icon={Lucide.FileText}
-          iconBg="bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xs shadow-blue-500/20"
+          iconBg="bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20"
           title="Invoices"
           subtitle={resource.loading ? 'Loading invoices…' : `${rows.length} billing documents`}
           badge={
-            <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-200/60">
+            <span className="flex items-center gap-1 rounded-full bg-info-bg px-2 py-0.5 text-[10px] font-bold text-info-text border border-info-border/60">
               {rows.length} Documents
             </span>
           }
         />
         {resource.error ? (
-          <div className="mb-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="mb-3 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-sm text-danger-text">
             <Lucide.AlertCircle size={18} />
             <span>Could not load invoices: {resource.error}</span>
           </div>
@@ -172,25 +172,25 @@ export function Invoices() {
             </thead>
             <tbody>
               {rows.map((i, idx) => (
-                <tr key={i.id} className="transition-colors hover:bg-slate-50/70">
-                  <td className="text-center font-medium text-slate-400 text-xs">
+                <tr key={i.id} className="transition-colors hover:bg-page/70">
+                  <td className="text-center font-medium text-ink-muted text-xs">
                     {idx + 1}
                   </td>
-                  <td className="tnum font-mono font-bold text-slate-900 text-xs">{i.id}</td>
+                  <td className="tnum font-mono font-bold text-ink text-xs">{i.id}</td>
                   <td>
-                    <span className="block font-semibold text-slate-900 text-sm">{i.guest}</span>
-                    <span className="tnum block text-xs text-slate-400">Room {i.room}</span>
+                    <span className="block font-semibold text-ink text-sm">{i.guest}</span>
+                    <span className="tnum block text-xs text-ink-muted">Room {i.room}</span>
                   </td>
-                  <td className="tnum text-xs text-slate-500">{i.due}</td>
+                  <td className="tnum text-xs text-ink-secondary">{i.due}</td>
                   <td>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted-surface text-ink">
                       {i.method}
                     </span>
                   </td>
                   <td>
                     <Badge tone={paymentTone(i.status)}>{i.status}</Badge>
                   </td>
-                  <td className="tnum text-right font-bold text-slate-900 text-sm">
+                  <td className="tnum text-right font-bold text-ink text-sm">
                     {formatCurrency(i.amount, i.currencyCode)}
                   </td>
                   <td className="text-right">
@@ -206,7 +206,7 @@ export function Invoices() {
               ))}
             </tbody>
           </table>
-          {rows.length === 0 ? <p className="pms-helper py-8 text-center text-slate-400">No invoices match.</p> : null}
+          {rows.length === 0 ? <p className="pms-helper py-8 text-center text-ink-muted">No invoices match.</p> : null}
         </TableContainer>
       </Card>
 

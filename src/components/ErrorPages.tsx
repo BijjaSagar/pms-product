@@ -23,13 +23,13 @@ export function ForbiddenPage({
         style={{
           background: 'var(--color-surface)',
           borderColor: 'var(--color-border)',
-          boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.12), 0 0 0 1px var(--color-border)',
+          boxShadow: 'var(--shadow-xl), 0 0 0 1px var(--color-border)',
         }}
       >
         {/* Ambient background glow */}
         <div
           className="absolute -top-24 -left-24 h-48 w-48 rounded-full blur-3xl pointer-events-none opacity-20"
-          style={{ background: 'var(--color-warning-text, #f59e0b)' }}
+          style={{ background: 'var(--color-warning-text)' }}
         />
         <div
           className="absolute -bottom-24 -right-24 h-48 w-48 rounded-full blur-3xl pointer-events-none opacity-20"
@@ -39,13 +39,13 @@ export function ForbiddenPage({
         {/* Central Icon Badge */}
         <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl shadow-md border"
           style={{
-            background: 'color-mix(in srgb, #f59e0b 12%, var(--color-surface))',
-            borderColor: 'color-mix(in srgb, #f59e0b 30%, transparent)',
-            color: '#d97706',
+            background: 'var(--color-warning-bg)',
+            borderColor: 'var(--color-warning-border)',
+            color: 'var(--color-warning-text)',
           }}
         >
           <Lucide.ShieldAlert size={40} strokeWidth={1.8} />
-          <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-white shadow-sm">
+          <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-warning-text text-warning-foreground shadow-sm">
             <Lucide.Lock size={13} strokeWidth={2.4} />
           </span>
         </div>
@@ -53,12 +53,12 @@ export function ForbiddenPage({
         {/* Status Pill */}
         <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold tracking-wide uppercase mb-3"
           style={{
-            background: 'color-mix(in srgb, #f59e0b 14%, transparent)',
-            color: '#d97706',
-            border: '1px solid color-mix(in srgb, #f59e0b 25%, transparent)',
+            background: 'var(--color-warning-bg)',
+            color: 'var(--color-warning-text)',
+            border: '1px solid var(--color-warning-border)',
           }}
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+          <span className="h-1.5 w-1.5 rounded-full bg-warning-text animate-pulse" />
           <span>Security & Governance · 403 Forbidden</span>
         </div>
 
@@ -125,7 +125,7 @@ export function NotFoundPage({ onGo }: { onGo: (t: NavTarget) => void }) {
         style={{
           background: 'var(--color-surface)',
           borderColor: 'var(--color-border)',
-          boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.12), 0 0 0 1px var(--color-border)',
+          boxShadow: 'var(--shadow-xl), 0 0 0 1px var(--color-border)',
         }}
       >
         {/* Central Icon Badge */}

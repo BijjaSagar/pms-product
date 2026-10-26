@@ -35,12 +35,12 @@ export function BulkUpdatePanel({ startDate, endDate, onApply }: Props) {
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="bulk-update-title">
       <div className="flex items-center gap-2.5 border-b px-4 py-4 sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
           <Lucide.Edit3 size={18} strokeWidth={2.4} />
         </div>
         <div>
-          <h2 id="bulk-update-title" className="text-sm font-bold text-slate-900 tracking-tight">Bulk Rate Update</h2>
-          <p className="text-[11px] text-slate-400 mt-0.5">Apply an adjustment to the current rate calendar without editing dates one by one</p>
+          <h2 id="bulk-update-title" className="text-sm font-bold text-ink tracking-tight">Bulk Rate Update</h2>
+          <p className="text-[11px] text-ink-muted mt-0.5">Apply an adjustment to the current rate calendar without editing dates one by one</p>
         </div>
       </div>
       <form onSubmit={handleSubmit} className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_300px]">

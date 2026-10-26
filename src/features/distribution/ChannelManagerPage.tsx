@@ -303,26 +303,26 @@ export function ChannelManager() {
     <div className="flex w-full flex-col gap-5 pb-8">
       <header className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20 mt-0.5">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20 mt-0.5">
             <Lucide.Globe size={20} strokeWidth={2.4} />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">Channel Manager</h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">Channel Manager</h1>
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
                 </span>
                 Live Feed
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1">Monitor OTA connections, inventory distribution and booking performance.</p>
+            <p className="text-xs text-ink-secondary mt-1">Monitor OTA connections, inventory distribution and booking performance.</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" aria-pressed={settings.autoSync} onClick={() => handleSettingsChange('autoSync', !settings.autoSync)} className={`inline-flex min-h-[38px] items-center gap-2 rounded-full border px-3 text-xs font-semibold transition-colors ${settings.autoSync ? 'bg-success-bg text-success-text' : 'bg-muted-surface text-ink-secondary'}`} style={{ borderColor: settings.autoSync ? 'var(--color-success-border)' : 'var(--color-border)' }}>
-            <span className={`h-1.5 w-1.5 rounded-full ${settings.autoSync ? 'bg-emerald-500' : 'bg-slate-400'}`} /> Auto-sync {settings.autoSync ? 'on' : 'paused'}
+            <span className={`h-1.5 w-1.5 rounded-full ${settings.autoSync ? 'bg-success-text' : 'bg-ink-disabled'}`} /> Auto-sync {settings.autoSync ? 'on' : 'paused'}
           </button>
           <button type="button" onClick={() => { handleTabChange('restrictions'); setSettingsExpanded(true); }} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-xs"><Lucide.Settings2 size={14} /> Sync settings</button>
           <button type="button" onClick={() => setShowLogs(true)} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-xs"><Lucide.ScrollText size={14} /> Logs</button>
@@ -335,7 +335,7 @@ export function ChannelManager() {
       {issueCount > 0 && (
         <div role="status" className="flex flex-col gap-2 rounded-card border p-3.5 sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)' }}>
           <div className="flex items-start gap-2.5"><Lucide.AlertCircle size={17} className="mt-0.5 flex-none text-danger-text" /><div><p className="text-xs font-bold text-danger-text">{issueCount} channel connection{issueCount === 1 ? '' : 's'} need attention</p><p className="mt-0.5 text-[11px] text-danger-text">{channelsWithErrors.map((channel) => `${channel.name}: ${channel.errorDetail ?? 'Reconnect to resume synchronization.'}`).join(' · ')}</p></div></div>
-          <button type="button" onClick={() => channelsWithErrors.forEach(handleReconnect)} className="rounded-control px-3 py-1.5 text-xs font-bold text-danger-text transition-colors hover:bg-white/50">Reconnect {issueCount === 1 ? 'channel' : 'all'}</button>
+          <button type="button" onClick={() => channelsWithErrors.forEach(handleReconnect)} className="rounded-control px-3 py-1.5 text-xs font-bold text-danger-text transition-colors hover:bg-surface/50">Reconnect {issueCount === 1 ? 'channel' : 'all'}</button>
         </div>
       )}
 
@@ -348,7 +348,7 @@ export function ChannelManager() {
         {selectedChannel ? (
           <section className="pms-card flex min-w-0 flex-col p-4 sm:p-5" aria-labelledby="channel-detail-title">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3"><ChannelLogo channel={selectedChannel} size="lg" /><div className="min-w-0"><h2 id="channel-detail-title" className="truncate text-base font-bold text-ink">{selectedChannel.name}</h2><span className="mt-1 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold" style={{ color: statusAppearance(selectedChannel.status).color, background: statusAppearance(selectedChannel.status).background, borderColor: statusAppearance(selectedChannel.status).border }}><span className={`h-1.5 w-1.5 rounded-full ${selectedChannel.status === 'connected' ? 'bg-emerald-500' : selectedChannel.status === 'error' ? 'bg-rose-500' : 'bg-slate-400'}`} />{statusAppearance(selectedChannel.status).label}</span></div></div>
+              <div className="flex min-w-0 items-center gap-3"><ChannelLogo channel={selectedChannel} size="lg" /><div className="min-w-0"><h2 id="channel-detail-title" className="truncate text-base font-bold text-ink">{selectedChannel.name}</h2><span className="mt-1 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold" style={{ color: statusAppearance(selectedChannel.status).color, background: statusAppearance(selectedChannel.status).background, borderColor: statusAppearance(selectedChannel.status).border }}><span className={`h-1.5 w-1.5 rounded-full ${selectedChannel.status === 'connected' ? 'bg-success-text' : selectedChannel.status === 'error' ? 'bg-danger-text' : 'bg-ink-disabled'}`} />{statusAppearance(selectedChannel.status).label}</span></div></div>
               <button type="button" aria-label="Open channel logs" onClick={() => setShowLogs(true)} className="flex h-8 w-8 flex-none items-center justify-center rounded-control text-ink-muted hover:bg-hover-surface hover:text-ink"><Lucide.Ellipsis size={17} /></button>
             </div>
             {selectedChannel.status === 'error' && <div className="mt-4 rounded-control border p-3 text-[11px] leading-relaxed text-danger-text" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)' }}><span className="font-bold">Connection error</span><br />{selectedChannel.errorDetail}</div>}
@@ -400,7 +400,7 @@ export function ChannelManager() {
             {logs.map((log) => {
               const failed = log.status === 'Failed';
               const running = log.status === 'Running';
-              return <article key={log.id} className="flex flex-col gap-2 rounded-control border p-3 sm:flex-row sm:items-start sm:justify-between" style={{ background: failed ? 'var(--color-danger-bg)' : 'var(--color-muted-surface)', borderColor: failed ? 'var(--color-danger-border)' : 'var(--color-border)' }}><div className="flex min-w-0 items-start gap-2.5"><span className={`mt-1.5 h-2 w-2 flex-none rounded-full ${failed ? 'bg-rose-500' : running ? 'animate-pulse bg-amber-500' : 'bg-emerald-500'}`} /><div className="min-w-0"><div className="flex flex-wrap items-center gap-x-2 gap-y-1"><span className="text-xs font-bold text-ink">{channelNames.get(log.channelId) ?? (log.channelId === 'system' ? 'Channel Manager' : log.channelId)}</span><span className="text-[10px] font-mono text-ink-muted">{log.time}</span><span className="rounded px-1.5 py-0.5 text-[10px] font-semibold text-primary" style={{ background: 'color-mix(in srgb, var(--color-primary) 10%, transparent)' }}>{log.event}</span></div><p className="mt-1 text-[11px] leading-relaxed text-ink-secondary">{log.detail}</p></div></div><span className={`flex-none rounded-full px-2 py-1 text-[10px] font-bold ${failed ? 'bg-danger-bg text-danger-text' : running ? 'bg-warning-bg text-warning-text' : 'bg-success-bg text-success-text'}`}>{log.status}</span></article>;
+              return <article key={log.id} className="flex flex-col gap-2 rounded-control border p-3 sm:flex-row sm:items-start sm:justify-between" style={{ background: failed ? 'var(--color-danger-bg)' : 'var(--color-muted-surface)', borderColor: failed ? 'var(--color-danger-border)' : 'var(--color-border)' }}><div className="flex min-w-0 items-start gap-2.5"><span className={`mt-1.5 h-2 w-2 flex-none rounded-full ${failed ? 'bg-danger-text' : running ? 'animate-pulse bg-warning-text' : 'bg-success-text'}`} /><div className="min-w-0"><div className="flex flex-wrap items-center gap-x-2 gap-y-1"><span className="text-xs font-bold text-ink">{channelNames.get(log.channelId) ?? (log.channelId === 'system' ? 'Channel Manager' : log.channelId)}</span><span className="text-[10px] font-mono text-ink-muted">{log.time}</span><span className="rounded px-1.5 py-0.5 text-[10px] font-semibold text-primary" style={{ background: 'color-mix(in srgb, var(--color-primary) 10%, transparent)' }}>{log.event}</span></div><p className="mt-1 text-[11px] leading-relaxed text-ink-secondary">{log.detail}</p></div></div><span className={`flex-none rounded-full px-2 py-1 text-[10px] font-bold ${failed ? 'bg-danger-bg text-danger-text' : running ? 'bg-warning-bg text-warning-text' : 'bg-success-bg text-success-text'}`}>{log.status}</span></article>;
             })}
           </div>
         </Modal>

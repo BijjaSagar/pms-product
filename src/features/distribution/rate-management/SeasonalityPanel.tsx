@@ -13,12 +13,12 @@ export function SeasonalityPanel({ seasons, onAdd, onToggleStatus }: Props) {
     <section className="pms-card overflow-hidden" aria-labelledby="seasonality-title">
       <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white shadow-xs shadow-amber-500/20">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-warning-text to-warning-border text-white shadow-xs shadow-warning-text/20">
             <Lucide.SunMedium size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="seasonality-title" className="text-sm font-bold text-slate-900 tracking-tight">Seasonal Pricing</h2>
-            <p className="text-[11px] text-slate-400 mt-0.5">Set date-based adjustments for holidays, demand peaks and low seasons</p>
+            <h2 id="seasonality-title" className="text-sm font-bold text-ink tracking-tight">Seasonal Pricing</h2>
+            <p className="text-[11px] text-ink-muted mt-0.5">Set date-based adjustments for holidays, demand peaks and low seasons</p>
           </div>
         </div>
         <button type="button" onClick={onAdd} className="pms-btn-primary min-h-[38px] px-3.5 py-1.5 text-xs">
@@ -53,7 +53,7 @@ export function SeasonalityPanel({ seasons, onAdd, onToggleStatus }: Props) {
               </div>
               <div className="mt-4 flex items-center justify-between border-t pt-3" style={{ borderColor: 'var(--color-divider)' }}>
                 <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold ${active ? 'text-success-text' : 'text-ink-muted'}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${active ? 'bg-emerald-500' : 'bg-slate-400'}`} />{season.status}
+                  <span className={`h-1.5 w-1.5 rounded-full ${active ? 'bg-success-text' : 'bg-ink-disabled'}`} />{season.status}
                 </span>
                 <button type="button" onClick={() => onToggleStatus(season)} className="text-xs font-semibold text-primary hover:underline">
                   {active ? 'Pause season' : 'Activate'}

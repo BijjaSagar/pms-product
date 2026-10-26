@@ -14,16 +14,16 @@ export function ChannelMappingPanel({ channels, connectedChannelIds, plans, onTo
     <section className="pms-card overflow-hidden" aria-labelledby="channel-mapping-title">
       <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/20">
             <Lucide.Globe size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="channel-mapping-title" className="text-sm font-bold text-slate-900 tracking-tight">Channel Mapping</h2>
-            <p className="text-[11px] text-slate-400 mt-0.5">Control distribution and review which rate plans are available on each channel</p>
+            <h2 id="channel-mapping-title" className="text-sm font-bold text-ink tracking-tight">Channel Mapping</h2>
+            <p className="text-[11px] text-ink-muted mt-0.5">Control distribution and review which rate plans are available on each channel</p>
           </div>
         </div>
         <span className="inline-flex items-center gap-2 rounded-full bg-success-bg px-3 py-1.5 text-[11px] font-semibold text-success-text">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />{connectedChannelIds.length} of {channels.length} channels connected
+          <span className="h-1.5 w-1.5 rounded-full bg-success-text" />{connectedChannelIds.length} of {channels.length} channels connected
         </span>
       </div>
 
@@ -34,7 +34,8 @@ export function ChannelMappingPanel({ channels, connectedChannelIds, plans, onTo
           return (
             <article key={channel.id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:gap-5 sm:px-5">
               <div className="flex min-w-0 flex-1 items-center gap-3">
-                <span className="flex h-10 w-10 flex-none items-center justify-center rounded-control text-sm font-extrabold shadow-xs" style={{ color: channel.color === '#FFCC00' ? '#1f2937' : '#ffffff', background: channel.color }} aria-hidden="true">{channel.abbreviation}</span>
+                {/* palette-allow: Booking.com yellow brand contrast check */}
+                <span className="flex h-10 w-10 flex-none items-center justify-center rounded-control text-sm font-extrabold shadow-xs" style={{ color: channel.color === '#FFCC00' ? 'var(--color-ink)' : 'var(--color-primary-foreground)', background: channel.color }} aria-hidden="true">{channel.abbreviation}</span>
                 <div className="min-w-0">
                   <h3 className="truncate text-sm font-semibold text-ink">{channel.name}</h3>
                   <p className="mt-0.5 truncate text-[11px] text-ink-muted">{channel.description}</p>

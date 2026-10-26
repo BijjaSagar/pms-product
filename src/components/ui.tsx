@@ -1,13 +1,6 @@
 import type { ReactNode } from 'react';
 import type { BadgeTone } from './status';
-
-const TONE_CLASSES: Record<BadgeTone, string> = {
-  success: 'bg-emerald-100/90 text-emerald-800 border-emerald-200/60',
-  info: 'bg-blue-100/90 text-blue-800 border-blue-200/60',
-  warning: 'bg-amber-100/90 text-amber-800 border-amber-200/60',
-  danger: 'bg-rose-100/90 text-rose-800 border-rose-200/60',
-  neutral: 'bg-slate-100 text-slate-700 border-slate-200/60',
-};
+import { TONE_CLASSES, TONE_VARS } from '../theme/tone';
 
 export function Badge({
   tone,
@@ -19,7 +12,7 @@ export function Badge({
   dot?: boolean;
 }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${TONE_CLASSES[tone]}`}>
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${TONE_CLASSES[tone].badge}`}>
       {dot ? <span className="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true" /> : null}
       {children}
     </span>
@@ -51,7 +44,7 @@ export function CardTitle({
   subtitle,
   action,
   icon: Icon,
-  iconBg = 'bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20',
+  iconBg = 'bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/20',
   badge,
 }: {
   title: string;
@@ -62,7 +55,7 @@ export function CardTitle({
   badge?: ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100/80">
+    <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider/80">
       <div className="flex items-center gap-2.5 min-w-0">
         {Icon ? (
           <div className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl text-white shadow-xs ${iconBg}`}>
@@ -71,10 +64,10 @@ export function CardTitle({
         ) : null}
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-sm font-bold text-slate-900 tracking-tight">{title}</h2>
+            <h2 className="text-sm font-bold text-ink tracking-tight">{title}</h2>
             {badge}
           </div>
-          {subtitle ? <p className="text-[11px] text-slate-400 mt-0.5">{subtitle}</p> : null}
+          {subtitle ? <p className="text-[11px] text-ink-muted mt-0.5">{subtitle}</p> : null}
         </div>
       </div>
       {action ? <div className="flex flex-none items-center gap-2">{action}</div> : null}
@@ -88,7 +81,7 @@ export function PageHeader({
   title,
   subtitle,
   icon: Icon,
-  iconBg = 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20',
+  iconBg = 'bg-primary text-primary-foreground shadow-md shadow-primary/20',
   actions,
   badge,
   breadcrumb,
@@ -112,12 +105,12 @@ export function PageHeader({
         <div>
           {breadcrumb}
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+            <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
               {title}
             </h1>
             {badge}
           </div>
-          {subtitle ? <p className="text-xs text-slate-500 mt-1">{subtitle}</p> : null}
+          {subtitle ? <p className="text-xs text-ink-secondary mt-1">{subtitle}</p> : null}
         </div>
       </div>
       {actions ? <div className="flex items-center gap-2 flex-wrap">{actions}</div> : null}
@@ -152,10 +145,10 @@ export function TableActionBtn({
 }) {
   const variantClass =
     variant === 'danger'
-      ? 'text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100'
+      ? 'text-danger-text hover:text-danger-text bg-danger-bg hover:bg-danger-border'
       : variant === 'primary'
-      ? 'text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100'
-      : 'text-slate-500 hover:text-slate-700 bg-slate-100/80 hover:bg-slate-200/80';
+      ? 'text-primary hover:text-primary-active bg-primary/10 hover:bg-primary/15'
+      : 'text-ink-secondary hover:text-ink bg-muted-surface hover:bg-hover-surface';
 
   return (
     <button
@@ -194,8 +187,8 @@ export function Sparkline({ points, width = 120, height = 36 }: { points: readon
         </linearGradient>
       </defs>
       <path d={area} fill={`url(#${gid})`} stroke="none" />
-      <path d={line} fill="none" stroke="var(--color-primary)" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 2px 4px rgb(60 40 20 / 0.22))' }} />
-      <circle cx={width} cy={lastY} r="3.5" fill="var(--color-primary)" stroke="white" strokeWidth="1.5" />
+      <path d={line} fill="none" stroke="var(--color-primary)" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 2px 4px color-mix(in srgb, var(--color-ink) 22%, transparent))' }} />
+      <circle cx={width} cy={lastY} r="3.5" fill="var(--color-primary)" stroke="var(--color-surface)" strokeWidth="1.5" />
     </svg>
   );
 }
@@ -216,7 +209,7 @@ export function ProgressBar({ value }: { value: number }) {
         style={{
           width: `${clamped}%`,
           background: 'linear-gradient(90deg, var(--color-primary-hover), var(--color-primary))',
-          boxShadow: '0 1px 4px rgb(60 40 20 / 0.3), inset 0 1px 0 rgb(255 255 255 / 0.35)',
+          boxShadow: '0 1px 4px color-mix(in srgb, var(--color-ink) 30%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-primary-foreground) 35%, transparent)',
           transition: 'width 500ms cubic-bezier(0.4,0,0.2,1)',
         }}
       />
@@ -225,13 +218,13 @@ export function ProgressBar({ value }: { value: number }) {
 }
 
 const AVATAR_PALETTES = [
-  { bg: '#EFF6FF', text: '#2563EB', border: '#DBEAFE' }, // Soft Blue (JD)
-  { bg: '#F3E8FF', text: '#7C3AED', border: '#E9D5FF' }, // Soft Purple (JS)
-  { bg: '#FFE4E6', text: '#E11D48', border: '#FECDD3' }, // Soft Rose (MJ)
-  { bg: '#DCFCE7', text: '#15803D', border: '#BBF7D0' }, // Soft Green (EW)
-  { bg: '#FEF3C7', text: '#B45309', border: '#FDE68A' }, // Soft Amber (DC)
-  { bg: '#E0F2FE', text: '#0284C7', border: '#BAE6FD' }, // Soft Sky
-  { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0' }, // Soft Slate
+  { bg: TONE_VARS.info.bg, text: TONE_VARS.info.text, border: TONE_VARS.info.border },
+  { bg: 'var(--color-muted-surface)', text: 'var(--color-primary)', border: 'color-mix(in srgb, var(--color-primary) 25%, var(--color-border))' },
+  { bg: TONE_VARS.danger.bg, text: TONE_VARS.danger.text, border: TONE_VARS.danger.border },
+  { bg: TONE_VARS.success.bg, text: TONE_VARS.success.text, border: TONE_VARS.success.border },
+  { bg: TONE_VARS.warning.bg, text: TONE_VARS.warning.text, border: TONE_VARS.warning.border },
+  { bg: 'color-mix(in srgb, var(--color-soft) 24%, var(--color-surface))', text: 'var(--color-dark-accent)', border: 'color-mix(in srgb, var(--color-dark-accent) 22%, var(--color-border))' },
+  { bg: TONE_VARS.neutral.bg, text: TONE_VARS.neutral.text, border: TONE_VARS.neutral.border },
 ];
 
 function getAvatarPalette(name: string) {

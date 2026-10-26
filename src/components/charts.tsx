@@ -32,10 +32,10 @@ export function BarChart({
                 height: `${Math.max(8, (d.value / max) * height)}px`,
                 background: d.highlight
                   ? 'linear-gradient(180deg, var(--color-primary-hover), var(--color-primary) 60%, var(--color-primary-active))'
-                  : 'linear-gradient(180deg, color-mix(in srgb, var(--color-soft) 88%, white), var(--color-soft))',
+                  : 'linear-gradient(180deg, color-mix(in srgb, var(--color-soft) 88%, var(--color-surface)), var(--color-soft))',
                 boxShadow: d.highlight
-                  ? 'var(--shadow-primary), inset 0 1px 0 rgb(255 255 255 / 0.35)'
-                  : 'var(--shadow-xs), inset 0 1px 0 rgb(255 255 255 / 0.6)',
+                  ? 'var(--shadow-primary), inset 0 1px 0 color-mix(in srgb, var(--color-primary-foreground) 35%, transparent)'
+                  : 'var(--shadow-xs), inset 0 1px 0 color-mix(in srgb, var(--color-primary-foreground) 60%, transparent)',
                 border: '1px solid color-mix(in srgb, var(--color-primary) 12%, transparent)',
                 borderBottom: 'none',
               }}
@@ -69,7 +69,7 @@ export function DonutChart({
   }, 0);
   return (
     <div className="flex flex-col items-center gap-5 sm:flex-row sm:flex-wrap">
-      <div className="relative flex-none" style={{ filter: 'drop-shadow(0 8px 18px rgb(40 30 20 / 0.16))' }}>
+      <div className="relative flex-none" style={{ filter: 'drop-shadow(0 8px 18px color-mix(in srgb, var(--color-ink) 16%, transparent))' }}>
         <svg width={size} height={size} viewBox="0 0 140 140" role="img" aria-label={label} className="h-auto w-full max-w-[180px] sm:max-w-none">
           <circle cx="70" cy="70" r={R} fill="none" stroke="var(--color-divider)" strokeWidth="18" />
           {slices.map((s, idx) => {

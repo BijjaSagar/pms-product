@@ -33,14 +33,14 @@ const DEMO_TIMELINE: ActivityItem[] = [
     time: '10:00 AM',
     type: 'arrival',
     icon: Lucide.DoorOpen,
-    iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
+    iconBg: 'bg-success-bg text-success-text border border-success-border',
     title: 'Rohan Singh',
     subtitle: 'RSV-DM-0013 • Deluxe King',
     room: 'Room 201',
     status: 'Arriving',
-    statusTone: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
+    statusTone: 'bg-success-bg text-success-text border-success-border/60',
     actionLabel: 'Check in',
-    actionTone: 'text-emerald-700 bg-emerald-50/80 hover:bg-emerald-100 border-emerald-200',
+    actionTone: 'text-success-text bg-success-bg/80 hover:bg-success-bg border-success-border',
     target: { view: 'check-in' } as NavTarget,
   },
   {
@@ -48,14 +48,14 @@ const DEMO_TIMELINE: ActivityItem[] = [
     time: '11:30 AM',
     type: 'arrival',
     icon: Lucide.Sparkles,
-    iconBg: 'bg-purple-50 text-purple-600 border border-purple-100',
+    iconBg: 'bg-primary/10 text-primary border border-primary/30',
     title: 'Priya Mehta',
     subtitle: 'RSV-DM-0014 • VIP Welcome Amenity',
     room: 'Room 302',
     status: 'VIP Elite',
-    statusTone: 'bg-purple-50 text-purple-700 border-purple-200/60',
+    statusTone: 'bg-primary/10 text-primary border-primary/30',
     actionLabel: 'Check in',
-    actionTone: 'text-purple-700 bg-purple-50/80 hover:bg-purple-100 border-purple-200',
+    actionTone: 'text-primary bg-primary/10 hover:bg-primary/10 border-primary/30',
     target: { view: 'check-in' } as NavTarget,
   },
   {
@@ -63,14 +63,14 @@ const DEMO_TIMELINE: ActivityItem[] = [
     time: '12:00 PM',
     type: 'departure',
     icon: Lucide.DoorClosed,
-    iconBg: 'bg-amber-50 text-amber-600 border border-amber-100',
+    iconBg: 'bg-warning-bg text-warning-text border border-warning-border',
     title: 'Rahul Lal',
     subtitle: 'RSV-DM-0010 • Folio Settled',
     room: 'Room 103',
     status: 'Due Out',
-    statusTone: 'bg-amber-50 text-amber-700 border-amber-200/60',
+    statusTone: 'bg-warning-bg text-warning-text border-warning-border/60',
     actionLabel: 'Check out',
-    actionTone: 'text-amber-800 bg-amber-50/80 hover:bg-amber-100 border-amber-200',
+    actionTone: 'text-warning-text bg-warning-bg/80 hover:bg-warning-bg border-warning-border',
     target: { view: 'check-out' } as NavTarget,
   },
   {
@@ -78,14 +78,14 @@ const DEMO_TIMELINE: ActivityItem[] = [
     time: '02:00 PM',
     type: 'in-house',
     icon: Lucide.Sparkles,
-    iconBg: 'bg-sky-50 text-sky-600 border border-sky-100',
+    iconBg: 'bg-info-bg text-info-text border border-info-border',
     title: 'Deep Cleaning & Sanitization',
     subtitle: 'Assigned: Anita S. • Due 02:45 PM',
     room: 'Room 204',
     status: 'Cleaning',
-    statusTone: 'bg-sky-50 text-sky-700 border-sky-200/60',
+    statusTone: 'bg-info-bg text-info-text border-info-border/60',
     actionLabel: 'Mark Done',
-    actionTone: 'text-slate-700 bg-slate-50 hover:bg-slate-100 border-slate-200',
+    actionTone: 'text-ink bg-page hover:bg-muted-surface border-border',
     target: { view: 'housekeeping' } as NavTarget,
   },
   {
@@ -93,14 +93,14 @@ const DEMO_TIMELINE: ActivityItem[] = [
     time: '03:00 PM',
     type: 'in-house',
     icon: Lucide.Wrench,
-    iconBg: 'bg-rose-50 text-rose-600 border border-rose-100',
+    iconBg: 'bg-danger-bg text-danger-text border border-danger-border',
     title: 'AC Thermostat Calibration',
     subtitle: 'Reported by Guest • Priority Urgent',
     room: 'Room 305',
     status: 'High Priority',
-    statusTone: 'bg-rose-50 text-rose-700 border-rose-200/60',
+    statusTone: 'bg-danger-bg text-danger-text border-danger-border/60',
     actionLabel: 'Assign Tech',
-    actionTone: 'text-rose-700 bg-rose-50/80 hover:bg-rose-100 border-rose-200',
+    actionTone: 'text-danger-text bg-danger-bg/80 hover:bg-danger-bg border-danger-border',
     target: { view: 'maintenance' } as NavTarget,
   },
 ];
@@ -462,20 +462,20 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
 
   return (
-    <div className="w-full text-xs text-slate-900 font-sans pb-8 flex flex-col gap-4">
+    <div className="w-full text-xs text-ink font-sans pb-8 flex flex-col gap-4">
       {/* ================= 1. PAGE HEADER ================= */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Left Welcome Title */}
         <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-amber-50 text-amber-500 shadow-2xs mt-0.5">
+          <div className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-warning-bg text-warning-text shadow-2xs mt-0.5">
             <Lucide.Sun size={26} className="animate-pulse" />
           </div>
           <div>
-            <h1 className="text-[22px] font-bold tracking-tight text-slate-900 leading-tight">
+            <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">
               Good morning, {me?.user.fullName ? me.user.fullName.split(' ')[0] : 'Admin'}
             </h1>
-            <p className="text-xs text-slate-500 mt-1 font-normal">
-              Here&apos;s what&apos;s happening at your hotel today <span className="text-slate-400">•</span> October 14, 2026
+            <p className="text-xs text-ink-secondary mt-1 font-normal">
+              Here&apos;s what&apos;s happening at your hotel today <span className="text-ink-muted">•</span> October 14, 2026
             </p>
           </div>
         </div>
@@ -486,26 +486,26 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
       {/* ================= 3. OPERATIONAL TIMELINE & DEPARTMENT TASKS ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         {/* Today's Activity Timeline (lg:col-span-6) */}
-        <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between h-full">
+        <div className="lg:col-span-6 bg-surface rounded-2xl border border-border/80 p-5 shadow-xs flex flex-col justify-between h-full">
           <div>
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
                   <Lucide.Clock size={17} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[14px] font-bold text-slate-900 tracking-tight">Today&apos;s Activity Timeline</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200/60">
+                    <h2 className="text-[14px] font-bold text-ink tracking-tight">Today&apos;s Activity Timeline</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-xs font-bold text-success-text border border-success-border/60">
                       <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
                       </span>
                       Live Feed
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5">Real-time guest movements & operations</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Real-time guest movements & operations</p>
                 </div>
               </div>
 
@@ -520,7 +520,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             </div>
 
             {/* Filter Tabs (Segmented Control) */}
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100/80 mb-4 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-muted-surface/80 mb-4 overflow-x-auto no-scrollbar">
               {[
                 { key: 'all' as const, label: 'All (5)' },
                 { key: 'arrivals' as const, label: 'Arrivals (2)' },
@@ -532,8 +532,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   type="button"
                   onClick={() => setTimelineTab(tab.key)}
                   className={`flex-1 min-w-[70px] py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer text-center ${timelineTab === tab.key
-                    ? 'bg-white text-slate-900 shadow-2xs font-bold border border-slate-200/50'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'bg-surface text-ink shadow-2xs font-bold border border-border/50'
+                    : 'text-ink-secondary hover:text-ink'
                     }`}
                 >
                   {tab.label}
@@ -557,21 +557,21 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                       </div>
                       {/* Connecting vertical rail */}
                       {!isLast && (
-                        <div className="w-[2px] flex-1 my-1.5 bg-gradient-to-b from-slate-200 via-slate-200 to-slate-100 min-h-[34px]" />
+                        <div className="w-[2px] flex-1 my-1.5 bg-gradient-to-b from-border via-border to-muted-surface min-h-[34px]" />
                       )}
                     </div>
 
                     {/* Event Card */}
                     <div className={`flex-1 min-w-0 ${isLast ? 'pb-1' : 'pb-3.5'}`}>
-                      <div className="p-3 rounded-xl border border-slate-200/70 bg-white hover:border-slate-300 hover:bg-slate-50/50 hover:shadow-2xs transition-all duration-200">
+                      <div className="p-3 rounded-xl border border-border/70 bg-surface hover:border-ink-disabled hover:bg-page/50 hover:shadow-2xs transition-all duration-200">
                         {/* Meta Row: Time, Room, Status, Action */}
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                            <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100/90 border border-slate-200/60 px-2 py-0.5 rounded-md shadow-2xs">
+                            <span className="font-mono text-xs font-bold text-ink bg-muted-surface/90 border border-border/60 px-2 py-0.5 rounded-md shadow-2xs">
                               {item.time}
                             </span>
                             {item.room && (
-                              <span className="text-xs font-semibold text-slate-700 bg-slate-100/80 px-2 py-0.5 rounded-md">
+                              <span className="text-xs font-semibold text-ink bg-muted-surface/80 px-2 py-0.5 rounded-md">
                                 {item.room}
                               </span>
                             )}
@@ -598,10 +598,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
                         {/* Title & Detail */}
                         <div className="mt-1.5">
-                          <h4 className="text-[13px] font-bold text-slate-900 group-hover:text-[var(--color-primary)] transition-colors">
+                          <h4 className="text-[13px] font-bold text-ink group-hover:text-[var(--color-primary)] transition-colors">
                             {item.title}
                           </h4>
-                          <p className="text-xs text-slate-500 mt-0.5 truncate">
+                          <p className="text-xs text-ink-secondary mt-0.5 truncate">
                             {item.subtitle}
                           </p>
                         </div>
@@ -614,10 +614,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           </div>
 
           {/* Footer Timeline Summary */}
-          <div className="pt-3.5 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <div className="pt-3.5 mt-3 border-t border-divider flex items-center justify-between text-xs text-ink-secondary">
             <div className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span className="text-xs text-slate-500 font-medium">
+              <span className="h-1.5 w-1.5 rounded-full bg-success-text" />
+              <span className="text-xs text-ink-secondary font-medium">
                 Showing {filteredTimeline.slice(0, 5).length} of 5 operational activities
               </span>
             </div>
@@ -638,23 +638,23 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
             <div className="min-w-0">
               {/* Header */}
-              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white shadow-xs shadow-emerald-500/20">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-success-text to-success-border text-white shadow-xs shadow-success-text/20">
                     <Lucide.DoorOpen size={17} strokeWidth={2.4} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-[14px] font-bold text-slate-900 tracking-tight">Pending Check-ins</h2>
-                      <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200/60">
+                      <h2 className="text-[14px] font-bold text-ink tracking-tight">Pending Check-ins</h2>
+                      <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-xs font-bold text-success-text border border-success-border/60">
                         <span className="relative flex h-1.5 w-1.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
                         </span>
                         {pendingCheckins.length} Expected
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">Today&apos;s arrivals awaiting front desk check-in</p>
+                    <p className="text-xs text-ink-muted mt-0.5">Today&apos;s arrivals awaiting front desk check-in</p>
                   </div>
                 </div>
 
@@ -694,7 +694,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                               <div className="flex items-center gap-1.5">
                                 <span className="font-semibold text-ink text-xs truncate max-w-[130px]">{r.guest}</span>
                                 {r.isVip && (
-                                  <span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                  <span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-primary/10 text-primary border border-primary/30">
                                     VIP
                                   </span>
                                 )}
@@ -706,13 +706,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         <td className="whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
                             <span className={`font-bold text-xs px-2 py-0.5 rounded-md border ${r.room === 'Unassigned'
-                              ? 'text-amber-800 bg-amber-50 border-amber-200/80'
-                              : 'text-slate-800 bg-slate-100 border-slate-200/60'
+                              ? 'text-warning-text bg-warning-bg border-warning-border/80'
+                              : 'text-ink bg-muted-surface border-border/60'
                               }`}>
                               {r.room === 'Unassigned' ? 'Unassigned' : `Room ${r.room}`}
                             </span>
-                            <span className={`inline-flex items-center gap-1 text-xs font-medium ${r.roomReady ? 'text-emerald-600' : 'text-amber-600'}`}>
-                              <span className={`h-1.5 w-1.5 rounded-full ${r.roomReady ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                            <span className={`inline-flex items-center gap-1 text-xs font-medium ${r.roomReady ? 'text-success-text' : 'text-warning-text'}`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${r.roomReady ? 'bg-success-text' : 'bg-warning-text'}`} />
                               {r.roomReady ? 'Ready' : 'Cleaning'}
                             </span>
                           </div>
@@ -729,7 +729,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                               toast('Check-in Initiated', { detail: `Ready to check in ${r.guest} for Room ${r.room}.`, tone: 'success' });
                               go({ view: 'check-in' });
                             }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-success-text hover:bg-success-text text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
                           >
                             <span>Check in</span>
                           </button>
@@ -759,23 +759,23 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
             <div className="min-w-0">
               {/* Header */}
-              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white shadow-xs shadow-amber-500/20">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-warning-text to-warning-border text-white shadow-xs shadow-warning-text/20">
                     <Lucide.DoorClosed size={17} strokeWidth={2.4} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-[14px] font-bold text-slate-900 tracking-tight">Pending Check-outs</h2>
-                      <span className="flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-700 border border-amber-200/60">
+                      <h2 className="text-[14px] font-bold text-ink tracking-tight">Pending Check-outs</h2>
+                      <span className="flex items-center gap-1.5 rounded-full bg-warning-bg px-2.5 py-0.5 text-xs font-bold text-warning-text border border-warning-border/60">
                         <span className="relative flex h-1.5 w-1.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning-text opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-warning-text"></span>
                         </span>
                         {pendingCheckouts.length} Due Out
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">Departures scheduled today awaiting key return & folio balance</p>
+                    <p className="text-xs text-ink-muted mt-0.5">Departures scheduled today awaiting key return & folio balance</p>
                   </div>
                 </div>
 
@@ -815,7 +815,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                               <div className="flex items-center gap-1.5">
                                 <span className="font-semibold text-ink text-xs truncate max-w-[130px]">{d.guest}</span>
                                 {d.isLateCheckout && (
-                                  <span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                  <span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-primary/10 text-primary border border-primary/30">
                                     Late
                                   </span>
                                 )}
@@ -826,20 +826,20 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         </td>
                         <td className="whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-xs px-2 py-0.5 rounded-md border text-slate-800 bg-slate-100 border-slate-200/60">
+                            <span className="font-bold text-xs px-2 py-0.5 rounded-md border text-ink bg-muted-surface border-border/60">
                               Room {d.room}
                             </span>
                             <span className={`inline-flex items-center gap-1 text-xs font-medium ${d.status === 'Inspected'
-                              ? 'text-emerald-600'
+                              ? 'text-success-text'
                               : d.status === 'Late Checkout'
-                                ? 'text-purple-600'
-                                : 'text-amber-600'
+                                ? 'text-primary'
+                                : 'text-warning-text'
                               }`}>
                               <span className={`h-1.5 w-1.5 rounded-full ${d.status === 'Inspected'
-                                ? 'bg-emerald-500'
+                                ? 'bg-success-text'
                                 : d.status === 'Late Checkout'
-                                  ? 'bg-purple-500'
-                                  : 'bg-amber-500'
+                                  ? 'bg-primary'
+                                  : 'bg-warning-text'
                                 }`} />
                               {d.status}
                             </span>
@@ -861,7 +861,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                               }
                               go({ view: 'check-out' });
                             }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-warning-text hover:bg-warning-text text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
                           >
                             <span>Check out</span>
                           </button>
@@ -896,23 +896,23 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div className="min-w-0">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-600 text-white shadow-xs shadow-blue-500/20">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20">
                   <Lucide.CalendarDays size={17} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[14px] font-bold text-slate-900 tracking-tight">Recent Reservations</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700 border border-blue-200/60">
+                    <h2 className="text-[14px] font-bold text-ink tracking-tight">Recent Reservations</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-info-bg px-2.5 py-0.5 text-xs font-bold text-info-text border border-info-border/60">
                       <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-info-text opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-info-text"></span>
                       </span>
                       {recentReservations.length} Bookings
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5">Latest confirmed bookings & stays across property</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Latest confirmed bookings & stays across property</p>
                 </div>
               </div>
 
@@ -1001,23 +1001,23 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div className="min-w-0">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-500 to-violet-600 text-white shadow-xs shadow-purple-500/20">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
                   <Lucide.ReceiptText size={17} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[14px] font-bold text-slate-900 tracking-tight">Recent Transactions</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-purple-50 px-2.5 py-0.5 text-xs font-bold text-purple-700 border border-purple-200/60">
+                    <h2 className="text-[14px] font-bold text-ink tracking-tight">Recent Transactions</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary border border-primary/30">
                       <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-purple-500"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
                       </span>
                       {recentPayments.length} Settlements
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5">Latest settled folios, payments & guest transactions</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Latest settled folios, payments & guest transactions</p>
                 </div>
               </div>
 
@@ -1108,26 +1108,26 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 min-w-0">
         {/* Table 1: Pending Check-ins */}
         {/* Card: Housekeeping Progress */}
-        <div className="flex-1 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
+        <div className="flex-1 bg-surface rounded-2xl border border-border/80 p-5 shadow-xs flex flex-col justify-between">
           <div>
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-500 to-cyan-600 text-white shadow-xs shadow-sky-500/20">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-info-text to-info-border text-white shadow-xs shadow-info-text/20">
                   <Lucide.Sparkles size={17} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[14px] font-bold text-slate-900 tracking-tight">Housekeeping Progress</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-bold text-sky-700 border border-sky-200/60">
+                    <h2 className="text-[14px] font-bold text-ink tracking-tight">Housekeeping Progress</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-info-bg px-2.5 py-0.5 text-xs font-bold text-info-text border border-info-border/60">
                       <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-sky-500"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-info-text opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-info-text"></span>
                       </span>
                       Live Status
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5">Turnaround status & inspection</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Turnaround status & inspection</p>
                 </div>
               </div>
               <button
@@ -1143,73 +1143,73 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             {/* Progress Summary */}
             <div className="flex items-baseline justify-between mb-1.5">
               <div className="flex items-baseline gap-2">
-                <span className="text-xs font-bold text-slate-900">18%</span>
-                <span className="text-xs text-slate-500 font-normal">9 of 50 rooms cleaned</span>
+                <span className="text-xs font-bold text-ink">18%</span>
+                <span className="text-xs text-ink-secondary font-normal">9 of 50 rooms cleaned</span>
               </div>
-              <span className="text-xs font-semibold text-slate-400">Target: 85% by 2:00 PM</span>
+              <span className="text-xs font-semibold text-ink-muted">Target: 85% by 2:00 PM</span>
             </div>
 
             {/* Progress Bar */}
-            <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden mb-3.5">
+            <div className="h-2 w-full rounded-full bg-muted-surface overflow-hidden mb-3.5">
               <div className="h-full rounded-full bg-[var(--color-primary)] w-[18%] transition-all" />
             </div>
 
             {/* 4 Stat Boxes */}
             <div className="grid grid-cols-4 gap-2 text-center mb-3.5">
-              <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-2">
-                <span className="text-xs font-medium text-emerald-800 block">✓ Cleaned</span>
-                <span className="text-xs font-bold text-emerald-900 mt-0.5 block">9</span>
+              <div className="rounded-xl border border-success-border bg-success-bg/60 p-2">
+                <span className="text-xs font-medium text-success-text block">✓ Cleaned</span>
+                <span className="text-xs font-bold text-success-text mt-0.5 block">9</span>
               </div>
               <div className="rounded-xl border border-[var(--color-primary)]/20 bg-[var(--color-muted-surface)] p-2">
                 <span className="text-xs font-medium text-[var(--color-primary)] block">In progress</span>
                 <span className="text-xs font-bold text-[var(--color-primary-active)] mt-0.5 block">6</span>
               </div>
-              <div className="rounded-xl border border-slate-200/60 bg-slate-50 p-2">
-                <span className="text-xs font-medium text-slate-600 block">● Pending</span>
-                <span className="text-xs font-bold text-slate-800 mt-0.5 block">31</span>
+              <div className="rounded-xl border border-border/60 bg-page p-2">
+                <span className="text-xs font-medium text-ink-secondary block">● Pending</span>
+                <span className="text-xs font-bold text-ink mt-0.5 block">31</span>
               </div>
-              <div className="rounded-xl border border-rose-100 bg-rose-50/60 p-2">
-                <span className="text-xs font-medium text-rose-800 block">! Issues</span>
-                <span className="text-xs font-bold text-rose-900 mt-0.5 block">4</span>
+              <div className="rounded-xl border border-danger-border bg-danger-bg/60 p-2">
+                <span className="text-xs font-medium text-danger-text block">! Issues</span>
+                <span className="text-xs font-bold text-danger-text mt-0.5 block">4</span>
               </div>
             </div>
 
             {/* Priority Turnaround Queue */}
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between text-[14px] font-semibold text-slate-700">
+              <div className="flex items-center justify-between text-[14px] font-semibold text-ink">
                 <span>Priority Turnaround Queue</span>
-                <span className="text-xs text-slate-400 font-normal">Release for check-in</span>
+                <span className="text-xs text-ink-muted font-normal">Release for check-in</span>
               </div>
 
-              <div className="flex items-center justify-between gap-2 p-2 rounded-xl border border-slate-200/60 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+              <div className="flex items-center justify-between gap-2 p-2 rounded-xl border border-border/60 bg-page/50 hover:bg-page transition-colors">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-amber-500 flex-none" />
+                  <span className="h-2 w-2 rounded-full bg-warning-text flex-none" />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-800 truncate">Room 201 · Deluxe King</p>
-                    <p className="text-xs text-slate-400">Assigned: Anita S. · Turnover due 12:00 PM</p>
+                    <p className="text-xs font-bold text-ink truncate">Room 201 · Deluxe King</p>
+                    <p className="text-xs text-ink-muted">Assigned: Anita S. · Turnover due 12:00 PM</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => toast('Room 201 verified', { detail: 'Marked clean & ready for check-in.', tone: 'success' })}
-                  className="flex-none text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                  className="flex-none text-xs font-semibold text-success-text bg-success-bg hover:bg-success-bg border border-success-border px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                 >
                   Mark Clean
                 </button>
               </div>
 
-              <div className="flex items-center justify-between gap-2 p-2 rounded-xl border border-slate-200/60 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+              <div className="flex items-center justify-between gap-2 p-2 rounded-xl border border-border/60 bg-page/50 hover:bg-page transition-colors">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-purple-500 flex-none" />
+                  <span className="h-2 w-2 rounded-full bg-primary flex-none" />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-800 truncate">Room 304 · Executive Suite</p>
-                    <p className="text-xs text-slate-400">VIP arrival 02:00 PM · Needs supervisor inspection</p>
+                    <p className="text-xs font-bold text-ink truncate">Room 304 · Executive Suite</p>
+                    <p className="text-xs text-ink-muted">VIP arrival 02:00 PM · Needs supervisor inspection</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => toast('Inspection queued', { detail: 'Supervisor alerted for Room 304.', tone: 'info' })}
-                  className="flex-none text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                  className="flex-none text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/10 border border-primary/30 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                 >
                   Inspect
                 </button>
@@ -1218,8 +1218,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           </div>
 
           {/* Footer */}
-          <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span className="text-xs text-slate-400">4 priority turnovers due before 2:00 PM</span>
+          <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-xs text-ink-secondary">
+            <span className="text-xs text-ink-muted">4 priority turnovers due before 2:00 PM</span>
             <button
               type="button"
               onClick={() => go({ view: 'housekeeping' })}
@@ -1232,26 +1232,26 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         </div>
 
         {/* Card: Department Tasks */}
-        <div className="flex-1 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_2px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
+        <div className="flex-1 bg-surface rounded-2xl border border-border/80 p-5 shadow-xs flex flex-col justify-between">
           <div>
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
                   <Lucide.ClipboardList size={17} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[14px] font-bold text-slate-900 tracking-tight">Department Tasks</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-bold text-indigo-700 border border-indigo-200/60">
+                    <h2 className="text-[14px] font-bold text-ink tracking-tight">Department Tasks</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary border border-primary/30">
                       <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
                       </span>
                       4 Actions
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5">Operational follow-ups & alerts</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Operational follow-ups & alerts</p>
                 </div>
               </div>
               <button
@@ -1267,22 +1267,22 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             {/* Tasks List */}
             <div className="flex flex-col gap-2.5">
               {/* Task 1 */}
-              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-slate-200/60 bg-white hover:bg-slate-50/60 transition-colors">
+              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-border/60 bg-surface hover:bg-page/60 transition-colors">
                 <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-amber-500 mt-1.5 flex-none" />
+                  <span className="h-2 w-2 rounded-full bg-warning-text mt-1.5 flex-none" />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-800 leading-tight">4 rooms pending inspection</p>
-                    <p className="text-xs text-slate-400 mt-0.5 truncate">Rooms 204, 305, 408, 501 · Ready for release</p>
+                    <p className="text-xs font-bold text-ink leading-tight">4 rooms pending inspection</p>
+                    <p className="text-xs text-ink-muted mt-0.5 truncate">Rooms 204, 305, 408, 501 · Ready for release</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700">
+                  <span className="rounded-full bg-warning-bg px-2 py-0.5 text-xs font-bold text-warning-text">
                     High
                   </span>
                   <button
                     type="button"
                     onClick={() => toast('Inspection alert sent', { detail: 'Floor supervisor notified.', tone: 'info' })}
-                    className="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="text-xs font-semibold text-ink-secondary hover:text-ink bg-muted-surface hover:bg-border px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     Release
                   </button>
@@ -1290,22 +1290,22 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
               </div>
 
               {/* Task 2 */}
-              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-slate-200/60 bg-white hover:bg-slate-50/60 transition-colors">
+              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-border/60 bg-surface hover:bg-page/60 transition-colors">
                 <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-rose-500 mt-1.5 flex-none" />
+                  <span className="h-2 w-2 rounded-full bg-danger-text mt-1.5 flex-none" />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-800 leading-tight">2 maintenance requests</p>
-                    <p className="text-xs text-slate-400 mt-0.5 truncate">AC thermostat in 305 · TV issue in 118</p>
+                    <p className="text-xs font-bold text-ink leading-tight">2 maintenance requests</p>
+                    <p className="text-xs text-ink-muted mt-0.5 truncate">AC thermostat in 305 · TV issue in 118</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">
+                  <span className="rounded-full bg-danger-bg px-2 py-0.5 text-xs font-bold text-danger-text">
                     Urgent
                   </span>
                   <button
                     type="button"
                     onClick={() => go({ view: 'maintenance' })}
-                    className="text-xs font-semibold text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="text-xs font-semibold text-danger-text hover:text-danger-text bg-danger-bg hover:bg-danger-bg px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     Assign
                   </button>
@@ -1313,22 +1313,22 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
               </div>
 
               {/* Task 3 */}
-              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-slate-200/60 bg-white hover:bg-slate-50/60 transition-colors">
+              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-border/60 bg-surface hover:bg-page/60 transition-colors">
                 <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-amber-500 mt-1.5 flex-none" />
+                  <span className="h-2 w-2 rounded-full bg-warning-text mt-1.5 flex-none" />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-800 leading-tight">3 late check-out requests</p>
-                    <p className="text-xs text-slate-400 mt-0.5 truncate">101 (1:00 PM), 305 (2:00 PM), 501 (1:30 PM)</p>
+                    <p className="text-xs font-bold text-ink leading-tight">3 late check-out requests</p>
+                    <p className="text-xs text-ink-muted mt-0.5 truncate">101 (1:00 PM), 305 (2:00 PM), 501 (1:30 PM)</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700">
+                  <span className="rounded-full bg-warning-bg px-2 py-0.5 text-xs font-bold text-warning-text">
                     Attention
                   </span>
                   <button
                     type="button"
                     onClick={() => go({ view: 'check-out' })}
-                    className="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="text-xs font-semibold text-ink-secondary hover:text-ink bg-muted-surface hover:bg-border px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     Review
                   </button>
@@ -1336,12 +1336,12 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
               </div>
 
               {/* Task 4 */}
-              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-slate-200/60 bg-white hover:bg-slate-50/60 transition-colors">
+              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-border/60 bg-surface hover:bg-page/60 transition-colors">
                 <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-sky-500 mt-1.5 flex-none" />
+                  <span className="h-2 w-2 rounded-full bg-info-text mt-1.5 flex-none" />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-800 leading-tight">1 VIP arrival today</p>
-                    <p className="text-xs text-slate-400 mt-0.5 truncate">Amelia Hart · Deluxe Suite 204 · Amenity set</p>
+                    <p className="text-xs font-bold text-ink leading-tight">1 VIP arrival today</p>
+                    <p className="text-xs text-ink-muted mt-0.5 truncate">Amelia Hart · Deluxe Suite 204 · Amenity set</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
@@ -1351,7 +1351,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   <button
                     type="button"
                     onClick={() => go({ view: 'arrivals-departures' })}
-                    className="text-xs font-semibold text-indigo-700 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="text-xs font-semibold text-primary hover:text-primary bg-primary/10 hover:bg-primary/10 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     Prepare
                   </button>
@@ -1361,8 +1361,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           </div>
 
           {/* Footer */}
-          <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span className="text-xs text-slate-400">5 active tickets · 2 high priority</span>
+          <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-xs text-ink-secondary">
+            <span className="text-xs text-ink-muted">5 active tickets · 2 high priority</span>
             <button
               type="button"
               onClick={() => go({ view: 'maintenance' })}

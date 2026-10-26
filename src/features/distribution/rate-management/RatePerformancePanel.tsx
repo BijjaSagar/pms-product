@@ -24,12 +24,12 @@ export function RatePerformancePanel() {
     <section className="pms-card p-4 sm:p-5" aria-labelledby="rate-performance-title">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white shadow-xs shadow-emerald-500/20">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-success-text to-success-border text-white shadow-xs shadow-success-text/20">
             <Lucide.LineChart size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="rate-performance-title" className="text-sm font-bold text-slate-900 tracking-tight">Rate Performance</h2>
-            <p className="text-[11px] text-slate-400 mt-0.5">Rate and occupancy outlook · next 14 days</p>
+            <h2 id="rate-performance-title" className="text-sm font-bold text-ink tracking-tight">Rate Performance</h2>
+            <p className="text-[11px] text-ink-muted mt-0.5">Rate and occupancy outlook · next 14 days</p>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-4 text-right">

@@ -31,32 +31,24 @@
   --color-success-bg: var(--color-success-bg);
   --color-success-text: var(--color-success-text);
   --color-success-border: var(--color-success-border);
+  --color-success-foreground: var(--color-success-foreground);
   --color-info-bg: var(--color-info-bg);
   --color-info-text: var(--color-info-text);
   --color-info-border: var(--color-info-border);
+  --color-info-foreground: var(--color-info-foreground);
   --color-warning-bg: var(--color-warning-bg);
   --color-warning-text: var(--color-warning-text);
   --color-warning-border: var(--color-warning-border);
+  --color-warning-foreground: var(--color-warning-foreground);
   --color-danger-bg: var(--color-danger-bg);
   --color-danger-text: var(--color-danger-text);
   --color-danger-border: var(--color-danger-border);
+  --color-danger-foreground: var(--color-danger-foreground);
   --color-neutral-bg: var(--color-neutral-bg);
   --color-neutral-text: var(--color-neutral-text);
   --color-neutral-border: var(--color-neutral-border);
-
-  /* Bridge the legacy Tailwind slate palette to semantic PMS tokens. This lets
-     older screens follow the active preset while they are migrated to tokens. */
-  --color-white: var(--color-surface);
-  --color-slate-50: var(--color-page);
-  --color-slate-100: var(--color-muted-surface);
-  --color-slate-200: var(--color-border);
-  --color-slate-300: #cbd5e1;
-  --color-slate-400: #94a3b8;
-  --color-slate-500: #64748b;
-  --color-slate-600: #475569;
-  --color-slate-700: #334155;
-  --color-slate-800: #1e293b;
-  --color-slate-900: #0f172a;
+  --color-neutral-foreground: var(--color-neutral-foreground);
+  --color-scrim: var(--color-scrim);
 
   --radius-control: var(--radius-control);
   --radius-card: var(--radius-card);
@@ -310,8 +302,8 @@ textarea {
     min-height: 40px;
     padding: 0.5rem 1.125rem;
     background: var(--color-danger-text);
-    color: #fff;
-    border: 1px solid color-mix(in srgb, var(--color-danger-text) 72%, black);
+    color: var(--color-danger-foreground);
+    border: 1px solid color-mix(in srgb, var(--color-danger-text) 72%, transparent);
     border-radius: var(--radius-control) !important;
     font-weight: 600;
     font-size: 14px;

@@ -150,23 +150,23 @@ export function Maintenance() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white shadow-xs shadow-amber-500/20 mt-0.5">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-warning-text to-warning-border text-white shadow-xs shadow-warning-text/20 mt-0.5">
             <Lucide.Wrench size={20} strokeWidth={2.4} />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
                 Maintenance & Repairs
               </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
                 </span>
                 Active Queue
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-ink-secondary mt-1">
               Manage engineering work orders, prioritize urgent repairs, and return rooms to service
             </p>
           </div>
@@ -175,7 +175,7 @@ export function Maintenance() {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
             title="Refresh tickets"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
@@ -213,11 +213,11 @@ export function Maintenance() {
       <Card>
         <CardTitle
           icon={Lucide.Wrench}
-          iconBg="bg-gradient-to-tr from-amber-500 to-orange-600 text-white shadow-xs shadow-amber-500/20"
+          iconBg="bg-gradient-to-tr from-warning-text to-warning-border text-white shadow-xs shadow-warning-text/20"
           title="Work Orders"
           subtitle={resource.loading ? 'Loading maintenance tickets…' : `${filtered.length} of ${reqs.length} requests`}
           badge={
-            <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200/60">
+            <span className="flex items-center gap-1 rounded-full bg-warning-bg px-2 py-0.5 text-[10px] font-bold text-warning-text border border-warning-border/60">
               {reqs.length} Orders
             </span>
           }
@@ -233,7 +233,7 @@ export function Maintenance() {
           }
         />
         {resource.error ? (
-          <div className="mb-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="mb-3 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-sm text-danger-text">
             <Lucide.AlertCircle size={18} />
             <span>Could not load maintenance tickets: {resource.error}</span>
           </div>
@@ -283,18 +283,18 @@ export function Maintenance() {
             </thead>
             <tbody>
               {filtered.map((r, idx) => (
-                <tr key={r.id} className="transition-colors hover:bg-slate-50/70">
-                  <td className="text-center font-medium text-slate-400 text-xs">
+                <tr key={r.id} className="transition-colors hover:bg-page/70">
+                  <td className="text-center font-medium text-ink-muted text-xs">
                     {idx + 1}
                   </td>
-                  <td className="tnum font-mono font-bold text-slate-900 text-xs">{r.id}</td>
-                  <td className="tnum font-semibold text-slate-900 text-sm">{r.room}</td>
-                  <td className="max-w-[280px] truncate text-slate-600 text-sm font-medium">{r.description}</td>
+                  <td className="tnum font-mono font-bold text-ink text-xs">{r.id}</td>
+                  <td className="tnum font-semibold text-ink text-sm">{r.room}</td>
+                  <td className="max-w-[280px] truncate text-ink-secondary text-sm font-medium">{r.description}</td>
                   <td>
                     <Badge tone={priorityTone(r.priority)}>{r.priority}</Badge>
                   </td>
-                  <td className="text-slate-600 text-sm">{r.assignee}</td>
-                  <td className="tnum text-xs text-slate-500">{r.due}</td>
+                  <td className="text-ink-secondary text-sm">{r.assignee}</td>
+                  <td className="tnum text-xs text-ink-secondary">{r.due}</td>
                   <td>
                     <Badge tone={statusTone(r.status)}>{r.status}</Badge>
                   </td>
@@ -311,7 +311,7 @@ export function Maintenance() {
               ))}
             </tbody>
           </table>
-          {filtered.length === 0 ? <p className="pms-helper py-8 text-center text-slate-400">No maintenance requests match.</p> : null}
+          {filtered.length === 0 ? <p className="pms-helper py-8 text-center text-ink-muted">No maintenance requests match.</p> : null}
         </TableContainer>
       </Card>
 
@@ -329,7 +329,7 @@ export function Maintenance() {
               <Badge tone={statusTone(open.status)}>{open.status}</Badge>
               <Badge tone="neutral">{open.category}</Badge>
             </div>
-            <p className="text-[14px] leading-relaxed text-ink font-medium p-3 rounded-xl border bg-black/[0.02]" style={{ borderColor: 'var(--color-border-subtle)' }}>
+            <p className="text-[14px] leading-relaxed text-ink font-medium p-3 rounded-xl border bg-ink/[0.02]" style={{ borderColor: 'var(--color-border-subtle)' }}>
               {open.description}
             </p>
             <dl className="grid grid-cols-2 gap-2 text-[13px]">

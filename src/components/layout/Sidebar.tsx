@@ -31,7 +31,7 @@ function NavButton({
       type="button"
       onClick={onSelect}
       aria-current={selected ? 'page' : undefined}
-      className="flex min-h-[40px] w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-all cursor-pointer hover:bg-slate-100/70"
+      className="flex min-h-[40px] w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-all cursor-pointer hover:bg-muted-surface/70"
       style={
         selected
           ? {
@@ -222,7 +222,7 @@ export function Sidebar({
 
   // ================= EXPANDED FULL PANEL (Used when expanded or inside mobile drawer) =================
   const fullPanel = (
-    <div className="flex h-full flex-col bg-white" style={{ background: 'var(--color-sidebar)', color: 'var(--color-ink)' }}>
+    <div className="flex h-full flex-col bg-surface" style={{ background: 'var(--color-sidebar)', color: 'var(--color-ink)' }}>
       {/* Brand Header */}
       <div className="flex items-center justify-between border-b px-4 pb-4 pt-5" style={{ borderColor: 'var(--color-border)' }}>
         <div className="flex items-center gap-3">
@@ -236,10 +236,10 @@ export function Sidebar({
             T
           </button>
           <div className="min-w-0">
-            <p className="font-brand truncate text-[18px] font-bold leading-none tracking-tight text-slate-900">
+            <p className="font-brand truncate text-[18px] font-bold leading-none tracking-tight text-ink">
               TriponX
             </p>
-            <p className="mt-1 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+            <p className="mt-1 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
               Hotel PMS
             </p>
           </div>
@@ -250,7 +250,7 @@ export function Sidebar({
           type="button"
           onClick={toggleCollapsed}
           title="Collapse to icon sidebar (Ctrl+\)"
-          className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
+          className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg text-ink-muted hover:bg-muted-surface hover:text-ink transition-colors cursor-pointer"
         >
           <Lucide.ChevronsLeft size={16} />
         </button>
@@ -284,7 +284,7 @@ export function Sidebar({
                   type="button"
                   onClick={() => toggleSection(section.title)}
                   aria-expanded={open}
-                  className="flex min-h-[34px] w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[11px] font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer hover:bg-slate-100/60"
+                  className="flex min-h-[34px] w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[11px] font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer hover:bg-muted-surface/60"
                   style={{
                     color: containsActive ? 'var(--color-primary)' : 'var(--color-ink-secondary)',
                   }}
@@ -320,7 +320,7 @@ export function Sidebar({
           <button
             type="button"
             onClick={onOpenThemes}
-            className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-semibold text-ink hover:bg-muted-surface transition-colors cursor-pointer"
           >
             <Lucide.Palette size={16} className="text-[var(--color-primary)]" />
             <span>Theme Colors</span>
@@ -329,7 +329,7 @@ export function Sidebar({
         <button
           type="button"
           onClick={toggleCollapsed}
-          className="hidden lg:flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
+          className="hidden lg:flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-medium text-ink-secondary hover:bg-muted-surface hover:text-ink transition-colors cursor-pointer"
         >
           <Lucide.ChevronsLeft size={16} />
           <span>Collapse sidebar</span>
@@ -340,7 +340,7 @@ export function Sidebar({
 
   // ================= COMPACT ICON RAIL (Desktop Default) =================
   const compactRail = (
-    <div className="flex h-full flex-col items-center justify-between bg-white" style={{ background: 'var(--color-sidebar)' }}>
+    <div className="flex h-full flex-col items-center justify-between bg-surface" style={{ background: 'var(--color-sidebar)' }}>
       {/* 1. Top Brand Logo */}
       <div className="flex h-16 w-full items-center justify-center border-b" style={{ borderColor: 'var(--color-border)' }}>
         <button
@@ -390,8 +390,8 @@ export function Sidebar({
                 aria-label={section.title}
                 aria-expanded={isFlyoutOpen}
                 className={`relative flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-150 cursor-pointer ${isFlyoutOpen
-                    ? 'ring-2 ring-slate-300 scale-105'
-                    : 'hover:bg-slate-100 hover:scale-105 active:scale-95'
+                    ? 'ring-2 ring-ink-muted scale-105'
+                    : 'hover:bg-muted-surface hover:scale-105 active:scale-95'
                   }`}
                 style={
                   isSectionActive
@@ -439,7 +439,7 @@ export function Sidebar({
             onClick={onOpenThemes}
             onMouseEnter={(e) => handleMouseEnter(e, 'Hotel Theme', 'Switch between 9 color palettes', 'Theme')}
             onMouseLeave={handleMouseLeave}
-            className="flex h-9 w-9 items-center justify-center rounded-xl transition-all hover:bg-slate-100 hover:scale-110 active:scale-95 cursor-pointer text-slate-500 hover:text-slate-900"
+            className="flex h-9 w-9 items-center justify-center rounded-xl transition-all hover:bg-muted-surface hover:scale-110 active:scale-95 cursor-pointer text-ink-secondary hover:text-ink"
             aria-label="Change Theme"
           >
             <Lucide.Palette size={18} />
@@ -452,7 +452,7 @@ export function Sidebar({
           onClick={toggleCollapsed}
           onMouseEnter={(e) => handleMouseEnter(e, 'Expand Sidebar', 'Show full navigation (Ctrl+\\)', 'Shortcut')}
           onMouseLeave={handleMouseLeave}
-          className="flex h-8 w-8 items-center justify-center rounded-lg transition-all hover:bg-slate-100 hover:scale-110 active:scale-95 cursor-pointer text-slate-400 hover:text-slate-900"
+          className="flex h-8 w-8 items-center justify-center rounded-lg transition-all hover:bg-muted-surface hover:scale-110 active:scale-95 cursor-pointer text-ink-muted hover:text-ink"
           aria-label="Expand sidebar"
         >
           <Lucide.ChevronsRight size={17} />
@@ -485,19 +485,19 @@ export function Sidebar({
           >
             {/* Arrow pointing left */}
             <div className="mr-[-1px] h-0 w-0 border-y-[5px] border-y-transparent border-r-[6px] border-r-slate-900" />
-            <div className="rounded-xl bg-slate-900/95 backdrop-blur-md px-3 py-1.5 text-white shadow-2xl border border-slate-700/60 text-left">
+            <div className="rounded-xl bg-ink/95 backdrop-blur-md px-3 py-1.5 text-white shadow-2xl border border-ink-disabled/60 text-left">
               <div className="flex items-center gap-1.5">
                 <span className="text-[12.5px] font-semibold tracking-tight text-white">
                   {tooltip.title}
                 </span>
                 {tooltip.badge && (
-                  <span className="rounded-md bg-white/20 px-1.5 py-0.5 text-[9.5px] font-bold tracking-wide uppercase text-slate-200">
+                  <span className="rounded-md bg-surface/20 px-1.5 py-0.5 text-[9.5px] font-bold tracking-wide uppercase text-ink-disabled">
                     {tooltip.badge}
                   </span>
                 )}
               </div>
               {tooltip.hint && (
-                <p className="mt-0.5 text-[11px] text-slate-300 font-normal">
+                <p className="mt-0.5 text-[11px] text-ink-disabled font-normal">
                   {tooltip.hint}
                 </p>
               )}
@@ -516,14 +516,14 @@ export function Sidebar({
           return createPortal(
             <div
               ref={flyoutRef}
-              className="fixed z-[9990] w-[310px] overflow-hidden rounded-2xl border border-slate-200/90 bg-white text-slate-800 shadow-[0_20px_50px_rgba(15,23,42,0.18)] animate-in fade-in zoom-in-95 duration-150"
+              className="fixed z-[9990] w-[310px] overflow-hidden rounded-2xl border border-border/90 bg-surface text-ink shadow-xl animate-in fade-in zoom-in-95 duration-150"
               style={{
                 left: `${flyout.x}px`,
                 top: `${flyout.y}px`,
               }}
             >
               {/* Flyout Header */}
-              <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-4 py-3">
+              <div className="flex items-center justify-between border-b border-divider bg-page/80 px-4 py-3">
                 <div className="flex items-center gap-2.5">
                   <div
                     className="flex h-7 w-7 items-center justify-center rounded-lg shadow-2xs"
@@ -535,10 +535,10 @@ export function Sidebar({
                     <SectionIcon size={15} />
                   </div>
                   <div>
-                    <p className="text-[13px] font-bold text-slate-900 leading-tight">
+                    <p className="text-[13px] font-bold text-ink leading-tight">
                       {activeSection.title}
                     </p>
-                    <p className="text-[10.5px] font-medium text-slate-400">
+                    <p className="text-[10.5px] font-medium text-ink-muted">
                       {activeSection.items.length} views available
                     </p>
                   </div>
@@ -546,7 +546,7 @@ export function Sidebar({
                 <button
                   type="button"
                   onClick={() => setFlyout(null)}
-                  className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200/60 hover:text-slate-600 transition-colors cursor-pointer"
+                  className="flex h-6 w-6 items-center justify-center rounded-lg text-ink-muted hover:bg-border/60 hover:text-ink-secondary transition-colors cursor-pointer"
                   aria-label="Close menu"
                 >
                   <Lucide.X size={14} />
@@ -578,7 +578,7 @@ export function Sidebar({
                       }
                       className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-all cursor-pointer ${isItemActive
                           ? 'font-semibold shadow-2xs'
-                          : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900'
+                          : 'text-ink hover:bg-muted-surface/80 hover:text-ink'
                         }`}
                     >
                       <div
@@ -609,7 +609,7 @@ export function Sidebar({
                             <span className="h-1.5 w-1.5 rounded-full flex-none" style={{ background: 'var(--color-primary)' }} />
                           )}
                         </div>
-                        <p className="text-[11px] text-slate-400 font-normal truncate mt-0.5">
+                        <p className="text-[11px] text-ink-muted font-normal truncate mt-0.5">
                           {item.hint}
                         </p>
                       </div>
@@ -637,7 +637,7 @@ export function Sidebar({
             style={{ borderColor: 'var(--color-border)', boxShadow: 'var(--shadow-2xl)', background: 'var(--color-sidebar)' }}
           >
             <div className="flex items-center justify-between border-b px-4 py-3 lg:hidden" style={{ borderColor: 'var(--color-border)' }}>
-              <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-slate-400">Menu</span>
+              <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-ink-muted">Menu</span>
               <button type="button" onClick={onClose} aria-label="Close navigation" className="pms-btn-ghost min-h-[38px] min-w-[38px] px-2.5 py-1.5 cursor-pointer">✕</button>
             </div>
             <div className="h-[calc(100%-53px)]">{fullPanel}</div>

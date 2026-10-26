@@ -30,12 +30,12 @@ export function RatePlansPanel({ plans, onCreate, onEdit, onToggleStatus }: Prop
     <section className="pms-card overflow-hidden" aria-labelledby="rate-plans-title">
       <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
             <Lucide.Layers size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="rate-plans-title" className="text-sm font-bold text-slate-900 tracking-tight">Rate Plans</h2>
-            <p className="text-[11px] text-slate-400 mt-0.5">Manage pricing rules, eligibility and channel distribution</p>
+            <h2 id="rate-plans-title" className="text-sm font-bold text-ink tracking-tight">Rate Plans</h2>
+            <p className="text-[11px] text-ink-muted mt-0.5">Manage pricing rules, eligibility and channel distribution</p>
           </div>
         </div>
         <div className="flex flex-col gap-2 xs:flex-row">

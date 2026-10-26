@@ -24,12 +24,12 @@ export function PromotionsPanel({ channels, bookings, channelFilter, onChannelFi
       <section className="pms-card overflow-hidden" aria-labelledby="recent-channel-bookings-title">
         <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
               <Lucide.CalendarCheck size={18} strokeWidth={2.4} />
             </div>
             <div>
-              <h2 id="recent-channel-bookings-title" className="text-sm font-bold text-slate-900 tracking-tight">Recent Channel Bookings</h2>
-              <p className="text-[11px] text-slate-400 mt-0.5">Latest reservations received from connected OTAs</p>
+              <h2 id="recent-channel-bookings-title" className="text-sm font-bold text-ink tracking-tight">Recent Channel Bookings</h2>
+              <p className="text-[11px] text-ink-muted mt-0.5">Latest reservations received from connected OTAs</p>
             </div>
           </div>
           <div className="flex gap-2"><label><span className="sr-only">Filter bookings by channel</span><select value={channelFilter} onChange={(event) => onChannelFilterChange(event.target.value)} className="pms-input min-h-[36px] text-xs"><option value="all">All channels</option>{channels.map((channel) => <option key={channel.id} value={channel.id}>{channel.name}</option>)}</select></label><button type="button" onClick={onViewAll} className="pms-btn-ghost min-h-[36px] px-3 py-1 text-xs">View all</button></div>
@@ -50,12 +50,12 @@ export function PromotionsPanel({ channels, bookings, channelFilter, onChannelFi
 
       <section className="pms-card overflow-hidden" aria-labelledby="channel-promotions-title">
         <div className="flex items-center gap-2.5 border-b px-4 py-4 sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white shadow-xs shadow-amber-500/20">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-warning-text to-warning-border text-white shadow-xs shadow-warning-text/20">
             <Lucide.Sparkles size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="channel-promotions-title" className="text-sm font-bold text-slate-900 tracking-tight">Promotions</h2>
-            <p className="text-[11px] text-slate-400 mt-0.5">Rate offers currently configured for distribution</p>
+            <h2 id="channel-promotions-title" className="text-sm font-bold text-ink tracking-tight">Promotions</h2>
+            <p className="text-[11px] text-ink-muted mt-0.5">Rate offers currently configured for distribution</p>
           </div>
         </div>
         <div className="divide-y" style={{ borderColor: 'var(--color-divider)' }}>

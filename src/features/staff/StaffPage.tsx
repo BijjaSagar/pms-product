@@ -26,25 +26,25 @@ type StaffRow = {
 function roleBadge(role: string) {
   const r = (role || '').toLowerCase();
   if (r.includes('admin') || r.includes('owner')) {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">Admin</span>;
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-info-bg text-info-text">Admin</span>;
   }
   if (r.includes('editor') || r.includes('desk') || r.includes('front')) {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">{role || 'Editor'}</span>;
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">{role || 'Editor'}</span>;
   }
   if (r.includes('manager')) {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">{role}</span>;
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-success-bg text-success-text">{role}</span>;
   }
-  return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">{role || 'Viewer'}</span>;
+  return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-muted-surface text-ink">{role || 'Viewer'}</span>;
 }
 
 function statusBadge(status: StaffRow['status']) {
   if (status === 'ACTIVE') {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Active</span>;
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-success-bg text-success-text">Active</span>;
   }
   if (status === 'INVITED') {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Pending</span>;
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-warning-bg text-warning-text">Pending</span>;
   }
-  return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">Inactive</span>;
+  return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-danger-bg text-danger-text">Inactive</span>;
 }
 
 export function Staff() {
@@ -121,23 +121,23 @@ export function Staff() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20 mt-0.5">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20 mt-0.5">
             <Lucide.ShieldCheck size={20} strokeWidth={2.4} />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
                 Staff & Access Roles
               </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
                 </span>
                 Staff Directory
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-ink-secondary mt-1">
               Manage team members, property permissions, invitations, and role assignments
             </p>
           </div>
@@ -146,7 +146,7 @@ export function Staff() {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
             title="Refresh staff"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
@@ -186,11 +186,11 @@ export function Staff() {
       <Card>
         <CardTitle
           icon={Lucide.Users}
-          iconBg="bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20"
+          iconBg="bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20"
           title="User Management"
           subtitle={resource.loading ? 'Loading users…' : 'A list of all registered users in the system.'}
           badge={
-            <span className="flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700 border border-indigo-200/60">
+            <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary border border-primary/30">
               {rows.length} Users
             </span>
           }
@@ -212,11 +212,11 @@ export function Staff() {
             ) : undefined
           }
         />
-        {resource.error ? <p role="alert" className="pms-helper mb-3 text-rose-600">Could not load users: {resource.error}</p> : null}
+        {resource.error ? <p role="alert" className="pms-helper mb-3 text-danger-text">Could not load users: {resource.error}</p> : null}
         
         <div className="mb-4 flex flex-col sm:flex-row items-center gap-2">
           <div className="relative flex-1 w-full">
-            <Lucide.Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <Lucide.Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
             <input
               value={q}
               onChange={(event) => {
@@ -281,11 +281,11 @@ export function Staff() {
                   </td>
                   <td>
                     {staff.invitePending ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warning-bg text-warning-text border border-warning-border/60">
                         Pending
                       </span>
                     ) : staff.inviteExpired ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/60">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-danger-bg text-danger-text border border-danger-border/60">
                         Expired
                       </span>
                     ) : (
