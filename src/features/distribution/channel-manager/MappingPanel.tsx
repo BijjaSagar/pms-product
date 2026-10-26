@@ -17,12 +17,12 @@ export function MappingPanel({ mappings, channels, onChange, onAdd, onSave }: Pr
     <section className="pms-card overflow-hidden" aria-labelledby="mapping-title">
       <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
             <Lucide.GitMerge size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="mapping-title" className="text-sm font-bold text-slate-900 tracking-tight">Room & Rate Mapping</h2>
-            <p className="text-[11px] text-slate-400 mt-0.5">Match internal inventory and rate plans to each channel’s product codes</p>
+            <h2 id="mapping-title" className="text-sm font-bold text-ink tracking-tight">Room & Rate Mapping</h2>
+            <p className="text-[11px] text-ink-muted mt-0.5">Match internal inventory and rate plans to each channel’s product codes</p>
           </div>
         </div>
         <div className="flex gap-2"><button type="button" onClick={onAdd} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-xs"><Lucide.Plus size={14} /> Add mapping</button><button type="button" onClick={onSave} className="pms-btn-primary min-h-[38px] px-3 py-1.5 text-xs"><Lucide.Upload size={14} /> Save mappings</button></div>
@@ -38,7 +38,7 @@ export function MappingPanel({ mappings, channels, onChange, onAdd, onSave }: Pr
                   <td><select value={mapping.roomType} onChange={(event) => onChange(mapping.id, 'roomType', event.target.value)} aria-label={`Room type for mapping ${mapping.id}`} className="pms-input min-h-[34px] min-w-[130px] px-2 py-1 text-xs">{ROOM_TYPES.map((roomType) => <option key={roomType}>{roomType}</option>)}</select></td>
                   <td><select value={mapping.ratePlan} onChange={(event) => onChange(mapping.id, 'ratePlan', event.target.value)} aria-label={`Rate plan for mapping ${mapping.id}`} className="pms-input min-h-[34px] min-w-[170px] px-2 py-1 text-xs">{RATE_PLANS.map((plan) => <option key={plan}>{plan}</option>)}</select></td>
                   <td><input value={mapping.externalCode} onChange={(event) => onChange(mapping.id, 'externalCode', event.target.value)} aria-label={`External code for mapping ${mapping.id}`} className="pms-input min-h-[34px] min-w-[150px] px-2 py-1 font-mono text-[11px]" /></td>
-                  <td><span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold ${mapping.status === 'Mapped' ? 'text-success-text' : 'text-warning-text'}`}><span className={`h-1.5 w-1.5 rounded-full ${mapping.status === 'Mapped' ? 'bg-emerald-500' : 'bg-amber-500'}`} />{mapping.status}</span></td>
+                  <td><span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold ${mapping.status === 'Mapped' ? 'text-success-text' : 'text-warning-text'}`}><span className={`h-1.5 w-1.5 rounded-full ${mapping.status === 'Mapped' ? 'bg-success-text' : 'bg-warning-text'}`} />{mapping.status}</span></td>
                   <td className="text-right"><button type="button" onClick={() => onChange(mapping.id, 'status', mapping.status === 'Mapped' ? 'Needs review' : 'Mapped')} className="text-xs font-semibold text-primary hover:underline">{mapping.status === 'Mapped' ? 'Review' : 'Mark mapped'}</button></td>
                 </tr>
               );

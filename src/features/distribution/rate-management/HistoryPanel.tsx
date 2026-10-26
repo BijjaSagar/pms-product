@@ -11,12 +11,12 @@ export function HistoryPanel({ events }: { events: RateHistoryEvent[] }) {
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="rate-history-title">
       <div className="flex items-center gap-2.5 border-b px-4 py-4 sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
           <Lucide.History size={18} strokeWidth={2.4} />
         </div>
         <div>
-          <h2 id="rate-history-title" className="text-sm font-bold text-slate-900 tracking-tight">Rate Change History</h2>
-          <p className="text-[11px] text-slate-400 mt-0.5">A local audit trail of recent rate and distribution actions</p>
+          <h2 id="rate-history-title" className="text-sm font-bold text-ink tracking-tight">Rate Change History</h2>
+          <p className="text-[11px] text-ink-muted mt-0.5">A local audit trail of recent rate and distribution actions</p>
         </div>
       </div>
       {events.length ? (

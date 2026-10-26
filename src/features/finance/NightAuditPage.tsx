@@ -55,23 +55,23 @@ export function NightAudit({ go }: NightAuditProps) {
       {/* ================= 1. HEADER SECTION ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-xs shadow-indigo-500/20 mt-0.5">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20 mt-0.5">
             <Lucide.Moon size={20} strokeWidth={2.4} />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
                 Night Audit
               </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
                 </span>
                 Operations Active
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1 font-normal">
+            <p className="text-xs text-ink-secondary mt-1 font-normal">
               Close the day, post room charges, settle accounts and roll over to the next day.
             </p>
           </div>
@@ -193,7 +193,7 @@ export function NightAudit({ go }: NightAuditProps) {
           className="rounded-xl border p-3 shadow-xs flex items-center gap-3 transition-all"
           style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
         >
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-none bg-blue-50 text-blue-600 border border-blue-100">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-none bg-info-bg text-info-text border border-info-border">
             <Lucide.Bed size={20} strokeWidth={2} />
           </div>
           <div>
@@ -208,13 +208,13 @@ export function NightAudit({ go }: NightAuditProps) {
           className="rounded-xl border p-3 shadow-xs flex items-center gap-3 transition-all"
           style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
         >
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-none bg-indigo-50 text-indigo-600 border border-indigo-100">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-none bg-primary/10 text-primary border border-primary/30">
             <Lucide.DoorOpen size={22} strokeWidth={2} />
           </div>
           <div>
             <p className="text-2xl font-black text-ink leading-tight">12</p>
             <p className="text-xs font-semibold text-ink-secondary">Expected Arrivals</p>
-            <p className="text-[11.5px] font-bold text-emerald-600 flex items-center gap-0.5">
+            <p className="text-[11.5px] font-bold text-success-text flex items-center gap-0.5">
               <span>↗</span> 2 walk-ins
             </p>
           </div>
@@ -225,13 +225,13 @@ export function NightAudit({ go }: NightAuditProps) {
           className="rounded-2xl border p-4 shadow-2xs flex items-center gap-3.5 transition-all"
           style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
         >
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-none bg-emerald-50 text-emerald-600 border border-emerald-100">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-none bg-success-bg text-success-text border border-success-border">
             <Lucide.DoorClosed size={22} strokeWidth={2} />
           </div>
           <div>
             <p className="text-2xl font-black text-ink leading-tight">8</p>
             <p className="text-xs font-semibold text-ink-secondary">Expected Departures</p>
-            <p className="text-[11.5px] font-bold text-rose-500 flex items-center gap-0.5">
+            <p className="text-[11.5px] font-bold text-danger-text flex items-center gap-0.5">
               <span>↓</span> 1 early check-out
             </p>
           </div>
@@ -242,7 +242,7 @@ export function NightAudit({ go }: NightAuditProps) {
           className="rounded-2xl border p-4 shadow-2xs flex items-center gap-3.5 transition-all"
           style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
         >
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-none bg-blue-50 text-blue-600 border border-blue-100">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-none bg-info-bg text-info-text border border-info-border">
             <Lucide.Users size={22} strokeWidth={2} />
           </div>
           <div>
@@ -257,12 +257,12 @@ export function NightAudit({ go }: NightAuditProps) {
           className="rounded-2xl border p-4 shadow-2xs flex items-center gap-3.5 transition-all"
           style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
         >
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-none bg-rose-50 text-rose-600 border border-rose-100">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-none bg-danger-bg text-danger-text border border-danger-border">
             <Lucide.AlertCircle size={22} strokeWidth={2} />
           </div>
           <div>
-            <p className="text-2xl font-black text-rose-600 leading-tight">3</p>
-            <p className="text-xs font-bold text-rose-600">Pending Issues</p>
+            <p className="text-2xl font-black text-danger-text leading-tight">3</p>
+            <p className="text-xs font-bold text-danger-text">Pending Issues</p>
             <button
               type="button"
               onClick={() => setOpenFoliosModalOpen(true)}
@@ -284,33 +284,33 @@ export function NightAudit({ go }: NightAuditProps) {
         >
           <div>
             {/* Header with red pill */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3.5 mb-3.5 border-b border-slate-100">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-rose-500 to-amber-600 text-white shadow-xs shadow-rose-500/20">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-danger-text to-warning-border text-white shadow-xs shadow-danger-text/20">
                   <Lucide.ShieldAlert size={17} strokeWidth={2.4} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-slate-900 tracking-tight">
+                  <h2 className="text-sm font-bold text-ink tracking-tight">
                     Pre-Audit Checklist
                   </h2>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
+                  <p className="text-[11px] text-ink-muted mt-0.5">
                     Please review and resolve all items before proceeding with the audit.
                   </p>
                 </div>
               </div>
 
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/60 flex-none self-start sm:self-auto">
-                <Lucide.AlertCircle size={12} className="text-rose-600" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-danger-bg text-danger-text border border-danger-border/60 flex-none self-start sm:self-auto">
+                <Lucide.AlertCircle size={12} className="text-danger-text" />
                 <span>3 items pending</span>
               </span>
             </div>
 
             {/* Checklist items list */}
-            <div className="flex flex-col divide-y divide-gray-100 dark:divide-slate-800">
+            <div className="flex flex-col divide-y divide-divider ">
               {/* Item 1: Open Folios */}
               <div className="py-3.5 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center flex-none">
+                  <div className="w-8 h-8 rounded-full bg-danger-bg border border-danger-border text-danger-text flex items-center justify-center flex-none">
                     <Lucide.AlertCircle size={16} strokeWidth={2.4} />
                   </div>
                   <div className="min-w-0">
@@ -322,7 +322,7 @@ export function NightAudit({ go }: NightAuditProps) {
                 </div>
 
                 <div className="flex items-center gap-3 flex-none">
-                  <span className="text-sm font-bold text-rose-600">3</span>
+                  <span className="text-sm font-bold text-danger-text">3</span>
                   <button
                     type="button"
                     onClick={() => setOpenFoliosModalOpen(true)}
@@ -338,7 +338,7 @@ export function NightAudit({ go }: NightAuditProps) {
               {/* Item 2: Pending Payments */}
               <div className="py-3.5 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center flex-none">
+                  <div className="w-8 h-8 rounded-full bg-danger-bg border border-danger-border text-danger-text flex items-center justify-center flex-none">
                     <Lucide.AlertCircle size={16} strokeWidth={2.4} />
                   </div>
                   <div className="min-w-0">
@@ -350,7 +350,7 @@ export function NightAudit({ go }: NightAuditProps) {
                 </div>
 
                 <div className="flex items-center gap-3 flex-none">
-                  <span className="text-sm font-bold text-rose-600">2</span>
+                  <span className="text-sm font-bold text-danger-text">2</span>
                   <button
                     type="button"
                     onClick={() => setPendingPaymentsModalOpen(true)}
@@ -366,7 +366,7 @@ export function NightAudit({ go }: NightAuditProps) {
               {/* Item 3: Unposted Charges */}
               <div className="py-3.5 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center flex-none">
+                  <div className="w-8 h-8 rounded-full bg-warning-bg border border-warning-border text-warning-text flex items-center justify-center flex-none">
                     <Lucide.AlertTriangle size={16} strokeWidth={2.4} />
                   </div>
                   <div className="min-w-0">
@@ -378,7 +378,7 @@ export function NightAudit({ go }: NightAuditProps) {
                 </div>
 
                 <div className="flex items-center gap-3 flex-none">
-                  <span className="text-sm font-bold text-amber-600">5</span>
+                  <span className="text-sm font-bold text-warning-text">5</span>
                   <button
                     type="button"
                     onClick={() => setUnpostedChargesModalOpen(true)}
@@ -394,7 +394,7 @@ export function NightAudit({ go }: NightAuditProps) {
               {/* Item 4: Room Status Updated */}
               <div className="py-3.5 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center flex-none">
+                  <div className="w-8 h-8 rounded-full bg-success-bg border border-success-border text-success-text flex items-center justify-center flex-none">
                     <Lucide.CheckCircle2 size={16} strokeWidth={2.4} />
                   </div>
                   <div className="min-w-0">
@@ -405,7 +405,7 @@ export function NightAudit({ go }: NightAuditProps) {
                   </div>
                 </div>
 
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-success-bg text-success-text border border-success-border">
                   Completed
                 </span>
               </div>
@@ -413,7 +413,7 @@ export function NightAudit({ go }: NightAuditProps) {
               {/* Item 5: No Pending Check-outs */}
               <div className="py-3.5 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center flex-none">
+                  <div className="w-8 h-8 rounded-full bg-success-bg border border-success-border text-success-text flex items-center justify-center flex-none">
                     <Lucide.CheckCircle2 size={16} strokeWidth={2.4} />
                   </div>
                   <div className="min-w-0">
@@ -424,7 +424,7 @@ export function NightAudit({ go }: NightAuditProps) {
                   </div>
                 </div>
 
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-success-bg text-success-text border border-success-border">
                   Completed
                 </span>
               </div>
@@ -432,7 +432,7 @@ export function NightAudit({ go }: NightAuditProps) {
               {/* Item 6: Housekeeping Status */}
               <div className="py-3.5 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center flex-none">
+                  <div className="w-8 h-8 rounded-full bg-success-bg border border-success-border text-success-text flex items-center justify-center flex-none">
                     <Lucide.CheckCircle2 size={16} strokeWidth={2.4} />
                   </div>
                   <div className="min-w-0">
@@ -443,7 +443,7 @@ export function NightAudit({ go }: NightAuditProps) {
                   </div>
                 </div>
 
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-success-bg text-success-text border border-success-border">
                   Completed
                 </span>
               </div>
@@ -457,16 +457,16 @@ export function NightAudit({ go }: NightAuditProps) {
           style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
         >
           <div>
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-xs shadow-indigo-500/20">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
                   <Lucide.BarChart2 size={17} strokeWidth={2.4} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-slate-900 tracking-tight">
-                    Audit Summary <span className="font-normal text-[11px] text-slate-400">(Oct 14, 2026)</span>
+                  <h2 className="text-sm font-bold text-ink tracking-tight">
+                    Audit Summary <span className="font-normal text-[11px] text-ink-muted">(Oct 14, 2026)</span>
                   </h2>
-                  <p className="text-[11px] text-slate-400 mt-0.5">End-of-day operational totals</p>
+                  <p className="text-[11px] text-ink-muted mt-0.5">End-of-day operational totals</p>
                 </div>
               </div>
             </div>
@@ -509,21 +509,21 @@ export function NightAudit({ go }: NightAuditProps) {
                 </div>
 
                 {/* Total Revenue Highlight */}
-                <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-blue-50/90 border border-blue-100">
-                  <span className="font-semibold text-blue-950 text-[11.5px]">Total Revenue</span>
-                  <span className="font-extrabold text-blue-950 font-mono text-[12px]">₹3,85,200</span>
+                <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-info-bg/90 border border-info-border">
+                  <span className="font-semibold text-info-text text-[11.5px]">Total Revenue</span>
+                  <span className="font-extrabold text-info-text font-mono text-[12px]">₹3,85,200</span>
                 </div>
 
                 {/* Total Payments Highlight */}
-                <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-emerald-50/90 border border-emerald-100">
-                  <span className="font-semibold text-emerald-950 text-[11.5px]">Total Payments</span>
-                  <span className="font-extrabold text-emerald-950 font-mono text-[12px]">₹3,72,500</span>
+                <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-success-bg/90 border border-success-border">
+                  <span className="font-semibold text-success-text text-[11.5px]">Total Payments</span>
+                  <span className="font-extrabold text-success-text font-mono text-[12px]">₹3,72,500</span>
                 </div>
 
                 {/* Outstanding Balance Highlight */}
-                <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-rose-50/90 border border-rose-100">
-                  <span className="font-semibold text-rose-700 text-[11.5px]">Outstanding Balance</span>
-                  <span className="font-extrabold text-rose-700 font-mono text-[12px]">₹12,700</span>
+                <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-danger-bg/90 border border-danger-border">
+                  <span className="font-semibold text-danger-text text-[11.5px]">Outstanding Balance</span>
+                  <span className="font-extrabold text-danger-text font-mono text-[12px]">₹12,700</span>
                 </div>
               </div>
             </div>
@@ -531,7 +531,7 @@ export function NightAudit({ go }: NightAuditProps) {
 
           <div className="flex flex-col gap-3 pt-2">
             {/* Audit Date Callout Banner */}
-            <div className="rounded-xl p-3 flex items-center gap-3 bg-blue-50/70 border border-blue-200/60">
+            <div className="rounded-xl p-3 flex items-center gap-3 bg-info-bg/70 border border-info-border/60">
               <div
                 className="w-7 h-7 rounded-full flex items-center justify-center flex-none text-white text-xs font-bold"
                 style={{ background: 'var(--color-primary)' }}
@@ -589,14 +589,14 @@ export function NightAudit({ go }: NightAuditProps) {
                     <th className="py-2 pl-2 text-right">STATUS</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-divider ">
                   <tr>
                     <td className="py-2.5 pr-2 font-medium text-ink">Rahul Mehta</td>
                     <td className="py-2.5 px-2 text-ink-secondary">205</td>
                     <td className="py-2.5 px-2 text-right font-mono font-semibold text-ink">2,500.00</td>
                     <td className="py-2.5 pl-2 text-right">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200 inline-flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-danger-bg text-danger-text border border-danger-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-danger-text" />
                         Open
                       </span>
                     </td>
@@ -606,8 +606,8 @@ export function NightAudit({ go }: NightAuditProps) {
                     <td className="py-2.5 px-2 text-ink-secondary">312</td>
                     <td className="py-2.5 px-2 text-right font-mono font-semibold text-ink">1,200.00</td>
                     <td className="py-2.5 pl-2 text-right">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200 inline-flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-danger-bg text-danger-text border border-danger-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-danger-text" />
                         Open
                       </span>
                     </td>
@@ -617,8 +617,8 @@ export function NightAudit({ go }: NightAuditProps) {
                     <td className="py-2.5 px-2 text-ink-secondary">418</td>
                     <td className="py-2.5 px-2 text-right font-mono font-semibold text-ink">3,000.00</td>
                     <td className="py-2.5 pl-2 text-right">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200 inline-flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-danger-bg text-danger-text border border-danger-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-danger-text" />
                         Open
                       </span>
                     </td>
@@ -659,7 +659,7 @@ export function NightAudit({ go }: NightAuditProps) {
                     <th className="py-2 pl-2 text-right">DUE DATE</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-divider ">
                   <tr>
                     <td className="py-2.5 pr-2 font-mono font-bold text-ink">BK123456</td>
                     <td className="py-2.5 px-2 text-ink-secondary">John Smith</td>
@@ -708,12 +708,12 @@ export function NightAudit({ go }: NightAuditProps) {
                     <th className="py-2 pl-2 text-right">USER</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-divider ">
                   <tr>
                     <td className="py-2 pr-2 font-medium text-ink">Oct 13, 2026</td>
                     <td className="py-2 px-2">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
                         Completed
                       </span>
                     </td>
@@ -723,8 +723,8 @@ export function NightAudit({ go }: NightAuditProps) {
                   <tr>
                     <td className="py-2 pr-2 font-medium text-ink">Oct 12, 2026</td>
                     <td className="py-2 px-2">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
                         Completed
                       </span>
                     </td>
@@ -734,8 +734,8 @@ export function NightAudit({ go }: NightAuditProps) {
                   <tr>
                     <td className="py-2 pr-2 font-medium text-ink">Oct 11, 2026</td>
                     <td className="py-2 px-2">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
                         Completed
                       </span>
                     </td>
@@ -745,8 +745,8 @@ export function NightAudit({ go }: NightAuditProps) {
                   <tr>
                     <td className="py-2 pr-2 font-medium text-ink">Oct 10, 2026</td>
                     <td className="py-2 px-2">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
                         Completed
                       </span>
                     </td>
@@ -756,8 +756,8 @@ export function NightAudit({ go }: NightAuditProps) {
                   <tr>
                     <td className="py-2 pr-2 font-medium text-ink">Oct 09, 2026</td>
                     <td className="py-2 px-2">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
                         Completed
                       </span>
                     </td>
@@ -850,8 +850,8 @@ export function NightAudit({ go }: NightAuditProps) {
                         auditStep === s.step
                           ? 'bg-primary text-white shadow-xs'
                           : auditStep > s.step
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-black/5 text-ink-muted'
+                          ? 'bg-success-bg text-success-text'
+                          : 'bg-ink/5 text-ink-muted'
                       }`}
                     >
                       {auditStep > s.step ? '✓' : s.step}
@@ -872,15 +872,15 @@ export function NightAudit({ go }: NightAuditProps) {
                   <div className="mt-2 flex flex-col gap-1.5 text-xs">
                     <div className="flex justify-between items-center py-1 border-b" style={{ borderColor: 'var(--color-divider)' }}>
                       <span>Expected Departures Processed</span>
-                      <span className="font-bold text-emerald-600">8 / 8 (Completed)</span>
+                      <span className="font-bold text-success-text">8 / 8 (Completed)</span>
                     </div>
                     <div className="flex justify-between items-center py-1 border-b" style={{ borderColor: 'var(--color-divider)' }}>
                       <span>Occupied Rooms Cleaned &amp; Inspected</span>
-                      <span className="font-bold text-emerald-600">100% Up to date</span>
+                      <span className="font-bold text-success-text">100% Up to date</span>
                     </div>
                     <div className="flex justify-between items-center py-1">
                       <span>Open Folios with Pending Balance</span>
-                      <span className="font-bold text-amber-600">3 guests (Carried over to next business day)</span>
+                      <span className="font-bold text-warning-text">3 guests (Carried over to next business day)</span>
                     </div>
                   </div>
                 </div>
@@ -892,9 +892,9 @@ export function NightAudit({ go }: NightAuditProps) {
                   <p className="text-ink-secondary leading-relaxed">
                     Automated posting engine will apply room tariff, GST, and daily recurring package charges across all 68 occupied guest rooms.
                   </p>
-                  <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200/50 mt-1">
-                    <p className="font-bold text-blue-950">Estimated Room Postings: ₹3,40,000</p>
-                    <p className="text-[11px] text-blue-800 mt-0.5">68 active guest rooms × average nightly rate</p>
+                  <div className="p-3 rounded-xl bg-info-bg/70 border border-info-border/50 mt-1">
+                    <p className="font-bold text-info-text">Estimated Room Postings: ₹3,40,000</p>
+                    <p className="text-[11px] text-info-text mt-0.5">68 active guest rooms × average nightly rate</p>
                   </div>
                 </div>
               )}
@@ -912,7 +912,7 @@ export function NightAudit({ go }: NightAuditProps) {
                     </div>
                     <div className="p-2.5 rounded-lg border bg-page">
                       <span className="text-ink-muted text-[11px] block">Ledger Variance</span>
-                      <span className="font-bold text-emerald-600 font-mono text-sm">₹0.00 (Balanced)</span>
+                      <span className="font-bold text-success-text font-mono text-sm">₹0.00 (Balanced)</span>
                     </div>
                   </div>
                 </div>
@@ -924,9 +924,9 @@ export function NightAudit({ go }: NightAuditProps) {
                   <p className="text-ink-secondary leading-relaxed">
                     Final lock of financial transactions for <strong>Oct 14, 2026</strong>. System will advance the PMS operating date to <strong>Wednesday, Oct 15, 2026</strong>.
                   </p>
-                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 mt-1">
-                    <p className="font-bold text-amber-900">Notice:</p>
-                    <p className="text-[11px] text-amber-800 mt-0.5">
+                  <div className="p-3 rounded-xl bg-warning-bg border border-warning-border mt-1">
+                    <p className="font-bold text-warning-text">Notice:</p>
+                    <p className="text-[11px] text-warning-text mt-0.5">
                       Once confirmed, the current business date will close permanently and post-audit reports will be generated.
                     </p>
                   </div>
@@ -935,7 +935,7 @@ export function NightAudit({ go }: NightAuditProps) {
             </>
           ) : (
             <div className="py-6 flex flex-col items-center justify-center text-center gap-3">
-              <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+              <div className="w-14 h-14 rounded-full bg-success-bg text-success-text flex items-center justify-center">
                 <Lucide.CheckCircle2 size={32} />
               </div>
               <h3 className="font-extrabold text-lg text-ink">Night Audit Completed!</h3>
@@ -977,7 +977,7 @@ export function NightAudit({ go }: NightAuditProps) {
                 <p className="font-bold text-ink">{log.action}</p>
                 <p className="text-[11px] text-ink-muted mt-0.5">By {log.user} • {log.time}</p>
               </div>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-success-bg text-success-text border border-success-border">
                 {log.status}
               </span>
             </div>
@@ -1025,7 +1025,7 @@ export function NightAudit({ go }: NightAuditProps) {
                 <p className="font-bold text-ink">{item.name} (Room {item.room})</p>
                 <p className="text-[11px] text-ink-muted">Due checkout: {item.checkOut}</p>
               </div>
-              <span className="font-mono font-bold text-rose-600 text-sm">{item.balance}</span>
+              <span className="font-mono font-bold text-danger-text text-sm">{item.balance}</span>
             </div>
           ))}
         </div>

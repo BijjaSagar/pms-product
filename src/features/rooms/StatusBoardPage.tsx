@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
 import { toast } from '../../components/toastStore';
+import { TONE_VARS } from '../../theme/tone';
+import type { Tone } from '../../theme/tone';
 
 type StatusType =
   | 'Available'
@@ -31,79 +33,38 @@ interface RoomTimelineRow {
   events: TimelineEvent[];
 }
 
-const STATUS_PILLS: {
-  id: StatusType;
-  label: string;
-  color: string;
-  bg: string;
-  border: string;
-  dot: string;
-}[] = [
-  {
-    id: 'Available',
-    label: 'Available',
-    color: '#059669',
-    bg: 'color-mix(in srgb, #10b981 12%, transparent)',
-    border: 'color-mix(in srgb, #10b981 25%, transparent)',
-    dot: '#10b981',
-  },
-  {
-    id: 'Occupied',
-    label: 'Occupied',
-    color: '#1d4ed8',
-    bg: 'color-mix(in srgb, #3b82f6 12%, transparent)',
-    border: 'color-mix(in srgb, #3b82f6 25%, transparent)',
-    dot: '#3b82f6',
-  },
-  {
-    id: 'Arriving',
-    label: 'Arriving',
-    color: '#0284c7',
-    bg: 'color-mix(in srgb, #0ea5e9 12%, transparent)',
-    border: 'color-mix(in srgb, #0ea5e9 25%, transparent)',
-    dot: '#0ea5e9',
-  },
-  {
-    id: 'Departing',
-    label: 'Departing',
-    color: '#b45309',
-    bg: 'color-mix(in srgb, #f59e0b 12%, transparent)',
-    border: 'color-mix(in srgb, #f59e0b 25%, transparent)',
-    dot: '#f59e0b',
-  },
-  {
-    id: 'Dirty',
-    label: 'Dirty',
-    color: '#dc2626',
-    bg: 'color-mix(in srgb, #ef4444 12%, transparent)',
-    border: 'color-mix(in srgb, #ef4444 25%, transparent)',
-    dot: '#ef4444',
-  },
-  {
-    id: 'Cleaning',
-    label: 'Cleaning',
-    color: '#4f46e5',
-    bg: 'color-mix(in srgb, #6366f1 12%, transparent)',
-    border: 'color-mix(in srgb, #6366f1 25%, transparent)',
-    dot: '#6366f1',
-  },
-  {
-    id: 'Inspected',
-    label: 'Inspected',
-    color: '#047857',
-    bg: 'color-mix(in srgb, #059669 12%, transparent)',
-    border: 'color-mix(in srgb, #059669 25%, transparent)',
-    dot: '#059669',
-  },
-  {
-    id: 'Out-of-service',
-    label: 'Out of service',
-    color: '#be123c',
-    bg: 'color-mix(in srgb, #e11d48 12%, transparent)',
-    border: 'color-mix(in srgb, #e11d48 25%, transparent)',
-    dot: '#e11d48',
-  },
-];
+const STATUS_TONES: Record<StatusType, Tone> = {
+  Available: 'success',
+  Occupied: 'info',
+  Arriving: 'info',
+  Departing: 'warning',
+  Dirty: 'warning',
+  Cleaning: 'info',
+  Inspected: 'success',
+  'Out-of-service': 'danger',
+};
+
+const STATUS_PILLS = (
+  [
+    { id: 'Available', label: 'Available' },
+    { id: 'Occupied', label: 'Occupied' },
+    { id: 'Arriving', label: 'Arriving' },
+    { id: 'Departing', label: 'Departing' },
+    { id: 'Dirty', label: 'Dirty' },
+    { id: 'Cleaning', label: 'Cleaning' },
+    { id: 'Inspected', label: 'Inspected' },
+    { id: 'Out-of-service', label: 'Out of service' },
+  ] satisfies { id: StatusType; label: string }[]
+).map((pill) => {
+  const vars = TONE_VARS[STATUS_TONES[pill.id]];
+  return {
+    ...pill,
+    color: vars.text,
+    bg: vars.bg,
+    border: vars.border,
+    dot: vars.text,
+  };
+});
 
 const TIME_SLOTS = [
   { hour: 8, label: '8 AM' },
@@ -450,57 +411,29 @@ export function StatusBoard() {
   const getEventStyle = (event: TimelineEvent) => {
     switch (event.type) {
       case 'Available':
-        return {
-          bg: '#e6f7ef',
-          color: '#059669',
-          border: '#a7f3d0',
-        };
+      case 'Inspected': {
+        const vars = TONE_VARS.success;
+        return { bg: vars.bg, color: vars.text, border: vars.border };
+      }
       case 'Occupied':
-        return {
-          bg: '#ebf3fe',
-          color: '#1d4ed8',
-          border: '#bfdbfe',
-        };
       case 'Arriving':
-        return {
-          bg: '#e0f2fe',
-          color: '#0284c7',
-          border: '#bae6fd',
-        };
+      case 'Cleaning': {
+        const vars = TONE_VARS.info;
+        return { bg: vars.bg, color: vars.text, border: vars.border };
+      }
       case 'Departing':
-        return {
-          bg: '#fef3c7',
-          color: '#b45309',
-          border: '#fde68a',
-        };
-      case 'Dirty':
-        return {
-          bg: '#fef3c7',
-          color: '#b45309',
-          border: '#fde68a',
-        };
-      case 'Cleaning':
-        return {
-          bg: '#dbeafe',
-          color: '#2563eb',
-          border: '#bfdbfe',
-        };
-      case 'Inspected':
-        return {
-          bg: '#dcfce7',
-          color: '#15803d',
-          border: '#86efac',
-        };
+      case 'Dirty': {
+        const vars = TONE_VARS.warning;
+        return { bg: vars.bg, color: vars.text, border: vars.border };
+      }
       case 'Maintenance':
-      case 'Out-of-service':
-        return {
-          bg: '#fee2e2',
-          color: '#dc2626',
-          border: '#fecaca',
-        };
+      case 'Out-of-service': {
+        const vars = TONE_VARS.danger;
+        return { bg: vars.bg, color: vars.text, border: vars.border };
+      }
       default:
         return {
-          bg: 'var(--color-surface)',
+          bg: 'var(--color-muted-surface)',
           color: 'var(--color-ink)',
           border: 'var(--color-border)',
         };
@@ -512,23 +445,23 @@ export function StatusBoard() {
       {/* ================= PAGE HEADER & TOOLBAR ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20 mt-0.5">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/20 mt-0.5">
             <Lucide.LayoutGrid size={20} strokeWidth={2.4} />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
                 Status Board
               </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text/60 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
                 </span>
                 Live Floorplan
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-ink-secondary mt-1">
               Live view of room status, housekeeping cycles, and guest movements
             </p>
           </div>
@@ -540,7 +473,7 @@ export function StatusBoard() {
           <button
             type="button"
             onClick={() => toast('Date picker dialog', { tone: 'info' })}
-            className="flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-ink shadow-2xs hover:bg-black/[0.03] transition-colors"
+            className="flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-ink shadow-2xs hover:bg-ink/[0.03] transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
             <Lucide.Calendar size={15} className="text-ink-secondary" />
@@ -554,7 +487,7 @@ export function StatusBoard() {
               setCurrentDate('Oct 16, 2026');
               toast('Jumped to Today', { tone: 'success' });
             }}
-            className="rounded-md border px-3 py-1.5 text-sm font-medium text-primary shadow-2xs hover:bg-black/[0.03] transition-colors"
+            className="rounded-md border px-3 py-1.5 text-sm font-medium text-primary shadow-2xs hover:bg-ink/[0.03] transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
             Today
@@ -593,7 +526,7 @@ export function StatusBoard() {
           <button
             type="button"
             onClick={() => toast('Status board options: Export, Print, Refresh', { tone: 'info' })}
-            className="flex h-9 w-9 items-center justify-center rounded-md border text-ink-secondary hover:text-ink hover:bg-black/[0.03] transition-colors shadow-2xs"
+            className="flex h-9 w-9 items-center justify-center rounded-md border text-ink-secondary hover:text-ink hover:bg-ink/[0.03] transition-colors shadow-2xs"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             title="More actions"
           >
@@ -674,7 +607,7 @@ export function StatusBoard() {
                     <button
                       type="button"
                       onClick={() => toggleFloor(floorNum)}
-                      className="flex w-full items-center gap-2 px-4 py-2.5 text-left font-bold text-[13px] transition-colors hover:bg-black/[0.02]"
+                      className="flex w-full items-center gap-2 px-4 py-2.5 text-left font-bold text-[13px] transition-colors hover:bg-ink/[0.02]"
                       style={{
                         background: 'color-mix(in srgb, var(--color-primary) 6%, var(--color-surface))',
                         color: 'var(--color-primary)',
@@ -704,7 +637,7 @@ export function StatusBoard() {
                         return (
                           <div
                             key={room.number}
-                            className="grid grid-cols-[160px_1fr] items-center border-b last:border-b-0 min-h-[46px] hover:bg-black/[0.01] transition-colors"
+                            className="grid grid-cols-[160px_1fr] items-center border-b last:border-b-0 min-h-[46px] hover:bg-ink/[0.01] transition-colors"
                             style={{ borderColor: 'var(--color-border-subtle)' }}
                           >
                             {/* Room Info Cell (CLICKABLE) */}
@@ -892,7 +825,7 @@ export function StatusBoard() {
         typeof document !== 'undefined' &&
         createPortal(
           <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-md pms-animate-fade-in"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-ink/60 backdrop-blur-md pms-animate-fade-in"
             onClick={() => setSelectedRoomModal(null)}
             role="dialog"
             aria-modal="true"
@@ -902,12 +835,12 @@ export function StatusBoard() {
               style={{
                 background: 'var(--color-surface)',
                 borderColor: 'var(--color-border)',
-                boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--color-border)',
+                boxShadow: 'var(--shadow-2xl), 0 0 0 1px var(--color-border)',
               }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Gradient Accent Bar */}
-              <div className="h-1.5 w-full bg-gradient-to-r from-primary via-blue-500 to-emerald-500" />
+              <div className="h-1.5 w-full bg-gradient-to-r from-primary via-primary-hover to-dark-accent" />
 
               {/* Modal Header */}
               <div
@@ -923,16 +856,16 @@ export function StatusBoard() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-base font-bold text-slate-900 tracking-tight">
+                      <h2 className="text-base font-bold text-ink tracking-tight">
                         Room {selectedRoomModal.number}
                       </h2>
                       <span
-                        className="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200/60"
+                        className="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-muted-surface text-primary border border-primary/20"
                       >
                         {selectedRoomModal.type} Category
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
+                    <p className="text-[11px] text-ink-muted mt-0.5">
                       Floor {selectedRoomModal.floor} · Main Wing · High Speed WiFi
                     </p>
                   </div>
@@ -941,7 +874,7 @@ export function StatusBoard() {
                 <button
                   type="button"
                   onClick={() => setSelectedRoomModal(null)}
-                  className="rounded-md p-1.5 text-ink-muted hover:text-ink hover:bg-black/[0.05] transition-colors"
+                  className="rounded-md p-1.5 text-ink-muted hover:text-ink hover:bg-ink/[0.05] transition-colors"
                   aria-label="Close dialog"
                 >
                   <Lucide.X size={19} />
@@ -957,12 +890,12 @@ export function StatusBoard() {
                   </p>
                   <div className="grid grid-cols-3 gap-2">
                     {[
-                      { type: 'Available' as const, label: 'Available', icon: Lucide.CheckCircle2, color: '#059669', bg: '#e6f7ef' },
-                      { type: 'Occupied' as const, label: 'Occupied', icon: Lucide.Luggage, color: '#1d4ed8', bg: '#ebf3fe' },
-                      { type: 'Cleaning' as const, label: 'Cleaning', icon: Lucide.Sparkles, color: '#4f46e5', bg: '#dbeafe' },
-                      { type: 'Dirty' as const, label: 'Dirty', icon: Lucide.AlertCircle, color: '#dc2626', bg: '#fef3c7' },
-                      { type: 'Inspected' as const, label: 'Inspected', icon: Lucide.ShieldCheck, color: '#047857', bg: '#dcfce7' },
-                      { type: 'Maintenance' as const, label: 'Out of Service', icon: Lucide.Wrench, color: '#be123c', bg: '#fee2e2' },
+                      { type: 'Available' as const, label: 'Available', icon: Lucide.CheckCircle2, color: TONE_VARS.success.text, bg: TONE_VARS.success.bg },
+                      { type: 'Occupied' as const, label: 'Occupied', icon: Lucide.Luggage, color: TONE_VARS.info.text, bg: TONE_VARS.info.bg },
+                      { type: 'Cleaning' as const, label: 'Cleaning', icon: Lucide.Sparkles, color: TONE_VARS.info.text, bg: TONE_VARS.info.bg },
+                      { type: 'Dirty' as const, label: 'Dirty', icon: Lucide.AlertCircle, color: TONE_VARS.warning.text, bg: TONE_VARS.warning.bg },
+                      { type: 'Inspected' as const, label: 'Inspected', icon: Lucide.ShieldCheck, color: TONE_VARS.success.text, bg: TONE_VARS.success.bg },
+                      { type: 'Maintenance' as const, label: 'Out of Service', icon: Lucide.Wrench, color: TONE_VARS.danger.text, bg: TONE_VARS.danger.bg },
                     ].map((opt) => {
                       const isCurrent = (selectedRoomModal.event?.type ?? 'Available') === opt.type;
                       return (
@@ -1038,7 +971,7 @@ export function StatusBoard() {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[13px] font-bold text-ink">Housekeeping & Amenities</span>
-                    <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    <span className="text-[11px] font-semibold text-success-text bg-success-bg px-2 py-0.5 rounded-full">
                       Linen Fresh
                     </span>
                   </div>
@@ -1059,7 +992,7 @@ export function StatusBoard() {
                 <button
                   type="button"
                   onClick={() => setSelectedRoomModal(null)}
-                  className="rounded-md border px-4 py-2 text-[12.5px] font-bold text-ink hover:bg-black/[0.04] transition-colors"
+                  className="rounded-md border px-4 py-2 text-[12.5px] font-bold text-ink hover:bg-ink/[0.04] transition-colors"
                   style={{ borderColor: 'var(--color-border)' }}
                 >
                   Close

@@ -9,55 +9,39 @@ import { useAuth } from '../../features/auth/AuthContext';
 import { displayApiError } from '../../lib/api/client';
 import { folioApi, frontDeskApi, reportsApi } from '../../lib/api/pms';
 import { NAV_ICONS } from './navIcons';
+import { TONE_VARS } from '../../theme/tone';
+import type { Tone } from '../../theme/tone';
 
-const NOTICE_TONE_CONFIG: Record<
-  string,
-  {
-    icon: Lucide.LucideIcon;
-    bg: string;
-    border: string;
-    color: string;
-    badgeBg: string;
-    badgeText: string;
-    label: string;
-  }
-> = {
-  danger: {
-    icon: Lucide.AlertOctagon,
-    bg: 'color-mix(in srgb, #ef4444 14%, var(--color-surface))',
-    border: 'color-mix(in srgb, #ef4444 28%, transparent)',
-    color: '#ef4444',
-    badgeBg: 'color-mix(in srgb, #ef4444 16%, transparent)',
-    badgeText: '#dc2626',
-    label: 'Critical Alert',
-  },
-  warning: {
-    icon: Lucide.AlertTriangle,
-    bg: 'color-mix(in srgb, #f59e0b 14%, var(--color-surface))',
-    border: 'color-mix(in srgb, #f59e0b 28%, transparent)',
-    color: '#d97706',
-    badgeBg: 'color-mix(in srgb, #f59e0b 16%, transparent)',
-    badgeText: '#b45309',
-    label: 'Action Required',
-  },
-  info: {
-    icon: Lucide.Info,
-    bg: 'color-mix(in srgb, #0ea5e9 14%, var(--color-surface))',
-    border: 'color-mix(in srgb, #0ea5e9 28%, transparent)',
-    color: '#0284c7',
-    badgeBg: 'color-mix(in srgb, #0ea5e9 16%, transparent)',
-    badgeText: '#0369a1',
-    label: 'Operational Notice',
-  },
-  success: {
-    icon: Lucide.CheckCircle2,
-    bg: 'color-mix(in srgb, #10b981 14%, var(--color-surface))',
-    border: 'color-mix(in srgb, #10b981 28%, transparent)',
-    color: '#059669',
-    badgeBg: 'color-mix(in srgb, #10b981 16%, transparent)',
-    badgeText: '#047857',
-    label: 'Completed / Ready',
-  },
+function buildNoticeTone(
+  icon: Lucide.LucideIcon,
+  label: string,
+  tone: Tone,
+): {
+  icon: Lucide.LucideIcon;
+  bg: string;
+  border: string;
+  color: string;
+  badgeBg: string;
+  badgeText: string;
+  label: string;
+} {
+  const vars = TONE_VARS[tone];
+  return {
+    icon,
+    bg: vars.bg,
+    border: vars.border,
+    color: vars.text,
+    badgeBg: vars.bg,
+    badgeText: vars.text,
+    label,
+  };
+}
+
+const NOTICE_TONE_CONFIG: Record<string, ReturnType<typeof buildNoticeTone>> = {
+  danger: buildNoticeTone(Lucide.AlertOctagon, 'Critical Alert', 'danger'),
+  warning: buildNoticeTone(Lucide.AlertTriangle, 'Action Required', 'warning'),
+  info: buildNoticeTone(Lucide.Info, 'Operational Notice', 'info'),
+  success: buildNoticeTone(Lucide.CheckCircle2, 'Completed / Ready', 'success'),
 };
 
 const SEARCH_KEYWORDS: Record<ViewId, string[]> = {
@@ -343,7 +327,7 @@ export function Header({
         style={{
           background: 'color-mix(in srgb, var(--color-surface) 88%, transparent)',
           borderColor: 'var(--color-border)',
-          boxShadow: '0 4px 20px -8px rgba(0, 0, 0, 0.08)',
+          boxShadow: 'var(--shadow-sm)',
         }}
       >
         <div className="flex h-16 w-full items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -370,7 +354,7 @@ export function Header({
             style={{
               borderColor: 'var(--color-border)',
               background: 'color-mix(in srgb, var(--color-surface) 94%, var(--color-page))',
-              boxShadow: '0 2px 10px -3px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.6)',
+              boxShadow: 'var(--shadow-xs), inset 0 1px 0 color-mix(in srgb, var(--color-primary-foreground) 60%, transparent)',
             }}
           >
             {/* 1. Occupancy */}
@@ -380,14 +364,14 @@ export function Header({
               className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Occupancy: 30% (6 of 20 rooms)"
             >
-              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-rose-500 to-pink-500 text-white shadow-xs shadow-rose-500/25 group-hover:scale-105 transition-transform">
+              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/25 group-hover:scale-105 transition-transform">
                 <Lucide.BedDouble size={14} strokeWidth={2.2} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
                 <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">Occupancy</span>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[13.5px] font-bold tnum text-ink">{kpi.occupancyPct}%</span>
-                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-md leading-tight">
+                  <span className="text-[10px] font-bold text-success-text bg-success-text/10 px-1.5 py-0.5 rounded-md leading-tight">
                     +12%
                   </span>
                 </div>
@@ -403,14 +387,14 @@ export function Header({
               className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Today's Arrivals: 8 (+3 vs yesterday)"
             >
-              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-xs shadow-emerald-500/25 group-hover:scale-105 transition-transform">
+              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-success-text to-success-border text-success-foreground shadow-xs shadow-success-text/25 group-hover:scale-105 transition-transform">
                 <Lucide.ArrowUpRight size={14} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
                 <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">Arrivals</span>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[13.5px] font-bold tnum text-ink">{kpi.arrivalsCount}</span>
-                  <span className="text-[10px] font-bold text-amber-700 bg-amber-500/15 dark:bg-amber-500/20 px-1.5 py-0.5 rounded-md leading-tight">
+                  <span className="text-[10px] font-bold text-warning-text bg-warning-text/15 px-1.5 py-0.5 rounded-md leading-tight">
                     2 VIP
                   </span>
                 </div>
@@ -426,14 +410,14 @@ export function Header({
               className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Today's Departures: 7 (-1 vs yesterday)"
             >
-              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-xs shadow-amber-500/25 group-hover:scale-105 transition-transform">
+              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-warning-text to-warning-border text-warning-foreground shadow-xs shadow-warning-text/25 group-hover:scale-105 transition-transform">
                 <Lucide.ArrowDownRight size={14} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
                 <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">Departures</span>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[13.5px] font-bold tnum text-ink">{kpi.departuresCount}</span>
-                  <span className="text-[10px] font-semibold text-ink-secondary bg-black/[0.04] dark:bg-white/[0.06] px-1.5 py-0.5 rounded-md leading-tight">
+                  <span className="text-[10px] font-semibold text-ink-secondary bg-ink/[0.04]  px-1.5 py-0.5 rounded-md leading-tight">
                     7 sched
                   </span>
                 </div>
@@ -449,14 +433,14 @@ export function Header({
               className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="In-house Guests: 8 (28 rooms • 4 extra guests)"
             >
-              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-violet-500 to-purple-600 text-white shadow-xs shadow-purple-500/25 group-hover:scale-105 transition-transform">
+              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-primary to-primary-hover text-primary-foreground shadow-xs shadow-primary/25 group-hover:scale-105 transition-transform">
                 <Lucide.Users size={14} strokeWidth={2.2} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
                 <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">In-House</span>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[13.5px] font-bold tnum text-ink">{kpi.inHouseCount}</span>
-                  <span className="text-[10px] font-semibold text-purple-700 bg-purple-500/15 dark:bg-purple-500/20 px-1.5 py-0.5 rounded-md leading-tight">
+                  <span className="text-[10px] font-semibold text-primary bg-primary/15 px-1.5 py-0.5 rounded-md leading-tight">
                     Active
                   </span>
                 </div>
@@ -472,14 +456,14 @@ export function Header({
               className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Total Revenue (Today)"
             >
-              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-emerald-500 to-green-600 text-white shadow-xs shadow-emerald-500/25 group-hover:scale-105 transition-transform">
+              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-success-text to-success-border text-success-foreground shadow-xs shadow-success-text/25 group-hover:scale-105 transition-transform">
                 <Lucide.CreditCard size={14} strokeWidth={2.2} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
                 <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">Revenue</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[13.5px] font-bold tnum text-emerald-600 dark:text-emerald-400">₹{kpi.totalRevenue.toLocaleString('en-IN')}</span>
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-500/15 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-md leading-tight">
+                  <span className="text-[13.5px] font-bold tnum text-success-text">₹{kpi.totalRevenue.toLocaleString('en-IN')}</span>
+                  <span className="text-[10px] font-bold text-success-text bg-success-text/15 px-1.5 py-0.5 rounded-md leading-tight">
                     Today
                   </span>
                 </div>
@@ -495,14 +479,14 @@ export function Header({
               className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Pending Payments: 3 (₹28,160 outstanding)"
             >
-              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-rose-500 to-red-600 text-white shadow-xs shadow-rose-500/25 group-hover:scale-105 transition-transform">
+              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-danger-text to-danger-border text-danger-foreground shadow-xs shadow-danger-text/25 group-hover:scale-105 transition-transform">
                 <Lucide.AlertCircle size={14} strokeWidth={2.3} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
                 <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">Pending</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[13.5px] font-bold tnum text-rose-600 dark:text-rose-400">{kpi.pendingPaymentsCount}</span>
-                  <span className="text-[10px] font-bold text-rose-700 bg-rose-500/15 dark:bg-rose-500/20 px-1.5 py-0.5 rounded-md leading-tight">
+                  <span className="text-[13.5px] font-bold tnum text-danger-text">{kpi.pendingPaymentsCount}</span>
+                  <span className="text-[10px] font-bold text-danger-text bg-danger-text/15 px-1.5 py-0.5 rounded-md leading-tight">
                     Due
                   </span>
                 </div>
@@ -531,7 +515,7 @@ export function Header({
                 onClick={() => setPanel(panel === 'notices' ? 'none' : 'notices')}
                 aria-label={`Notifications, ${unreadCount} unread`}
                 aria-expanded={panel === 'notices'}
-                className="group relative flex h-10 w-10 items-center justify-center rounded-xl border transition-all hover:bg-black/[0.03] cursor-pointer flex-none"
+                className="group relative flex h-10 w-10 items-center justify-center rounded-xl border transition-all hover:bg-ink/[0.03] cursor-pointer flex-none"
                 style={{
                   borderColor: panel === 'notices' ? 'var(--color-primary)' : 'var(--color-border)',
                   background: panel === 'notices' ? 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))' : 'var(--color-surface)',
@@ -543,7 +527,7 @@ export function Header({
                 {unreadCount > 0 ? (
                   <span
                     className="tnum absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1.5 text-[10.5px] font-bold text-white shadow-md ring-2 ring-[var(--color-surface)] animate-pulse"
-                    style={{ background: '#ef4444' }}
+                    style={{ background: 'var(--color-danger-text)' }}
                   >
                     {unreadCount}
                   </span>
@@ -556,13 +540,13 @@ export function Header({
                   style={{
                     background: 'var(--color-surface)',
                     borderColor: 'var(--color-border)',
-                    boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.22), 0 0 0 1px var(--color-border)',
+                    boxShadow: 'var(--shadow-xl), 0 0 0 1px var(--color-border)',
                   }}
                   role="dialog"
                   aria-label="Notifications"
                 >
                   {/* Luxury Top Accent Line */}
-                  <div className="h-1 w-full bg-gradient-to-r from-primary via-amber-500 to-emerald-500" />
+                  <div className="h-1 w-full bg-gradient-to-r from-primary via-primary-hover to-dark-accent" />
 
                   {/* Notifications Header */}
                   <div
@@ -593,7 +577,7 @@ export function Header({
                           <button
                             type="button"
                             onClick={markAllAsRead}
-                            className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11.5px] font-bold transition-all hover:bg-black/[0.04]"
+                            className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11.5px] font-bold transition-all hover:bg-ink/[0.04]"
                             style={{
                               borderColor: 'var(--color-border)',
                               color: 'var(--color-primary)',
@@ -609,7 +593,7 @@ export function Header({
                           <button
                             type="button"
                             onClick={clearAllRead}
-                            className="flex items-center gap-1 rounded-lg border px-2 py-1 text-[11.5px] font-semibold text-ink-muted hover:text-red-600 transition-colors"
+                            className="flex items-center gap-1 rounded-lg border px-2 py-1 text-[11.5px] font-semibold text-ink-muted hover:text-danger-text transition-colors"
                             style={{ borderColor: 'var(--color-border)' }}
                             title="Clear read notifications"
                           >
@@ -632,7 +616,7 @@ export function Header({
                         type="button"
                         onClick={() => setNoticeTab('all')}
                         className={`flex-1 rounded-lg py-1.5 text-center text-[12px] font-bold transition-all ${noticeTab === 'all'
-                            ? 'bg-white shadow-xs text-ink'
+                            ? 'bg-surface shadow-xs text-ink'
                             : 'text-ink-secondary hover:text-ink'
                           }`}
                         style={noticeTab === 'all' ? { background: 'var(--color-surface)' } : undefined}
@@ -643,7 +627,7 @@ export function Header({
                         type="button"
                         onClick={() => setNoticeTab('unread')}
                         className={`flex-1 rounded-lg py-1.5 text-center text-[12px] font-bold transition-all ${noticeTab === 'unread'
-                            ? 'bg-white shadow-xs text-ink'
+                            ? 'bg-surface shadow-xs text-ink'
                             : 'text-ink-secondary hover:text-ink'
                           }`}
                         style={noticeTab === 'unread' ? { background: 'var(--color-surface)' } : undefined}
@@ -654,7 +638,7 @@ export function Header({
                         type="button"
                         onClick={() => setNoticeTab('urgent')}
                         className={`flex-1 rounded-lg py-1.5 text-center text-[12px] font-bold transition-all ${noticeTab === 'urgent'
-                            ? 'bg-white shadow-xs text-ink'
+                            ? 'bg-surface shadow-xs text-ink'
                             : 'text-ink-secondary hover:text-ink'
                           }`}
                         style={noticeTab === 'urgent' ? { background: 'var(--color-surface)' } : undefined}
@@ -676,7 +660,7 @@ export function Header({
                           <div
                             key={n.id}
                             className={`group relative flex items-start gap-3.5 p-4 transition-all cursor-pointer ${isRead
-                                ? 'opacity-70 hover:opacity-100 hover:bg-black/[0.02]'
+                                ? 'opacity-70 hover:opacity-100 hover:bg-ink/[0.02]'
                                 : 'hover:bg-primary/[0.04]'
                               }`}
                             style={!isRead ? { background: 'color-mix(in srgb, var(--color-primary) 3.5%, var(--color-surface))' } : undefined}
@@ -701,7 +685,7 @@ export function Header({
                             >
                               <ToneIcon size={19} strokeWidth={2.2} />
                               {!isRead ? (
-                                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-blue-500 shadow-xs" />
+                                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full border-2 border-surface bg-info-text shadow-xs" />
                               ) : null}
                             </div>
 
@@ -752,7 +736,7 @@ export function Header({
                                   <button
                                     type="button"
                                     onClick={(e) => dismissSingleNotice(n.id, e)}
-                                    className="opacity-0 group-hover:opacity-100 p-1 text-ink-muted hover:text-red-600 transition-opacity"
+                                    className="opacity-0 group-hover:opacity-100 p-1 text-ink-muted hover:text-danger-text transition-opacity"
                                     title="Dismiss alert"
                                   >
                                     <Lucide.X size={13} />
@@ -769,9 +753,9 @@ export function Header({
                         <div
                           className="flex h-14 w-14 items-center justify-center rounded-2xl border mb-3"
                           style={{
-                            background: 'color-mix(in srgb, #10b981 12%, transparent)',
-                            borderColor: 'color-mix(in srgb, #10b981 25%, transparent)',
-                            color: '#059669',
+                            background: 'var(--color-success-bg)',
+                            borderColor: 'var(--color-success-border)',
+                            color: 'var(--color-success-text)',
                           }}
                         >
                           <Lucide.CheckCircle2 size={28} />
@@ -874,7 +858,7 @@ export function Header({
                         onGo({ view: 'settings' });
                         closePanels();
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-colors hover:bg-black/[0.03]"
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-colors hover:bg-ink/[0.03]"
                       style={{ color: 'var(--color-ink)' }}
                     >
                       <Lucide.Settings size={16} className="text-ink-muted" />
@@ -889,7 +873,7 @@ export function Header({
                           onGo({ view: 'staff-roles' });
                           closePanels();
                         }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-colors hover:bg-black/[0.03]"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-colors hover:bg-ink/[0.03]"
                         style={{ color: 'var(--color-ink)' }}
                       >
                         <Lucide.ShieldCheck size={16} className="text-ink-muted" />
@@ -904,7 +888,7 @@ export function Header({
                         onOpenThemes();
                         closePanels();
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-colors hover:bg-black/[0.03] cursor-pointer"
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-colors hover:bg-ink/[0.03] cursor-pointer"
                       style={{ color: 'var(--color-ink)' }}
                     >
                       <Lucide.Palette size={16} className="text-primary" />
@@ -928,7 +912,7 @@ export function Header({
                               toast('Property switch failed', { detail: displayApiError(error), tone: 'danger' })
                             );
                           }}
-                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-colors hover:bg-black/[0.03]"
+                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-colors hover:bg-ink/[0.03]"
                           style={{ color: 'var(--color-ink)' }}
                         >
                           <Lucide.Building2 size={16} className="text-ink-muted" />
@@ -948,7 +932,7 @@ export function Header({
                           toast('Sign out failed', { detail: displayApiError(error), tone: 'danger' })
                         );
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-bold transition-colors hover:bg-red-50 text-red-600"
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-bold transition-colors hover:bg-danger-bg text-danger-text"
                     >
                       <Lucide.LogOut size={16} />
                       <span>Sign out</span>
@@ -965,7 +949,7 @@ export function Header({
       {searchOpen && typeof document !== 'undefined'
         ? createPortal(
           <div
-            className="fixed inset-0 z-[100] flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/60 backdrop-blur-md pms-animate-fade-in"
+            className="fixed inset-0 z-[100] flex items-start justify-center pt-16 sm:pt-24 px-4 bg-ink/60 backdrop-blur-md pms-animate-fade-in"
             onClick={() => setSearchOpen(false)}
           >
             <div
@@ -973,7 +957,7 @@ export function Header({
               style={{
                 background: 'var(--color-surface)',
                 borderColor: 'var(--color-border)',
-                boxShadow: '0 30px 70px -15px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--color-border)',
+                boxShadow: 'var(--shadow-2xl), 0 0 0 1px var(--color-border)',
               }}
               onClick={(e) => e.stopPropagation()}
               onKeyDown={handleSearchKeyDown}
@@ -1010,7 +994,7 @@ export function Header({
                       setSearchQuery('');
                       setSelectedIndex(0);
                     }}
-                    className="rounded-lg p-1 text-ink-muted hover:text-ink hover:bg-black/[0.05]"
+                    className="rounded-lg p-1 text-ink-muted hover:text-ink hover:bg-ink/[0.05]"
                     title="Clear input"
                   >
                     <Lucide.X size={17} />
@@ -1018,7 +1002,7 @@ export function Header({
                 ) : null}
                 <kbd
                   onClick={() => setSearchOpen(false)}
-                  className="rounded-lg border px-2 py-1 text-[11px] font-bold text-ink-muted cursor-pointer hover:bg-black/[0.04]"
+                  className="rounded-lg border px-2 py-1 text-[11px] font-bold text-ink-muted cursor-pointer hover:bg-ink/[0.04]"
                   style={{ borderColor: 'var(--color-border)' }}
                 >
                   ESC
@@ -1070,7 +1054,7 @@ export function Header({
                                 <div className="flex items-center gap-3 min-w-0">
                                   <div
                                     className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl ${isSelected
-                                        ? 'bg-white/20 text-white'
+                                        ? 'bg-surface/20 text-white'
                                         : 'bg-primary/10 text-primary'
                                       }`}
                                   >
@@ -1084,8 +1068,8 @@ export function Header({
                                       {section ? (
                                         <span
                                           className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${isSelected
-                                              ? 'bg-white/25 text-white'
-                                              : 'bg-black/[0.05] text-ink-muted'
+                                              ? 'bg-surface/25 text-white'
+                                              : 'bg-ink/[0.05] text-ink-muted'
                                             }`}
                                         >
                                           {section.title}
@@ -1138,7 +1122,7 @@ export function Header({
                             sub: 'Search guest profiles, emails, phone numbers or loyalty IDs',
                             icon: Lucide.BookUser,
                             action: () => onGo({ view: 'guests', query: searchQuery }),
-                            color: '#059669',
+                            color: 'var(--color-success-text)',
                           },
                           {
                             idx: matchedNavItems.length + 2,
@@ -1146,7 +1130,7 @@ export function Header({
                             sub: 'Find room numbers, room types, or floor locations',
                             icon: Lucide.BedDouble,
                             action: () => onGo({ view: 'room-overview', query: searchQuery }),
-                            color: '#0284c7',
+                            color: 'var(--color-info-text)',
                           },
                         ].map((act) => {
                           const isSelected = selectedIndex === act.idx;
@@ -1160,7 +1144,7 @@ export function Header({
                               }}
                               className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-left transition-all ${isSelected
                                   ? 'bg-primary text-white shadow-md'
-                                  : 'hover:bg-black/[0.04] text-ink'
+                                  : 'hover:bg-ink/[0.04] text-ink'
                                 }`}
                               style={
                                 !isSelected
@@ -1173,7 +1157,7 @@ export function Header({
                             >
                               <div className="flex items-center gap-3 min-w-0">
                                 <div
-                                  className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl ${isSelected ? 'bg-white/20 text-white' : 'bg-black/[0.04]'
+                                  className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl ${isSelected ? 'bg-surface/20 text-white' : 'bg-ink/[0.04]'
                                     }`}
                                   style={!isSelected ? { color: act.color } : undefined}
                                 >

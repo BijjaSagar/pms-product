@@ -138,7 +138,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white shadow-xs shadow-emerald-500/20 mt-0.5">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-success-text to-success-border text-white shadow-xs shadow-success-text/20 mt-0.5">
             <Lucide.LogIn size={20} strokeWidth={2.4} />
           </div>
           <div>
@@ -146,10 +146,10 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
               <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
                 Guest Check-in
               </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
                 </span>
                 Terminal Active
               </span>
@@ -160,14 +160,14 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 shadow-2xs flex items-center gap-1.5">
-            <Lucide.Users size={14} className="text-emerald-600" />
+          <span className="text-xs font-bold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink shadow-2xs flex items-center gap-1.5">
+            <Lucide.Users size={14} className="text-success-text" />
             <span>{arrivals.length} arrival{arrivals.length === 1 ? '' : 's'} due</span>
           </span>
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
             title="Refresh arrivals"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
@@ -178,7 +178,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
 
       <div className="grid grid-cols-1 gap-3.5 xl:grid-cols-5">
         {resource.error ? (
-          <div className="xl:col-span-5 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="xl:col-span-5 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-sm text-danger-text">
             <Lucide.AlertCircle size={18} />
             <span>Could not load arrivals: {resource.error}</span>
           </div>
@@ -188,11 +188,11 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
       <Card className="xl:col-span-2">
         <CardTitle
           icon={Lucide.Users}
-          iconBg="bg-gradient-to-tr from-emerald-500 to-teal-600 text-white shadow-xs shadow-emerald-500/20"
+          iconBg="bg-gradient-to-tr from-success-text to-success-border text-white shadow-xs shadow-success-text/20"
           title="Arrival queue"
           subtitle={resource.loading ? 'Loading arrivals…' : `${arrivals.length} ${arrivals.length === 1 ? 'guest is' : 'guests are'} waiting to check in`}
           badge={
-            <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+            <span className="flex items-center gap-1 rounded-full bg-success-bg px-2 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
               {arrivals.length} Due
             </span>
           }
@@ -322,7 +322,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 rounded-xl border p-3.5 bg-black/[0.02]" style={{ borderColor: 'var(--color-border)' }}>
+                <div className="mt-4 rounded-xl border p-3.5 bg-ink/[0.02]" style={{ borderColor: 'var(--color-border)' }}>
                   <label className="flex cursor-pointer items-center gap-2.5 text-[13.5px] font-semibold text-ink">
                     <input
                       type="checkbox"
@@ -333,7 +333,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                     <span>Government-issued photo ID or passport verified in person</span>
                   </label>
                   {!idChecked ? (
-                    <p className="pms-helper mt-1 pl-6 text-amber-700">Verify the guest’s ID before issuing room keys.</p>
+                    <p className="pms-helper mt-1 pl-6 text-warning-text">Verify the guest’s ID before issuing room keys.</p>
                   ) : null}
                 </div>
               </div>
@@ -382,7 +382,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                     const selectedRoomNo = roomAssignments[line.id] || '';
                     return <section key={line.id} className="rounded-xl border p-3" style={{ borderColor: 'var(--color-border)' }}>
                       <div className="mb-2 flex items-center justify-between gap-2"><div><p className="text-sm font-semibold text-ink">Room {index + 1} · {line.roomTypeName ?? current.roomType}</p><p className="text-xs text-ink-secondary">{line.roomNumber ? `Currently assigned: ${line.roomNumber}` : 'No room assigned yet'}</p></div><span className="text-xs font-medium text-ink-secondary">{selectedRoomNo ? `Selected: ${selectedRoomNo}` : 'Select a room'}</span></div>
-                      {options.length === 0 ? <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs leading-relaxed text-rose-800" role="alert"><span className="font-semibold">No ready {line.roomTypeName ?? current.roomType} rooms available.</span> Check housekeeping or choose another room type.</div> :
+                      {options.length === 0 ? <div className="rounded-lg border border-danger-border bg-danger-bg p-3 text-xs leading-relaxed text-danger-text" role="alert"><span className="font-semibold">No ready {line.roomTypeName ?? current.roomType} rooms available.</span> Check housekeeping or choose another room type.</div> :
                         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3" role="radiogroup" aria-label={`Ready rooms for reservation room ${index + 1}`}>
                           {options.map((candidate) => <button
                             key={candidate.number}
@@ -421,7 +421,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                   </li>
                   <li className="pms-summary-row border-b px-3.5 py-2.5" style={{ borderColor: 'var(--color-divider)' }}>
                     <span className="text-ink-secondary">Prepayments Received</span>
-                    <span className="tnum font-semibold text-emerald-600">{formatCurrency(current.paid, current.currencyCode)}</span>
+                    <span className="tnum font-semibold text-success-text">{formatCurrency(current.paid, current.currencyCode)}</span>
                   </li>
                   <li className="pms-summary-row px-3.5 py-3" style={{ background: 'var(--color-muted-surface)' }}>
                     <span className="font-bold text-[14px] text-ink">Balance due at departure</span>
@@ -433,7 +433,7 @@ export function CheckIn({ initialQuery = '' }: { initialQuery?: string }) {
                     </span>
                   </li>
                 </ul>
-                <div className="mt-3 rounded-xl border p-3.5 bg-black/[0.02]" style={{ borderColor: 'var(--color-border)' }}>
+                <div className="mt-3 rounded-xl border p-3.5 bg-ink/[0.02]" style={{ borderColor: 'var(--color-border)' }}>
                   <label className="flex cursor-pointer items-center gap-2.5 text-[13.5px] font-semibold text-ink">
                     <input
                       type="checkbox"

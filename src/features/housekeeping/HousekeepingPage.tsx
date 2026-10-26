@@ -49,14 +49,14 @@ const STATUS_FILTERS: { value: StatusFilter; label: string; icon: Lucide.LucideI
 const TURNOVER_TYPES = ['CHECKOUT_CLEAN', 'STAYOVER_CLEAN', 'LINEN_CHANGE', 'DEEP_CLEAN'];
 
 const TASK_TYPE_CONFIG: Record<string, { label: string; icon: Lucide.LucideIcon; tone: string }> = {
-  CHECKOUT_CLEAN: { label: 'Checkout Clean', icon: Lucide.LogOut, tone: 'text-amber-700 bg-amber-50 border-amber-200' },
-  STAYOVER_CLEAN: { label: 'Stayover Clean', icon: Lucide.BedDouble, tone: 'text-sky-700 bg-sky-50 border-sky-200' },
-  LINEN_CHANGE: { label: 'Linen Change', icon: Lucide.Layers, tone: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
-  INSPECTION: { label: 'Supervisor Inspection', icon: Lucide.SearchCheck, tone: 'text-purple-700 bg-purple-50 border-purple-200' },
-  TURNDOWN: { label: 'Evening Turndown', icon: Lucide.Moon, tone: 'text-blue-700 bg-blue-50 border-blue-200' },
-  SPECIAL_REQUEST: { label: 'Guest Request', icon: Lucide.Sparkles, tone: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  DEEP_CLEAN: { label: 'Deep Sanitization', icon: Lucide.Flame, tone: 'text-rose-700 bg-rose-50 border-rose-200' },
-  OTHER: { label: 'General Task', icon: Lucide.ClipboardList, tone: 'text-slate-700 bg-slate-50 border-slate-200' },
+  CHECKOUT_CLEAN: { label: 'Checkout Clean', icon: Lucide.LogOut, tone: 'text-warning-text bg-warning-bg border-warning-border' },
+  STAYOVER_CLEAN: { label: 'Stayover Clean', icon: Lucide.BedDouble, tone: 'text-info-text bg-info-bg border-info-border' },
+  LINEN_CHANGE: { label: 'Linen Change', icon: Lucide.Layers, tone: 'text-primary bg-primary/10 border-primary/30' },
+  INSPECTION: { label: 'Supervisor Inspection', icon: Lucide.SearchCheck, tone: 'text-primary bg-primary/10 border-primary/30' },
+  TURNDOWN: { label: 'Evening Turndown', icon: Lucide.Moon, tone: 'text-info-text bg-info-bg border-info-border' },
+  SPECIAL_REQUEST: { label: 'Guest Request', icon: Lucide.Sparkles, tone: 'text-success-text bg-success-bg border-success-border' },
+  DEEP_CLEAN: { label: 'Deep Sanitization', icon: Lucide.Flame, tone: 'text-danger-text bg-danger-bg border-danger-border' },
+  OTHER: { label: 'General Task', icon: Lucide.ClipboardList, tone: 'text-ink bg-page border-border' },
 };
 
 function hkStatusLabel(status?: string): string {
@@ -111,7 +111,7 @@ function getTaskTypeInfo(type?: string) {
   return TASK_TYPE_CONFIG[type] ?? {
     label: type.replace(/_/g, ' '),
     icon: Lucide.ClipboardList,
-    tone: 'text-slate-700 bg-slate-50 border-slate-200',
+    tone: 'text-ink bg-page border-border',
   };
 }
 
@@ -181,7 +181,7 @@ function TaskDetailsDrawer({
     >
       <div className="flex flex-col gap-5 text-sm">
         {/* Status Pipeline Visualizer */}
-        <div className="rounded-2xl border p-4 bg-black/[0.015]" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="rounded-2xl border p-4 bg-ink/[0.015]" style={{ borderColor: 'var(--color-border)' }}>
           <p className="text-[11px] font-bold uppercase tracking-wider text-ink-secondary mb-3">
             Turnaround Pipeline
           </p>
@@ -196,8 +196,8 @@ function TaskDetailsDrawer({
                       isCurrent
                         ? 'bg-[var(--color-primary)] text-white shadow-sm ring-2 ring-[var(--color-primary)]/20'
                         : isPast
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-slate-100 text-slate-400'
+                          ? 'bg-success-bg text-success-text'
+                          : 'bg-muted-surface text-ink-muted'
                     }`}
                   >
                     {isPast ? <Lucide.Check size={13} strokeWidth={2.8} /> : idx + 1}
@@ -207,7 +207,7 @@ function TaskDetailsDrawer({
                       isCurrent
                         ? 'text-ink font-bold'
                         : isPast
-                          ? 'text-emerald-700'
+                          ? 'text-success-text'
                           : 'text-ink-muted'
                     }`}
                   >
@@ -242,7 +242,7 @@ function TaskDetailsDrawer({
             </div>
             {room?.guest ? (
               <div className="text-right">
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-success-text bg-success-bg px-2.5 py-0.5 rounded-full border border-success-border">
                   <Lucide.User size={11} />
                   In-House Guest
                 </span>
@@ -250,7 +250,7 @@ function TaskDetailsDrawer({
                 <p className="text-[11px] text-ink-muted">Stay: {room.checkIn} → {room.checkOut}</p>
               </div>
             ) : (
-              <span className="text-[11px] font-semibold text-ink-muted px-2.5 py-1 rounded-lg bg-black/[0.03]">
+              <span className="text-[11px] font-semibold text-ink-muted px-2.5 py-1 rounded-lg bg-ink/[0.03]">
                 Vacant Room
               </span>
             )}
@@ -321,7 +321,7 @@ function TaskDetailsDrawer({
               <Lucide.Clock3 size={15} className="text-ink-muted mt-0.5" />
               <div>
                 <p className="text-ink-muted text-[11px]">Due Target</p>
-                <p className={`font-bold mt-0.5 ${overdue ? 'text-rose-600' : 'text-ink'}`}>
+                <p className={`font-bold mt-0.5 ${overdue ? 'text-danger-text' : 'text-ink'}`}>
                   {formatDueAt(task.dueAtIso, timeZone)}
                 </p>
               </div>
@@ -338,12 +338,12 @@ function TaskDetailsDrawer({
 
         {/* Notes & Special Instructions */}
         {task.notes ? (
-          <div className="rounded-2xl border p-4 bg-amber-50/60 border-amber-200">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 mb-1">
+          <div className="rounded-2xl border p-4 bg-warning-bg/60 border-warning-border">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-warning-text mb-1">
               <Lucide.AlertCircle size={14} />
               <span>Special Instructions / Floor Notes</span>
             </div>
-            <p className="text-xs text-amber-900 leading-relaxed font-medium whitespace-pre-wrap">{task.notes}</p>
+            <p className="text-xs text-warning-text leading-relaxed font-medium whitespace-pre-wrap">{task.notes}</p>
           </div>
         ) : null}
 
@@ -391,7 +391,7 @@ function TaskDetailsDrawer({
               <div className="flex w-full gap-2">
                 <button
                   type="button"
-                  className="pms-btn-primary flex-1 py-2 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 border-emerald-600"
+                  className="pms-btn-primary flex-1 py-2 text-xs font-semibold bg-success-text hover:bg-success-text border-success-text"
                   onClick={() => onAdvance(task, 'pass')}
                   disabled={busy}
                 >
@@ -400,7 +400,7 @@ function TaskDetailsDrawer({
                 </button>
                 <button
                   type="button"
-                  className="pms-btn-ghost flex-1 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 border-rose-200"
+                  className="pms-btn-ghost flex-1 py-2 text-xs font-semibold text-danger-text hover:bg-danger-bg border-danger-border"
                   onClick={() => onAdvance(task, 'fail')}
                   disabled={busy}
                 >
@@ -413,7 +413,7 @@ function TaskDetailsDrawer({
             {canComplete && task.backendStatus === 'BLOCKED' ? (
               <button
                 type="button"
-                className="pms-btn-ghost flex-1 py-2 text-xs text-emerald-700 hover:bg-emerald-50 border-emerald-200 font-semibold"
+                className="pms-btn-ghost flex-1 py-2 text-xs text-success-text hover:bg-success-bg border-success-border font-semibold"
                 onClick={() => onUnblock(task)}
                 disabled={busy}
               >
@@ -451,7 +451,7 @@ function TaskDetailsDrawer({
             {canCancel && !['READY', 'CANCELLED'].includes(task.backendStatus ?? '') ? (
               <button
                 type="button"
-                className="pms-btn-ghost py-1.5 px-3 text-xs text-rose-600 hover:bg-rose-50 border-rose-200"
+                className="pms-btn-ghost py-1.5 px-3 text-xs text-danger-text hover:bg-danger-bg border-danger-border"
                 onClick={() => onCommand(task, 'cancel')}
                 disabled={busy}
               >
@@ -847,7 +847,7 @@ export function Housekeeping() {
       value: counts.open,
       hint: `${counts.turnover} turnovers pending`,
       Icon: Lucide.ClipboardList,
-      toneStyle: 'text-amber-700 bg-amber-50 border-amber-200/80',
+      toneStyle: 'text-warning-text bg-warning-bg border-warning-border/80',
       active: status === 'All' && !overdueOnly,
       onClick: () => { setStatus('All'); setOverdueOnly(false); },
     },
@@ -857,7 +857,7 @@ export function Housekeeping() {
       value: counts.inProgress,
       hint: 'Housekeepers on floor',
       Icon: Lucide.Sparkles,
-      toneStyle: 'text-sky-700 bg-sky-50 border-sky-200/80',
+      toneStyle: 'text-info-text bg-info-bg border-info-border/80',
       active: status === 'IN_PROGRESS',
       onClick: () => { setStatus('IN_PROGRESS'); setOverdueOnly(false); },
     },
@@ -867,7 +867,7 @@ export function Housekeeping() {
       value: counts.inspection,
       hint: 'Awaiting supervisor sign-off',
       Icon: Lucide.SearchCheck,
-      toneStyle: 'text-purple-700 bg-purple-50 border-purple-200/80',
+      toneStyle: 'text-primary bg-primary/10 border-primary/30',
       active: status === 'INSPECTION_REQUIRED',
       onClick: () => { setStatus('INSPECTION_REQUIRED'); setOverdueOnly(false); },
     },
@@ -877,7 +877,7 @@ export function Housekeeping() {
       value: counts.ready,
       hint: `${progressValue}% completion rate`,
       Icon: Lucide.CircleCheck,
-      toneStyle: 'text-emerald-700 bg-emerald-50 border-emerald-200/80',
+      toneStyle: 'text-success-text bg-success-bg border-success-border/80',
       active: status === 'READY',
       onClick: () => { setStatus('READY'); setOverdueOnly(false); },
     },
@@ -888,13 +888,13 @@ export function Housekeeping() {
       {/* 1. Page Header */}
       <PageHeader
         icon={Lucide.Sparkles}
-        iconBg="bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-xs shadow-sky-500/20"
+        iconBg="bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20"
         title="Housekeeping"
         badge={
-          <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+          <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
             </span>
             Live Floor Dispatch
           </span>
@@ -906,7 +906,7 @@ export function Housekeeping() {
               type="button"
               onClick={() => resource.refresh()}
               disabled={resource.loading}
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer transition-colors disabled:opacity-60"
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors disabled:opacity-60"
               aria-label="Refresh tasks"
             >
               <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
@@ -983,8 +983,8 @@ export function Housekeeping() {
                     onClick={() => setOverdueOnly(!overdueOnly)}
                     className={`ml-2 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold transition-colors cursor-pointer ${
                       overdueOnly
-                        ? 'bg-rose-600 text-white'
-                        : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                        ? 'bg-danger-text text-white'
+                        : 'bg-danger-bg text-danger-text border border-danger-border hover:bg-danger-bg'
                     }`}
                   >
                     <Lucide.Clock3 size={12} />
@@ -992,7 +992,7 @@ export function Housekeeping() {
                   </button>
                 ) : null}
               </div>
-              <span className="font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+              <span className="font-mono font-bold text-success-text bg-success-bg border border-success-border px-2.5 py-0.5 rounded-full">
                 {progressValue}% Ready
               </span>
             </div>
@@ -1018,7 +1018,7 @@ export function Housekeeping() {
               <button
                 type="button"
                 onClick={selectAllFiltered}
-                className="text-xs font-semibold text-ink-secondary hover:text-ink px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+                className="text-xs font-semibold text-ink-secondary hover:text-ink px-2.5 py-1 rounded-lg border border-border bg-surface hover:bg-page transition-colors"
               >
                 {selectedTaskIds.size === filtered.length ? 'Deselect All' : 'Select All'}
               </button>
@@ -1107,7 +1107,7 @@ export function Housekeeping() {
                     <span className="flex items-center gap-1.5">
                       <Icon size={12} />
                       <span>{label}</span>
-                      <span className="rounded-full bg-black/10 px-1.5 py-0.2 text-[10px] font-bold">{count}</span>
+                      <span className="rounded-full bg-ink/10 px-1.5 py-0.2 text-[10px] font-bold">{count}</span>
                     </span>
                   </FilterChip>
                 );
@@ -1175,7 +1175,7 @@ export function Housekeeping() {
                 <article
                   key={task.id}
                   className={`pms-card pms-card-hover group relative flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl border transition-all ${
-                    isSelected ? 'ring-2 ring-[var(--color-primary)] bg-sky-50/20' : ''
+                    isSelected ? 'ring-2 ring-[var(--color-primary)] bg-info-bg/20' : ''
                   }`}
                   style={{
                     borderColor: overdue ? 'var(--color-danger-border)' : 'var(--color-border)',
@@ -1230,7 +1230,7 @@ export function Housekeeping() {
 
                       {/* Instructions snippet if present */}
                       {task.notes ? (
-                        <p className="text-xs text-ink-secondary mt-1.5 flex items-center gap-1.5 bg-black/[0.02] px-2.5 py-1 rounded-lg border border-black/[0.04]">
+                        <p className="text-xs text-ink-secondary mt-1.5 flex items-center gap-1.5 bg-ink/[0.02] px-2.5 py-1 rounded-lg border border-ink/[0.04]">
                           <Lucide.FileText size={12} className="text-ink-muted flex-none" />
                           <span className="truncate max-w-[480px]">{task.notes}</span>
                         </p>
@@ -1258,12 +1258,12 @@ export function Housekeeping() {
 
                     {/* Target Due */}
                     <div className="text-left flex-none min-w-[130px]">
-                      <div className={`flex items-center gap-1.5 text-xs font-medium ${overdue ? 'text-rose-600 font-bold' : 'text-ink-secondary'}`}>
+                      <div className={`flex items-center gap-1.5 text-xs font-medium ${overdue ? 'text-danger-text font-bold' : 'text-ink-secondary'}`}>
                         <Lucide.Clock3 size={13} className="text-ink-muted flex-none" />
                         <span>{formatDueAt(task.dueAtIso, timeZone)}</span>
                       </div>
                       {overdue ? (
-                        <span className="inline-block mt-0.5 text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.2 rounded-md">
+                        <span className="inline-block mt-0.5 text-[10px] font-bold text-danger-text bg-danger-bg border border-danger-border px-1.5 py-0.2 rounded-md">
                           Past Due
                         </span>
                       ) : (
@@ -1327,7 +1327,7 @@ export function Housekeeping() {
                       <div className="flex items-center gap-1.5">
                         <button
                           type="button"
-                          className="pms-btn-primary px-3 py-1.5 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 border-emerald-600"
+                          className="pms-btn-primary px-3 py-1.5 text-xs font-semibold bg-success-text hover:bg-success-text border-success-text"
                           onClick={() => act(task, 'pass')}
                           disabled={isBusy}
                         >
@@ -1336,7 +1336,7 @@ export function Housekeeping() {
                         </button>
                         <button
                           type="button"
-                          className="pms-btn-ghost px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 border-rose-200"
+                          className="pms-btn-ghost px-2.5 py-1.5 text-xs font-semibold text-danger-text hover:bg-danger-bg border-danger-border"
                           onClick={() => act(task, 'fail')}
                           disabled={isBusy}
                         >
@@ -1349,7 +1349,7 @@ export function Housekeeping() {
                     {canComplete && task.backendStatus === 'BLOCKED' ? (
                       <button
                         type="button"
-                        className="pms-btn-ghost px-3 py-1.5 text-xs text-emerald-700 hover:bg-emerald-50 border-emerald-200 font-semibold"
+                        className="pms-btn-ghost px-3 py-1.5 text-xs text-success-text hover:bg-success-bg border-success-border font-semibold"
                         onClick={() => unblock(task)}
                         disabled={isBusy}
                       >
@@ -1359,7 +1359,7 @@ export function Housekeeping() {
                     ) : null}
 
                     {task.backendStatus === 'READY' ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-success-text bg-success-bg border border-success-border px-3 py-1.5 rounded-xl">
                         <Lucide.CircleCheck size={13} />
                         <span>Inspected & Ready</span>
                       </span>
@@ -1382,7 +1382,7 @@ export function Housekeeping() {
           </div>
         ) : (
           <div className="rounded-2xl border border-dashed px-5 py-14 text-center" style={{ borderColor: 'var(--color-border)' }}>
-            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted-surface text-ink-secondary">
               <Lucide.SearchX size={22} />
             </span>
             <h3 className="mt-3 text-sm font-bold text-ink">No housekeeping tasks match your filters</h3>
@@ -1398,7 +1398,7 @@ export function Housekeeping() {
 
       {/* 4. Floating Bottom Bulk Action Dock */}
       {selectedTaskIds.size > 0 ? (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 rounded-2xl border bg-white/95 px-5 py-3 shadow-xl backdrop-blur-md border-slate-200 text-ink animate-bounce-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 rounded-2xl border bg-surface/95 px-5 py-3 shadow-xl backdrop-blur-md border-border text-ink animate-bounce-in">
           <div className="flex items-center gap-2">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-xs font-bold">
               {selectedTaskIds.size}
@@ -1406,7 +1406,7 @@ export function Housekeeping() {
             <span className="text-xs font-bold text-ink">Selected</span>
           </div>
 
-          <div className="h-4 w-px bg-slate-200" />
+          <div className="h-4 w-px bg-border" />
 
           {canAssign && staffUsers.length > 0 ? (
             <div className="flex items-center gap-2">
@@ -1415,7 +1415,7 @@ export function Housekeeping() {
                   if (e.target.value) bulkAssign(e.target.value);
                 }}
                 defaultValue=""
-                className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-ink"
+                className="rounded-lg border border-ink-disabled bg-surface px-2.5 py-1 text-xs font-semibold text-ink"
               >
                 <option value="" disabled>
                   Assign to staff…

@@ -135,7 +135,7 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
         <div className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-ink-secondary">Room Categories</span>
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-info-bg text-info-text">
               <Lucide.Layers size={16} />
             </span>
           </div>
@@ -148,7 +148,7 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
         <div className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-ink-secondary">Rooms in Inventory</span>
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-success-bg text-success-text">
               <Lucide.BedDouble size={16} />
             </span>
           </div>
@@ -161,7 +161,7 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
         <div className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-ink-secondary">Starting Base Rate</span>
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-warning-bg text-warning-text">
               <Lucide.Tag size={16} />
             </span>
           </div>
@@ -174,12 +174,12 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
         <div className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-ink-secondary">Catalog Health</span>
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Lucide.ShieldCheck size={16} />
             </span>
           </div>
           <div className="mt-2">
-            <span className="text-2xl font-black text-emerald-600 tnum">100%</span>
+            <span className="text-2xl font-black text-success-text tnum">100%</span>
             <p className="text-[11px] text-ink-secondary mt-0.5">Rates & amenities mapped</p>
           </div>
         </div>
@@ -187,14 +187,14 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
 
       {/* Main Room Types Table Card */}
       <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3.5 mb-3.5 border-b border-slate-100 gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3.5 mb-3.5 border-b border-divider gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
               <Lucide.BedDouble size={17} strokeWidth={2.4} />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-slate-900 tracking-tight">Room Types &amp; Categories</h2>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <h2 className="text-sm font-bold text-ink tracking-tight">Room Types &amp; Categories</h2>
+              <p className="text-[11px] text-ink-muted mt-0.5">
                 Manage room categories, base rates, occupant limits, and luxury amenities
               </p>
             </div>
@@ -221,7 +221,7 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
         </div>
 
         {resource.error && (
-          <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-3 text-xs text-danger-text">
             <Lucide.AlertCircle size={16} />
             <span>Could not load room types: {resource.error}</span>
           </div>
@@ -243,37 +243,37 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
             </thead>
             <tbody>
               {types.map((t, idx) => (
-                <tr key={t.id} className="transition-colors hover:bg-slate-50/70 border-b border-slate-100 last:border-b-0">
-                  <td className="text-center font-medium text-slate-400 text-xs py-3">{idx + 1}</td>
+                <tr key={t.id} className="transition-colors hover:bg-page/70 border-b border-divider last:border-b-0">
+                  <td className="text-center font-medium text-ink-muted text-xs py-3">{idx + 1}</td>
                   <td className="py-3">
-                    <span className="block font-bold text-slate-900 text-sm">{t.name}</span>
-                    <span className="block max-w-[260px] truncate text-xs text-slate-400 mt-0.5">
+                    <span className="block font-bold text-ink text-sm">{t.name}</span>
+                    <span className="block max-w-[260px] truncate text-xs text-ink-muted mt-0.5">
                       {t.description || 'Standard room category'}
                     </span>
                   </td>
-                  <td className="tnum font-semibold text-slate-800 text-sm py-3">{t.count}</td>
-                  <td className="tnum text-slate-600 text-xs py-3">
-                    <span className="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-md">
-                      <Lucide.Users size={12} className="text-slate-500" />
+                  <td className="tnum font-semibold text-ink text-sm py-3">{t.count}</td>
+                  <td className="tnum text-ink-secondary text-xs py-3">
+                    <span className="inline-flex items-center gap-1 bg-muted-surface px-2 py-0.5 rounded-md">
+                      <Lucide.Users size={12} className="text-ink-secondary" />
                       <span>{t.maxOccupancy} guests max</span>
                     </span>
                   </td>
-                  <td className="tnum text-right font-bold text-slate-900 text-sm py-3">
+                  <td className="tnum text-right font-bold text-ink text-sm py-3">
                     {formatCurrency(t.baseRate, currencyCode)}
                   </td>
                   <td className="max-w-[220px] py-3">
                     <div className="flex flex-wrap gap-1 max-w-[220px]">
                       {t.amenities.length > 0 ? (
                         t.amenities.slice(0, 3).map((a, i) => (
-                          <span key={i} className="text-[10px] font-medium bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
+                          <span key={i} className="text-[10px] font-medium bg-muted-surface text-ink-secondary px-1.5 py-0.5 rounded">
                             {a}
                           </span>
                         ))
                       ) : (
-                        <span className="text-xs text-slate-400">—</span>
+                        <span className="text-xs text-ink-muted">—</span>
                       )}
                       {t.amenities.length > 3 && (
-                        <span className="text-[10px] font-bold text-slate-400 px-1 py-0.5">
+                        <span className="text-[10px] font-bold text-ink-muted px-1 py-0.5">
                           +{t.amenities.length - 3}
                         </span>
                       )}
@@ -281,9 +281,9 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
                   </td>
                   <td className="py-3">
                     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                      t.active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'
+                      t.active ? 'bg-success-bg text-success-text border border-success-border' : 'bg-muted-surface text-ink-secondary'
                     }`}>
-                      <span className={`h-1.5 w-1.5 rounded-full ${t.active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                      <span className={`h-1.5 w-1.5 rounded-full ${t.active ? 'bg-success-text' : 'bg-ink-disabled'}`} />
                       {t.active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
@@ -291,7 +291,7 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
                     <button
                       type="button"
                       onClick={() => openEdit(t)}
-                      className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg border border-border hover:bg-muted-surface text-ink-secondary hover:text-ink transition-colors cursor-pointer"
                       title={`Edit ${t.name}`}
                     >
                       <Lucide.Pencil size={14} />
@@ -302,21 +302,21 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
             </tbody>
           </table>
           {types.length === 0 && !resource.loading && (
-            <p className="py-8 text-center text-xs text-slate-400">No room types configured yet.</p>
+            <p className="py-8 text-center text-xs text-ink-muted">No room types configured yet.</p>
           )}
         </div>
       </div>
 
       {/* Room Operations & Policies Card */}
       <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-        <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+        <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-500 to-indigo-600 text-white shadow-xs shadow-purple-500/20">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
               <Lucide.Clock size={17} strokeWidth={2.4} />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-slate-900 tracking-tight">Room Operations &amp; Holding Rules</h2>
-              <p className="text-[11px] text-slate-400 mt-0.5">Default automated rules applied across room inventory</p>
+              <h2 className="text-sm font-bold text-ink tracking-tight">Room Operations &amp; Holding Rules</h2>
+              <p className="text-[11px] text-ink-muted mt-0.5">Default automated rules applied across room inventory</p>
             </div>
           </div>
           <button
@@ -679,23 +679,23 @@ export function Settings({
       {/* ================= PAGE HEADER ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-slate-700 to-slate-900 text-white shadow-xs shadow-slate-900/20 mt-0.5">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/20 mt-0.5">
             <Lucide.Settings size={20} strokeWidth={2.4} />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-slate-900 leading-tight">
+              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
                 Property Settings
               </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
                 </span>
                 Active Config
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-ink-secondary mt-1">
               Manage your hotel information, policies, configurations and system preferences
             </p>
           </div>
@@ -715,7 +715,7 @@ export function Settings({
               className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
                 isActive
                   ? 'text-white shadow-sm'
-                  : 'text-ink-secondary hover:text-ink hover:bg-black/[0.03]'
+                  : 'text-ink-secondary hover:text-ink hover:bg-ink/[0.03]'
               }`}
               style={{
                 background: isActive ? 'var(--color-primary)' : 'transparent',
@@ -742,14 +742,14 @@ export function Settings({
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
               <div>
-                <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+                <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
                   <div className="flex items-center gap-2.5">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
                       <Lucide.Building2 size={17} strokeWidth={2.4} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Basic Information</h2>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Core details about your property</p>
+                      <h2 className="text-sm font-bold text-ink tracking-tight">Basic Information</h2>
+                      <p className="text-[11px] text-ink-muted mt-0.5">Core details about your property</p>
                     </div>
                   </div>
                   <button
@@ -766,7 +766,7 @@ export function Settings({
                   {/* Property Name */}
                   <div className="sm:col-span-2">
                     <label className="block text-xs font-medium text-ink mb-1.5">
-                      Property Name <span className="text-red-500">*</span>
+                      Property Name <span className="text-danger-text">*</span>
                     </label>
                     <input
                       type="text"
@@ -780,7 +780,7 @@ export function Settings({
                   {/* Property Code */}
                   <div>
                     <label className="block text-xs font-medium text-ink mb-1.5">
-                      Property Code <span className="text-red-500">*</span>
+                      Property Code <span className="text-danger-text">*</span>
                     </label>
                     <input
                       type="text"
@@ -822,7 +822,7 @@ export function Settings({
                           className="flex items-center justify-between rounded-md border px-3.5 py-2"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         >
-                          <div className="flex items-center gap-1 text-amber-500">
+                          <div className="flex items-center gap-1 text-warning-text">
                             {[1, 2, 3, 4, 5].map((star) => (
                               <button
                                 key={star}
@@ -832,7 +832,7 @@ export function Settings({
                               >
                                 <Lucide.Star
                                   size={18}
-                                  className={star <= Number(starRating) ? 'fill-amber-400 text-amber-500' : 'text-ink-muted/30'}
+                                  className={star <= Number(starRating) ? 'fill-warning-text text-warning-text' : 'text-ink-muted/30'}
                                 />
                               </button>
                             ))}
@@ -971,14 +971,14 @@ export function Settings({
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
               <div>
-                <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+                <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
                   <div className="flex items-center gap-2.5">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-500 to-violet-600 text-white shadow-xs shadow-purple-500/20">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
                       <Lucide.Image size={17} strokeWidth={2.4} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Property Logo &amp; Images</h2>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Logo, cover image and gallery photos</p>
+                      <h2 className="text-sm font-bold text-ink tracking-tight">Property Logo &amp; Images</h2>
+                      <p className="text-[11px] text-ink-muted mt-0.5">Logo, cover image and gallery photos</p>
                     </div>
                   </div>
                 </div>
@@ -990,11 +990,11 @@ export function Settings({
                     alt="Resort Cover"
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink/50 via-transparent to-transparent" />
                   <button
                     type="button"
                     onClick={() => toast('Change cover image dialog', { tone: 'info' })}
-                    className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 rounded-lg bg-white/90 backdrop-blur-md px-2.5 py-1 text-xs font-medium text-ink shadow-sm hover:bg-surface transition-colors"
+                    className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 rounded-lg bg-surface/90 backdrop-blur-md px-2.5 py-1 text-xs font-medium text-ink shadow-sm hover:bg-surface transition-colors"
                   >
                     <Lucide.Camera size={13} />
                     <span>Change cover image</span>
@@ -1004,11 +1004,11 @@ export function Settings({
                 {/* Logo Section */}
                 <div className="flex items-center gap-3.5 mb-5 p-3 rounded-md border" style={{ borderColor: 'var(--color-border-subtle)', background: 'color-mix(in srgb, var(--color-muted-surface) 40%, var(--color-surface))' }}>
                   <div
-                    className="flex h-16 w-16 flex-none items-center justify-center rounded-md border bg-white shadow-xs p-1 text-center"
+                    className="flex h-16 w-16 flex-none items-center justify-center rounded-md border bg-surface shadow-xs p-1 text-center"
                     style={{ borderColor: 'var(--color-border)' }}
                   >
                     <div className="flex flex-col items-center justify-center">
-                      <Lucide.Building2 size={20} className="text-amber-600 mb-0.5" />
+                      <Lucide.Building2 size={20} className="text-warning-text mb-0.5" />
                       <span className="text-[8px] font-bold uppercase tracking-wider text-ink-secondary leading-tight">
                         Grand Horizon
                       </span>
@@ -1018,7 +1018,7 @@ export function Settings({
                     <button
                       type="button"
                       onClick={() => toast('Change logo dialog', { tone: 'info' })}
-                      className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium text-ink hover:bg-black/[0.04] transition-colors"
+                      className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium text-ink hover:bg-ink/[0.04] transition-colors"
                       style={{ borderColor: 'var(--color-border)' }}
                     >
                       <Lucide.Image size={13} />
@@ -1067,14 +1067,14 @@ export function Settings({
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
               <div>
-                <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+                <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
                   <div className="flex items-center gap-2.5">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-500 to-cyan-600 text-white shadow-xs shadow-blue-500/20">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-info-text to-info-border text-white shadow-xs shadow-info-text/20">
                       <Lucide.Phone size={17} strokeWidth={2.4} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Contact Information</h2>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Public contact details for guests</p>
+                      <h2 className="text-sm font-bold text-ink tracking-tight">Contact Information</h2>
+                      <p className="text-[11px] text-ink-muted mt-0.5">Public contact details for guests</p>
                     </div>
                   </div>
                   <button
@@ -1152,14 +1152,14 @@ export function Settings({
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
               <div>
-                <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
+                <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
                   <div className="flex items-center gap-2.5">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white shadow-xs shadow-emerald-500/20">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-success-text to-success-border text-white shadow-xs shadow-success-text/20">
                       <Lucide.Clock size={17} strokeWidth={2.4} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Operational Settings</h2>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Configure key operational details</p>
+                      <h2 className="text-sm font-bold text-ink tracking-tight">Operational Settings</h2>
+                      <p className="text-[11px] text-ink-muted mt-0.5">Configure key operational details</p>
                     </div>
                   </div>
                   <button
@@ -1291,7 +1291,7 @@ export function Settings({
                     className="flex flex-col items-start p-3 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-blue-600 mb-2 group-hover:scale-105 transition-transform">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-info-bg text-info-text mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.Building2 size={18} strokeWidth={2.2} />
                     </div>
                     <span className="text-sm font-semibold text-ink leading-tight">Business Details</span>
@@ -1305,7 +1305,7 @@ export function Settings({
                     className="flex flex-col items-start p-3 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-purple-50 text-purple-600 mb-2 group-hover:scale-105 transition-transform">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.FileText size={18} strokeWidth={2.2} />
                     </div>
                     <span className="text-sm font-semibold text-ink leading-tight">Upload Documents</span>
@@ -1319,7 +1319,7 @@ export function Settings({
                     className="flex flex-col items-start p-3 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 mb-2 group-hover:scale-105 transition-transform">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-success-bg text-success-text mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.ShieldCheck size={18} strokeWidth={2.2} />
                     </div>
                     <span className="text-sm font-semibold text-ink leading-tight">Set Policies</span>
@@ -1336,7 +1336,7 @@ export function Settings({
                     className="flex flex-col items-start p-3 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-amber-50 text-amber-600 mb-2 group-hover:scale-105 transition-transform">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-warning-bg text-warning-text mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.Star size={18} strokeWidth={2.2} />
                     </div>
                     <span className="text-sm font-semibold text-ink leading-tight">Manage Amenities</span>
@@ -1371,12 +1371,12 @@ export function Settings({
 
                 {/* Rich text formatting bar */}
                 <div className="flex items-center gap-1 border-b pb-2 mb-2 text-ink-secondary" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-black/[0.05] text-xs font-bold">B</button>
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-black/[0.05] text-xs italic font-serif">I</button>
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-black/[0.05] text-xs underline">U</button>
+                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05] text-xs font-bold">B</button>
+                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05] text-xs italic font-serif">I</button>
+                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05] text-xs underline">U</button>
                   <span className="h-4 w-px bg-border mx-1" />
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-black/[0.05]"><Lucide.List size={15} /></button>
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-black/[0.05]"><Lucide.Link2 size={15} /></button>
+                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05]"><Lucide.List size={15} /></button>
+                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05]"><Lucide.Link2 size={15} /></button>
                 </div>
 
                 <textarea
@@ -1467,12 +1467,12 @@ export function Settings({
                     borderColor: 'color-mix(in srgb, var(--color-success) 25%, transparent)',
                   }}
                 >
-                  <div className="flex h-8 w-8 flex-none items-center justify-center rounded-md bg-emerald-500 text-white shadow-xs">
+                  <div className="flex h-8 w-8 flex-none items-center justify-center rounded-md bg-success-text text-white shadow-xs">
                     <Lucide.CheckCircle2 size={18} strokeWidth={2.4} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-emerald-900 leading-snug">Property is Active</p>
-                    <p className="text-xs text-emerald-800/80 leading-relaxed mt-0.5">
+                    <p className="text-sm font-semibold text-success-text leading-snug">Property is Active</p>
+                    <p className="text-xs text-success-text/80 leading-relaxed mt-0.5">
                       Your property is configured and ready to accept reservations.
                     </p>
                   </div>
@@ -1491,10 +1491,10 @@ export function Settings({
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-ink-secondary">Configuration completeness</span>
-                      <span className="font-bold text-emerald-600">92%</span>
+                      <span className="font-bold text-success-text">92%</span>
                     </div>
                     <div className="h-2 w-full rounded-full bg-muted-surface overflow-hidden">
-                      <div className="h-full rounded-full bg-emerald-500" style={{ width: '92%' }} />
+                      <div className="h-full rounded-full bg-success-text" style={{ width: '92%' }} />
                     </div>
                   </div>
                 </div>

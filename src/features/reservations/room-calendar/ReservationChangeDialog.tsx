@@ -68,33 +68,33 @@ export function ReservationChangeDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/65 backdrop-blur-sm overflow-y-auto"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-ink/65 backdrop-blur-sm overflow-y-auto"
       role="dialog"
       aria-modal="true"
       onClick={() => !isSaving && onCancel()}
     >
       <div
-        className="bg-white rounded-3xl border border-slate-200/90 shadow-[0_25px_70px_-15px_rgba(15,23,42,0.35)] max-w-lg w-full p-6 sm:p-7 flex flex-col gap-5 text-slate-900 font-sans my-auto relative z-10"
+        className="bg-surface rounded-3xl border border-border/90 shadow-2xl max-w-lg w-full p-6 sm:p-7 flex flex-col gap-5 text-ink font-sans my-auto relative z-10"
         onClick={(e) => e.stopPropagation()}
       >
         
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
+        <div className="flex items-start justify-between gap-3 border-b border-divider pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-[var(--color-primary)] border border-indigo-100">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-[var(--color-primary)] border border-primary/30">
               <Lucide.CalendarClock size={22} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-slate-900 tracking-tight">
+                <h3 className="text-base font-bold text-ink tracking-tight">
                   Confirm Reservation Adjustment
                 </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted-surface text-ink">
                   {type === 'move-room' ? 'Room Transfer' : type === 'move-date' ? 'Date Reschedule' : 'Room & Date Change'}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Review proposed alterations for <strong className="text-slate-800">{reservation.guestName}</strong> ({reservation.id})
+              <p className="text-xs text-ink-secondary mt-0.5">
+                Review proposed alterations for <strong className="text-ink">{reservation.guestName}</strong> ({reservation.id})
               </p>
             </div>
           </div>
@@ -103,7 +103,7 @@ export function ReservationChangeDialog({
             type="button"
             onClick={onCancel}
             disabled={isSaving}
-            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+            className="text-ink-muted hover:text-ink-secondary p-1.5 rounded-xl hover:bg-muted-surface transition-colors cursor-pointer"
           >
             <Lucide.X size={18} />
           </button>
@@ -113,53 +113,53 @@ export function ReservationChangeDialog({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           
           {/* Current Booking State */}
-          <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 flex flex-col gap-2.5 text-xs">
-            <div className="flex items-center justify-between text-slate-400 font-bold text-[10px] uppercase tracking-wider">
+          <div className="p-4 rounded-2xl border border-border bg-page/60 flex flex-col gap-2.5 text-xs">
+            <div className="flex items-center justify-between text-ink-muted font-bold text-[10px] uppercase tracking-wider">
               <span>Original Allocation</span>
               <Lucide.History size={13} />
             </div>
 
             <div>
-              <span className="text-[11px] text-slate-500">Assigned Room</span>
+              <span className="text-[11px] text-ink-secondary">Assigned Room</span>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-sm font-extrabold text-slate-800">Room {originalRoom.number}</span>
+                <span className="text-sm font-extrabold text-ink">Room {originalRoom.number}</span>
                 <span className={`text-[10px] font-bold px-2 py-0.2 rounded border ${origTypeConfig.badgeBg}`}>
                   {originalRoom.type}
                 </span>
               </div>
             </div>
 
-            <div className="h-[1px] bg-slate-200/70" />
+            <div className="h-[1px] bg-border/70" />
 
             <div>
-              <span className="text-[11px] text-slate-500">Stay Duration</span>
-              <p className="font-bold text-slate-800 mt-0.5">
+              <span className="text-[11px] text-ink-secondary">Stay Duration</span>
+              <p className="font-bold text-ink mt-0.5">
                 {originalCheckIn} → {originalCheckOut}
               </p>
-              <span className="text-[10px] text-slate-500">({originalNights} {originalNights === 1 ? 'night' : 'nights'})</span>
+              <span className="text-[10px] text-ink-secondary">({originalNights} {originalNights === 1 ? 'night' : 'nights'})</span>
             </div>
 
-            <div className="h-[1px] bg-slate-200/70" />
+            <div className="h-[1px] bg-border/70" />
 
             <div>
-              <span className="text-[11px] text-slate-500">Total Billed</span>
-              <p className="text-sm font-bold font-mono text-slate-800 mt-0.5">
+              <span className="text-[11px] text-ink-secondary">Total Billed</span>
+              <p className="text-sm font-bold font-mono text-ink mt-0.5">
                 ₹{originalTotal.toLocaleString('en-IN')}.00
               </p>
             </div>
           </div>
 
           {/* Proposed Booking State */}
-          <div className="p-4 rounded-2xl border-2 border-indigo-500/80 bg-indigo-50/20 flex flex-col gap-2.5 text-xs shadow-xs relative">
+          <div className="p-4 rounded-2xl border-2 border-primary/80 bg-primary/10 flex flex-col gap-2.5 text-xs shadow-xs relative">
             <div className="flex items-center justify-between text-[var(--color-primary)] font-bold text-[10px] uppercase tracking-wider">
               <span>Proposed Allocation</span>
               <Lucide.Sparkles size={13} />
             </div>
 
             <div>
-              <span className="text-[11px] text-slate-500">New Room</span>
+              <span className="text-[11px] text-ink-secondary">New Room</span>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className={`text-sm font-black ${isRoomChanged ? 'text-[var(--color-primary)]' : 'text-slate-800'}`}>
+                <span className={`text-sm font-black ${isRoomChanged ? 'text-[var(--color-primary)]' : 'text-ink'}`}>
                   Room {proposedRoom.number}
                 </span>
                 <span className={`text-[10px] font-bold px-2 py-0.2 rounded border ${propTypeConfig.badgeBg}`}>
@@ -168,36 +168,36 @@ export function ReservationChangeDialog({
               </div>
             </div>
 
-            <div className="h-[1px] bg-indigo-100" />
+            <div className="h-[1px] bg-primary/10" />
 
             <div>
-              <span className="text-[11px] text-slate-500">New Stay Dates</span>
-              <p className={`font-bold mt-0.5 ${isDatesChanged ? 'text-[var(--color-primary)]' : 'text-slate-800'}`}>
+              <span className="text-[11px] text-ink-secondary">New Stay Dates</span>
+              <p className={`font-bold mt-0.5 ${isDatesChanged ? 'text-[var(--color-primary)]' : 'text-ink'}`}>
                 {proposedCheckIn} → {proposedCheckOut}
               </p>
-              <span className="text-[10px] text-slate-500 font-semibold">
+              <span className="text-[10px] text-ink-secondary font-semibold">
                 ({proposedNights} {proposedNights === 1 ? 'night' : 'nights'})
               </span>
             </div>
 
-            <div className="h-[1px] bg-indigo-100" />
+            <div className="h-[1px] bg-primary/10" />
 
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-slate-500">New Total</span>
+                <span className="text-[11px] text-ink-secondary">New Total</span>
                 {priceDifference !== 0 && (
                   <span
                     className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
                       priceDifference > 0
-                        ? 'bg-amber-100 text-amber-800'
-                        : 'bg-emerald-100 text-emerald-800'
+                        ? 'bg-warning-bg text-warning-text'
+                        : 'bg-success-bg text-success-text'
                     }`}
                   >
                     {priceDifference > 0 ? `+₹${priceDifference.toLocaleString('en-IN')}` : `-₹${Math.abs(priceDifference).toLocaleString('en-IN')}`}
                   </span>
                 )}
               </div>
-              <p className="text-sm font-black font-mono text-slate-900 mt-0.5">
+              <p className="text-sm font-black font-mono text-ink mt-0.5">
                 ₹{proposedTotal.toLocaleString('en-IN')}.00
               </p>
             </div>
@@ -206,12 +206,12 @@ export function ReservationChangeDialog({
         </div>
 
         {/* Pricing Delta Summary Pill */}
-        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs">
+        <div className="p-3.5 rounded-2xl bg-page border border-border/80 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
-            <Lucide.Receipt size={16} className="text-slate-400" />
-            <span className="text-slate-600 font-medium">Estimated Folio Adjustment:</span>
+            <Lucide.Receipt size={16} className="text-ink-muted" />
+            <span className="text-ink-secondary font-medium">Estimated Folio Adjustment:</span>
           </div>
-          <span className="font-extrabold font-mono text-slate-900">
+          <span className="font-extrabold font-mono text-ink">
             {priceDifference === 0
               ? 'No Price Change (₹0.00)'
               : priceDifference > 0
@@ -221,28 +221,28 @@ export function ReservationChangeDialog({
         </div>
 
         {/* Simulated Notification Toggle */}
-        <label className="flex items-start gap-2.5 text-xs text-slate-700 cursor-pointer select-none">
+        <label className="flex items-start gap-2.5 text-xs text-ink cursor-pointer select-none">
           <input
             type="checkbox"
             checked={notifyGuest}
             onChange={(e) => setNotifyGuest(e.target.checked)}
-            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)] cursor-pointer"
+            className="mt-0.5 h-4 w-4 rounded border-ink-disabled text-[var(--color-primary)] focus:ring-[var(--color-primary)] cursor-pointer"
           />
           <div>
-            <span className="font-bold text-slate-900 block">Queue simulated guest notification</span>
-            <span className="text-[11px] text-slate-500">
+            <span className="font-bold text-ink block">Queue simulated guest notification</span>
+            <span className="text-[11px] text-ink-secondary">
               Mock notification email & SMS with updated confirmation slip dispatched to {reservation.guestPhone}
             </span>
           </div>
         </label>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-divider">
           <button
             type="button"
             onClick={onCancel}
             disabled={isSaving}
-            className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-xs transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-xl border border-border bg-surface hover:bg-page text-ink font-bold text-xs shadow-xs transition-colors cursor-pointer"
           >
             Cancel & Revert
           </button>

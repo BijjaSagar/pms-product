@@ -39,11 +39,42 @@ Expenses, rate plans and notification preferences remain demo-only sections.
 npm install
 npm run dev     # start the Vite dev server
 npm run build   # type-check and produce a production bundle in dist/
-npm run lint    # run ESLint
+npm run lint    # run ESLint plus the palette guard
+npm run check:palette  # check colours only
 ```
 
 The production bundle in `dist/` is completely self-contained and can be served
 from any static host.
+
+## Colour palette
+
+The UI is light-only and uses one controlled palette. Do not add bespoke accents
+when styling a screen.
+
+- **Theme accent:** `primary`, `primary-hover`, `primary-active`, `dark-accent`,
+  and `soft`. These follow the active preset, so all decorative accents must use
+  them (for example `bg-primary`, `text-primary`, `from-primary to-dark-accent`).
+- **Status tones:** `success`, `info`, `warning`, `danger`, and `neutral`. Each
+  tone exposes `-bg`, `-text`, `-border`, and `-foreground` tokens and is fixed
+  across presets. Use them for state, not decoration.
+- **Neutrals:** `page`, `surface`, `elevated`, `muted-surface`,
+  `hover-surface`, `ink`, `ink-secondary`, `ink-muted`, `ink-disabled`,
+  `border`, and `divider`.
+- **Charts and inline styles:** import `TONE_VARS`, `CHART_COLORS`, or
+  `ACCENT_VARS` from `src/theme/tone.ts` instead of writing hex values.
+- **Shared components:** use `Badge`, `Card`, `PageHeader`, `TONE_CLASSES`, and
+  the existing primitives rather than re-deriving colour maps.
+
+Stock Tailwind palette utilities (`bg-slate-100`, `text-emerald-600`,
+`from-indigo-500`, …), raw hex/rgb values, and `dark:` variants fail
+`npm run check:palette`. Legitimate brand marks (OTA logos, preset definitions,
+design-token files) are allowlisted in `scripts/check-palette.mjs`; a one-off
+brand colour may also be marked with a `palette-allow` comment on the line above.
+
+```tsx
+{/* palette-allow: Partner brand colour */}
+<span className="bg-[#003580]">B</span>
+```
 
 ## Project structure
 

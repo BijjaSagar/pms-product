@@ -57,7 +57,7 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                   className="rounded-[14px] border p-3 text-left transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
                   style={{
                     borderColor: checked ? 'var(--color-primary)' : 'var(--color-border)',
-                    background: checked ? 'color-mix(in srgb, var(--color-hover-surface) 78%, white)' : 'var(--color-surface)',
+                    background: checked ? 'color-mix(in srgb, var(--color-hover-surface) 78%, var(--color-surface))' : 'var(--color-surface)',
                     boxShadow: checked ? 'var(--shadow-primary), 0 0 0 1px var(--color-primary)' : 'var(--shadow-md)',
                   }}
                 >
@@ -82,7 +82,7 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                       <span
                         key={`${c}-${index}`}
                         className="h-6 flex-1 rounded-full border first:flex-[1.2]"
-                        style={{ background: c, borderColor: 'rgb(0 0 0 / 0.12)' }}
+                        style={{ background: c, borderColor: 'color-mix(in srgb, var(--color-ink) 12%, transparent)' }}
                         title={c}
                       />
                     ))}
@@ -115,11 +115,11 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                 className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-xs font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
                 style={{
                   background: 'var(--color-surface)',
-                  borderColor: 'color-mix(in srgb, #10b981 35%, var(--color-border))',
+                  borderColor: 'color-mix(in srgb, var(--color-success-text) 35%, var(--color-border))',
                   color: 'var(--color-ink)',
                 }}
               >
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-xs" />
+                <span className="h-2.5 w-2.5 rounded-full bg-success-text shadow-xs" />
                 <span>Success Toast</span>
               </button>
 
@@ -133,11 +133,11 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                 className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-xs font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
                 style={{
                   background: 'var(--color-surface)',
-                  borderColor: 'color-mix(in srgb, #0ea5e9 35%, var(--color-border))',
+                  borderColor: 'color-mix(in srgb, var(--color-info-text) 35%, var(--color-border))',
                   color: 'var(--color-ink)',
                 }}
               >
-                <span className="h-2.5 w-2.5 rounded-full bg-sky-500 shadow-xs" />
+                <span className="h-2.5 w-2.5 rounded-full bg-info-text shadow-xs" />
                 <span>Info Toast</span>
               </button>
 
@@ -151,11 +151,11 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                 className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-xs font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
                 style={{
                   background: 'var(--color-surface)',
-                  borderColor: 'color-mix(in srgb, #f59e0b 35%, var(--color-border))',
+                  borderColor: 'color-mix(in srgb, var(--color-warning-text) 35%, var(--color-border))',
                   color: 'var(--color-ink)',
                 }}
               >
-                <span className="h-2.5 w-2.5 rounded-full bg-amber-500 shadow-xs" />
+                <span className="h-2.5 w-2.5 rounded-full bg-warning-text shadow-xs" />
                 <span>Warning Toast</span>
               </button>
 
@@ -177,11 +177,11 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                 className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-xs font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
                 style={{
                   background: 'var(--color-surface)',
-                  borderColor: 'color-mix(in srgb, #f43f5e 35%, var(--color-border))',
+                  borderColor: 'color-mix(in srgb, var(--color-danger-text) 35%, var(--color-border))',
                   color: 'var(--color-ink)',
                 }}
               >
-                <span className="h-2.5 w-2.5 rounded-full bg-rose-500 shadow-xs" />
+                <span className="h-2.5 w-2.5 rounded-full bg-danger-text shadow-xs" />
                 <span>Error Toast</span>
               </button>
             </div>

@@ -88,21 +88,21 @@ export function RateCalendarPanel({
     <section className="pms-card overflow-hidden" aria-labelledby="rate-calendar-title">
       <div className="flex flex-col gap-4 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-xs shadow-indigo-500/20">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
             <Lucide.Calendar size={18} strokeWidth={2.4} />
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 id="rate-calendar-title" className="text-sm font-bold tracking-tight text-slate-900">Rate Calendar</h2>
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+              <h2 id="rate-calendar-title" className="text-sm font-bold tracking-tight text-ink">Rate Calendar</h2>
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
                 </span>
                 Synced to {plan.channels.length} channels
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-[11px] text-ink-muted mt-0.5">
               {roomType} · {plan.name}{adjustment ? ` · ${adjustment > 0 ? '+' : ''}${adjustment}% plan adjustment` : ' · base pricing'}
             </p>
           </div>
@@ -125,8 +125,8 @@ export function RateCalendarPanel({
       <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-5">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-ink-secondary" aria-label="Rate calendar legend">
           <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary" />Rate</span>
-          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-amber-500" />High demand</span>
-          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-rose-500" />Restriction</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-warning-text" />High demand</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-danger-text" />Restriction</span>
         </div>
         <span className="text-[11px] text-ink-muted">Select a cell to update a date</span>
       </div>
@@ -139,7 +139,7 @@ export function RateCalendarPanel({
                 Rate / restriction
               </th>
               {dates.map((date) => (
-                <th key={date.iso} className={`min-w-[58px] border-r px-1.5 py-2 text-center ${date.isWeekend ? 'bg-rose-50/50' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
+                <th key={date.iso} className={`min-w-[58px] border-r px-1.5 py-2 text-center ${date.isWeekend ? 'bg-danger-bg/50' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
                   <span className="block text-[10px] font-medium text-ink-muted">{date.weekday}</span>
                   <span className={`mt-0.5 block text-sm font-bold ${date.iso === businessDate ? 'text-primary' : 'text-ink'}`}>{date.day}</span>
                   <span className="block text-[9px] font-medium text-ink-muted">{date.month}</span>
@@ -154,7 +154,7 @@ export function RateCalendarPanel({
                 <span className="flex items-center gap-2"><Lucide.CircleDollarSign size={14} className="text-primary" /> Nightly rate</span>
               </th>
               {rates.map((rate, index) => (
-                <td key={dates[index].iso} className={`border-r p-1 ${dates[index].isWeekend ? 'bg-rose-50/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
+                <td key={dates[index].iso} className={`border-r p-1 ${dates[index].isWeekend ? 'bg-danger-bg/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
                   <label className="sr-only" htmlFor={`rate-${dates[index].iso}`}>Nightly rate for {dates[index].weekday}, {dates[index].month} {dates[index].day}</label>
                   <div className="relative">
                     <span className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 text-[9px] text-ink-muted">₹</span>
@@ -167,7 +167,7 @@ export function RateCalendarPanel({
             <tr className="border-t" style={{ borderColor: 'var(--color-divider)' }}>
               <th scope="row" className="sticky left-0 z-10 border-r px-4 py-2.5 text-left font-medium text-ink-secondary" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}>Minimum stay</th>
               {minStays.map((value, index) => (
-                <td key={dates[index].iso} className={`border-r p-1 text-center ${dates[index].isWeekend ? 'bg-rose-50/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
+                <td key={dates[index].iso} className={`border-r p-1 text-center ${dates[index].isWeekend ? 'bg-danger-bg/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
                   <label className="sr-only" htmlFor={`min-stay-${dates[index].iso}`}>Minimum stay for {dates[index].month} {dates[index].day}</label>
                   <input id={`min-stay-${dates[index].iso}`} type="number" min={1} max={30} value={value} onChange={(event) => onMinStayChange(index, Number(event.target.value))} className="pms-input min-h-[34px] w-full px-1 py-1 text-center text-[11px] tnum" />
                 </td>
@@ -177,7 +177,7 @@ export function RateCalendarPanel({
             <tr className="border-t" style={{ borderColor: 'var(--color-divider)' }}>
               <th scope="row" className="sticky left-0 z-10 border-r px-4 py-2.5 text-left font-medium text-ink-secondary" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}>Maximum stay</th>
               {maxStays.map((value, index) => (
-                <td key={dates[index].iso} className={`border-r p-1 text-center ${dates[index].isWeekend ? 'bg-rose-50/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
+                <td key={dates[index].iso} className={`border-r p-1 text-center ${dates[index].isWeekend ? 'bg-danger-bg/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
                   <label className="sr-only" htmlFor={`max-stay-${dates[index].iso}`}>Maximum stay for {dates[index].month} {dates[index].day}</label>
                   <input id={`max-stay-${dates[index].iso}`} type="number" min={1} max={90} value={value} onChange={(event) => onMaxStayChange(index, Number(event.target.value))} className="pms-input min-h-[34px] w-full px-1 py-1 text-center text-[11px] tnum" />
                 </td>
@@ -194,7 +194,7 @@ export function RateCalendarPanel({
                   <span className="flex items-center gap-2"><Lucide.LockKeyhole size={13} className={row.key === 'stopSell' ? 'text-danger-text' : 'text-ink-muted'} />{row.label}</span>
                 </th>
                 {row.values.map((checked, index) => (
-                  <td key={dates[index].iso} className={`border-r p-1 text-center ${dates[index].isWeekend ? 'bg-rose-50/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
+                  <td key={dates[index].iso} className={`border-r p-1 text-center ${dates[index].isWeekend ? 'bg-danger-bg/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
                     <ToggleCell checked={checked} label={`${row.label} on ${dates[index].month} ${dates[index].day}`} onChange={(value) => onRestrictionChange(row.key, index, value)} />
                   </td>
                 ))}
@@ -204,15 +204,15 @@ export function RateCalendarPanel({
             <tr className="border-t" style={{ borderColor: 'var(--color-divider)' }}>
               <th scope="row" className="sticky left-0 z-10 border-r px-4 py-2.5 text-left font-medium text-ink-secondary" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}>Rooms available</th>
               {availability.map((value, index) => (
-                <td key={dates[index].iso} className={`border-r px-1 py-2 text-center font-semibold text-ink-secondary tnum ${dates[index].isWeekend ? 'bg-rose-50/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>{value}</td>
+                <td key={dates[index].iso} className={`border-r px-1 py-2 text-center font-semibold text-ink-secondary tnum ${dates[index].isWeekend ? 'bg-danger-bg/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>{value}</td>
               ))}
               <td />
             </tr>
             <tr className="border-t" style={{ borderColor: 'var(--color-divider)' }}>
               <th scope="row" className="sticky left-0 z-10 border-r px-4 py-2.5 text-left font-medium text-ink-secondary" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}>Demand forecast</th>
               {demand.map((value, index) => (
-                <td key={dates[index].iso} className={`border-r px-1 py-2 text-center ${dates[index].isWeekend ? 'bg-rose-50/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
-                  <span className={`inline-flex rounded-full px-2 py-0.5 text-[9px] font-semibold ${value === 'High' ? 'bg-amber-100 text-amber-800' : 'bg-muted-surface text-ink-secondary'}`}>{value}</span>
+                <td key={dates[index].iso} className={`border-r px-1 py-2 text-center ${dates[index].isWeekend ? 'bg-danger-bg/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
+                  <span className={`inline-flex rounded-full px-2 py-0.5 text-[9px] font-semibold ${value === 'High' ? 'bg-warning-bg text-warning-text' : 'bg-muted-surface text-ink-secondary'}`}>{value}</span>
                 </td>
               ))}
               <td />
