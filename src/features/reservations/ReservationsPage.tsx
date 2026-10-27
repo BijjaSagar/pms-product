@@ -589,9 +589,9 @@ function ReservationDrawer({
 }
 
 // ================= ROOM CALENDAR TAPE CHART COMPONENT =================
-const COL_WIDTH = 92; // keep in sync with the rendered date cells and drag calculations
-const ROW_HEIGHT = 64; // keep in sync with the rendered room rows and drag calculations
-const ROOM_COL_WIDTH = 236; // width of the sticky room allotment column in pixels
+const COL_WIDTH = 114; // keep in sync with the rendered date cells and drag calculations
+const ROW_HEIGHT = 54; // keep in sync with the rendered room rows and drag calculations
+const ROOM_COL_WIDTH = 110; // width of the sticky room allotment column in pixels
 
 const RESERVATION_BAR_TONES: Record<
   CalendarReservationStatus,
@@ -826,16 +826,16 @@ export function RoomCalendar({
       setDragState((prev) =>
         prev
           ? {
-              ...prev,
-              isDragging: true,
-              currentX: e.clientX,
-              currentY: e.clientY,
-              proposedRoomId,
-              proposedCheckIn,
-              proposedCheckOut,
-              isValid: valResult.isValid,
-              invalidReason: valResult.reason,
-            }
+            ...prev,
+            isDragging: true,
+            currentX: e.clientX,
+            currentY: e.clientY,
+            proposedRoomId,
+            proposedCheckIn,
+            proposedCheckOut,
+            isValid: valResult.isValid,
+            invalidReason: valResult.reason,
+          }
           : null
       );
     };
@@ -901,12 +901,12 @@ export function RoomCalendar({
             hasRoomChanged && hasDatesChanged
               ? 'combined'
               : hasRoomChanged
-              ? 'move-room'
-              : dragState.dragType === 'resize-start'
-              ? 'resize-start'
-              : dragState.dragType === 'resize-end'
-              ? 'resize-end'
-              : 'move-date',
+                ? 'move-room'
+                : dragState.dragType === 'resize-start'
+                  ? 'resize-start'
+                  : dragState.dragType === 'resize-end'
+                    ? 'resize-end'
+                    : 'move-date',
         };
 
         setPendingChange(change);
@@ -955,17 +955,17 @@ export function RoomCalendar({
       prev.map((r) =>
         r.backendId === backendId
           ? {
-              ...r,
-              ...(r.id === reservation.id ? {
-                roomId: proposedRoom.id,
-                roomNumber: proposedRoom.number,
-                roomType: proposedRoom.type,
-              } : {}),
-              checkInDate: proposedCheckIn,
-              checkOutDate: proposedCheckOut,
-              nights: proposedNights,
-              totalAmount: proposedNights * r.nightlyRate,
-            }
+            ...r,
+            ...(r.id === reservation.id ? {
+              roomId: proposedRoom.id,
+              roomNumber: proposedRoom.number,
+              roomType: proposedRoom.type,
+            } : {}),
+            checkInDate: proposedCheckIn,
+            checkOutDate: proposedCheckOut,
+            nights: proposedNights,
+            totalAmount: proposedNights * r.nightlyRate,
+          }
           : r
       )
     );
@@ -977,9 +977,8 @@ export function RoomCalendar({
     onReservationUpdated?.();
 
     toast.success('Reservation Updated & Synced', {
-      detail: `${reservation.guestName} reassigned to Room ${proposedRoom.number} (${proposedCheckIn} → ${proposedCheckOut}). ${
-        notifyGuest ? 'Simulated guest email & SMS queued.' : ''
-      }`,
+      detail: `${reservation.guestName} reassigned to Room ${proposedRoom.number} (${proposedCheckIn} → ${proposedCheckOut}). ${notifyGuest ? 'Simulated guest email & SMS queued.' : ''
+        }`,
     });
   };
 
@@ -1002,13 +1001,12 @@ export function RoomCalendar({
 
   return (
     <div className="w-full flex flex-col gap-4 text-ink font-sans select-none">
-      
       {/* ================= 1. ROOM CALENDAR TOOLBAR ================= */}
       <section className="pms-card flex flex-col gap-4 p-3.5 sm:p-4" aria-label="Room calendar controls">
-        
+
         {/* Top Row: Date Step & View Horizon & Master Actions */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
-          
+
           {/* Left: Date Stepper & Today */}
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <div className="flex items-center rounded-xl border border-border bg-page p-1 shadow-2xs">
@@ -1017,7 +1015,7 @@ export function RoomCalendar({
                 onClick={() => stepDate(-7)}
                 title="Previous Week (-7 days)"
                 aria-label="Previous week"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-secondary transition-colors hover:bg-surface cursor-pointer"
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-ink-secondary transition-colors hover:bg-surface cursor-pointer"
               >
                 <Lucide.ChevronsLeft size={16} />
               </button>
@@ -1026,12 +1024,12 @@ export function RoomCalendar({
                 onClick={() => stepDate(-1)}
                 title="Previous Day (-1 day)"
                 aria-label="Previous day"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-secondary transition-colors hover:bg-surface cursor-pointer"
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-ink-secondary transition-colors hover:bg-surface cursor-pointer"
               >
                 <Lucide.ChevronLeft size={16} />
               </button>
 
-              <label className="relative flex min-h-9 cursor-pointer items-center gap-2 rounded-lg border border-border/80 bg-surface px-3 text-xs font-semibold text-ink shadow-2xs focus-within:ring-2 focus-within:ring-[var(--color-primary)]/25">
+              <label className="relative flex min-h-9 cursor-pointer items-center gap-2 rounded-xl border border-border/80 bg-surface px-3 text-xs font-semibold text-ink shadow-2xs focus-within:ring-2 focus-within:ring-[var(--color-primary)]/25">
                 <Lucide.Calendar size={14} className="text-[var(--color-primary)]" />
                 <span>
                   {formatCalendarDate(baseDate).month} {formatCalendarDate(baseDate).dayNum}, {formatCalendarDate(baseDate).year}
@@ -1050,7 +1048,7 @@ export function RoomCalendar({
                 onClick={() => stepDate(1)}
                 title="Next Day (+1 day)"
                 aria-label="Next day"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-secondary transition-colors hover:bg-surface cursor-pointer"
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-ink-secondary transition-colors hover:bg-surface cursor-pointer"
               >
                 <Lucide.ChevronRight size={16} />
               </button>
@@ -1059,7 +1057,7 @@ export function RoomCalendar({
                 onClick={() => stepDate(7)}
                 title="Next Week (+7 days)"
                 aria-label="Next week"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-secondary transition-colors hover:bg-surface cursor-pointer"
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-ink-secondary transition-colors hover:bg-surface cursor-pointer"
               >
                 <Lucide.ChevronsRight size={16} />
               </button>
@@ -1081,15 +1079,35 @@ export function RoomCalendar({
                   type="button"
                   onClick={() => setViewHorizonDays(days)}
                   aria-pressed={viewHorizonDays === days}
-                  className={`min-h-8 rounded-lg px-3 transition-all cursor-pointer ${
-                    viewHorizonDays === days
-                      ? 'bg-surface text-ink shadow-2xs border border-border/60'
-                      : 'text-ink-secondary hover:text-ink'
-                  }`}
+                  className={`min-h-8 rounded-xl px-3 transition-all cursor-pointer ${viewHorizonDays === days
+                    ? 'bg-surface text-ink shadow-2xs border border-border/60'
+                    : 'text-ink-secondary hover:text-ink'
+                    }`}
                 >
                   {days} Days
                 </button>
               ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+
+              <div className="flex items-center gap-2 rounded-xl ml-4 border border-border bg-page px-2 py-1.5 text-xs">
+                <span className="text-ink-secondary">Rooms</span>
+                <span className="font-bold tabular-nums text-ink">{stats.totalRoomsCount}</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl border border-[var(--color-success-border)] bg-[var(--color-success-bg)] px-2 py-1.5 text-xs text-[var(--color-success-text)]">
+                <span>Available</span>
+                <span className="font-bold tabular-nums">{stats.availableToday}</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl border border-[var(--color-info-border)] bg-[var(--color-info-bg)] px-2 py-1.5 text-xs text-[var(--color-info-text)]">
+                <span>Occupied</span>
+                <span className="font-bold tabular-nums">{stats.occupiedToday} · {stats.occupancyRate}%</span>
+              </div>
+              {stats.oooCount > 0 && (
+                <div className="flex items-center gap-2 rounded-xl border border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] px-2 py-1.5 text-xs text-[var(--color-danger-text)]">
+                  <span>Out of order</span>
+                  <span className="font-bold tabular-nums">{stats.oooCount}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1097,7 +1115,7 @@ export function RoomCalendar({
 
         {/* Bottom Row: Search Box & Filter Dropdowns */}
         <div className="grid grid-cols-1 gap-2 border-t border-divider pt-3 sm:grid-cols-2 xl:grid-cols-5">
-          
+
           {/* Search */}
           <div className="relative sm:col-span-2 xl:col-span-1">
             <Lucide.Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
@@ -1110,6 +1128,7 @@ export function RoomCalendar({
               className="min-h-10 w-full border border-border bg-page/60 py-2 pl-9 pr-3 text-xs font-medium text-ink transition-all focus:border-[var(--color-primary)] focus:bg-surface focus:outline-none"
             />
           </div>
+
 
           {/* Room Type */}
           <div>
@@ -1185,144 +1204,71 @@ export function RoomCalendar({
 
       </section>
 
-      {/* ================= 2. OCCUPANCY SUMMARY & STATUS LEGEND ================= */}
-      <section
-        className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-surface p-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between sm:px-4"
-        aria-label="Room availability and reservation status legend"
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="mr-1 min-w-[120px]">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">Inventory on</p>
-            <p className="text-xs font-semibold text-ink">
-              {formatCalendarDate(baseDate).month} {formatCalendarDate(baseDate).dayNum}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 rounded-xl border border-border bg-page px-3 py-2 text-xs">
-            <span className="text-ink-secondary">Rooms</span>
-            <span className="font-bold tabular-nums text-ink">{stats.totalRoomsCount}</span>
-          </div>
-          <div className="flex items-center gap-2 rounded-xl border border-[var(--color-success-border)] bg-[var(--color-success-bg)] px-3 py-2 text-xs text-[var(--color-success-text)]">
-            <span>Available</span>
-            <span className="font-bold tabular-nums">{stats.availableToday}</span>
-          </div>
-          <div className="flex items-center gap-2 rounded-xl border border-[var(--color-info-border)] bg-[var(--color-info-bg)] px-3 py-2 text-xs text-[var(--color-info-text)]">
-            <span>Occupied</span>
-            <span className="font-bold tabular-nums">{stats.occupiedToday} · {stats.occupancyRate}%</span>
-          </div>
-          {stats.oooCount > 0 && (
-            <div className="flex items-center gap-2 rounded-xl border border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] px-3 py-2 text-xs text-[var(--color-danger-text)]">
-              <span>Out of order</span>
-              <span className="font-bold tabular-nums">{stats.oooCount}</span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[10px] font-semibold text-ink-secondary" role="list" aria-label="Reservation status legend">
-          {([
-            'Confirmed',
-            'Checked-in',
-            'Pending',
-            'Tentative',
-            'Checked-out',
-            'Cancelled',
-            'No-show',
-          ] as CalendarReservationStatus[]).map((status) => {
-            const tone = RESERVATION_BAR_TONES[status];
-            return (
-              <span key={status} role="listitem" className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                <span className="flex h-3 w-3 items-center justify-center rounded border" style={{ background: tone.background, borderColor: tone.border }}>
-                  <span className="h-1.5 w-1.5 rounded-full" style={{ background: tone.accent }} />
-                </span>
-                {status}
-              </span>
-            );
-          })}
-          <span role="listitem" className="inline-flex items-center gap-1.5 whitespace-nowrap">
-            <span className="h-3 w-3 rounded border border-ink-disabled bg-border" />
-            Out of order
-          </span>
-        </div>
-      </section>
 
       {/* ================= 3. MASTER INTERACTIVE ROOM RACK GRID ================= */}
       <section className="pms-card overflow-hidden" aria-label="Room reservation timeline">
-        
-        {/* Instruction Banner */}
-        <div className="flex flex-col gap-2 border-b border-border/80 bg-page/70 px-3 py-2.5 text-xs text-ink-secondary sm:flex-row sm:items-center sm:justify-between sm:px-4">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-[var(--color-muted-surface)] text-[var(--color-primary)]">
-              <Lucide.Move size={14} />
-            </span>
-            <span className="leading-5">
-              Drag a stay to change its room or dates. Use the bar handles to adjust length; select a stay for details.
-            </span>
+
+        {/* Header Row: Room Label Column + Date Columns */}
+        <div className="sticky top-0 z-20 flex border-b border-border bg-surface">
+          {/* Sticky Top-Left Corner */}
+          <div
+            style={{ width: `${ROOM_COL_WIDTH}px` }}
+            className="sticky left-0 z-30 flex shrink-0 items-center justify-between border-r border-border bg-page px-3 py-3 text-[12px] font-bold uppercase tracking-wider text-ink-secondary shadow-xs"
+          >
+            <span>Room no</span>
           </div>
-          <span className="flex-none text-[11px] font-semibold text-ink-secondary">
-            {filteredRooms.length} {filteredRooms.length === 1 ? 'room' : 'rooms'}
-          </span>
+
+          {/* Date Columns Header */}
+          <div className="flex" style={{ width: `${calendarDates.length * COL_WIDTH}px` }}>
+            {calendarDates.map((dateStr) => {
+              const isToday = dateStr === baseDate;
+              const dateInfo = formatCalendarDate(dateStr);
+              return (
+                <div
+                  key={dateStr}
+                  style={{
+                    width: `${COL_WIDTH}px`,
+                    background: isToday
+                      ? 'color-mix(in srgb, var(--color-primary) 9%, var(--color-surface))'
+                      : dateInfo.isWeekend
+                        ? 'color-mix(in srgb, var(--color-muted-surface) 60%, var(--color-surface))'
+                        : 'var(--color-surface)',
+                    borderColor: 'var(--color-border)',
+                    borderBottom: isToday ? '2px solid var(--color-primary)' : undefined,
+                  }}
+                  className="flex shrink-0 flex-col items-center justify-center border-r px-1 py-2 text-center transition-colors"
+                >
+                  <span
+                    className={`text-[10px] font-bold uppercase tracking-wider ${isToday ? 'font-bold text-[var(--color-primary)]' : 'text-ink-secondary'
+                      }`}
+                  >
+                    {dateInfo.weekday}
+                  </span>
+                  <span
+                    className={`text-sm leading-none mt-0.5 ${isToday
+                      ? 'flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary)] font-bold text-white shadow-xs'
+                      : 'font-bold text-ink'
+                      }`}
+                  >
+                    {dateInfo.dayNum}
+                  </span>
+                  <span className="mt-0.5 text-[9px] font-medium text-ink-secondary">
+                    {dateInfo.month}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
+
         {/* Scrollable Container */}
-        <div className="relative max-h-[72vh] overflow-auto" ref={gridContainerRef}>
+        <div className="relative max-h-[72vh] overflow-auto py-2.5" ref={gridContainerRef}>
           <div
             className="flex flex-col min-w-max relative"
             style={{ width: `${ROOM_COL_WIDTH + calendarDates.length * COL_WIDTH}px` }}
           >
-            {/* Header Row: Room Label Column + Date Columns */}
-            <div className="sticky top-0 z-20 flex border-b border-border bg-surface">
-              {/* Sticky Top-Left Corner */}
-              <div
-                style={{ width: `${ROOM_COL_WIDTH}px` }}
-                className="sticky left-0 z-30 flex shrink-0 items-center justify-between border-r border-border bg-page px-3 py-3 text-[10px] font-bold uppercase tracking-wider text-ink-secondary shadow-xs"
-              >
-                <span>Room</span>
-                <span>Type · floor</span>
-              </div>
 
-              {/* Date Columns Header */}
-              <div className="flex" style={{ width: `${calendarDates.length * COL_WIDTH}px` }}>
-                {calendarDates.map((dateStr) => {
-                  const isToday = dateStr === baseDate;
-                  const dateInfo = formatCalendarDate(dateStr);
-                  return (
-                    <div
-                      key={dateStr}
-                      style={{
-                        width: `${COL_WIDTH}px`,
-                        background: isToday
-                          ? 'color-mix(in srgb, var(--color-primary) 9%, var(--color-surface))'
-                          : dateInfo.isWeekend
-                          ? 'color-mix(in srgb, var(--color-muted-surface) 60%, var(--color-surface))'
-                          : 'var(--color-surface)',
-                        borderColor: 'var(--color-border)',
-                        borderBottom: isToday ? '2px solid var(--color-primary)' : undefined,
-                      }}
-                      className="flex shrink-0 flex-col items-center justify-center border-r px-1 py-2 text-center transition-colors"
-                    >
-                      <span
-                        className={`text-[10px] font-bold uppercase tracking-wider ${
-                          isToday ? 'font-bold text-[var(--color-primary)]' : 'text-ink-secondary'
-                        }`}
-                      >
-                        {dateInfo.weekday}
-                      </span>
-                      <span
-                        className={`text-sm leading-none mt-0.5 ${
-                          isToday
-                            ? 'flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary)] font-bold text-white shadow-xs'
-                            : 'font-bold text-ink'
-                        }`}
-                      >
-                        {dateInfo.dayNum}
-                      </span>
-                      <span className="mt-0.5 text-[9px] font-medium text-ink-secondary">
-                        {dateInfo.month}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
 
             {/* Room Rows (15 Rooms total across 3 floors) */}
             {filteredRooms.length === 0 ? (
@@ -1353,15 +1299,14 @@ export function RoomCalendar({
               return (
                 <div
                   key={room.id}
-                  className={`flex border-b border-border/80 relative transition-colors ${
-                    isTargetRow
-                      ? dragState?.isValid
-                        ? 'bg-[var(--color-muted-surface)] ring-1 ring-inset ring-[var(--color-primary)]/40'
-                        : 'bg-[var(--color-danger-bg)] ring-1 ring-inset ring-[var(--color-danger-border)]'
-                      : isOOO
+                  className={`flex border-b border-border/80 relative transition-colors ${isTargetRow
+                    ? dragState?.isValid
+                      ? 'bg-[var(--color-muted-surface)] ring-1 ring-inset ring-[var(--color-primary)]/40'
+                      : 'bg-[var(--color-danger-bg)] ring-1 ring-inset ring-[var(--color-danger-border)]'
+                    : isOOO
                       ? 'bg-page/50'
                       : 'hover:bg-page/60'
-                  }`}
+                    }`}
                   style={{ height: `${ROW_HEIGHT}px`, borderColor: 'var(--color-border)' }}
                 >
                   {/* Sticky Left Room Card (Z-20, solid background, never overlapped) */}
@@ -1372,45 +1317,21 @@ export function RoomCalendar({
                       background: isTargetRow
                         ? 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))'
                         : isOOO
-                        ? 'var(--color-muted-surface)'
-                        : 'var(--color-surface)',
+                          ? 'var(--color-muted-surface)'
+                          : 'var(--color-surface)',
                     }}
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="flex flex-col">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-black text-ink tracking-tight">
+                          <span className="text-[12px] font-black text-ink tracking-tight">
                             Rm {room.number}
                           </span>
-                          <span
-                            className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold ${typeCfg.badgeBg}`}
-                          >
-                            {room.type}
-                          </span>
+
                         </div>
-                        <span className="mt-0.5 text-[10px] font-medium text-ink-secondary">
-                          Flr {room.floor} · ₹{room.baseRate.toLocaleString('en-IN')}/nt · Max {room.maxOccupancy}
-                        </span>
+
                       </div>
                     </div>
-
-                    {/* Operational Status Pill */}
-                    <span
-                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md shrink-0 ${
-                        room.status === 'Available' || room.status === 'Clean'
-                          ? 'bg-success-bg text-success-text border border-success-border'
-                          : room.status === 'Inspected'
-                          ? 'bg-info-bg text-info-text border border-info-border'
-                          : room.status === 'Dirty'
-                          ? 'bg-warning-bg text-warning-text border border-warning-border'
-                          : room.status === 'Occupied'
-                          ? 'bg-primary/10 text-primary border border-primary/30'
-                          : 'bg-danger-bg text-danger-text border border-danger-border'
-                      }`}
-                      title={room.outOfOrderReason || room.status}
-                    >
-                      {room.status === 'Out-of-Order' ? 'OOO' : room.status}
-                    </span>
                   </div>
 
                   {/* Timeline Canvas (Starts strictly after sticky room column) */}
@@ -1431,10 +1352,10 @@ export function RoomCalendar({
                             background: isOOO
                               ? 'repeating-linear-gradient(45deg, var(--color-muted-surface), var(--color-muted-surface) 8px, var(--color-surface) 8px, var(--color-surface) 16px)'
                               : isToday
-                              ? 'color-mix(in srgb, var(--color-primary) 5%, var(--color-surface))'
-                              : dateInfo.isWeekend
-                              ? 'color-mix(in srgb, var(--color-muted-surface) 45%, var(--color-surface))'
-                              : 'var(--color-surface)',
+                                ? 'color-mix(in srgb, var(--color-primary) 5%, var(--color-surface))'
+                                : dateInfo.isWeekend
+                                  ? 'color-mix(in srgb, var(--color-muted-surface) 45%, var(--color-surface))'
+                                  : 'var(--color-surface)',
                           }}
                           className="relative flex h-full shrink-0 items-center justify-center border-r"
                         />
@@ -1493,15 +1414,11 @@ export function RoomCalendar({
                             borderColor: barTone.border,
                             borderLeft: `3px solid ${barTone.accent}`,
                           }}
-                          className={`absolute ${
-                            startedBefore ? 'rounded-l-none' : 'rounded-l-xl'
-                          } ${
-                            endsAfter ? 'rounded-r-none' : 'rounded-r-xl'
-                          } z-10 group flex select-none items-center justify-between overflow-hidden border px-2 py-0.5 text-xs font-semibold shadow-xs transition-all cursor-grab active:cursor-grabbing focus-visible:z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-1 ${
-                            isBeingDragged ? 'opacity-30' : 'hover:brightness-[0.98] hover:shadow-sm'
-                          } ${isInactive ? 'opacity-75' : ''} ${
-                            res.status === 'Cancelled' ? 'cursor-not-allowed' : ''
-                          }`}
+                          className={`absolute ${startedBefore ? 'rounded-l-none' : 'rounded-l-xl'
+                            } ${endsAfter ? 'rounded-r-none' : 'rounded-r-xl'
+                            } z-10 group flex select-none items-center justify-between overflow-hidden border px-2 py-0.5 text-xs font-semibold shadow-xs transition-all cursor-grab active:cursor-grabbing focus-visible:z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-1 ${isBeingDragged ? 'opacity-30' : 'hover:brightness-[0.98] hover:shadow-sm'
+                            } ${isInactive ? 'opacity-75' : ''} ${res.status === 'Cancelled' ? 'cursor-not-allowed' : ''
+                            }`}
                           title={`${res.guestName} (${res.id}) · ${res.checkInDate} to ${res.checkOutDate} (${res.nights}n) · ₹${res.totalAmount.toLocaleString('en-IN')}`}
                         >
                           {/* Left Resize Handle (only if check-in is within visible range) */}
@@ -1589,11 +1506,10 @@ export function RoomCalendar({
                             top: '8px',
                             bottom: '8px',
                           }}
-                          className={`absolute rounded-xl px-2.5 py-0.5 flex items-center justify-between text-xs font-bold shadow-xl pointer-events-none z-30 transition-all border-2 border-dashed ${
-                            dragState.isValid
-                              ? 'bg-[var(--color-primary)]/90 border-surface text-white ring-2 ring-[var(--color-primary)]'
-                              : 'bg-danger-text/90 border-surface text-white ring-2 ring-danger-text'
-                          }`}
+                          className={`absolute rounded-xl px-2.5 py-0.5 flex items-center justify-between text-xs font-bold shadow-xl pointer-events-none z-30 transition-all border-2 border-dashed ${dragState.isValid
+                            ? 'bg-[var(--color-primary)]/90 border-surface text-white ring-2 ring-[var(--color-primary)]'
+                            : 'bg-danger-text/90 border-surface text-white ring-2 ring-danger-text'
+                            }`}
                         >
                           <div className="flex items-center gap-1.5 truncate">
                             <span>
@@ -1623,7 +1539,7 @@ export function RoomCalendar({
       </section>
 
       {/* ================= 4. CONFIRMATION & DETAIL OVERLAYS ================= */}
-      
+
       {/* Move Confirmation Dialog (Portaled to body) */}
       <ReservationChangeDialog
         change={pendingChange}
@@ -1651,7 +1567,7 @@ export function RoomCalendar({
 
 export function Reservations({
   initialQuery = '',
-  initialViewMode = 'list',
+  initialViewMode = 'calendar',
   focusId,
   go,
 }: {
@@ -1742,8 +1658,8 @@ export function Reservations({
       sort === 'guest'
         ? a.guest.localeCompare(b.guest)
         : sort === 'amount'
-        ? b.total - a.total
-        : a.checkIn.localeCompare(b.checkIn)
+          ? b.total - a.total
+          : a.checkIn.localeCompare(b.checkIn)
     );
   }, [rows, q, status, source, roomFilter, guestCountFilter, sort]);
 
@@ -1753,44 +1669,6 @@ export function Reservations({
   const slice = filtered.slice(safePage * pageSize, safePage * pageSize + pageSize);
 
   // KPI Metrics matching screenshot exactly
-  const summaryStats = [
-    {
-      label: 'Total Reservations',
-      value: 43,
-      Icon: Lucide.FileText,
-      iconBg: 'bg-info-bg text-info-text',
-    },
-    {
-      label: 'Arrivals Today',
-      value: 8,
-      Icon: Lucide.ArrowUpRight,
-      iconBg: 'bg-success-bg text-success-text',
-    },
-    {
-      label: 'Departures Today',
-      value: 6,
-      Icon: Lucide.Compass,
-      iconBg: 'bg-warning-bg text-warning-text',
-    },
-    {
-      label: 'In-house',
-      value: 24,
-      Icon: Lucide.BedDouble,
-      iconBg: 'bg-primary/10 text-primary',
-    },
-    {
-      label: 'Pending',
-      value: 4,
-      Icon: Lucide.Clock,
-      iconBg: 'bg-warning-bg text-warning-text',
-    },
-    {
-      label: 'No-show',
-      value: 1,
-      Icon: Lucide.AlarmClock,
-      iconBg: 'bg-danger-bg text-danger-text',
-    },
-  ];
 
   const openListRow = rows.find((r) => r.id === openId) ?? null;
   const openBackendId = openListRow?.backendId;
@@ -1799,10 +1677,10 @@ export function Reservations({
     () =>
       openBackendId
         ? reservationApi
-            .get(openBackendId)
-            .then((detail) =>
-              reservationFromApi({ ...detail, roomTypeName: openListRow?.roomType ?? null })
-            )
+          .get(openBackendId)
+          .then((detail) =>
+            reservationFromApi({ ...detail, roomTypeName: openListRow?.roomType ?? null })
+          )
         : Promise.resolve(null),
     [openBackendId]
   );
@@ -1873,53 +1751,32 @@ export function Reservations({
       {/* ================= 1. PAGE HEADER ================= */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20 mt-0.5">
-            <Lucide.CalendarDays size={20} strokeWidth={2.4} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">Reservations</h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
-                </span>
-                Live Grid
-              </span>
-            </div>
-            <p className="text-xs text-ink-secondary mt-1">
-              Manage all reservations, search, filter and view booking details
-            </p>
-          </div>
         </div>
-
         {/* Action Buttons & View Switcher */}
         <div className="flex flex-wrap items-center gap-2">
           {/* View Switcher: List View vs Calendar View */}
           <div className="flex items-center p-1 rounded-xl border border-border bg-surface shadow-2xs">
             <button
               type="button"
-              onClick={() => setViewMode('list')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                viewMode === 'list'
-                  ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                  : 'text-ink-secondary hover:text-ink'
-              }`}
-            >
-              <Lucide.List size={14} />
-              <span>List View</span>
-            </button>
-            <button
-              type="button"
               onClick={() => setViewMode('calendar')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                viewMode === 'calendar'
-                  ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                  : 'text-ink-secondary hover:text-ink'
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'calendar'
+                ? 'bg-[var(--color-primary)] text-white shadow-xs'
+                : 'text-ink-secondary hover:text-ink'
+                }`}
             >
               <Lucide.CalendarRange size={14} />
               <span>Room Calendar</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'list'
+                ? 'bg-[var(--color-primary)] text-white shadow-xs'
+                : 'text-ink-secondary hover:text-ink'
+                }`}
+            >
+              <Lucide.List size={14} />
+              <span>List View</span>
             </button>
           </div>
         </div>
@@ -1929,550 +1786,437 @@ export function Reservations({
         <RoomCalendar go={go} onReservationUpdated={() => resource.refresh()} />
       ) : (
         <>
-          {/* ================= 2. RESERVATION KPI CARDS ================= */}
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6" aria-label="Reservation summary">
-        {summaryStats.map((stat) => (
-          <button
-            key={stat.label}
-            type="button"
-            onClick={() => {
-              if (stat.label === 'Arrivals Today') go({ view: 'check-in' });
-              else if (stat.label === 'Departures Today') go({ view: 'check-out' });
-              else if (stat.label === 'In-house') setStatus('Checked-in');
-            }}
-            className="group flex min-h-[112px] w-full items-center justify-between gap-3 rounded-2xl border border-border/80 bg-surface p-4 text-left shadow-xs transition-all hover:-translate-y-0.5 hover:border-ink-disabled hover:shadow-md cursor-pointer"
-          >
-            <div className="min-w-0">
-              <p className="truncate text-xs font-semibold uppercase tracking-wide text-ink-secondary">{stat.label}</p>
-              <p className="mt-2 text-[26px] font-bold leading-none tracking-tight text-ink tabular-nums">{stat.value}</p>
+          {/* ================= 4. SEARCH & FILTER CARD ================= */}
+          <section className="pms-card flex flex-col gap-3.5 p-4 sm:p-5" aria-label="Reservation filters">
+            <div className="flex flex-col gap-2 border-b border-divider pb-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-sm font-bold tracking-tight text-ink">Find reservations</h2>
+              </div>
+              <span className="inline-flex w-fit items-center rounded-full border border-border bg-page px-2.5 py-1 text-xs font-semibold text-ink-secondary">
+                {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
+              </span>
             </div>
-            <span className={`flex h-11 w-11 flex-none items-center justify-center rounded-xl transition-transform group-hover:scale-105 ${stat.iconBg}`}>
-              <stat.Icon size={20} strokeWidth={2} />
-            </span>
-          </button>
-        ))}
-      </section>
-
-      {/* ================= 3. DATE SELECTOR PILL (TOP RIGHT) ================= */}
-      <div className="flex justify-end">
-        <div className="flex items-center gap-1 rounded-xl border border-border bg-surface p-1 shadow-2xs">
-          <div className="flex items-center gap-2 px-2.5">
-            <Lucide.Calendar size={14} className="text-[var(--color-primary)]" />
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-muted">Selected date</span>
-            <span className="text-xs font-bold tabular-nums text-ink">{formattedDate}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => stepDate(-1)}
-            title="Previous day"
-            aria-label="Previous day"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-secondary transition-colors hover:bg-muted-surface hover:text-ink cursor-pointer"
-          >
-            <Lucide.ChevronLeft size={14} />
-          </button>
-          <button
-            type="button"
-            onClick={() => stepDate(1)}
-            title="Next day"
-            aria-label="Next day"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-secondary transition-colors hover:bg-muted-surface hover:text-ink cursor-pointer"
-          >
-            <Lucide.ChevronRight size={14} />
-          </button>
-          <button
-            type="button"
-            onClick={resetToToday}
-            className="ml-1 min-h-8 rounded-lg border border-border bg-page px-3 text-xs font-semibold text-ink transition-colors hover:bg-muted-surface cursor-pointer"
-          >
-            Today
-          </button>
-        </div>
-      </div>
-
-      {/* ================= 4. SEARCH & FILTER CARD ================= */}
-      <section className="pms-card flex flex-col gap-3.5 p-4 sm:p-5" aria-label="Reservation filters">
-        <div className="flex flex-col gap-2 border-b border-divider pb-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-sm font-bold tracking-tight text-ink">Find reservations</h2>
-            <p className="mt-0.5 text-xs text-ink-secondary">Search and filter the reservation list</p>
-          </div>
-          <span className="inline-flex w-fit items-center rounded-full border border-border bg-page px-2.5 py-1 text-xs font-semibold text-ink-secondary">
-            {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
-          </span>
-        </div>
-        {/* Row 1: Search + Date Pickers + Dropdowns */}
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-7">
-          {/* Search Box */}
-          <div className="relative min-w-0 sm:col-span-2 xl:col-span-2">
-            <Lucide.Search
-              size={15}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none"
-            />
-            <input
-              type="text"
-              value={q}
-              onChange={(e) => {
-                setQ(e.target.value);
-                setPage(0);
-              }}
-              placeholder="Search guest name, booking ID, phone, email..."
-              className="min-h-10 w-full rounded-control border border-border bg-surface py-2 pl-10 pr-3.5 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
-            />
-          </div>
-
-          {/* Check-in Date Picker */}
-          <div className="flex min-h-10 items-center justify-between gap-1.5 rounded-control border border-border bg-surface px-3 py-2 text-xs text-ink">
-            <span>Check-in date</span>
-            <Lucide.Calendar size={14} className="text-ink-muted ml-1" />
-          </div>
-
-          {/* Check-out Date Picker */}
-          <div className="flex min-h-10 items-center justify-between gap-1.5 rounded-control border border-border bg-surface px-3 py-2 text-xs text-ink">
-            <span>Check-out date</span>
-            <Lucide.Calendar size={14} className="text-ink-muted ml-1" />
-          </div>
-
-          {/* All Sources Dropdown */}
-          <select
-            value={source}
-            onChange={(e) => {
-              setSource(e.target.value);
-              setPage(0);
-            }}
-            aria-label="Filter by source"
-            className="min-h-10 rounded-control border border-border bg-surface px-3 py-2 text-xs text-ink focus:outline-none focus:border-[var(--color-primary)]"
-          >
-            <option value="All">All sources</option>
-            {sources
-              .filter((item) => item !== 'All')
-              .map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-          </select>
-
-          {/* All Rooms Dropdown */}
-          <select
-            value={roomFilter}
-            onChange={(e) => {
-              setRoomFilter(e.target.value);
-              setPage(0);
-            }}
-            aria-label="Filter by room type"
-            className="min-h-10 rounded-control border border-border bg-surface px-3 py-2 text-xs text-ink focus:outline-none focus:border-[var(--color-primary)]"
-          >
-            <option value="All">All rooms</option>
-            {roomTypes
-              .filter((t) => t !== 'All')
-              .map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-          </select>
-
-          {/* All Guests Dropdown */}
-          <select
-            value={guestCountFilter}
-            onChange={(e) => {
-              setGuestCountFilter(e.target.value);
-              setPage(0);
-            }}
-            aria-label="Filter by guest count"
-            className="min-h-10 rounded-control border border-border bg-surface px-3 py-2 text-xs text-ink focus:outline-none focus:border-[var(--color-primary)]"
-          >
-            <option value="All">All guests</option>
-            <option value="1">1 Guest</option>
-            <option value="2">2 Guests</option>
-            <option value="3+">3+ Guests</option>
-          </select>
-        </div>
-
-        {/* Row 2: Status Pills + Filters Actions */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-divider">
-          {/* Status Pills */}
-          <div className="flex flex-wrap items-center gap-2">
-            {STATUS_FILTERS.map((f) => {
-              const count = f === 'All' ? totalReservationsCount : rows.filter((r) => r.status === f).length;
-              const isActive = status === f;
-
-              return (
-                <button
-                  key={f}
-                  type="button"
-                  aria-pressed={isActive}
-                  onClick={() => {
-                    setStatus(f);
+            {/* Row 1: Search + Date Pickers + Dropdowns */}
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-7">
+              {/* Search Box */}
+              <div className="relative min-w-0 sm:col-span-2 xl:col-span-2">
+                <Lucide.Search
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none"
+                />
+                <input
+                  type="text"
+                  value={q}
+                  onChange={(e) => {
+                    setQ(e.target.value);
                     setPage(0);
                   }}
-                  className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                      : 'bg-surface text-ink-secondary border border-border hover:bg-page'
-                  }`}
-                >
-                  {f !== 'All' && (
-                    <span
-                      className={`h-1.5 w-1.5 rounded-full ${
-                        isActive
-                          ? 'bg-surface'
-                          : f === 'Confirmed'
-                          ? 'bg-success-text'
-                          : f === 'Pending'
-                          ? 'bg-warning-text'
-                          : f === 'Checked-in'
-                          ? 'bg-info-text'
-                          : f === 'Checked-out'
-                          ? 'bg-ink-disabled'
-                          : 'bg-danger-text'
-                      }`}
-                    />
-                  )}
-                  <span>
-                    {f} ({count})
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+                  placeholder="Search guest name, booking ID, phone, email..."
+                  className="min-h-10 w-full rounded-control border border-border bg-surface py-2 pl-10 pr-3.5 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                />
+              </div>
 
-          {/* Action Buttons: More filters & Clear filters */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => toast('More filters', { detail: 'Extended query panel active.', tone: 'info' })}
-              className="flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-ink hover:bg-page cursor-pointer shadow-xs"
-            >
-              <Lucide.Filter size={13} className="text-[var(--color-primary)]" />
-              <span>More filters</span>
-            </button>
+              {/* Check-in Date Picker */}
+              <div className="flex min-h-10 items-center justify-between gap-1.5 rounded-control border border-border bg-surface px-3 py-2 text-xs text-ink">
+                <span>Check-in date</span>
+                <Lucide.Calendar size={14} className="text-ink-muted ml-1" />
+              </div>
 
-            <button
-              type="button"
-              onClick={clearAllFilters}
-              className="flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-ink hover:bg-page cursor-pointer shadow-xs"
-            >
-              <Lucide.RotateCcw size={13} className="text-ink-muted" />
-              <span>Clear filters</span>
-            </button>
+              {/* Check-out Date Picker */}
+              <div className="flex min-h-10 items-center justify-between gap-1.5 rounded-control border border-border bg-surface px-3 py-2 text-xs text-ink">
+                <span>Check-out date</span>
+                <Lucide.Calendar size={14} className="text-ink-muted ml-1" />
+              </div>
 
-            <button
-              type="button"
-              title="Table view settings"
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-surface text-ink-secondary hover:bg-page cursor-pointer shadow-xs"
-            >
-              <Lucide.SlidersHorizontal size={14} />
-            </button>
-          </div>
-        </div>
-      </section>
+              {/* All Sources Dropdown */}
+              <select
+                value={source}
+                onChange={(e) => {
+                  setSource(e.target.value);
+                  setPage(0);
+                }}
+                aria-label="Filter by source"
+                className="min-h-10 rounded-control border border-border bg-surface px-3 py-2 text-xs text-ink focus:outline-none focus:border-[var(--color-primary)]"
+              >
+                <option value="All">All sources</option>
+                {sources
+                  .filter((item) => item !== 'All')
+                  .map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+              </select>
 
-      {/* ================= 5. RESERVATIONS TABLE CARD ================= */}
-      <section className="pms-card overflow-hidden" aria-label="Reservation list">
-        <div className="flex flex-col gap-3 border-b border-border/80 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-          <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--color-muted-surface)] text-[var(--color-primary)]">
-              <Lucide.ClipboardList size={17} />
-            </span>
-            <div>
-              <h2 className="text-sm font-bold tracking-tight text-ink">Reservation list</h2>
-              <p className="mt-0.5 text-xs text-ink-secondary">Guest details, stay dates, status, and totals</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-ink-secondary">
-            {selectedRowIds.length > 0 && (
-              <span className="rounded-full border border-[var(--color-primary)]/20 bg-[var(--color-muted-surface)] px-2.5 py-1 font-semibold text-[var(--color-primary)]">
-                {selectedRowIds.length} selected
-              </span>
-            )}
-            <span className="rounded-full border border-border bg-page px-2.5 py-1 font-semibold tabular-nums">
-              {filtered.length} {filtered.length === 1 ? 'reservation' : 'reservations'}
-            </span>
-          </div>
-        </div>
-
-        <div className="pms-table-scroll overflow-x-auto">
-          <table className="pms-table min-w-[1020px] w-full border-collapse text-left text-sm">
-            {/* Table Header */}
-            <thead>
-              <tr className="border-b border-border bg-page/80 text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
-                <th className="py-2.5 px-3 w-10">
-                  <input
-                    type="checkbox"
-                    checked={slice.length > 0 && selectedRowIds.length === slice.length}
-                    onChange={toggleSelectAll}
-                    aria-label="Select all"
-                    className="h-4 w-4 rounded border-ink-disabled text-[var(--color-primary)] focus:ring-[var(--color-primary)]/20 cursor-pointer accent-[var(--color-primary)]"
-                  />
-                </th>
-                <th className="py-3 px-3 font-semibold">
-                  <span className="flex items-center gap-1">
-                    REFERENCE <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
-                  </span>
-                </th>
-                <th className="py-3 px-3 font-semibold">
-                  <span className="flex items-center gap-1">
-                    GUEST <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
-                  </span>
-                </th>
-                <th className="py-3 px-3 font-semibold">
-                  <span className="flex items-center gap-1">
-                    ROOM <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
-                  </span>
-                </th>
-                <th className="py-3 px-3 font-semibold">
-                  <span className="flex items-center gap-1">
-                    STAY DATES <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
-                  </span>
-                </th>
-                <th className="py-3 px-3 font-semibold">
-                  <span className="flex items-center gap-1">
-                    GUESTS <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
-                  </span>
-                </th>
-                <th className="py-3 px-3 font-semibold">
-                  <span className="flex items-center gap-1">
-                    SOURCE <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
-                  </span>
-                </th>
-                <th className="py-3 px-3 font-semibold">
-                  <span className="flex items-center gap-1">
-                    STATUS <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
-                  </span>
-                </th>
-                <th className="py-3 px-3 font-semibold text-right">
-                  <span className="flex items-center justify-end gap-1">
-                    TOTAL <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
-                  </span>
-                </th>
-                <th className="py-3 px-4 font-semibold text-right">ACTIONS</th>
-              </tr>
-            </thead>
-
-            {/* Table Rows */}
-            <tbody className="divide-y divide-divider">
-              {slice.map((r) => {
-                const isSelected = selectedRowIds.includes(r.id);
-                return (
-                  <tr
-                    key={r.id}
-                    className={`transition-colors hover:bg-page/70 ${
-                      isSelected ? 'bg-[var(--color-muted-surface)]/30' : ''
-                    }`}
-                  >
-                    {/* Checkbox */}
-                    <td className="px-3 py-3">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleSelectRow(r.id)}
-                        aria-label={`Select ${r.id}`}
-                        className="h-4 w-4 rounded border-ink-disabled text-[var(--color-primary)] focus:ring-[var(--color-primary)]/20 cursor-pointer accent-[var(--color-primary)]"
-                      />
-                    </td>
-
-                    {/* Reference & Created Time */}
-                    <td className="py-2.5 px-3">
-                      <div className="font-bold text-ink tracking-tight text-sm font-mono">
-                        {r.id}
-                      </div>
-                      <div className="text-xs text-ink-muted mt-0.5">
-                        {r.checkInIso ? `Oct 15, 2026 • 10:24 AM` : 'Oct 15, 2026 • 09:12 AM'}
-                      </div>
-                    </td>
-
-                    {/* Guest Name & Phone */}
-                    <td className="px-3 py-3">
-                      <div className="flex items-center gap-3">
-                        <Avatar name={r.guest} size={36} />
-                        <div>
-                          <p className="font-semibold text-ink text-sm leading-tight">{r.guest}</p>
-                          <p className="text-xs text-ink-muted mt-0.5">
-                            {r.guest === 'Rahul Sharma'
-                              ? '+91 91234 56789'
-                              : r.guest === 'Priya Mehta'
-                              ? '+91 90000 11122'
-                              : r.guest === 'Vikram Rao'
-                              ? '+91 88990 77881'
-                              : r.guest === 'Neha Kapoor'
-                              ? '+91 99887 66554'
-                              : '+91 98765 43210'}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Room Thumbnail & Info */}
-                    <td className="px-3 py-3">
-                      {r.roomNumber ? (
-                        <div className="flex items-center gap-2">
-                          <img
-                            src="/images/room-deluxe.jpg"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src =
-                                'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=120&q=80';
-                            }}
-                            alt="Room"
-                            className="h-9 w-9 rounded-md object-cover shrink-0 border border-border"
-                          />
-                          <div>
-                            <p className="font-bold text-ink text-sm leading-tight">{r.roomSummary ?? r.roomNumber}</p>
-                            <p className="text-xs text-ink-secondary">{r.roomType}</p>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-dashed border-ink-disabled bg-page text-ink-muted">
-                            <Lucide.Home size={16} />
-                          </div>
-                          <span className="text-xs text-ink-secondary font-medium">Unassigned</span>
-                        </div>
-                      )}
-                    </td>
-
-                    {/* Stay Dates */}
-                    <td className="whitespace-nowrap px-3 py-3 text-xs text-ink">
-                      <span className="font-medium">
-                        {r.checkIn} → {r.checkOut}
-                      </span>{' '}
-                      <span className="text-ink-muted font-normal">• {r.nights}n</span>
-                    </td>
-
-                    {/* Guests Count */}
-                    <td className="whitespace-nowrap px-3 py-3 text-xs text-ink">
-                      <span className="inline-flex items-center gap-1.5 font-medium">
-                        <Lucide.User size={14} className="text-ink-muted" />
-                        <span>{r.adults + r.children}</span>
-                      </span>
-                    </td>
-
-                    {/* Source Channel */}
-                    <td className="whitespace-nowrap px-3 py-3">
-                      <ChannelBadge channel={r.channel} />
-                    </td>
-
-                    {/* Status */}
-                    <td className="whitespace-nowrap px-3 py-3">
-                      <StatusPill status={r.status} />
-                    </td>
-
-                    {/* Total */}
-                    <td className="whitespace-nowrap px-3 py-3 text-right text-xs font-bold text-ink tnum">
-                      ₹{r.total.toLocaleString('en-IN')}.00
-                    </td>
-
-                    {/* Actions: Open & More */}
-                    <td className="whitespace-nowrap px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setOpenId(r.id)}
-                          className="rounded-md border border-border bg-surface px-3.5 py-1 text-xs font-semibold text-ink hover:bg-page shadow-xs transition-colors cursor-pointer"
-                        >
-                          Open
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setOpenId(r.id)}
-                          title="More options"
-                          className="flex h-7 w-7 items-center justify-center rounded-md text-ink-muted hover:bg-muted-surface hover:text-ink-secondary transition-colors cursor-pointer"
-                        >
-                          <Lucide.MoreVertical size={15} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-
-          {slice.length === 0 && (
-            <div className="py-12 text-center">
-              <Lucide.CalendarX size={36} className="mx-auto text-ink-disabled mb-2" />
-              <p className="text-xs text-ink-secondary">No reservations match the selected filters.</p>
+              {/* All Rooms Dropdown */}
+              <select
+                value={roomFilter}
+                onChange={(e) => {
+                  setRoomFilter(e.target.value);
+                  setPage(0);
+                }}
+                aria-label="Filter by room type"
+                className="min-h-10 rounded-control border border-border bg-surface px-3 py-2 text-xs text-ink focus:outline-none focus:border-[var(--color-primary)]"
+              >
+                <option value="All">All rooms</option>
+                {roomTypes
+                  .filter((t) => t !== 'All')
+                  .map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+              </select>
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="mt-3 text-xs font-semibold text-[var(--color-primary)] hover:underline cursor-pointer"
+                className="flex items-center gap-1.5  rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-ink hover:bg-page cursor-pointer shadow-xs"
               >
-                Clear all filters
-              </button>
-            </div>
-          )}
-        </div>
 
-        {/* ================= 6. PAGINATION FOOTER ================= */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3.5 border-t border-divider bg-surface text-xs">
-          {/* Summary Count */}
-          <div className="text-ink-secondary">
-            Page {safePage + 1} of {pages} • {filtered.length} reservations
-          </div>
-
-          {/* Right Controls: Rows per page & Pagination buttons */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 text-ink-secondary">
-              <span>Rows per page</span>
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setPage(0);
-                }}
-                className="rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink font-semibold focus:border-[var(--color-primary)] focus:outline-none"
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-              </select>
-            </div>
-
-            {/* Page Navigation */}
-            <div className="flex items-center gap-1">
-              {/* Prev Button */}
-              <button
-                type="button"
-                disabled={safePage === 0}
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-ink-secondary hover:bg-page disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-              >
-                <Lucide.ChevronLeft size={14} />
+                <Lucide.RotateCcw size={13} className="text-ink-muted" />
+                <span>Clear filters</span>
               </button>
 
-              {/* Page Number Buttons */}
-              {Array.from({ length: Math.min(5, pages) }, (_, i) => {
-                const isCurrent = safePage === i;
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setPage(i)}
-                    className={`flex h-8 w-8 items-center justify-center rounded-md text-xs font-bold transition-all cursor-pointer ${
-                      isCurrent
+            </div>
+
+            {/* Row 2: Status Pills + Filters Actions */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-divider">
+              {/* Status Pills */}
+              <div className="flex flex-wrap items-center gap-2">
+                {STATUS_FILTERS.map((f) => {
+                  const count = f === 'All' ? totalReservationsCount : rows.filter((r) => r.status === f).length;
+                  const isActive = status === f;
+
+                  return (
+                    <button
+                      key={f}
+                      type="button"
+                      aria-pressed={isActive}
+                      onClick={() => {
+                        setStatus(f);
+                        setPage(0);
+                      }}
+                      className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${isActive
                         ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                        : 'border border-border bg-surface text-ink hover:bg-page'
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                );
-              })}
-
-              {/* Next Button */}
-              <button
-                type="button"
-                disabled={safePage >= pages - 1}
-                onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-ink-secondary hover:bg-page disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-              >
-                <Lucide.ChevronRight size={14} />
-              </button>
+                        : 'bg-surface text-ink-secondary border border-border hover:bg-page'
+                        }`}
+                    >
+                      {f !== 'All' && (
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${isActive
+                            ? 'bg-surface'
+                            : f === 'Confirmed'
+                              ? 'bg-success-text'
+                              : f === 'Pending'
+                                ? 'bg-warning-text'
+                                : f === 'Checked-in'
+                                  ? 'bg-info-text'
+                                  : f === 'Checked-out'
+                                    ? 'bg-ink-disabled'
+                                    : 'bg-danger-text'
+                            }`}
+                        />
+                      )}
+                      <span>
+                        {f} ({count})
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
-      </>
+          </section>
+
+          {/* ================= 5. RESERVATIONS TABLE CARD ================= */}
+          <section className="pms-card overflow-hidden" aria-label="Reservation list">
+            <div className="flex flex-col gap-3 border-b border-border/80 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--color-muted-surface)] text-[var(--color-primary)]">
+                  <Lucide.ClipboardList size={17} />
+                </span>
+                <div>
+                  <h2 className="text-sm font-bold tracking-tight text-ink">Reservation list</h2>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-ink-secondary">
+                {selectedRowIds.length > 0 && (
+                  <span className="rounded-full border border-[var(--color-primary)]/20 bg-[var(--color-muted-surface)] px-2.5 py-1 font-semibold text-[var(--color-primary)]">
+                    {selectedRowIds.length} selected
+                  </span>
+                )}
+
+              </div>
+            </div>
+
+            <div className="pms-table-scroll overflow-x-auto">
+              <table className="pms-table min-w-[1020px] w-full border-collapse text-left text-sm">
+                {/* Table Header */}
+                <thead>
+                  <tr className="border-b border-border bg-page/80 text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
+                    <th className="py-2.5 px-3 w-10">
+                      <input
+                        type="checkbox"
+                        checked={slice.length > 0 && selectedRowIds.length === slice.length}
+                        onChange={toggleSelectAll}
+                        aria-label="Select all"
+                        className="h-4 w-4 rounded border-ink-disabled text-[var(--color-primary)] focus:ring-[var(--color-primary)]/20 cursor-pointer accent-[var(--color-primary)]"
+                      />
+                    </th>
+                    <th className="py-3 px-3 font-semibold">
+                      <span className="flex items-center gap-1">
+                        REFERENCE <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
+                      </span>
+                    </th>
+                    <th className="py-3 px-3 font-semibold">
+                      <span className="flex items-center gap-1">
+                        GUEST <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
+                      </span>
+                    </th>
+                    <th className="py-3 px-3 font-semibold">
+                      <span className="flex items-center gap-1">
+                        ROOM <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
+                      </span>
+                    </th>
+                    <th className="py-3 px-3 font-semibold">
+                      <span className="flex items-center gap-1">
+                        STAY DATES <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
+                      </span>
+                    </th>
+                    <th className="py-3 px-3 font-semibold">
+                      <span className="flex items-center gap-1">
+                        GUESTS <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
+                      </span>
+                    </th>
+
+                    <th className="py-3 px-3 font-semibold">
+                      <span className="flex items-center gap-1">
+                        STATUS <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
+                      </span>
+                    </th>
+                    <th className="py-3 px-3 font-semibold text-right">
+                      <span className="flex items-center justify-end gap-1">
+                        TOTAL <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
+                      </span>
+                    </th>
+                    <th className="py-3 px-4 font-semibold text-right">ACTIONS</th>
+                  </tr>
+                </thead>
+
+                {/* Table Rows */}
+                <tbody className="divide-y divide-divider">
+                  {slice.map((r) => {
+                    const isSelected = selectedRowIds.includes(r.id);
+                    return (
+                      <tr
+                        key={r.id}
+                        className={`transition-colors hover:bg-page/70 ${isSelected ? 'bg-[var(--color-muted-surface)]/30' : ''
+                          }`}
+                      >
+                        {/* Checkbox */}
+                        <td className="px-3 py-3">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelectRow(r.id)}
+                            aria-label={`Select ${r.id}`}
+                            className="h-4 w-4 rounded border-ink-disabled text-[var(--color-primary)] focus:ring-[var(--color-primary)]/20 cursor-pointer accent-[var(--color-primary)]"
+                          />
+                        </td>
+
+                        {/* Reference & Created Time */}
+                        <td className="py-2.5 px-3">
+                          <div className="font-bold text-ink tracking-tight text-sm font-mono">
+                            {r.id}
+                          </div>
+                          <div className="text-xs text-ink-muted mt-0.5">
+                            {r.checkInIso ? `Oct 15, 2026 • 10:24 AM` : 'Oct 15, 2026 • 09:12 AM'}
+                          </div>
+                        </td>
+
+                        {/* Guest Name & Phone */}
+                        <td className="px-3 py-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar name={r.guest} size={36} />
+                            <div>
+                              <p className="font-semibold text-ink text-sm leading-tight">{r.guest}</p>
+                              <p className="text-xs text-ink-muted mt-0.5">
+                                {r.guest === 'Rahul Sharma'
+                                  ? '+91 91234 56789'
+                                  : r.guest === 'Priya Mehta'
+                                    ? '+91 90000 11122'
+                                    : r.guest === 'Vikram Rao'
+                                      ? '+91 88990 77881'
+                                      : r.guest === 'Neha Kapoor'
+                                        ? '+91 99887 66554'
+                                        : '+91 98765 43210'}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Room Thumbnail & Info */}
+                        <td className="px-3 py-3">
+                          {r.roomNumber ? (
+                            <div className="flex items-center gap-2">
+                              <img
+                                src="/images/room-deluxe.jpg"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src =
+                                    'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=120&q=80';
+                                }}
+                                alt="Room"
+                                className="h-9 w-9 rounded-md object-cover shrink-0 border border-border"
+                              />
+                              <div>
+                                <p className="font-bold text-ink text-sm leading-tight">{r.roomSummary ?? r.roomNumber}</p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-dashed border-ink-disabled bg-page text-ink-muted">
+                                <Lucide.Home size={16} />
+                              </div>
+                              <span className="text-xs text-ink-secondary font-medium">Unassigned</span>
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Stay Dates */}
+                        <td className="whitespace-nowrap px-3 py-3 text-xs text-ink">
+                          <span className="font-medium">
+                            {r.checkIn} → {r.checkOut}
+                          </span>{' '}
+                          <span className="text-ink-muted font-normal">• {r.nights}n</span>
+                        </td>
+
+                        {/* Guests Count */}
+                        <td className="whitespace-nowrap px-3 py-3 text-xs text-ink">
+                          <span className="inline-flex items-center gap-1.5 font-medium">
+                            <Lucide.User size={14} className="text-ink-muted" />
+                            <span>{r.adults + r.children}</span>
+                          </span>
+                        </td>
+
+                        {/* Status */}
+                        <td className="whitespace-nowrap px-3 py-3">
+                          <StatusPill status={r.status} />
+                        </td>
+
+                        {/* Total */}
+                        <td className="whitespace-nowrap px-3 py-3 text-right text-xs font-bold text-ink tnum">
+                          ₹{r.total.toLocaleString('en-IN')}.00
+                        </td>
+
+                        {/* Actions: Open & More */}
+                        <td className="whitespace-nowrap px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setOpenId(r.id)}
+                              className="rounded-md border border-border bg-surface px-3.5 py-1 text-xs font-semibold text-ink hover:bg-page shadow-xs transition-colors cursor-pointer"
+                            >
+                              Open
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setOpenId(r.id)}
+                              title="More options"
+                              className="flex h-7 w-7 items-center justify-center rounded-md text-ink-muted hover:bg-muted-surface hover:text-ink-secondary transition-colors cursor-pointer"
+                            >
+                              <Lucide.MoreVertical size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {slice.length === 0 && (
+                <div className="py-12 text-center">
+                  <Lucide.CalendarX size={36} className="mx-auto text-ink-disabled mb-2" />
+                  <p className="text-xs text-ink-secondary">No reservations match the selected filters.</p>
+                  <button
+                    type="button"
+                    onClick={clearAllFilters}
+                    className="mt-3 text-xs font-semibold text-[var(--color-primary)] hover:underline cursor-pointer"
+                  >
+                    Clear all filters
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* ================= 6. PAGINATION FOOTER ================= */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3.5 border-t border-divider bg-surface text-xs">
+              {/* Summary Count */}
+              <div className="text-ink-secondary">
+                Page {safePage + 1} of {pages} • {filtered.length} reservations
+              </div>
+
+              {/* Right Controls: Rows per page & Pagination buttons */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 text-ink-secondary">
+                  <span>Rows per page</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setPage(0);
+                    }}
+                    className="rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink font-semibold focus:border-[var(--color-primary)] focus:outline-none"
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
+
+                {/* Page Navigation */}
+                <div className="flex items-center gap-1">
+                  {/* Prev Button */}
+                  <button
+                    type="button"
+                    disabled={safePage === 0}
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-ink-secondary hover:bg-page disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <Lucide.ChevronLeft size={14} />
+                  </button>
+
+                  {/* Page Number Buttons */}
+                  {Array.from({ length: Math.min(5, pages) }, (_, i) => {
+                    const isCurrent = safePage === i;
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setPage(i)}
+                        className={`flex h-8 w-8 items-center justify-center rounded-md text-xs font-bold transition-all cursor-pointer ${isCurrent
+                          ? 'bg-[var(--color-primary)] text-white shadow-xs'
+                          : 'border border-border bg-surface text-ink hover:bg-page'
+                          }`}
+                      >
+                        {i + 1}
+                      </button>
+                    );
+                  })}
+
+                  {/* Next Button */}
+                  <button
+                    type="button"
+                    disabled={safePage >= pages - 1}
+                    onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
+                    className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-ink-secondary hover:bg-page disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <Lucide.ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </>
       )}
 
       {/* ================= 7. RESERVATION DETAILS DRAWER ================= */}

@@ -100,7 +100,7 @@ function Shell() {
       case 'dashboard':
         return <Dashboard go={go} />;
       case 'reservations':
-        return <Reservations initialViewMode="list" initialQuery={target.query} focusId={target.focusId} go={go} />;
+        return <Reservations initialViewMode="calendar" initialQuery={target.query} focusId={target.focusId} go={go} />;
       case 'room-calendar':
         return <Reservations initialViewMode="calendar" initialQuery={target.query} focusId={target.focusId} go={go} />;
       case 'new-reservation':
