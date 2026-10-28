@@ -32,8 +32,6 @@ const Reservations = lazy(() => import('./features/reservations/ReservationsPage
 const NewReservation = lazy(() => import('./features/reservations/NewReservationPage').then((m) => ({ default: m.NewReservation })));
 const RateManagement = lazy(() => import('./features/distribution/RateManagementPage').then((m) => ({ default: m.RateManagement })));
 const ChannelManager = lazy(() => import('./features/distribution/ChannelManagerPage').then((m) => ({ default: m.ChannelManager })));
-const CheckIn = lazy(() => import('./features/front-desk/CheckInPage').then((m) => ({ default: m.CheckIn })));
-const CheckOut = lazy(() => import('./features/front-desk/CheckOutPage').then((m) => ({ default: m.CheckOut })));
 const Guests = lazy(() => import('./features/guests/GuestsPage').then((m) => ({ default: m.Guests })));
 const Rooms = lazy(() => import('./features/rooms/RoomsPage').then((m) => ({ default: m.Rooms })));
 const StatusBoard = lazy(() => import('./features/rooms/StatusBoardPage').then((m) => ({ default: m.StatusBoard })));
@@ -109,10 +107,6 @@ function Shell() {
         return <RateManagement />;
       case 'channel-manager':
         return <ChannelManager />;
-      case 'check-in':
-        return <CheckIn initialQuery={target.query} />;
-      case 'check-out':
-        return <CheckOut />;
       case 'guests':
         return <Guests initialQuery={target.query} focusId={target.focusId} go={go} />;
       case 'room-overview':
@@ -164,6 +158,7 @@ function Shell() {
       />
       <div className="flex min-w-0 flex-1 flex-col" style={{ background: 'var(--color-page)' }}>
         <Header
+          currentView={view}
           onMenu={() => setNavOpen(true)}
           onOpenThemes={() => setSwatcherOpen(true)}
           onGo={go}

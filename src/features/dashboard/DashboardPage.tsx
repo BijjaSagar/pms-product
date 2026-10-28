@@ -39,9 +39,9 @@ const DEMO_TIMELINE: ActivityItem[] = [
     room: 'Room 201',
     status: 'Arriving',
     statusTone: 'bg-success-bg text-success-text border-success-border/60',
-    actionLabel: 'Check in',
+    actionLabel: 'View booking',
     actionTone: 'text-success-text bg-success-bg/80 hover:bg-success-bg border-success-border',
-    target: { view: 'check-in' } as NavTarget,
+    target: { view: 'reservations' },
   },
   {
     id: 't-2',
@@ -54,9 +54,9 @@ const DEMO_TIMELINE: ActivityItem[] = [
     room: 'Room 302',
     status: 'VIP Elite',
     statusTone: 'bg-primary/10 text-primary border-primary/30',
-    actionLabel: 'Check in',
+    actionLabel: 'View booking',
     actionTone: 'text-primary bg-primary/10 hover:bg-primary/10 border-primary/30',
-    target: { view: 'check-in' } as NavTarget,
+    target: { view: 'reservations' },
   },
   {
     id: 't-3',
@@ -69,9 +69,9 @@ const DEMO_TIMELINE: ActivityItem[] = [
     room: 'Room 103',
     status: 'Due Out',
     statusTone: 'bg-warning-bg text-warning-text border-warning-border/60',
-    actionLabel: 'Check out',
+    actionLabel: 'Open folio',
     actionTone: 'text-warning-text bg-warning-bg/80 hover:bg-warning-bg border-warning-border',
-    target: { view: 'check-out' } as NavTarget,
+    target: { view: 'folios' },
   },
   {
     id: 't-4',
@@ -660,11 +660,11 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
                 <button
                   type="button"
-                  onClick={() => go({ view: 'check-in' })}
+                  onClick={() => go({ view: 'reservations' })}
                   className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-xs font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
-                  title="Open Check-in Terminal"
+                  title="Open reservations"
                 >
-                  <span>Terminal</span>
+                  <span>Reservations</span>
                   <Lucide.ArrowUpRight size={14} className="text-ink-secondary" />
                 </button>
               </div>
@@ -725,13 +725,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         <td className="text-right whitespace-nowrap pr-2">
                           <button
                             type="button"
-                            onClick={() => {
-                              toast('Check-in Initiated', { detail: `Ready to check in ${r.guest} for Room ${r.room}.`, tone: 'success' });
-                              go({ view: 'check-in' });
-                            }}
+                            onClick={() => go({ view: 'reservations', query: r.bookingCode })}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-success-text hover:bg-success-text text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
                           >
-                            <span>Check in</span>
+                            <span>View booking</span>
                           </button>
                         </td>
                       </tr>
@@ -746,10 +743,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
               <span>Showing {pendingCheckins.length} expected arrivals today</span>
               <button
                 type="button"
-                onClick={() => go({ view: 'check-in' })}
+                onClick={() => go({ view: 'reservations' })}
                 className="font-semibold text-xs text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
-                <span>Open Check-in Terminal</span>
+                <span>Open reservations</span>
                 <Lucide.ArrowRight size={13} />
               </button>
             </div>
@@ -781,11 +778,11 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
                 <button
                   type="button"
-                  onClick={() => go({ view: 'check-out' })}
+                  onClick={() => go({ view: 'folios' })}
                   className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-xs font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
-                  title="Open Check-out Terminal"
+                  title="Open folios"
                 >
-                  <span>Terminal</span>
+                  <span>Folios</span>
                   <Lucide.ArrowUpRight size={14} className="text-ink-secondary" />
                 </button>
               </div>
@@ -855,15 +852,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                             type="button"
                             onClick={() => {
                               if (d.folioBalance > 0) {
-                                toast('Folio Balance Pending', { detail: `Collect ₹${d.folioBalance.toLocaleString('en-IN')} from ${d.guest} before closing folio.`, tone: 'warning' });
-                              } else {
-                                toast('Check-out Completed', { detail: `${d.guest} checked out from Room ${d.room}. Housekeeping alerted.`, tone: 'success' });
+                                toast('Folio Balance Pending', { detail: `Collect ₹${d.folioBalance.toLocaleString('en-IN')} from ${d.guest} before closing the folio.`, tone: 'warning' });
                               }
-                              go({ view: 'check-out' });
+                              go({ view: 'folios' });
                             }}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-warning-text hover:bg-warning-text text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
                           >
-                            <span>Check out</span>
+                            <span>Open folio</span>
                           </button>
                         </td>
                       </tr>
@@ -878,10 +873,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
               <span>Showing {pendingCheckouts.length} departures pending today</span>
               <button
                 type="button"
-                onClick={() => go({ view: 'check-out' })}
+                onClick={() => go({ view: 'folios' })}
                 className="font-semibold text-xs text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
-                <span>Open Check-out Terminal</span>
+                <span>Open folios</span>
                 <Lucide.ArrowRight size={13} />
               </button>
             </div>
@@ -1327,7 +1322,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   </span>
                   <button
                     type="button"
-                    onClick={() => go({ view: 'check-out' })}
+                    onClick={() => go({ view: 'folios' })}
                     className="text-xs font-semibold text-ink-secondary hover:text-ink bg-muted-surface hover:bg-border px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     Review

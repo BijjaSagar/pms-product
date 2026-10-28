@@ -51,8 +51,6 @@ const SEARCH_KEYWORDS: Record<ViewId, string[]> = {
   'new-reservation': ['create booking', 'add reservation', 'new booking', 'book room', 'reservation create', 'make reservation', 'folio reservation', 'quick reservation', 'booking console'],
   'rate-management': ['rate', 'rates', 'pricing', 'seasonal pricing', 'restrictions', 'minimum stay', 'stop sell', 'cta', 'ctd', 'rate plan', 'bar', 'rate calendar', 'rate management'],
   'channel-manager': ['channel', 'channels', 'ota', 'otas', 'booking.com', 'airbnb', 'expedia', 'agoda', 'makemytrip', 'goibibo', 'rate sync', 'inventory sync', 'distribution', 'channel manager'],
-  'check-in': ['arrival', 'arrivals', 'check in', 'guest arrival', 'reception', 'front desk', 'key handover', 'today arrivals'],
-  'check-out': ['departure', 'departures', 'check out', 'guest departure', 'settle folio', 'bill settle', 'leave hotel'],
   guests: ['guest list', 'profiles', 'directory', 'customers', 'clients', 'loyalty', 'history', 'vip', 'guest history'],
   'room-overview': ['rooms', 'beds', 'room matrix', 'floor plan', 'available rooms', 'room status', 'grid', 'inventory', 'room list', 'room numbers'],
   'room-types': ['categories', 'suites', 'deluxe', 'rates', 'pricing', 'amenities', 'bedding', 'room category'],
@@ -91,16 +89,19 @@ function useDismiss(onDismiss: () => void) {
 }
 
 export function Header({
+  currentView,
   onMenu,
   onOpenThemes,
   onGo,
 }: {
+  currentView: ViewId;
   onMenu: () => void;
   onOpenThemes: () => void;
   onGo: (t: NavTarget) => void;
 }) {
   const { me, can, logout, switchProperty } = useAuth();
   const [panel, setPanel] = useState<'none' | 'notices' | 'profile'>('none');
+  const [kpiDrawerOpen, setKpiDrawerOpen] = useState(false);
   const [readNotices, setReadNotices] = useState<string[]>([]);
   const [dismissedNotices, setDismissedNotices] = useState<string[]>([]);
   const [noticeTab, setNoticeTab] = useState<'all' | 'unread' | 'urgent'>('all');
@@ -111,6 +112,7 @@ export function Header({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const closePanels = () => setPanel('none');
   const dismissRef = useDismiss(closePanels);
+  const kpiDismissRef = useDismiss(() => setKpiDrawerOpen(false));
 
   const [kpi, setKpi] = useState({
     occupancyPct: 30,
@@ -320,10 +322,20 @@ export function Header({
     }
   };
 
+  const kpiDrawerItems = [
+    { label: 'Occupancy', value: `${kpi.occupancyPct}%`, detail: 'Rooms occupied', icon: Lucide.BedDouble, accent: 'var(--color-primary)' },
+    { label: 'Arrivals', value: String(kpi.arrivalsCount), detail: 'Expected today', icon: Lucide.ArrowUpRight, accent: 'var(--color-success-text)' },
+    { label: 'Departures', value: String(kpi.departuresCount), detail: 'Scheduled today', icon: Lucide.ArrowDownRight, accent: 'var(--color-warning-text)' },
+    { label: 'In-house', value: String(kpi.inHouseCount), detail: 'Current guests', icon: Lucide.Users, accent: 'var(--color-info-text)' },
+    { label: 'Revenue', value: `₹${kpi.totalRevenue.toLocaleString('en-IN')}`, detail: 'Gross today', icon: Lucide.CreditCard, accent: 'var(--color-success-text)' },
+    { label: 'Pending payments', value: String(kpi.pendingPaymentsCount), detail: 'Awaiting settlement', icon: Lucide.AlertCircle, accent: 'var(--color-danger-text)' },
+  ];
+
   return (
     <>
       <header
-        className="sticky top-0 z-30 border-b backdrop-blur-xl transition-all"
+        ref={kpiDismissRef}
+        className="sticky top-0 z-30 relative border-b backdrop-blur-xl transition-all"
         style={{
           background: 'color-mix(in srgb, var(--color-surface) 88%, transparent)',
           borderColor: 'var(--color-border)',
@@ -348,8 +360,8 @@ export function Header({
             </button>
           </div>
 
-          {/* ================= ULTRA-ATTRACTIVE HEADER KPI STATUS DECK ================= */}
-          <div
+          {/* Keep the KPI deck in the header on the dashboard only. */}
+          {currentView === 'dashboard' && <div
             className="hidden lg:flex items-center rounded-2xl p-1 border shadow-xs backdrop-blur-md gap-0.5 xl:gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-none"
             style={{
               borderColor: 'var(--color-border)',
@@ -383,7 +395,7 @@ export function Header({
             {/* 2. Today's Arrivals */}
             <button
               type="button"
-              onClick={() => onGo({ view: 'check-in' })}
+              onClick={() => onGo({ view: 'reservations' })}
               className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Today's Arrivals: 8 (+3 vs yesterday)"
             >
@@ -406,7 +418,7 @@ export function Header({
             {/* 3. Today's Departures */}
             <button
               type="button"
-              onClick={() => onGo({ view: 'check-out' })}
+              onClick={() => onGo({ view: 'folios' })}
               className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Today's Departures: 7 (-1 vs yesterday)"
             >
@@ -492,7 +504,23 @@ export function Header({
                 </div>
               </div>
             </button>
-          </div>
+          </div>}
+
+          {currentView !== 'dashboard' && (
+            <div className="relative flex-none">
+              <button
+                type="button"
+                onClick={() => setKpiDrawerOpen((open) => !open)}
+                aria-label={kpiDrawerOpen ? 'Close dashboard KPIs' : 'Show dashboard KPIs'}
+                aria-expanded={kpiDrawerOpen}
+                className="flex h-10 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-xs font-semibold text-ink shadow-xs transition-colors hover:bg-page"
+                title="Dashboard KPIs"
+              >
+                <span className="hidden sm:inline">KPIs</span>
+                <Lucide.ChevronDown size={15} className={`transition-transform ${kpiDrawerOpen ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+          )}
 
           {/* ================= RIGHT GROUP: Actions, Alerts, Themes, Profile ================= */}
           <div className="flex items-center gap-2 sm:gap-2.5 ml-auto flex-none">
@@ -943,6 +971,67 @@ export function Header({
             </div>
           </div>
         </div>
+
+        {currentView !== 'dashboard' && kpiDrawerOpen && (
+          <div
+            className="pms-animate-pop absolute inset-x-3 top-full z-50 mt-2 overflow-hidden rounded-3xl border border-border bg-surface shadow-2xl sm:inset-x-5 lg:inset-x-8"
+            role="dialog"
+            aria-label="Dashboard KPI summary"
+          >
+            <div className="h-1.5 bg-gradient-to-r from-primary via-primary-hover to-dark-accent" />
+            <div className="bg-gradient-to-br from-surface via-surface to-page/80 p-4 sm:p-6">
+              <div className="mb-4 flex items-center justify-between gap-3 sm:mb-5">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-10 w-10 flex-none items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-xs">
+                    <Lucide.LayoutDashboard size={19} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Property snapshot</p>
+                    <h2 className="truncate text-sm font-bold tracking-tight text-ink sm:text-base">Today&apos;s performance at a glance</h2>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setKpiDrawerOpen(false)}
+                  aria-label="Close KPI drawer"
+                  className="flex h-9 w-9 flex-none items-center justify-center rounded-xl border border-border bg-surface text-ink-secondary shadow-xs transition-colors hover:bg-page hover:text-ink"
+                >
+                  <Lucide.X size={17} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-6 sm:gap-3">
+                {kpiDrawerItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <div
+                      key={item.label}
+                      className="group relative min-w-0 overflow-hidden rounded-2xl border border-border/80 bg-surface p-3 shadow-xs transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-3.5"
+                    >
+                      <div className="absolute inset-x-0 top-0 h-0.5 opacity-70" style={{ background: item.accent }} />
+                      <div className="flex items-start justify-between gap-1.5">
+                        <span className="truncate text-[9px] font-bold uppercase tracking-wider text-ink-muted sm:text-[10px]">{item.label}</span>
+                        <span
+                          className="flex h-7 w-7 flex-none items-center justify-center rounded-lg"
+                          style={{ background: `color-mix(in srgb, ${item.accent} 12%, transparent)`, color: item.accent }}
+                        >
+                          <Icon size={15} />
+                        </span>
+                      </div>
+                      <p className="mt-2 truncate text-lg font-extrabold tracking-tight text-ink sm:text-xl" title={item.value}>{item.value}</p>
+                      <p className="mt-0.5 truncate text-[10px] font-medium text-ink-secondary">{item.detail}</p>
+                      {item.label === 'Occupancy' && (
+                        <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted-surface">
+                          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, Math.max(0, kpi.occupancyPct))}%` }} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* ================= GLOBAL SEARCH & NAVIGATION MODAL (Ctrl+F) ================= */}
@@ -1192,8 +1281,6 @@ export function Header({
                           { id: 'dashboard' as const, label: 'Dashboard', icon: Lucide.LayoutDashboard },
                           { id: 'reservations' as const, label: 'Reservations', icon: Lucide.CalendarDays },
                           { id: 'new-reservation' as const, label: '+ New Booking', icon: Lucide.CalendarPlus },
-                          { id: 'check-in' as const, label: 'Check-In Desk', icon: Lucide.DoorOpen },
-                          { id: 'check-out' as const, label: 'Check-Out Desk', icon: Lucide.DoorClosed },
                           { id: 'guests' as const, label: 'Guest Directory', icon: Lucide.BookUser },
                         ].map((item) => (
                           <button

@@ -667,6 +667,7 @@ function createReservation(body: Record<string, unknown>): { id: string; booking
   const reservation: ReservationRow = {
     id,
     bookingCode,
+    externalReferenceId: String(body.externalReferenceId ?? '').trim() || null,
     status: String(body.status ?? 'CONFIRMED'),
     source: String(body.source ?? 'DIRECT'),
     checkInDate,

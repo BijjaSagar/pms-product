@@ -1,44 +1,67 @@
-import { useCallback, useMemo, useState } from 'react';
-import * as Lucide from 'lucide-react';
-import type { NavTarget } from '../../components/nav';
-import { toast } from '../../components/toastStore';
-import { inventoryApi, guestApi, reservationApi } from '../../lib/api/pms';
-import type { ReservationPendingPaymentRow, ReservationRoomRow } from '../../lib/api/pms';
-import { useApiResource } from '../../lib/api/useApiResource';
-import { TAX_RATE } from '../../data/catalog';
-import { BillingPreferencesSection } from './new-reservation/BillingPreferencesSection';
-import { OutletPOSSection } from './new-reservation/OutletPOSSection';
-import { RoomRequirementsSection } from './new-reservation/RoomRequirementsSection';
-import { FALLBACK_ROOM_CATEGORIES, MEAL_PLANS, OUTLET_CATALOG, RATE_PLANS, SAMPLE_GUEST_DATABASE } from './new-reservation/data';
-import type { BillingPreferences, FrontDeskTask, OutletAddonLine, OutletCatalogItem, RoomCategoryOption, RoomRequirement } from './new-reservation/types';
+import { useCallback, useMemo, useState } from "react";
+import * as Lucide from "lucide-react";
+import type { NavTarget } from "../../components/nav";
+import { toast } from "../../components/toastStore";
+import { inventoryApi, guestApi, reservationApi } from "../../lib/api/pms";
+import type {
+  ReservationPendingPaymentRow,
+  ReservationRoomRow,
+} from "../../lib/api/pms";
+import { useApiResource } from "../../lib/api/useApiResource";
+import { TAX_RATE } from "../../data/catalog";
+import { BillingPreferencesSection } from "./new-reservation/BillingPreferencesSection";
+import { OutletPOSSection } from "./new-reservation/OutletPOSSection";
+import { RoomRequirementsSection } from "./new-reservation/RoomRequirementsSection";
+import {
+  FALLBACK_ROOM_CATEGORIES,
+  MEAL_PLANS,
+  OUTLET_CATALOG,
+  RATE_PLANS,
+  SAMPLE_GUEST_DATABASE,
+} from "./new-reservation/data";
+import type {
+  BillingPreferences,
+  FrontDeskTask,
+  OutletAddonLine,
+  OutletCatalogItem,
+  RoomCategoryOption,
+  RoomRequirement,
+} from "./new-reservation/types";
 
-export function NewReservation({
-  go,
-}: {
-  go: (t: NavTarget) => void;
-}) {
-  const [activeTab, setActiveTab] = useState<'general' | 'outlet' | 'preferences'>('general');
+export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
+  const [activeTab, setActiveTab] = useState<"general" | "outlet">("general");
 
   // Booking Parameters
-  const [bookingSource, setBookingSource] = useState('Direct');
-  const [sourceType, setSourceType] = useState('Phone');
-  const [bookingRefId, setBookingRefId] = useState('');
-  const [checkInDate, setCheckInDate] = useState('2026-10-20');
-  const [checkOutDate, setCheckOutDate] = useState('2026-10-21');
-  const [bookingType, setBookingType] = useState('Confirmed'); // Status
-  const [bookingCategory, setBookingCategory] = useState('FIT'); // Booking Type
-  const [checkInTime, setCheckInTime] = useState('13:00');
-  const [checkOutTime, setCheckOutTime] = useState('11:00');
+  const [bookingSource, setBookingSource] = useState("Direct");
+  const [sourceType, setSourceType] = useState("Phone");
+  const [externalReferenceId, setExternalReferenceId] = useState("");
+  const [bookingId, setBookingId] = useState("");
+  const [sourceContactNumber, setSourceContactNumber] = useState("");
+  const [checkInDate, setCheckInDate] = useState("2026-10-20");
+  const [checkOutDate, setCheckOutDate] = useState("2026-10-21");
+  const [bookingType, setBookingType] = useState("Confirmed"); // Status
+  const [bookingCategory, setBookingCategory] = useState("FIT"); // Booking Type
+  const [checkInTime, setCheckInTime] = useState("13:00");
+  const [checkOutTime, setCheckOutTime] = useState("11:00");
   const [samePlanAllRooms, setSamePlanAllRooms] = useState(true);
-  const [ratePlan, setRatePlan] = useState('Best Available Rates');
-  const [mealPlan, setMealPlan] = useState('EP');
+  const [ratePlan, setRatePlan] = useState("Best Available Rates");
+  const [mealPlan, setMealPlan] = useState("EP");
 
   const loadInventory = useCallback(async () => {
     const roomTypes = await inventoryApi.roomTypes();
-    const availabilityEntries = await Promise.all(roomTypes.map(async (roomType) => [
-      roomType.id,
-      await inventoryApi.availability(checkInDate, checkOutDate, roomType.id),
-    ] as const));
+    const availabilityEntries = await Promise.all(
+      roomTypes.map(
+        async (roomType) =>
+          [
+            roomType.id,
+            await inventoryApi.availability(
+              checkInDate,
+              checkOutDate,
+              roomType.id,
+            ),
+          ] as const,
+      ),
+    );
     return {
       roomTypes: roomTypes.map((roomType) => ({
         id: roomType.id,
@@ -46,85 +69,125 @@ export function NewReservation({
         baseRate: Number(roomType.baseRate),
         maxAdults: roomType.maxAdults,
         maxChildren: roomType.maxChildren,
-        desc: roomType.description ?? '',
+        desc: roomType.description ?? "",
       })),
-      availableRoomsByType: Object.fromEntries(availabilityEntries.map(([id, availability]) => [id, availability.available])),
+      availableRoomsByType: Object.fromEntries(
+        availabilityEntries.map(([id, availability]) => [
+          id,
+          availability.available,
+        ]),
+      ),
     };
   }, [checkInDate, checkOutDate]);
-  const inventoryResource = useApiResource(loadInventory, [checkInDate, checkOutDate]);
-  const roomTypes: RoomCategoryOption[] = inventoryResource.data?.roomTypes ?? FALLBACK_ROOM_CATEGORIES;
-  const availableRoomsByType = inventoryResource.data?.availableRoomsByType ?? {};
+  const inventoryResource = useApiResource(loadInventory, [
+    checkInDate,
+    checkOutDate,
+  ]);
+  const roomTypes: RoomCategoryOption[] =
+    inventoryResource.data?.roomTypes ?? FALLBACK_ROOM_CATEGORIES;
+  const availableRoomsByType =
+    inventoryResource.data?.availableRoomsByType ?? {};
 
   // Requirements (Rooms list)
   const [overridePrice, setOverridePrice] = useState(false);
+  const [overrideRoomTotal, setOverrideRoomTotal] = useState<number | null>(
+    null,
+  );
   const [requirements, setRequirements] = useState<RoomRequirement[]>([
     {
-      id: 'req-1',
+      id: "req-1",
       roomIndex: 1,
-      roomTypeId: 'deluxe',
-      category: 'Deluxe',
+      roomTypeId: "deluxe",
+      category: "Deluxe",
       adults: 2,
       children: 0,
       infant: 0,
       roomId: null,
-      roomNo: '',
+      roomNo: "",
       rate: 4500,
-      ratePlan: 'Best Available Rates',
-      mealPlan: 'EP',
-      billingRoute: 'Default',
-      occupants: [{ id: 'occupant-primary', name: 'Rohan Sharma', role: 'Primary guest' }],
+      ratePlan: "Best Available Rates",
+      mealPlan: "EP",
+      billingRoute: "Default",
+      occupants: [
+        { id: "occupant-primary", name: "Rohan Sharma", role: "Primary guest" },
+      ],
     },
   ]);
 
   // Billing Preferences
-  const [billingPreferences, setBillingPreferences] = useState<BillingPreferences>({
-    roomBillTo: 'To Guest',
-    extrasBillTo: 'To Guest',
-    billToCompany: false,
-    noPost: false,
-    companyName: '',
-    companyGst: '',
-  });
+  const [billingPreferences, setBillingPreferences] =
+    useState<BillingPreferences>({
+      roomBillTo: "To Guest",
+      extrasBillTo: "To Guest",
+      billToCompany: false,
+      noPost: false,
+      companyName: "",
+      companyGst: "",
+    });
   const [posAddons, setPosAddons] = useState<OutletAddonLine[]>([]);
 
   // Guest Details
-  const [guestSearch, setGuestSearch] = useState('');
+  const [guestSearch, setGuestSearch] = useState("");
   const [showGuestSearchDropdown, setShowGuestSearchDropdown] = useState(false);
-  const [guestSalutation, setGuestSalutation] = useState('Mr.');
-  const [guestName, setGuestName] = useState('Rohan Sharma');
+  const [guestSalutation, setGuestSalutation] = useState("Mr.");
+  const [guestName, setGuestName] = useState("Rohan Sharma");
   const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(null);
-  const [guestContact, setGuestContact] = useState('+91 88829 51951');
-  const [guestEmail, setGuestEmail] = useState('support@djubo.com');
-  const [guestIdType, setGuestIdType] = useState('Aadhaar Card');
-  const [guestIdNumber, setGuestIdNumber] = useState('9842 1290 8731');
-  const [specialRequests, setSpecialRequests] = useState('Quiet room on upper floor preferred.');
+  const [guestContact, setGuestContact] = useState("+91 88829 51951");
+  const [guestEmail, setGuestEmail] = useState("support@djubo.com");
+  const [guestIdType, setGuestIdType] = useState("Aadhaar Card");
+  const [guestIdNumber, setGuestIdNumber] = useState("9842 1290 8731");
+  const [specialRequests, setSpecialRequests] = useState(
+    "Quiet room on upper floor preferred.",
+  );
 
   // Payments & Financials
-  const [paymentNotes, setPaymentNotes] = useState('Pre-booking verified via direct call.');
-  const [paymentsList, setPaymentsList] = useState<{ id: string; method: string; amount: number; time: string; ref: string }[]>([]);
+  const [paymentNotes, setPaymentNotes] = useState(
+    "Pre-booking verified via direct call.",
+  );
+  const [paymentsList, setPaymentsList] = useState<
+    { id: string; method: string; amount: number; time: string; ref: string }[]
+  >([]);
   const [discountAmount, setDiscountAmount] = useState(0);
 
   // Front Desk Tasks & Checklist
   const [tasks, setTasks] = useState<FrontDeskTask[]>([
-    { id: 't-1', text: 'Verify physical Photo ID and collect signed registration card', done: false, priority: 'high' },
-    { id: 't-2', text: 'Pre-allocate room 202 on high floor (Requested by guest)', done: true, priority: 'medium' },
-    { id: 't-3', text: 'Send digital invoice and welcome packet via WhatsApp', done: false, priority: 'low' },
+    {
+      id: "t-1",
+      text: "Verify physical Photo ID and collect signed registration card",
+      done: false,
+      priority: "high",
+    },
+    {
+      id: "t-2",
+      text: "Pre-allocate room 202 on high floor (Requested by guest)",
+      done: true,
+      priority: "medium",
+    },
+    {
+      id: "t-3",
+      text: "Send digital invoice and welcome packet via WhatsApp",
+      done: false,
+      priority: "low",
+    },
   ]);
-  const [newTaskInput, setNewTaskInput] = useState('');
+  const [newTaskInput, setNewTaskInput] = useState("");
 
   // Modal states
   const [collectModalOpen, setCollectModalOpen] = useState(false);
-  const [collectAmount, setCollectAmount] = useState('4305');
-  const [collectMethod, setCollectMethod] = useState<'UPI / QR' | 'Credit Card' | 'Debit Card' | 'Cash' | 'Bank Transfer'>('UPI / QR');
-  const [collectRef, setCollectRef] = useState('');
+  const [collectAmount, setCollectAmount] = useState("4305");
+  const [collectMethod, setCollectMethod] = useState<
+    "UPI / QR" | "Credit Card" | "Debit Card" | "Cash" | "Bank Transfer"
+  >("UPI / QR");
+  const [collectRef, setCollectRef] = useState("");
   const [copiedCode, setCopiedCode] = useState(false);
   const [issueModalOpen, setIssueModalOpen] = useState(false);
-  const [issueText, setIssueText] = useState('');
+  const [issueText, setIssueText] = useState("");
   const [savingReservation, setSavingReservation] = useState(false);
 
   // Confirmation state
   const [confirmedBooking, setConfirmedBooking] = useState<{
     code: string;
+    referenceId: string;
     total: number;
     guest: string;
     rooms: number;
@@ -136,7 +199,9 @@ export function NewReservation({
     try {
       const d1 = new Date(checkInDate);
       const d2 = new Date(checkOutDate);
-      const diff = Math.ceil((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+      const diff = Math.ceil(
+        (d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24),
+      );
       return Math.max(1, isNaN(diff) ? 1 : diff);
     } catch {
       return 1;
@@ -144,15 +209,29 @@ export function NewReservation({
   }, [checkInDate, checkOutDate]);
 
   // Financial calculations
-  const roomCharges = useMemo(() => {
+  const calculatedRoomCharges = useMemo(() => {
     return requirements.reduce((acc, r) => acc + r.rate * nightsCount, 0);
   }, [requirements, nightsCount]);
+  const roomCharges =
+    overridePrice && overrideRoomTotal !== null
+      ? overrideRoomTotal
+      : calculatedRoomCharges;
 
-  const mealPlanCharges = useMemo(() => requirements.reduce((sum, room) => {
-    const surcharge = MEAL_PLANS.find((plan) => plan.code === room.mealPlan)?.surcharge ?? 0;
-    return sum + surcharge * room.adults * nightsCount;
-  }, 0), [requirements, nightsCount]);
-  const addonSubtotal = useMemo(() => posAddons.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0), [posAddons]);
+  const mealPlanCharges = useMemo(
+    () =>
+      requirements.reduce((sum, room) => {
+        const surcharge =
+          MEAL_PLANS.find((plan) => plan.code === room.mealPlan)?.surcharge ??
+          0;
+        return sum + surcharge * room.adults * nightsCount;
+      }, 0),
+    [requirements, nightsCount],
+  );
+  const addonSubtotal = useMemo(
+    () =>
+      posAddons.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0),
+    [posAddons],
+  );
   const bookingSubtotal = roomCharges + mealPlanCharges + addonSubtotal;
   const subTotal = Math.max(0, bookingSubtotal - discountAmount);
   const taxAmount = Math.round(subTotal * TAX_RATE);
@@ -163,47 +242,87 @@ export function NewReservation({
 
   const totalsByRoute = useMemo(() => {
     const totals: Record<string, number> = {};
-    const resolveRoute = (route: string, fallback: string) => route === 'Default' ? fallback : route;
+    const resolveRoute = (route: string, fallback: string) =>
+      route === "Default" ? fallback : route;
     for (const room of requirements) {
-      const route = resolveRoute(room.billingRoute, billingPreferences.roomBillTo);
-      const mealSurcharge = MEAL_PLANS.find((plan) => plan.code === room.mealPlan)?.surcharge ?? 0;
-      totals[route] = (totals[route] ?? 0) + (room.rate + mealSurcharge * room.adults) * nightsCount;
+      const route = resolveRoute(
+        room.billingRoute,
+        billingPreferences.roomBillTo,
+      );
+      const mealSurcharge =
+        MEAL_PLANS.find((plan) => plan.code === room.mealPlan)?.surcharge ?? 0;
+      totals[route] =
+        (totals[route] ?? 0) +
+        (room.rate + mealSurcharge * room.adults) * nightsCount;
     }
     for (const addon of posAddons) {
-      const route = billingPreferences.noPost ? 'Direct Settlement' : resolveRoute(addon.billingRoute, billingPreferences.extrasBillTo);
+      const route = billingPreferences.noPost
+        ? "Direct Settlement"
+        : resolveRoute(addon.billingRoute, billingPreferences.extrasBillTo);
       totals[route] = (totals[route] ?? 0) + addon.unitPrice * addon.quantity;
     }
     let remainingDiscount = discountAmount;
-    const discountOrder = [billingPreferences.roomBillTo, ...Object.keys(totals).filter((route) => route !== billingPreferences.roomBillTo)];
+    const discountOrder = [
+      billingPreferences.roomBillTo,
+      ...Object.keys(totals).filter(
+        (route) => route !== billingPreferences.roomBillTo,
+      ),
+    ];
     for (const route of discountOrder) {
       if (remainingDiscount <= 0) break;
       const reduction = Math.min(totals[route] ?? 0, remainingDiscount);
       totals[route] = (totals[route] ?? 0) - reduction;
       remainingDiscount -= reduction;
     }
-    const netSubtotal = Object.values(totals).reduce((sum, amount) => sum + amount, 0);
+    const netSubtotal = Object.values(totals).reduce(
+      (sum, amount) => sum + amount,
+      0,
+    );
     const tax = Math.round(netSubtotal * TAX_RATE);
     const entries = Object.entries(totals);
-    const split = entries.map(([route, amount]) => [
-      route,
-      Math.round(amount + (netSubtotal > 0 ? tax * amount / netSubtotal : 0)),
-    ] as const);
+    const split = entries.map(
+      ([route, amount]) =>
+        [
+          route,
+          Math.round(
+            amount + (netSubtotal > 0 ? (tax * amount) / netSubtotal : 0),
+          ),
+        ] as const,
+    );
     const roundedTotal = netSubtotal + tax;
-    const roundingDifference = roundedTotal - split.reduce((sum, [, amount]) => sum + amount, 0);
-    if (split.length > 0) split[split.length - 1] = [split[split.length - 1][0], split[split.length - 1][1] + roundingDifference];
+    const roundingDifference =
+      roundedTotal - split.reduce((sum, [, amount]) => sum + amount, 0);
+    if (split.length > 0)
+      split[split.length - 1] = [
+        split[split.length - 1][0],
+        split[split.length - 1][1] + roundingDifference,
+      ];
     return Object.fromEntries(split);
-  }, [requirements, posAddons, billingPreferences, nightsCount, discountAmount]);
+  }, [
+    requirements,
+    posAddons,
+    billingPreferences,
+    nightsCount,
+    discountAmount,
+  ]);
 
   const formatDisplayDate = (dStr: string) => {
     try {
       const date = new Date(dStr);
       const day = date.getDate();
-      const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+      const month = date
+        .toLocaleString("en-US", { month: "short" })
+        .toUpperCase();
       const year = date.getFullYear();
-      const weekday = date.toLocaleString('en-US', { weekday: 'short' });
-      return { day: isNaN(day) ? '20' : String(day).padStart(2, '0'), month, year, weekday };
+      const weekday = date.toLocaleString("en-US", { weekday: "short" });
+      return {
+        day: isNaN(day) ? "20" : String(day).padStart(2, "0"),
+        month,
+        year,
+        weekday,
+      };
     } catch {
-      return { day: '20', month: 'OCT', year: 2026, weekday: 'Tue' };
+      return { day: "20", month: "OCT", year: 2026, weekday: "Tue" };
     }
   };
 
@@ -212,8 +331,12 @@ export function NewReservation({
 
   const handleAddRoom = () => {
     const nextIdx = requirements.length + 1;
-    const defaultType = requirements[requirements.length - 1]?.roomTypeId ?? 'deluxe';
-    const category = roomTypes.find((item) => item.id === defaultType) ?? roomTypes[0] ?? FALLBACK_ROOM_CATEGORIES[1];
+    const defaultType =
+      requirements[requirements.length - 1]?.roomTypeId ?? "deluxe";
+    const category =
+      roomTypes.find((item) => item.id === defaultType) ??
+      roomTypes[0] ??
+      FALLBACK_ROOM_CATEGORIES[1];
     const newReq: RoomRequirement = {
       id: `req-${Date.now()}`,
       roomIndex: nextIdx,
@@ -223,58 +346,88 @@ export function NewReservation({
       children: 0,
       infant: 0,
       roomId: null,
-      roomNo: '',
+      roomNo: "",
       rate: category.baseRate,
       ratePlan,
       mealPlan,
-      billingRoute: 'Default',
-      occupants: [{ id: `occupant-${Date.now()}`, name: '', role: 'Family member' }],
+      billingRoute: "Default",
+      occupants: [
+        { id: `occupant-${Date.now()}`, name: "", role: "Family member" },
+      ],
     };
     setRequirements((prev) => [...prev, newReq]);
-    toast.success('Room Added', { detail: `Room ${nextIdx} (${category.name}) added to requirements.` });
+    toast.success("Room Added", {
+      detail: `Room ${nextIdx} (${category.name}) added to requirements.`,
+    });
   };
 
   const handleRemoveRoom = (id: string) => {
     if (requirements.length <= 1) {
-      toast.warning('Minimum Required', { detail: 'At least one room requirement must remain.' });
+      toast.warning("Minimum Required", {
+        detail: "At least one room requirement must remain.",
+      });
       return;
     }
     const remaining = requirements.filter((room) => room.id !== id);
-    setRequirements(remaining.map((room, index) => ({ ...room, roomIndex: index + 1 })));
-    setPosAddons((previous) => previous.map((addon) => addon.roomRequirementId === id
-      ? { ...addon, roomRequirementId: remaining[0].id }
-      : addon));
-    toast.info('Room Removed', { detail: 'Room requirement removed from folio.' });
+    setRequirements(
+      remaining.map((room, index) => ({ ...room, roomIndex: index + 1 })),
+    );
+    setPosAddons((previous) =>
+      previous.map((addon) =>
+        addon.roomRequirementId === id
+          ? { ...addon, roomRequirementId: remaining[0].id }
+          : addon,
+      ),
+    );
+    toast.info("Room Removed", {
+      detail: "Room requirement removed from folio.",
+    });
   };
 
-  const handleUpdateRequirement = (id: string, updates: Partial<RoomRequirement>) => {
-    setRequirements((prev) => prev.map((room) => room.id === id ? { ...room, ...updates } : room));
+  const handleUpdateRequirement = (
+    id: string,
+    updates: Partial<RoomRequirement>,
+  ) => {
+    setRequirements((prev) =>
+      prev.map((room) => (room.id === id ? { ...room, ...updates } : room)),
+    );
   };
 
   const handleAddAddon = (item: OutletCatalogItem) => {
     const firstRoom = requirements[0];
     if (!firstRoom) return;
-    setPosAddons((previous) => [...previous, {
-      id: `addon-${Date.now()}`,
-      catalogItemId: item.id,
-      outletId: item.outletId,
-      outletName: item.outletName,
-      name: item.name,
-      quantity: 1,
-      unitPrice: item.unitPrice,
-      roomRequirementId: firstRoom.id,
-      billingRoute: 'Default',
-    }]);
+    setPosAddons((previous) => [
+      ...previous,
+      {
+        id: `addon-${Date.now()}`,
+        catalogItemId: item.id,
+        outletId: item.outletId,
+        outletName: item.outletName,
+        name: item.name,
+        quantity: 1,
+        unitPrice: item.unitPrice,
+        roomRequirementId: firstRoom.id,
+        billingRoute: "Default",
+      },
+    ]);
   };
 
   const handleUpdateAddon = (id: string, updates: Partial<OutletAddonLine>) => {
-    setPosAddons((previous) => previous.map((addon) => addon.id === id ? { ...addon, ...updates } : addon));
-    if (updates.billingRoute === 'To Company') setBillingPreferences((previous) => ({ ...previous, billToCompany: true }));
+    setPosAddons((previous) =>
+      previous.map((addon) =>
+        addon.id === id ? { ...addon, ...updates } : addon,
+      ),
+    );
+    if (updates.billingRoute === "To Company")
+      setBillingPreferences((previous) => ({
+        ...previous,
+        billToCompany: true,
+      }));
   };
 
   const handleToggleTask = (id: string) => {
     setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
+      prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
     );
   };
 
@@ -282,51 +435,76 @@ export function NewReservation({
     if (!newTaskInput.trim()) return;
     setTasks((prev) => [
       ...prev,
-      { id: `t-${Date.now()}`, text: newTaskInput.trim(), done: false, priority: 'medium' },
+      {
+        id: `t-${Date.now()}`,
+        text: newTaskInput.trim(),
+        done: false,
+        priority: "medium",
+      },
     ]);
-    setNewTaskInput('');
-    toast.success('Task Added', { detail: 'Front desk task recorded.' });
+    setNewTaskInput("");
+    toast.success("Task Added", { detail: "Front desk task recorded." });
   };
 
   const handleRecordPayment = () => {
     const amt = parseFloat(collectAmount);
     if (!amt || amt <= 0) {
-      toast.error('Invalid Amount', { detail: 'Please specify an amount greater than ₹0.' });
+      toast.error("Invalid Amount", {
+        detail: "Please specify an amount greater than ₹0.",
+      });
       return;
     }
     const newPayment = {
       id: `pay-${Date.now()}`,
       method: collectMethod,
       amount: amt,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       ref: collectRef || `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
     };
     setPaymentsList((prev) => [...prev, newPayment]);
     setCollectModalOpen(false);
-    setCollectRef('');
-    toast.success('Payment Recorded', { detail: `₹${amt.toLocaleString('en-IN')} via ${collectMethod}` });
+    setCollectRef("");
+    toast.success("Payment Recorded", {
+      detail: `₹${amt.toLocaleString("en-IN")} via ${collectMethod}`,
+    });
   };
 
   const handleConfirmReservation = async (withEmail = false) => {
     if (!guestName.trim()) {
-      toast.error('Guest Name Required', { detail: 'Please provide guest name before confirming.' });
+      toast.error("Guest Name Required", {
+        detail: "Please provide guest name before confirming.",
+      });
       return;
     }
     if (!guestContact.trim()) {
-      toast.error('Guest Phone Required', { detail: 'Please provide a contact phone number before confirming.' });
+      toast.error("Guest Phone Required", {
+        detail: "Please provide a contact phone number before confirming.",
+      });
       return;
     }
-    if (new Date(`${checkOutDate}T00:00:00`).getTime() <= new Date(`${checkInDate}T00:00:00`).getTime()) {
-      toast.error('Invalid Stay Dates', { detail: 'Check-out must be after check-in.' });
+    if (
+      new Date(`${checkOutDate}T00:00:00`).getTime() <=
+      new Date(`${checkInDate}T00:00:00`).getTime()
+    ) {
+      toast.error("Invalid Stay Dates", {
+        detail: "Check-out must be after check-in.",
+      });
       return;
     }
     if (inventoryResource.loading) {
-      toast.info('Inventory Loading', { detail: 'Please wait until room availability has loaded.' });
+      toast.info("Inventory Loading", {
+        detail: "Please wait until room availability has loaded.",
+      });
       return;
     }
     const roomIds = requirements.map((room) => room.roomId).filter(Boolean);
     if (new Set(roomIds).size !== roomIds.length) {
-      toast.error('Room Assigned Twice', { detail: 'Each reservation room must use a different physical room.' });
+      toast.error("Room Assigned Twice", {
+        detail: "Each reservation room must use a different physical room.",
+      });
       return;
     }
     setSavingReservation(true);
@@ -335,8 +513,8 @@ export function NewReservation({
       if (!guestId) {
         const nameParts = guestName.trim().split(/\s+/);
         const createdGuest = await guestApi.create({
-          firstName: nameParts.shift() ?? 'Guest',
-          lastName: nameParts.join(' '),
+          firstName: nameParts.shift() ?? "Guest",
+          lastName: nameParts.join(" "),
           email: guestEmail.trim() || null,
           phone: guestContact.trim() || null,
           companyName: billingPreferences.companyName || null,
@@ -346,29 +524,46 @@ export function NewReservation({
       }
 
       const persistedRooms: ReservationRoomRow[] = requirements.map((room) => {
-        const mealSurcharge = MEAL_PLANS.find((plan) => plan.code === room.mealPlan)?.surcharge ?? 0;
+        const mealSurcharge =
+          MEAL_PLANS.find((plan) => plan.code === room.mealPlan)?.surcharge ??
+          0;
+        const baseRate =
+          overridePrice && overrideRoomTotal !== null
+            ? calculatedRoomCharges > 0
+              ? room.rate * (overrideRoomTotal / calculatedRoomCharges)
+              : overrideRoomTotal /
+                Math.max(1, requirements.length * nightsCount)
+            : room.rate;
         return {
           id: room.id,
           roomTypeId: room.roomTypeId,
           roomId: room.roomId,
           roomNumber: room.roomNo || null,
           roomTypeName: room.category,
-          baseRate: String(room.rate),
-          nightlyRate: String(room.rate + mealSurcharge * room.adults),
+          baseRate: String(baseRate),
+          nightlyRate: String(baseRate + mealSurcharge * room.adults),
           ratePlanName: samePlanAllRooms ? ratePlan : room.ratePlan,
           adults: room.adults,
           children: room.children,
           infants: room.infant,
           mealPlanName: samePlanAllRooms ? mealPlan : room.mealPlan,
-          billingRoute: room.billingRoute === 'Default' ? billingPreferences.roomBillTo : room.billingRoute,
+          billingRoute:
+            room.billingRoute === "Default"
+              ? billingPreferences.roomBillTo
+              : room.billingRoute,
           occupants: room.occupants,
         };
       });
       const persistedAddons = posAddons.map((addon) => {
-        const room = requirements.find((candidate) => candidate.id === addon.roomRequirementId) ?? requirements[0];
+        const room =
+          requirements.find(
+            (candidate) => candidate.id === addon.roomRequirementId,
+          ) ?? requirements[0];
         const route = billingPreferences.noPost
-          ? 'Direct Settlement'
-          : addon.billingRoute === 'Default' ? billingPreferences.extrasBillTo : addon.billingRoute;
+          ? "Direct Settlement"
+          : addon.billingRoute === "Default"
+            ? billingPreferences.extrasBillTo
+            : addon.billingRoute;
         return {
           id: addon.id,
           outletId: addon.outletId,
@@ -379,51 +574,85 @@ export function NewReservation({
           billingRoute: route,
           roomLineId: room.id,
           roomNumber: room.roomNo || null,
-          postToFolio: !billingPreferences.noPost && route !== 'Direct Settlement',
+          postToFolio:
+            !billingPreferences.noPost && route !== "Direct Settlement",
         };
       });
-      const pendingPayments: ReservationPendingPaymentRow[] = paymentsList.map((payment) => ({
-        amount: String(payment.amount),
-        method: payment.method,
-        reference: payment.ref,
-      }));
+      const pendingPayments: ReservationPendingPaymentRow[] = paymentsList.map(
+        (payment) => ({
+          amount: String(payment.amount),
+          method: payment.method,
+          reference: payment.ref,
+        }),
+      );
       const saved = await reservationApi.create({
-        bookingCode: bookingRefId.trim(),
-        status: bookingType === 'Confirmed' || bookingType === 'Guaranteed' ? 'CONFIRMED' : 'DRAFT',
+        externalReferenceId: externalReferenceId.trim() || null,
+        status:
+          bookingType === "Confirmed" || bookingType === "Guaranteed"
+            ? "CONFIRMED"
+            : "DRAFT",
         source: bookingSource,
         sourceType,
         primaryGuestId: guestId,
         checkInDate,
         checkOutDate,
-        adults: persistedRooms.reduce((sum, room) => sum + Number(room.adults ?? 0), 0),
-        children: persistedRooms.reduce((sum, room) => sum + Number(room.children ?? 0), 0),
-        infants: persistedRooms.reduce((sum, room) => sum + Number(room.infants ?? 0), 0),
+        adults: persistedRooms.reduce(
+          (sum, room) => sum + Number(room.adults ?? 0),
+          0,
+        ),
+        children: persistedRooms.reduce(
+          (sum, room) => sum + Number(room.children ?? 0),
+          0,
+        ),
+        infants: persistedRooms.reduce(
+          (sum, room) => sum + Number(room.infants ?? 0),
+          0,
+        ),
         roomLines: persistedRooms,
         pendingCharges: persistedAddons,
         pendingPayments,
         discountAmount: String(discountAmount),
         billingPreferences,
         specialRequests,
-        internalNotes: [sourceType && `Booking mode: ${sourceType}`, paymentNotes, ...tasks.map((task) => `${task.done ? '[x]' : '[ ]'} ${task.text}`)].filter(Boolean).join('\n'),
+        internalNotes: [
+          sourceType && `Booking mode: ${sourceType}`,
+          paymentNotes,
+          ...tasks.map((task) => `${task.done ? "[x]" : "[ ]"} ${task.text}`),
+        ]
+          .filter(Boolean)
+          .join("\n"),
       });
       const code = saved.bookingCode;
-      setBookingRefId(code);
-      setConfirmedBooking({ code, total: totalBill, guest: guestName, rooms: requirements.length, nights: nightsCount });
-      toast.success('Reservation Confirmed', {
-        detail: `${guestName} · Ref #${code} ${withEmail ? '· Confirmation email sent' : ''}`,
+      setBookingId(code);
+      setConfirmedBooking({
+        code,
+        referenceId: externalReferenceId.trim(),
+        total: totalBill,
+        guest: guestName,
+        rooms: requirements.length,
+        nights: nightsCount,
+      });
+      toast.success("Reservation Confirmed", {
+        detail: `${guestName} · Booking ID ${code}${externalReferenceId.trim() ? ` · Ref ${externalReferenceId.trim()}` : ""} ${withEmail ? "· Confirmation email sent" : ""}`,
       });
     } catch (error) {
-      toast.error('Reservation Not Saved', { detail: error instanceof Error ? error.message : 'Please check the booking details and try again.' });
+      toast.error("Reservation Not Saved", {
+        detail:
+          error instanceof Error
+            ? error.message
+            : "Please check the booking details and try again.",
+      });
     } finally {
       setSavingReservation(false);
     }
   };
 
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(bookingRefId);
+    if (!bookingId) return;
+    navigator.clipboard.writeText(bookingId);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
-    toast.info('Copied', { detail: 'Booking reference copied to clipboard.' });
+    toast.info("Copied", { detail: "Booking ID copied to clipboard." });
   };
 
   // SUCCESS CONFIRMATION SCREEN
@@ -443,36 +672,68 @@ export function NewReservation({
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">
-            Booking Ref #{confirmedBooking.code}
+            Booking ID #{confirmedBooking.code}
           </h2>
+          {confirmedBooking.referenceId && (
+            <p className="mt-1 text-xs text-ink-secondary">
+              Reference ID:{" "}
+              <span className="font-mono font-semibold text-ink">
+                {confirmedBooking.referenceId}
+              </span>
+            </p>
+          )}
           <p className="max-w-lg mx-auto text-xs sm:text-sm text-ink-secondary mt-2">
-            Reservation successfully saved for <strong className="text-ink">{confirmedBooking.guest}</strong>. Room lines, billing routes, add-ons, and payments are saved to the PMS.
+            Reservation successfully saved for{" "}
+            <strong className="text-ink">{confirmedBooking.guest}</strong>. Room
+            lines, billing routes, add-ons, and payments are saved to the PMS.
           </p>
 
           {/* Quick Summary Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto mt-6 text-left">
             <div className="p-3.5 rounded-xl border border-divider bg-page/70">
-              <span className="block text-[10px] font-bold text-ink-muted uppercase">Check-in</span>
-              <span className="text-xs sm:text-sm font-bold text-ink mt-0.5 block">{checkInDate}</span>
-              <span className="text-[10px] text-ink-secondary">{checkInTime} hrs</span>
+              <span className="block text-[10px] font-bold text-ink-muted uppercase">
+                Check-in
+              </span>
+              <span className="text-xs sm:text-sm font-bold text-ink mt-0.5 block">
+                {checkInDate}
+              </span>
+              <span className="text-[10px] text-ink-secondary">
+                {checkInTime} hrs
+              </span>
             </div>
             <div className="p-3.5 rounded-xl border border-divider bg-page/70">
-              <span className="block text-[10px] font-bold text-ink-muted uppercase">Check-out</span>
-              <span className="text-xs sm:text-sm font-bold text-ink mt-0.5 block">{checkOutDate}</span>
-              <span className="text-[10px] text-ink-secondary">{checkOutTime} hrs</span>
+              <span className="block text-[10px] font-bold text-ink-muted uppercase">
+                Check-out
+              </span>
+              <span className="text-xs sm:text-sm font-bold text-ink mt-0.5 block">
+                {checkOutDate}
+              </span>
+              <span className="text-[10px] text-ink-secondary">
+                {checkOutTime} hrs
+              </span>
             </div>
             <div className="p-3.5 rounded-xl border border-divider bg-page/70">
-              <span className="block text-[10px] font-bold text-ink-muted uppercase">Allotment</span>
-              <span className="text-xs sm:text-sm font-bold text-ink mt-0.5 block">{confirmedBooking.rooms} Room(s)</span>
-              <span className="text-[10px] text-ink-secondary">{confirmedBooking.nights} Night(s)</span>
+              <span className="block text-[10px] font-bold text-ink-muted uppercase">
+                Allotment
+              </span>
+              <span className="text-xs sm:text-sm font-bold text-ink mt-0.5 block">
+                {confirmedBooking.rooms} Room(s)
+              </span>
+              <span className="text-[10px] text-ink-secondary">
+                {confirmedBooking.nights} Night(s)
+              </span>
             </div>
             <div className="p-3.5 rounded-xl border border-divider bg-page/70">
-              <span className="block text-[10px] font-bold text-ink-muted uppercase">Total Bill</span>
+              <span className="block text-[10px] font-bold text-ink-muted uppercase">
+                Total Bill
+              </span>
               <span className="text-xs sm:text-sm font-bold text-success-text font-mono mt-0.5 block">
-                ₹{confirmedBooking.total.toLocaleString('en-IN')}.00
+                ₹{confirmedBooking.total.toLocaleString("en-IN")}.00
               </span>
               <span className="text-[10px] text-ink-secondary font-semibold">
-                {outstanding === 0 ? 'Fully Settled' : `₹${outstanding.toLocaleString('en-IN')} Due`}
+                {outstanding === 0
+                  ? "Fully Settled"
+                  : `₹${outstanding.toLocaleString("en-IN")} Due`}
               </span>
             </div>
           </div>
@@ -482,7 +743,7 @@ export function NewReservation({
             <button
               type="button"
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold bg-[var(--color-primary)] hover:opacity-95 text-white shadow-sm transition-all text-xs cursor-pointer"
-              onClick={() => go({ view: 'reservations' })}
+              onClick={() => go({ view: "reservations" })}
             >
               <Lucide.CalendarDays size={15} />
               <span>View All Reservations</span>
@@ -500,7 +761,9 @@ export function NewReservation({
               className="px-4 py-2.5 rounded-xl font-semibold border border-border bg-surface hover:bg-page text-ink shadow-xs transition-colors text-xs cursor-pointer"
               onClick={() => {
                 setConfirmedBooking(null);
-                setBookingRefId('');
+                setBookingId("");
+                setExternalReferenceId("");
+                setSourceContactNumber("");
               }}
             >
               Create Another Booking
@@ -513,108 +776,153 @@ export function NewReservation({
 
   return (
     <div className="w-full text-ink font-sans pb-24 flex flex-col gap-4">
-
-      {/* ================= 3-COLUMN MASTER WORKBENCH ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-[310px_1fr] xl:grid-cols-[330px_1fr_280px] gap-4 items-start">
-
+      {/* ================= 4-COLUMN MASTER WORKBENCH ================= */}
+      <div className="grid grid-cols-1 gap-4 items-start lg:grid-cols-2 xl:grid-cols-[repeat(24,minmax(0,1fr))]">
         {/* ================= LEFT COLUMN: LUXURY FOLIO BOARDING TICKET ================= */}
-        <div className="flex flex-col rounded-3xl border border-border/90 bg-surface shadow-sm overflow-hidden lg:sticky lg:top-4">
-
+        <div className="flex flex-col rounded-3xl border border-border/90 bg-surface shadow-sm overflow-hidden lg:sticky lg:top-4 xl:col-span-5">
           {/* Top Boarding Pass Header Strip */}
-          <div className="bg-gradient-to-r from-primary via-primary-hover to-dark-accent p-4 text-primary-foreground flex items-center justify-between border-b border-dark-accent">
-            <div className="flex items-center gap-2">
-              <span className="flex h-2.5 w-2.5 rounded-full bg-success-foreground shadow-sm shadow-primary-foreground/50" />
-              <span className="text-xs font-black tracking-wider uppercase text-primary-foreground/80">
-                GUEST FOLIO
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-primary-foreground/15 px-2.5 py-1 rounded-lg border border-primary-foreground/30">
-              <span className="text-[10px] text-primary-foreground/70 font-mono">REF ID</span>
-              <span className="text-xs font-bold text-primary-foreground font-mono">{bookingRefId}</span>
-              <button
-                type="button"
-                onClick={handleCopyCode}
-                className="text-primary-foreground/70 hover:text-primary-foreground transition-colors ml-1 cursor-pointer"
-                title="Copy Reference"
-              >
-                {copiedCode ? <Lucide.Check size={12} className="text-success-foreground" /> : <Lucide.Copy size={12} />}
-              </button>
+          <div className="bg-gradient-to-r from-primary via-primary-hover to-dark-accent p-4 text-primary-foreground border-b border-dark-accent">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="min-w-0 border-r border-primary-foreground/25 pr-3">
+                <span className="block text-[10px] font-bold tracking-wider text-primary-foreground/70">
+                  BOOKING ID
+                </span>
+                <div className="mt-1 flex min-w-0 items-center gap-1.5">
+                  <span
+                    className="min-w-0 truncate text-xs font-bold font-mono"
+                    title={bookingId || "Assigned on save"}
+                  >
+                    {bookingId || "Assigned on save"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleCopyCode}
+                    disabled={!bookingId}
+                    className="ml-auto flex-none text-primary-foreground/70 transition-colors hover:text-primary-foreground disabled:cursor-not-allowed disabled:opacity-40"
+                    title="Copy Booking ID"
+                    aria-label="Copy Booking ID"
+                  >
+                    {copiedCode ? (
+                      <Lucide.Check
+                        size={12}
+                        className="text-success-foreground"
+                      />
+                    ) : (
+                      <Lucide.Copy size={12} />
+                    )}
+                  </button>
+                </div>
+              </div>
+              <div className="min-w-0">
+                <span className="block text-[10px] font-bold tracking-wider text-primary-foreground/70">
+                  REFERENCE ID
+                </span>
+                <span
+                  className="mt-1 block truncate text-xs font-bold font-mono"
+                  title={externalReferenceId || "No external reference"}
+                >
+                  {externalReferenceId || "—"}
+                </span>
+              </div>
             </div>
           </div>
 
           {/* Ticket Body with Notched Perforations */}
           <div className="p-5 flex flex-col gap-4 relative">
-
             {/* Elegant Calendar Journey Tile */}
             <div className="bg-gradient-to-b from-page to-surface rounded-2xl border border-border/80 p-4 shadow-2xs">
               <div className="flex items-center justify-between text-center">
                 {/* Check In */}
                 <div className="text-left">
-                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">CHECK-IN</span>
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">
+                    CHECK-IN
+                  </span>
                   <div className="flex items-baseline gap-1 mt-0.5">
-                    <span className="text-3xl font-black text-ink leading-none">{inDate.day}</span>
-                    <span className="text-xs font-bold text-ink-secondary uppercase">{inDate.month}</span>
+                    <span className="text-3xl font-black text-ink leading-none">
+                      {inDate.day}
+                    </span>
+                    <span className="text-xs font-bold text-ink-secondary uppercase">
+                      {inDate.month}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-semibold text-ink-muted mt-1 block">{inDate.weekday} · {checkInTime}</span>
+                  <span className="text-[10px] font-semibold text-ink-muted mt-1 block">
+                    {inDate.weekday} · {checkInTime}
+                  </span>
                 </div>
 
                 {/* Duration Badge with line */}
                 <div className="flex-1 flex flex-col items-center px-3">
                   <div className="flex items-center gap-1 text-[10px] font-bold text-ink bg-surface px-2.5 py-1 rounded-full border border-border shadow-2xs">
                     <Lucide.Moon size={11} className="text-primary" />
-                    <span>{nightsCount} {nightsCount === 1 ? 'Night' : 'Nights'}</span>
+                    <span>
+                      {nightsCount} {nightsCount === 1 ? "Night" : "Nights"}
+                    </span>
                   </div>
                   <div className="w-full relative flex items-center justify-center my-1.5">
                     <div className="w-full border-t border-dashed border-ink-disabled" />
-                    <Lucide.BedDouble size={13} className="text-ink-muted absolute bg-surface px-0.5" />
+                    <Lucide.BedDouble
+                      size={13}
+                      className="text-ink-muted absolute bg-surface px-0.5"
+                    />
                   </div>
-                  <span className="text-[9px] text-ink-muted font-medium">Allotment</span>
+                  <span className="text-[9px] text-ink-muted font-medium">
+                    Allotment
+                  </span>
                 </div>
 
                 {/* Check Out */}
                 <div className="text-right">
-                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">CHECK-OUT</span>
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">
+                    CHECK-OUT
+                  </span>
                   <div className="flex items-baseline justify-end gap-1 mt-0.5">
-                    <span className="text-3xl font-black text-ink leading-none">{outDate.day}</span>
-                    <span className="text-xs font-bold text-ink-secondary uppercase">{outDate.month}</span>
+                    <span className="text-3xl font-black text-ink leading-none">
+                      {outDate.day}
+                    </span>
+                    <span className="text-xs font-bold text-ink-secondary uppercase">
+                      {outDate.month}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-semibold text-ink-muted mt-1 block">{outDate.weekday} · {checkOutTime}</span>
+                  <span className="text-[10px] font-semibold text-ink-muted mt-1 block">
+                    {outDate.weekday} · {checkOutTime}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Room & Meal Plan Strip */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-page/80 border border-border/70">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0 border border-primary/30">
-                  <Lucide.Building2 size={16} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-ink truncate">
-                    {Array.from(new Set(requirements.map((room) => room.category))).join(' + ')}
-                  </p>
-                  <p className="text-[11px] text-ink-secondary font-medium truncate">
-                    Plans: <strong className="text-ink font-semibold">{Array.from(new Set(requirements.map((room) => room.mealPlan))).join(', ')}</strong> · Rooms: {requirements.map((room) => room.roomNo || 'Unassigned').join(', ')}
-                  </p>
-                </div>
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-surface border border-border text-ink shadow-2xs shrink-0">
-                {requirements.reduce((a, b) => a + b.adults, 0)} Adults
-              </span>
-            </div>
+            <p
+              className="text-xs font-semibold tracking-wide text-ink-secondary"
+              aria-label="Room summary"
+            >
+              {requirements.length}-
+              {Array.from(
+                new Set(requirements.map((room) => room.category)),
+              ).join("+")}
+              -
+              {Array.from(
+                new Set(requirements.map((room) => room.mealPlan)),
+              ).join("+")}{" "}
+              × {nightsCount}
+            </p>
 
             {/* Guest Profile Chip with Confirmed Stamp Overlay */}
             <div className="relative p-3 rounded-xl border border-divider bg-surface shadow-2xs flex items-center justify-between">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-white font-bold text-xs shrink-0">
-                  {guestName ? guestName.charAt(0).toUpperCase() : 'G'}
+                  {guestName ? guestName.charAt(0).toUpperCase() : "G"}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-ink truncate">{guestName || 'Unnamed Guest'}</span>
-                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-warning-bg text-warning-text border border-warning-border">VIP</span>
+                    <span className="text-xs font-bold text-ink truncate">
+                      {guestName || "Unnamed Guest"}
+                    </span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-warning-bg text-warning-text border border-warning-border">
+                      VIP
+                    </span>
                   </div>
-                  <span className="text-[11px] text-ink-secondary font-medium truncate block">{guestContact || 'No contact'}</span>
+                  <span className="text-[11px] text-ink-secondary font-medium truncate block">
+                    {guestContact || "No contact"}
+                  </span>
                 </div>
               </div>
               <a
@@ -632,53 +940,64 @@ export function NewReservation({
               >
                 <div className="relative inline-flex items-center justify-center p-1.5 rounded-full border-2 border-dashed border-success-text/80 bg-success-bg/25 rotate-[-10deg] shadow-xs">
                   <div className="flex flex-col h-14 w-14 items-center justify-center rounded-full border-2 border-success-text bg-surface/95 text-success-text shadow-xs text-center backdrop-blur-[1px]">
-                    <Lucide.ShieldCheck size={14} className="text-success-text" />
+                    <Lucide.ShieldCheck
+                      size={14}
+                      className="text-success-text"
+                    />
                     <span className="font-black text-[8px] uppercase tracking-wider mt-0.5 leading-none">
                       CONFIRMED
                     </span>
-                    <span className="text-[6.5px] font-bold text-success-text/90 font-mono mt-0.5">FRONT DESK</span>
+                    <span className="text-[6.5px] font-bold text-success-text/90 font-mono mt-0.5">
+                      FRONT DESK
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Total Bill & Outstanding Status */}
-            <div className="rounded-2xl border border-border/90 bg-gradient-to-br from-page via-surface to-page/50 p-4 shadow-2xs flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-ink-secondary uppercase tracking-wider">TOTAL INVOICE</span>
-                <span className="text-base font-extrabold text-ink font-mono">
-                  ₹{totalBill.toLocaleString('en-IN')}.00
-                </span>
-              </div>
-
-              <div className="h-[1px] bg-border/70" />
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-bold text-ink-muted uppercase block">OUTSTANDING</span>
-                  <span className={`text-sm font-extrabold font-mono ${outstanding > 0 ? 'text-warning-text' : 'text-success-text'}`}>
-                    ₹{outstanding.toLocaleString('en-IN')}.00
+            {/* Receipt-style bill summary */}
+            <div className="border-y border-divider py-3">
+              <div className="grid grid-cols-2 divide-x divide-divider">
+                <div className="pr-3">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+                    Total Bill
+                  </span>
+                  <span className="mt-1 block text-sm font-extrabold font-mono text-ink">
+                    ₹{totalBill.toLocaleString("en-IN")}.00
                   </span>
                 </div>
-
-                {outstanding > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCollectAmount(String(outstanding));
-                      setCollectModalOpen(true);
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-warning-text hover:bg-warning-text active:bg-warning-text text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
-                  >
-                    <Lucide.Banknote size={13} />
-                    <span>e-Collect</span>
-                  </button>
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-success-bg text-success-text border border-success-border">
-                    <Lucide.Check size={11} />
-                    Paid in Full
+                <div className="pl-3">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+                    Outstanding
                   </span>
-                )}
+                  <div className="mt-1 flex items-center gap-1.5">
+                    <span
+                      className={`text-sm font-extrabold font-mono ${outstanding > 0 ? "text-warning-text" : "text-success-text"}`}
+                    >
+                      ₹{outstanding.toLocaleString("en-IN")}.00
+                    </span>
+                    {outstanding > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCollectAmount(String(outstanding));
+                          setCollectModalOpen(true);
+                        }}
+                        className="flex h-6 w-6 flex-none items-center justify-center rounded-md text-warning-text hover:bg-warning-bg"
+                        title="e-Collect payment"
+                        aria-label="e-Collect payment"
+                      >
+                        <Lucide.Banknote size={14} />
+                      </button>
+                    ) : (
+                      <Lucide.Check
+                        size={14}
+                        className="text-success-text"
+                        aria-label="Paid in full"
+                      />
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -689,8 +1008,13 @@ export function NewReservation({
                 className="flex flex-col items-center justify-center py-2 px-1 rounded-xl border border-border/80 hover:bg-page text-ink-secondary transition-colors shadow-2xs cursor-pointer group"
                 title="Direct Phone Booking"
               >
-                <Lucide.PhoneCall size={14} className="text-ink-secondary group-hover:text-[var(--color-primary)] transition-colors" />
-                <span className="text-[9px] font-bold mt-1 text-ink">DIRECT</span>
+                <Lucide.PhoneCall
+                  size={14}
+                  className="text-ink-secondary group-hover:text-[var(--color-primary)] transition-colors"
+                />
+                <span className="text-[9px] font-bold mt-1 text-ink">
+                  DIRECT
+                </span>
               </button>
               <button
                 type="button"
@@ -702,7 +1026,9 @@ export function NewReservation({
                 title="Collect Payment"
               >
                 <Lucide.Banknote size={14} className="text-warning-text" />
-                <span className="text-[9px] font-bold mt-1 text-ink">₹ PAY</span>
+                <span className="text-[9px] font-bold mt-1 text-ink">
+                  ₹ PAY
+                </span>
               </button>
               <button
                 type="button"
@@ -710,7 +1036,9 @@ export function NewReservation({
                 title="Assigned Rooms"
               >
                 <Lucide.BedDouble size={14} className="text-primary" />
-                <span className="text-[9px] font-bold mt-1 text-ink">ROOMS</span>
+                <span className="text-[9px] font-bold mt-1 text-ink">
+                  ROOMS
+                </span>
               </button>
               <button
                 type="button"
@@ -718,55 +1046,60 @@ export function NewReservation({
                 title="Guest ID Verification"
               >
                 <Lucide.CreditCard size={14} className="text-success-text" />
-                <span className="text-[9px] font-bold mt-1 text-ink">ID / CARD</span>
+                <span className="text-[9px] font-bold mt-1 text-ink">
+                  ID / CARD
+                </span>
               </button>
             </div>
           </div>
         </div>
 
         {/* ================= CENTER COLUMN: REFINED WORKBENCH & INTAKE CONSOLE ================= */}
-        <div className="flex flex-col gap-4 min-w-0">
-
+        <div className="flex flex-col gap-4 min-w-0 xl:col-span-10">
           {/* Sub Navigation Segmented Tabs */}
           <div className="flex items-center gap-1.5 p-1 bg-muted-surface/80 rounded-2xl border border-border/80 w-fit">
             <button
               type="button"
-              onClick={() => setActiveTab('general')}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === 'general'
-                ? 'bg-surface text-ink shadow-sm border border-border/60'
-                : 'text-ink-secondary hover:text-ink'
-                }`}
+              onClick={() => setActiveTab("general")}
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                activeTab === "general"
+                  ? "bg-surface text-ink shadow-sm border border-border/60"
+                  : "text-ink-secondary hover:text-ink"
+              }`}
             >
-              <Lucide.FileText size={13} className={activeTab === 'general' ? 'text-[var(--color-primary)]' : 'text-ink-muted'} />
+              <Lucide.FileText
+                size={13}
+                className={
+                  activeTab === "general"
+                    ? "text-[var(--color-primary)]"
+                    : "text-ink-muted"
+                }
+              />
               <span>General Reservation</span>
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('outlet')}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === 'outlet'
-                ? 'bg-surface text-ink shadow-sm border border-border/60'
-                : 'text-ink-secondary hover:text-ink'
-                }`}
+              onClick={() => setActiveTab("outlet")}
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                activeTab === "outlet"
+                  ? "bg-surface text-ink shadow-sm border border-border/60"
+                  : "text-ink-secondary hover:text-ink"
+              }`}
             >
-              <Lucide.Receipt size={13} className={activeTab === 'outlet' ? 'text-[var(--color-primary)]' : 'text-ink-muted'} />
+              <Lucide.Receipt
+                size={13}
+                className={
+                  activeTab === "outlet"
+                    ? "text-[var(--color-primary)]"
+                    : "text-ink-muted"
+                }
+              />
               <span>+ Outlet / POS Addons</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('preferences')}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === 'preferences'
-                ? 'bg-surface text-ink shadow-sm border border-border/60'
-                : 'text-ink-secondary hover:text-ink'
-                }`}
-            >
-              <Lucide.Sliders size={13} className={activeTab === 'preferences' ? 'text-[var(--color-primary)]' : 'text-ink-muted'} />
-              <span>Billing Preferences</span>
             </button>
           </div>
 
-          {activeTab === 'general' && (
+          {activeTab === "general" && (
             <div className="flex flex-col gap-4">
-
               {/* SECTION 1: BOOKING PARAMETERS & DETAILS */}
               <section className="bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
                 <div className="flex items-center justify-between border-b border-divider pb-3">
@@ -775,11 +1108,15 @@ export function NewReservation({
                       1
                     </span>
                     <div>
-                      <h2 className="text-sm font-bold text-ink tracking-tight">Booking Details & Rate Plan</h2>
+                      <h2 className="text-sm font-bold text-ink tracking-tight">
+                        Booking Details & Rate Plan
+                      </h2>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">Status:</span>
+                    <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">
+                      Status:
+                    </span>
                     <select
                       value={bookingType}
                       onChange={(e) => setBookingType(e.target.value)}
@@ -793,8 +1130,8 @@ export function NewReservation({
                   </div>
                 </div>
 
-                {/* Row 1: Channel Source & Type */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Booking source and source-specific booking type */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
                       Booking Source
@@ -804,22 +1141,25 @@ export function NewReservation({
                       onChange={(e) => {
                         setBookingSource(e.target.value);
                         // Reset dependent fields when source changes
-                        if (e.target.value === 'Direct') {
-                          setSourceType('Walkin');
-                        } else if (e.target.value === 'OTA') {
-                          setSourceType('Booking.com');
-                        } else if (e.target.value === 'Agent') {
-                          setSourceType('');
-                        } else if (e.target.value === 'GDS') {
-                          setSourceType('');
-                        } else if (e.target.value === 'Corp' || e.target.value === 'Corporate') {
-                          setSourceType('');
-                        } else if (e.target.value === 'Booking Engine') {
-                          setSourceType('Website');
-                        } else if (e.target.value === 'Meta') {
-                          setSourceType('Google ads');
+                        if (e.target.value === "Direct") {
+                          setSourceType("Walkin");
+                        } else if (e.target.value === "OTA") {
+                          setSourceType("Booking.com");
+                        } else if (e.target.value === "Agent") {
+                          setSourceType("");
+                        } else if (e.target.value === "GDS") {
+                          setSourceType("");
+                        } else if (
+                          e.target.value === "Corp" ||
+                          e.target.value === "Corporate"
+                        ) {
+                          setSourceType("");
+                        } else if (e.target.value === "Booking Engine") {
+                          setSourceType("Website");
+                        } else if (e.target.value === "Meta") {
+                          setSourceType("Google ads");
                         } else {
-                          setSourceType('Phone');
+                          setSourceType("Phone");
                         }
                       }}
                       className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
@@ -835,7 +1175,7 @@ export function NewReservation({
                   </div>
 
                   <div>
-                    {bookingSource === 'Direct' ? (
+                    {bookingSource === "Direct" ? (
                       <>
                         <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
                           Booking Type
@@ -851,7 +1191,7 @@ export function NewReservation({
                           <option value="Whatsapp">Whatsapp</option>
                         </select>
                       </>
-                    ) : bookingSource === 'OTA' ? (
+                    ) : bookingSource === "OTA" ? (
                       <>
                         <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
                           OTA Channel
@@ -870,7 +1210,7 @@ export function NewReservation({
                           <option value="Other OTA">Other OTA</option>
                         </select>
                       </>
-                    ) : bookingSource === 'Agent' ? (
+                    ) : bookingSource === "Agent" ? (
                       <>
                         <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
                           Agency Name
@@ -887,16 +1227,15 @@ export function NewReservation({
                         </label>
                         <input
                           type="text"
-                          value={bookingRefId.includes('|') ? bookingRefId.split('|')[1] || '' : ''}
-                          onChange={(e) => {
-                            const name = sourceType || '';
-                            setBookingRefId(name ? `${name}|${e.target.value}` : `|${e.target.value}`);
-                          }}
+                          value={sourceContactNumber}
+                          onChange={(e) =>
+                            setSourceContactNumber(e.target.value)
+                          }
                           placeholder="Enter Contact Number"
                           className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
                         />
                       </>
-                    ) : bookingSource === 'GDS' ? (
+                    ) : bookingSource === "GDS" ? (
                       <>
                         <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
                           GDS Name
@@ -913,16 +1252,16 @@ export function NewReservation({
                         </label>
                         <input
                           type="text"
-                          value={bookingRefId.includes('|') ? bookingRefId.split('|')[1] || '' : ''}
-                          onChange={(e) => {
-                            const name = sourceType || '';
-                            setBookingRefId(name ? `${name}|${e.target.value}` : `|${e.target.value}`);
-                          }}
+                          value={sourceContactNumber}
+                          onChange={(e) =>
+                            setSourceContactNumber(e.target.value)
+                          }
                           placeholder="Enter Contact Number"
                           className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
                         />
                       </>
-                    ) : bookingSource === 'Corp' || bookingSource === 'Corporate' ? (
+                    ) : bookingSource === "Corp" ||
+                      bookingSource === "Corporate" ? (
                       <>
                         <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
                           Company Name
@@ -939,16 +1278,15 @@ export function NewReservation({
                         </label>
                         <input
                           type="text"
-                          value={bookingRefId.includes('|') ? bookingRefId.split('|')[1] || '' : ''}
-                          onChange={(e) => {
-                            const name = sourceType || '';
-                            setBookingRefId(name ? `${name}|${e.target.value}` : `|${e.target.value}`);
-                          }}
+                          value={sourceContactNumber}
+                          onChange={(e) =>
+                            setSourceContactNumber(e.target.value)
+                          }
                           placeholder="Enter Contact Number"
                           className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
                         />
                       </>
-                    ) : bookingSource === 'Booking Engine' ? (
+                    ) : bookingSource === "Booking Engine" ? (
                       <>
                         <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
                           Booking Engine
@@ -962,7 +1300,7 @@ export function NewReservation({
                           <option value="Djubo">Djubo</option>
                         </select>
                       </>
-                    ) : bookingSource === 'Meta' ? (
+                    ) : bookingSource === "Meta" ? (
                       <>
                         <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
                           Meta Source
@@ -989,35 +1327,40 @@ export function NewReservation({
                         >
                           <option value="Phone">Phone Call Inquiry</option>
                           <option value="Email">Email Confirmation</option>
-                          <option value="Web Portal">Web Portal / Engine</option>
+                          <option value="Web Portal">
+                            Web Portal / Engine
+                          </option>
                           <option value="Front Desk">Front Desk Agent</option>
                         </select>
                       </>
                     )}
                   </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
-                      Reference ID <span className="text-danger-text">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={bookingRefId}
-                      onChange={(e) => setBookingRefId(e.target.value)}
-                      placeholder="Enter Reference ID"
-                      className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-mono font-bold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
-                    />
-                  </div>
                 </div>
 
-                {/* Row 2: Stay Dates & Booking Type */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 bg-page/70 p-3.5 rounded-2xl border border-border/70">
+                <div>
+                  <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                    Reference ID
+                  </label>
+                  <input
+                    type="text"
+                    value={externalReferenceId}
+                    onChange={(e) => setExternalReferenceId(e.target.value)}
+                    placeholder="Enter external OTA / agent reference ID"
+                    className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-mono font-bold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                  />
+                </div>
+
+                {/* Stay dates and booking category */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-page/70 p-3.5 rounded-2xl border border-border/70">
                   <div>
                     <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
                       Check-in Date
                     </label>
                     <div className="relative">
-                      <Lucide.Calendar size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+                      <Lucide.Calendar
+                        size={14}
+                        className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none"
+                      />
                       <input
                         type="date"
                         value={checkInDate}
@@ -1031,7 +1374,10 @@ export function NewReservation({
                       Check-out Date
                     </label>
                     <div className="relative">
-                      <Lucide.Calendar size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+                      <Lucide.Calendar
+                        size={14}
+                        className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none"
+                      />
                       <input
                         type="date"
                         value={checkOutDate}
@@ -1063,7 +1409,10 @@ export function NewReservation({
                       Check-in Time
                     </label>
                     <div className="relative">
-                      <Lucide.Clock size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+                      <Lucide.Clock
+                        size={14}
+                        className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none"
+                      />
                       <input
                         type="time"
                         value={checkInTime}
@@ -1077,7 +1426,10 @@ export function NewReservation({
                       Check-out Time
                     </label>
                     <div className="relative">
-                      <Lucide.Clock size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+                      <Lucide.Clock
+                        size={14}
+                        className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none"
+                      />
                       <input
                         type="time"
                         value={checkOutTime}
@@ -1088,7 +1440,7 @@ export function NewReservation({
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-6 pt-1">
+                <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -1096,84 +1448,122 @@ export function NewReservation({
                       onChange={(e) => {
                         setSamePlanAllRooms(e.target.checked);
                         if (e.target.checked) {
-                          setRequirements((previous) => previous.map((room) => ({ ...room, ratePlan, mealPlan })));
+                          setRequirements((previous) =>
+                            previous.map((room) => ({
+                              ...room,
+                              ratePlan,
+                              mealPlan,
+                            })),
+                          );
                         }
                       }}
                       className="w-4 h-4 rounded border-border text-[var(--color-primary)] focus:ring-[var(--color-primary)]/20"
                     />
-                    <span className="text-xs font-semibold text-ink">Same Plan for All Rooms</span>
+                    <span className="text-xs font-semibold text-ink">
+                      Same Plan for All Rooms
+                    </span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       className="w-4 h-4 rounded border-border text-[var(--color-primary)] focus:ring-[var(--color-primary)]/20"
                     />
-                    <span className="text-xs font-semibold text-ink">Pay at Hotel</span>
+                    <span className="text-xs font-semibold text-ink">
+                      Pay at Hotel
+                    </span>
                   </label>
                 </div>
 
                 {samePlanAllRooms && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div className="pt-1">
                     <label className="flex flex-col gap-1.5 text-[11px] font-bold text-ink-secondary uppercase tracking-wider">
                       Rate Plan
                       <select
                         value={ratePlan}
                         onChange={(event) => {
                           setRatePlan(event.target.value);
-                          setRequirements((previous) => previous.map((room) => ({ ...room, ratePlan: event.target.value })));
+                          setRequirements((previous) =>
+                            previous.map((room) => ({
+                              ...room,
+                              ratePlan: event.target.value,
+                            })),
+                          );
                         }}
                         className="w-full rounded-lg border border-border bg-page/50 px-3 py-1.5 text-xs font-semibold normal-case text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
                       >
-                        <option value="Best Available Rates">Best Available Rates</option>
-                        {RATE_PLANS.filter((plan) => plan !== 'Best Available Rates').map((plan) => (
-                          <option key={plan} value={plan}>{plan}</option>
+                        <option value="Best Available Rates">
+                          Best Available Rates
+                        </option>
+                        {RATE_PLANS.filter(
+                          (plan) => plan !== "Best Available Rates",
+                        ).map((plan) => (
+                          <option key={plan} value={plan}>
+                            {plan}
+                          </option>
                         ))}
-                      </select>
-                    </label>
-                    <label className="flex flex-col gap-1.5 text-[11px] font-bold text-ink-secondary uppercase tracking-wider">
-                      Meal Type
-                      <select
-                        value={mealPlan}
-                        onChange={(event) => {
-                          setMealPlan(event.target.value);
-                          setRequirements((previous) => previous.map((room) => ({ ...room, mealPlan: event.target.value })));
-                        }}
-                        className="w-full rounded-lg border border-border bg-page/50 px-3 py-1.5 text-xs font-semibold normal-case text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
-                      >
-                        <option value="EP">EP</option>
-                        <option value="CP">CP</option>
                       </select>
                     </label>
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div
+                  className={`grid grid-cols-1 gap-3 pt-1 ${samePlanAllRooms ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}
+                >
                   <div>
                     <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
                       Room Type
                     </label>
                     <select
-                      value={requirements[0]?.roomTypeId ?? 'deluxe'}
+                      value={requirements[0]?.roomTypeId ?? "deluxe"}
                       onChange={(e) => {
-                        const nextType = roomTypes.find((type) => type.id === e.target.value);
+                        const nextType = roomTypes.find(
+                          (type) => type.id === e.target.value,
+                        );
                         if (nextType) {
-                          setRequirements((prev) => prev.map((room) => ({
-                            ...room,
-                            roomTypeId: nextType.id,
-                            category: nextType.name,
-                            rate: Number(nextType.baseRate),
-                            roomId: null,
-                            roomNo: '',
-                          })));
+                          setRequirements((prev) =>
+                            prev.map((room) => ({
+                              ...room,
+                              roomTypeId: nextType.id,
+                              category: nextType.name,
+                              rate: Number(nextType.baseRate),
+                              roomId: null,
+                              roomNo: "",
+                            })),
+                          );
                         }
                       }}
                       className="w-full rounded-lg border border-border bg-page/50 px-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all cursor-pointer"
                     >
                       {roomTypes.map((type) => (
-                        <option key={type.id} value={type.id}>{type.name}</option>
+                        <option key={type.id} value={type.id}>
+                          {type.name}
+                        </option>
                       ))}
                     </select>
                   </div>
+                  {samePlanAllRooms && (
+                    <div>
+                      <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                        Meal Plan
+                      </label>
+                      <select
+                        value={mealPlan}
+                        onChange={(event) => {
+                          setMealPlan(event.target.value);
+                          setRequirements((previous) =>
+                            previous.map((room) => ({
+                              ...room,
+                              mealPlan: event.target.value,
+                            })),
+                          );
+                        }}
+                        className="w-full rounded-lg border border-border bg-page/50 px-2.5 py-1.5 text-xs font-semibold text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
+                      >
+                        <option value="EP">EP</option>
+                        <option value="CP">CP</option>
+                      </select>
+                    </div>
+                  )}
                   <div>
                     <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
                       No of Rooms
@@ -1216,22 +1606,41 @@ export function NewReservation({
                 totalRooms={requirements.length}
                 nights={nightsCount}
                 onOverridePriceChange={setOverridePrice}
+                onOverrideRoomTotalChange={setOverrideRoomTotal}
                 onRemoveRoom={handleRemoveRoom}
                 onUpdateRoom={(id, updates) => {
                   handleUpdateRequirement(id, updates);
-                  if (updates.billingRoute === 'To Company') setBillingPreferences((previous) => ({ ...previous, billToCompany: true }));
+                  if (updates.billingRoute === "To Company")
+                    setBillingPreferences((previous) => ({
+                      ...previous,
+                      billToCompany: true,
+                    }));
                 }}
               />
 
-              {/* SECTION 3: GUEST DETAILS & PROFILE SEARCH */}
+
+              <BillingPreferencesSection
+                preferences={billingPreferences}
+                totalsByRoute={totalsByRoute}
+                onChange={(updates) =>
+                  setBillingPreferences((previous) => ({
+                    ...previous,
+                    ...updates,
+                  }))
+                }
+              />
+
+              {/* SECTION 4: GUEST DETAILS & PROFILE SEARCH */}
               <section className="bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
                 <div className="flex items-center justify-between border-b border-divider pb-3">
                   <div className="flex items-center gap-2.5">
                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-xs shadow-xs shadow-primary/20">
-                      3
+                      4
                     </span>
                     <div>
-                      <h2 className="text-sm font-bold text-ink tracking-tight">Guest Information & Verification</h2>
+                      <h2 className="text-sm font-bold text-ink tracking-tight">
+                        Guest Information & Verification
+                      </h2>
                     </div>
                   </div>
 
@@ -1260,7 +1669,8 @@ export function NewReservation({
 
                   <div className="sm:col-span-3">
                     <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
-                      Full Legal Name <span className="text-danger-text">*</span>
+                      Full Legal Name{" "}
+                      <span className="text-danger-text">*</span>
                     </label>
                     <input
                       type="text"
@@ -1268,9 +1678,21 @@ export function NewReservation({
                       onChange={(e) => {
                         setGuestName(e.target.value);
                         setPrimaryGuestId(null);
-                        setRequirements((previous) => previous.map((room, index) => index === 0
-                          ? { ...room, occupants: room.occupants.map((occupant, occupantIndex) => occupantIndex === 0 ? { ...occupant, name: e.target.value } : occupant) }
-                          : room));
+                        setRequirements((previous) =>
+                          previous.map((room, index) =>
+                            index === 0
+                              ? {
+                                  ...room,
+                                  occupants: room.occupants.map(
+                                    (occupant, occupantIndex) =>
+                                      occupantIndex === 0
+                                        ? { ...occupant, name: e.target.value }
+                                        : occupant,
+                                  ),
+                                }
+                              : room,
+                          ),
+                        );
                       }}
                       placeholder="e.g. Rohan Sharma"
                       className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3.5 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
@@ -1287,11 +1709,17 @@ export function NewReservation({
                       <input
                         type="text"
                         value={guestContact}
-                        onChange={(e) => { setGuestContact(e.target.value); setPrimaryGuestId(null); }}
+                        onChange={(e) => {
+                          setGuestContact(e.target.value);
+                          setPrimaryGuestId(null);
+                        }}
                         placeholder="e.g. +91 88829 51951"
                         className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3.5 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
                       />
-                      <Lucide.Phone size={13} className="text-ink-muted absolute right-3 top-1/2 -translate-y-1/2" />
+                      <Lucide.Phone
+                        size={13}
+                        className="text-ink-muted absolute right-3 top-1/2 -translate-y-1/2"
+                      />
                     </div>
                   </div>
 
@@ -1303,11 +1731,17 @@ export function NewReservation({
                       <input
                         type="email"
                         value={guestEmail}
-                        onChange={(e) => { setGuestEmail(e.target.value); setPrimaryGuestId(null); }}
+                        onChange={(e) => {
+                          setGuestEmail(e.target.value);
+                          setPrimaryGuestId(null);
+                        }}
                         placeholder="e.g. guest@example.com"
                         className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3.5 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
                       />
-                      <Lucide.Mail size={13} className="text-ink-muted absolute right-3 top-1/2 -translate-y-1/2" />
+                      <Lucide.Mail
+                        size={13}
+                        className="text-ink-muted absolute right-3 top-1/2 -translate-y-1/2"
+                      />
                     </div>
                   </div>
                 </div>
@@ -1359,15 +1793,17 @@ export function NewReservation({
                 </div>
               </section>
 
-              {/* SECTION 4: PAYMENTS & SUMMARY BREAKDOWN */}
+              {/* SECTION 5: PAYMENTS & SUMMARY BREAKDOWN */}
               <section className="bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
                 <div className="flex items-center justify-between border-b border-divider pb-3">
                   <div className="flex items-center gap-2.5">
                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-xs shadow-xs shadow-primary/20">
-                      4
+                      5
                     </span>
                     <div>
-                      <h2 className="text-sm font-bold text-ink tracking-tight">Payments & Master Folio Summary</h2>
+                      <h2 className="text-sm font-bold text-ink tracking-tight">
+                        Payments & Master Folio Summary
+                      </h2>
                     </div>
                   </div>
 
@@ -1400,19 +1836,25 @@ export function NewReservation({
                             <Lucide.Check size={14} />
                           </div>
                           <div>
-                            <span className="font-bold text-ink block">{p.method}</span>
-                            <span className="text-[10px] text-ink-secondary font-mono">Ref: {p.ref} · {p.time}</span>
+                            <span className="font-bold text-ink block">
+                              {p.method}
+                            </span>
+                            <span className="text-[10px] text-ink-secondary font-mono">
+                              Ref: {p.ref} · {p.time}
+                            </span>
                           </div>
                         </div>
                         <span className="font-extrabold font-mono text-success-text">
-                          ₹{p.amount.toLocaleString('en-IN')}.00
+                          ₹{p.amount.toLocaleString("en-IN")}.00
                         </span>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="rounded-2xl border border-dashed border-border p-4 text-center text-xs text-ink-secondary bg-page/30">
-                    No advance payments recorded yet. Click <strong>Collect Payment</strong> to record an advance or deposit.
+                    No advance payments recorded yet. Click{" "}
+                    <strong>Collect Payment</strong> to record an advance or
+                    deposit.
                   </div>
                 )}
 
@@ -1433,32 +1875,49 @@ export function NewReservation({
                 {/* Itemized Bill Summary Table */}
                 <div className="rounded-2xl border border-border/90 bg-surface p-4 flex flex-col gap-2 text-xs">
                   <div className="flex items-center justify-between text-ink-secondary">
-                    <span>Room Charges ({requirements.length} room(s), {nightsCount} night(s))</span>
-                    <span className="font-semibold font-mono text-ink">₹{roomCharges.toLocaleString('en-IN')}.00</span>
+                    <span>
+                      Room Charges ({requirements.length} room(s), {nightsCount}{" "}
+                      night(s))
+                    </span>
+                    <span className="font-semibold font-mono text-ink">
+                      ₹{roomCharges.toLocaleString("en-IN")}.00
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between text-ink-secondary">
                     <span>Meal plan supplements</span>
-                    <span className="font-semibold font-mono text-ink">₹{mealPlanCharges.toLocaleString('en-IN')}.00</span>
+                    <span className="font-semibold font-mono text-ink">
+                      ₹{mealPlanCharges.toLocaleString("en-IN")}.00
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between text-ink-secondary">
                     <span>Outlet / POS add-ons ({posAddons.length})</span>
-                    <span className="font-semibold font-mono text-ink">₹{addonSubtotal.toLocaleString('en-IN')}.00</span>
+                    <span className="font-semibold font-mono text-ink">
+                      ₹{addonSubtotal.toLocaleString("en-IN")}.00
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between text-ink-secondary">
                     <div className="flex items-center gap-1.5">
                       <span>Discount Applied</span>
-                      <span className="text-[10px] text-ink-muted font-medium">(Editable)</span>
+                      <span className="text-[10px] text-ink-muted font-medium">
+                        (Editable)
+                      </span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="text-ink-muted font-mono text-xs">-₹</span>
+                      <span className="text-ink-muted font-mono text-xs">
+                        -₹
+                      </span>
                       <input
                         type="number"
                         min="0"
-                        value={discountAmount || ''}
-                        onChange={(e) => setDiscountAmount(Math.max(0, Number(e.target.value) || 0))}
+                        value={discountAmount || ""}
+                        onChange={(e) =>
+                          setDiscountAmount(
+                            Math.max(0, Number(e.target.value) || 0),
+                          )
+                        }
                         placeholder="0"
                         className="w-20 rounded-lg border border-border bg-page px-2 py-0.5 text-right font-mono font-bold text-xs text-ink focus:outline-none focus:border-[var(--color-primary)]"
                       />
@@ -1469,17 +1928,23 @@ export function NewReservation({
 
                   <div className="flex items-center justify-between font-bold text-ink">
                     <span>Sub-Total</span>
-                    <span className="font-mono text-ink">₹{subTotal.toLocaleString('en-IN')}.00</span>
+                    <span className="font-mono text-ink">
+                      ₹{subTotal.toLocaleString("en-IN")}.00
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between text-ink-secondary">
                     <span>Goods & Services Tax (GST {TAX_RATE * 100}%)</span>
-                    <span className="font-semibold font-mono text-ink">₹{taxAmount.toLocaleString('en-IN')}.00</span>
+                    <span className="font-semibold font-mono text-ink">
+                      ₹{taxAmount.toLocaleString("en-IN")}.00
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between text-success-text font-bold">
                     <span>Payments Received</span>
-                    <span className="font-mono">₹{totalPaid.toLocaleString('en-IN')}.00</span>
+                    <span className="font-mono">
+                      ₹{totalPaid.toLocaleString("en-IN")}.00
+                    </span>
                   </div>
 
                   <div className="h-[1px] bg-border my-1" />
@@ -1487,7 +1952,7 @@ export function NewReservation({
                   <div className="flex items-center justify-between text-sm font-extrabold text-ink pt-0.5">
                     <span>Net Payable at Hotel</span>
                     <span className="font-mono text-base text-[var(--color-primary)]">
-                      ₹{outstanding.toLocaleString('en-IN')}.00
+                      ₹{outstanding.toLocaleString("en-IN")}.00
                     </span>
                   </div>
                 </div>
@@ -1497,7 +1962,7 @@ export function NewReservation({
           )}
 
           {/* OUTLET / POS ADDONS TAB */}
-          {activeTab === 'outlet' && (
+          {activeTab === "outlet" && (
             <OutletPOSSection
               requirements={requirements}
               addons={posAddons}
@@ -1506,24 +1971,20 @@ export function NewReservation({
               defaultBillingRoute={billingPreferences.extrasBillTo}
               onAdd={handleAddAddon}
               onUpdate={handleUpdateAddon}
-              onRemove={(id) => setPosAddons((previous) => previous.filter((addon) => addon.id !== id))}
+              onRemove={(id) =>
+                setPosAddons((previous) =>
+                  previous.filter((addon) => addon.id !== id),
+                )
+              }
             />
           )}
-
-          {/* BILLING PREFERENCES TAB */}
-          {activeTab === 'preferences' && (
-            <BillingPreferencesSection
-              preferences={billingPreferences}
-              totalsByRoute={totalsByRoute}
-              onChange={(updates) => setBillingPreferences((previous) => ({ ...previous, ...updates }))}
-            />
-          )}
-
         </div>
 
-        {/* ================= RIGHT COLUMN: TASKS, CHECKLIST & FRONT DESK LOG ================= */}
-        <div className="flex flex-col gap-4">
+        {/* Reserved third column for the requested 2.5 / 5 / 2 / 2.5 layout. */}
+        <div aria-hidden="true" className="hidden xl:block xl:col-span-4" />
 
+        {/* ================= FOURTH COLUMN: TASKS & CHECKLIST ================= */}
+        <div className="flex flex-col gap-4 xl:col-span-5">
           {/* Front Desk Tasks Panel */}
           <div className="bg-surface rounded-3xl border border-border/90 shadow-sm p-5 flex flex-col gap-3.5">
             <div className="flex items-center justify-between border-b border-divider pb-3">
@@ -1546,23 +2007,28 @@ export function NewReservation({
                 <div
                   key={task.id}
                   onClick={() => handleToggleTask(task.id)}
-                  className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${task.done
-                    ? 'bg-page border-border/60 opacity-60'
-                    : 'bg-surface border-border hover:border-ink-disabled shadow-2xs'
-                    }`}
+                  className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
+                    task.done
+                      ? "bg-page border-border/60 opacity-60"
+                      : "bg-surface border-border hover:border-ink-disabled shadow-2xs"
+                  }`}
                 >
                   <button
                     type="button"
-                    className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded border transition-colors ${task.done
-                      ? 'bg-success-text border-success-text text-white'
-                      : 'border-ink-disabled bg-surface'
-                      }`}
+                    className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                      task.done
+                        ? "bg-success-text border-success-text text-white"
+                        : "border-ink-disabled bg-surface"
+                    }`}
                   >
                     {task.done && <Lucide.Check size={11} />}
                   </button>
                   <span
-                    className={`text-xs flex-1 ${task.done ? 'line-through text-ink-muted font-normal' : 'font-semibold text-ink'
-                      }`}
+                    className={`text-xs flex-1 ${
+                      task.done
+                        ? "line-through text-ink-muted font-normal"
+                        : "font-semibold text-ink"
+                    }`}
                   >
                     {task.text}
                   </span>
@@ -1576,7 +2042,7 @@ export function NewReservation({
                 type="text"
                 value={newTaskInput}
                 onChange={(e) => setNewTaskInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
+                onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
                 placeholder="Add front desk task..."
                 className="flex-1 rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-1.5 text-xs text-ink focus:outline-none focus:border-[var(--color-primary)]"
               />
@@ -1589,42 +2055,12 @@ export function NewReservation({
               </button>
             </div>
           </div>
-
-          {/* Reservation Audit & Timestamp Card */}
-          <div className="bg-surface rounded-3xl border border-border/90 shadow-2xs p-5 flex flex-col gap-3 text-xs">
-            <div className="flex items-center gap-2 text-ink font-bold text-xs uppercase tracking-wider">
-              <Lucide.Clock size={14} className="text-ink-muted" />
-              <span>Audit Trail</span>
-            </div>
-
-            <div className="flex flex-col gap-2 text-[11px] text-ink-secondary">
-              <div className="flex justify-between">
-                <span className="text-ink-muted">Created:</span>
-                <span className="font-semibold text-ink">Today, 13:45 hrs</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-ink-muted">Created By:</span>
-                <span className="font-semibold text-ink">Front Desk (Admin)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-ink-muted">System Source:</span>
-                <span className="font-semibold text-ink">Direct Portal / Desk</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-ink-muted">Folio ID:</span>
-                <span className="font-mono font-bold text-ink">{bookingRefId}</span>
-              </div>
-            </div>
-          </div>
-
         </div>
-
       </div>
 
       {/* ================= FLOATING ACTION DOCK (BOTTOM BAR) ================= */}
-      <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-3xl z-40">
+      <div className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2">
         <div className="backdrop-blur-md bg-surface/95 rounded-2xl border border-border/90 p-3 sm:px-4 shadow-lg flex items-center justify-between gap-3">
-
           {/* Left: Report an issue */}
           <button
             type="button"
@@ -1637,16 +2073,20 @@ export function NewReservation({
 
           {/* Center: Live Total Ticker */}
           <div className="hidden md:flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-xl bg-page border border-border/60">
-            <span className="text-ink-secondary">{requirements.length} Room(s) · {nightsCount} Night(s)</span>
+            <span className="text-ink-secondary">
+              {requirements.length} Room(s) · {nightsCount} Night(s)
+            </span>
             <span className="h-3 w-[1px] bg-ink-disabled" />
-            <span className="font-mono text-ink">₹{totalBill.toLocaleString('en-IN')}.00</span>
+            <span className="font-mono text-ink">
+              ₹{totalBill.toLocaleString("en-IN")}.00
+            </span>
           </div>
 
           {/* Right: Actions */}
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => go({ view: 'reservations' })}
+              onClick={() => go({ view: "reservations" })}
               className="px-3.5 py-2 rounded-xl border border-border bg-surface hover:bg-page text-ink text-xs font-bold transition-colors cursor-pointer"
             >
               Cancel
@@ -1668,11 +2108,14 @@ export function NewReservation({
               onClick={() => void handleConfirmReservation(true)}
               className="px-5 py-2 rounded-xl bg-[var(--color-primary)] hover:opacity-95 text-white text-xs font-bold shadow-md shadow-[var(--color-primary)]/20 transition-all cursor-pointer flex items-center gap-1.5"
             >
-              {savingReservation ? <Lucide.LoaderCircle size={14} className="animate-spin" /> : <Lucide.CheckCircle2 size={14} />}
-              <span>{savingReservation ? 'Saving…' : 'Confirm & Email'}</span>
+              {savingReservation ? (
+                <Lucide.LoaderCircle size={14} className="animate-spin" />
+              ) : (
+                <Lucide.CheckCircle2 size={14} />
+              )}
+              <span>{savingReservation ? "Saving…" : "Confirm & Email"}</span>
             </button>
           </div>
-
         </div>
       </div>
 
@@ -1686,8 +2129,12 @@ export function NewReservation({
                   <Lucide.Banknote size={18} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-ink">Collect Folio Payment</h3>
-                  <p className="text-[11px] text-ink-muted">Record advance or settle outstanding bill</p>
+                  <h3 className="text-sm font-bold text-ink">
+                    Collect Folio Payment
+                  </h3>
+                  <p className="text-[11px] text-ink-muted">
+                    Record advance or settle outstanding bill
+                  </p>
                 </div>
               </div>
               <button
@@ -1705,7 +2152,9 @@ export function NewReservation({
                   Payment Amount (₹)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-ink-muted">₹</span>
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-ink-muted">
+                    ₹
+                  </span>
                   <input
                     type="number"
                     value={collectAmount}
@@ -1720,15 +2169,18 @@ export function NewReservation({
                   Payment Mode
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {(['UPI / QR', 'Credit Card', 'Debit Card', 'Cash'] as const).map((method) => (
+                  {(
+                    ["UPI / QR", "Credit Card", "Debit Card", "Cash"] as const
+                  ).map((method) => (
                     <button
                       key={method}
                       type="button"
                       onClick={() => setCollectMethod(method)}
-                      className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${collectMethod === method
-                        ? 'bg-[var(--color-primary)] text-white border-transparent shadow-xs'
-                        : 'bg-surface border-border text-ink hover:bg-page'
-                        }`}
+                      className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                        collectMethod === method
+                          ? "bg-[var(--color-primary)] text-white border-transparent shadow-xs"
+                          : "bg-surface border-border text-ink hover:bg-page"
+                      }`}
                     >
                       {method}
                     </button>
@@ -1780,8 +2232,12 @@ export function NewReservation({
                   <Lucide.AlertCircle size={18} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-ink">Report Reservation Issue</h3>
-                  <p className="text-[11px] text-ink-muted">Escalate an allotment, rate, or sync issue</p>
+                  <h3 className="text-sm font-bold text-ink">
+                    Report Reservation Issue
+                  </h3>
+                  <p className="text-[11px] text-ink-muted">
+                    Escalate an allotment, rate, or sync issue
+                  </p>
                 </div>
               </div>
               <button
@@ -1812,9 +2268,11 @@ export function NewReservation({
               <button
                 type="button"
                 onClick={() => {
-                  toast.success('Issue Submitted', { detail: 'Escalated to IT & Duty Manager.' });
+                  toast.success("Issue Submitted", {
+                    detail: "Escalated to IT & Duty Manager.",
+                  });
                   setIssueModalOpen(false);
-                  setIssueText('');
+                  setIssueText("");
                 }}
                 className="px-5 py-2 rounded-xl bg-danger-text text-white text-xs font-bold hover:bg-danger-text shadow-xs"
               >

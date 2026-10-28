@@ -68,7 +68,7 @@ export interface ReservationPendingPaymentRow {
   amount: string; method: string; reference?: string | null; recordedAt?: string;
 }
 export interface ReservationRow {
-  id: string; bookingCode: string; status: string; source?: string; checkInDate: string; checkOutDate: string;
+  id: string; bookingCode: string; externalReferenceId?: string | null; status: string; source?: string; checkInDate: string; checkOutDate: string;
   nights?: number; adults: number; children: number; infants?: number; currencyCode?: string; totalAmount?: string; primaryGuestId?: string;
   nightlyRate?: string; internalNotes?: string | null;
   subtotal?: string; taxTotal?: string; specialRequests?: string | null; guest?: { id: string; name?: string; firstName?: string; lastName?: string } | null;
