@@ -17,10 +17,7 @@ export const MEAL_PLANS = [
 ];
 
 export const RATE_PLANS = [
-  'Best Available Rates',
-  'Corporate Static 2026',
-  'Member Loyalty Exclusive',
-  'Weekend Escape Package',
+  'Best Available Rates'
 ];
 
 export const SAMPLE_GUEST_DATABASE = [

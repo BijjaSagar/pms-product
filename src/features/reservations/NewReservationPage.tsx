@@ -10,7 +10,7 @@ import { BillingPreferencesSection } from './new-reservation/BillingPreferencesS
 import { OutletPOSSection } from './new-reservation/OutletPOSSection';
 import { RoomRequirementsSection } from './new-reservation/RoomRequirementsSection';
 import { FALLBACK_ROOM_CATEGORIES, MEAL_PLANS, OUTLET_CATALOG, RATE_PLANS, SAMPLE_GUEST_DATABASE } from './new-reservation/data';
-import type { BillingPreferences, FrontDeskTask, OutletAddonLine, OutletCatalogItem, RoomCategoryOption, RoomOccupant, RoomRequirement } from './new-reservation/types';
+import type { BillingPreferences, FrontDeskTask, OutletAddonLine, OutletCatalogItem, RoomCategoryOption, RoomRequirement } from './new-reservation/types';
 
 export function NewReservation({
   go,
@@ -22,10 +22,11 @@ export function NewReservation({
   // Booking Parameters
   const [bookingSource, setBookingSource] = useState('Direct');
   const [sourceType, setSourceType] = useState('Phone');
-  const [bookingRefId, setBookingRefId] = useState('DJB-2026-9042');
+  const [bookingRefId, setBookingRefId] = useState('');
   const [checkInDate, setCheckInDate] = useState('2026-10-20');
   const [checkOutDate, setCheckOutDate] = useState('2026-10-21');
-  const [bookingType, setBookingType] = useState('Confirmed');
+  const [bookingType, setBookingType] = useState('Confirmed'); // Status
+  const [bookingCategory, setBookingCategory] = useState('FIT'); // Booking Type
   const [checkInTime, setCheckInTime] = useState('13:00');
   const [checkOutTime, setCheckOutTime] = useState('11:00');
   const [samePlanAllRooms, setSamePlanAllRooms] = useState(true);
@@ -250,26 +251,6 @@ export function NewReservation({
     setRequirements((prev) => prev.map((room) => room.id === id ? { ...room, ...updates } : room));
   };
 
-  const handleAddOccupant = (roomId: string) => {
-    handleUpdateRequirement(roomId, {
-      occupants: [...(requirements.find((room) => room.id === roomId)?.occupants ?? []), {
-        id: `occupant-${Date.now()}`, name: '', role: 'Family member',
-      }],
-    });
-  };
-
-  const handleUpdateOccupant = (roomId: string, occupantId: string, updates: Partial<RoomOccupant>) => {
-    const room = requirements.find((item) => item.id === roomId);
-    if (!room) return;
-    handleUpdateRequirement(roomId, { occupants: room.occupants.map((occupant) => occupant.id === occupantId ? { ...occupant, ...updates } : occupant) });
-  };
-
-  const handleRemoveOccupant = (roomId: string, occupantId: string) => {
-    const room = requirements.find((item) => item.id === roomId);
-    if (!room || room.occupants.length <= 1) return;
-    handleUpdateRequirement(roomId, { occupants: room.occupants.filter((occupant) => occupant.id !== occupantId) });
-  };
-
   const handleAddAddon = (item: OutletCatalogItem) => {
     const firstRoom = requirements[0];
     if (!firstRoom) return;
@@ -348,15 +329,6 @@ export function NewReservation({
       toast.error('Room Assigned Twice', { detail: 'Each reservation room must use a different physical room.' });
       return;
     }
-    const overCapacity = requirements.find((room) => {
-      const roomType = roomTypes.find((type) => type.id === room.roomTypeId);
-      return roomType && (room.adults > roomType.maxAdults || room.children > roomType.maxChildren);
-    });
-    if (overCapacity) {
-      toast.error('Room Capacity Exceeded', { detail: `Room ${overCapacity.roomIndex} exceeds the ${overCapacity.category} occupancy limit.` });
-      return;
-    }
-
     setSavingReservation(true);
     try {
       let guestId = primaryGuestId;
@@ -528,7 +500,7 @@ export function NewReservation({
               className="px-4 py-2.5 rounded-xl font-semibold border border-border bg-surface hover:bg-page text-ink shadow-xs transition-colors text-xs cursor-pointer"
               onClick={() => {
                 setConfirmedBooking(null);
-                setBookingRefId(`DJB-2026-${Math.floor(1000 + Math.random() * 9000)}`);
+                setBookingRefId('');
               }}
             >
               Create Another Booking
@@ -541,43 +513,6 @@ export function NewReservation({
 
   return (
     <div className="w-full text-ink font-sans pb-24 flex flex-col gap-4">
-      {/* ================= PAGE HEADER & VIEW BAR ================= */}
-      <div className="bg-surface rounded-2xl border border-border/80 p-4 sm:p-5 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-[var(--color-primary)] to-dark-accent text-white font-black shadow-md shadow-[var(--color-primary)]/20">
-            <Lucide.FileSpreadsheet size={22} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink">
-                New Reservation
-              </h1>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-success-bg text-success-text border border-success-border shadow-2xs">
-                <span className="h-1.5 w-1.5 rounded-full bg-success-text animate-pulse" />
-                Folio Console
-              </span>
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-muted-surface text-ink-secondary font-mono">
-                #{bookingRefId}
-              </span>
-            </div>
-            <p className="text-xs text-ink-secondary mt-0.5">
-              Refined 3-column reservation workstation with luxury boarding ticket, real-time bill routing & task checklist
-            </p>
-          </div>
-        </div>
-
-        {/* Header Actions */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            type="button"
-            onClick={() => go({ view: 'reservations' })}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border bg-surface hover:bg-page text-ink text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-          >
-            <Lucide.CalendarDays size={14} className="text-ink-muted" />
-            <span className="hidden sm:inline">All Reservations</span>
-          </button>
-        </div>
-      </div>
 
       {/* ================= 3-COLUMN MASTER WORKBENCH ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-[310px_1fr] xl:grid-cols-[330px_1fr_280px] gap-4 items-start">
@@ -841,7 +776,6 @@ export function NewReservation({
                     </span>
                     <div>
                       <h2 className="text-sm font-bold text-ink tracking-tight">Booking Details & Rate Plan</h2>
-                      <p className="text-[11px] text-ink-muted mt-0.5">Channel source, stay duration, meal plan & occupancy setup</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -867,125 +801,406 @@ export function NewReservation({
                     </label>
                     <select
                       value={bookingSource}
-                      onChange={(e) => setBookingSource(e.target.value)}
+                      onChange={(e) => {
+                        setBookingSource(e.target.value);
+                        // Reset dependent fields when source changes
+                        if (e.target.value === 'Direct') {
+                          setSourceType('Walkin');
+                        } else if (e.target.value === 'OTA') {
+                          setSourceType('Booking.com');
+                        } else if (e.target.value === 'Agent') {
+                          setSourceType('');
+                        } else if (e.target.value === 'GDS') {
+                          setSourceType('');
+                        } else if (e.target.value === 'Corp' || e.target.value === 'Corporate') {
+                          setSourceType('');
+                        } else if (e.target.value === 'Booking Engine') {
+                          setSourceType('Website');
+                        } else if (e.target.value === 'Meta') {
+                          setSourceType('Google ads');
+                        } else {
+                          setSourceType('Phone');
+                        }
+                      }}
                       className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
                     >
-                      <option value="Direct">Direct (Hotel Desk)</option>
-                      <option value="OTA - Booking.com">OTA - Booking.com</option>
-                      <option value="OTA - Agoda">OTA - Agoda</option>
-                      <option value="OTA - MakeMyTrip">OTA - MakeMyTrip</option>
-                      <option value="Corporate">Corporate Negotiated</option>
-                      <option value="Walk-in">Walk-in Direct</option>
+                      <option value="Direct">Direct</option>
+                      <option value="OTA">OTA</option>
+                      <option value="Agent">Agent</option>
+                      <option value="GDS">GDS</option>
+                      <option value="Corp">Corporate</option>
+                      <option value="Booking Engine">Booking Engine</option>
+                      <option value="Meta">Meta</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
-                      Booking Type / Mode
-                    </label>
-                    <select
-                      value={sourceType}
-                      onChange={(e) => setSourceType(e.target.value)}
-                      className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
-                    >
-                      <option value="Phone">Phone Call Inquiry</option>
-                      <option value="Email">Email Confirmation</option>
-                      <option value="Web Portal">Web Portal / Engine</option>
-                      <option value="Front Desk">Front Desk Agent</option>
-                    </select>
+                    {bookingSource === 'Direct' ? (
+                      <>
+                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                          Booking Type
+                        </label>
+                        <select
+                          value={sourceType}
+                          onChange={(e) => setSourceType(e.target.value)}
+                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                        >
+                          <option value="Walkin">Walkin</option>
+                          <option value="Phone">Phone</option>
+                          <option value="Email">Email</option>
+                          <option value="Whatsapp">Whatsapp</option>
+                        </select>
+                      </>
+                    ) : bookingSource === 'OTA' ? (
+                      <>
+                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                          OTA Channel
+                        </label>
+                        <select
+                          value={sourceType}
+                          onChange={(e) => setSourceType(e.target.value)}
+                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                        >
+                          <option value="Booking.com">Booking.com</option>
+                          <option value="Expedia">Expedia</option>
+                          <option value="Agoda">Agoda</option>
+                          <option value="MakeMyTrip">MakeMyTrip</option>
+                          <option value="Goibibo">Goibibo</option>
+                          <option value="Airbnb">Airbnb</option>
+                          <option value="Other OTA">Other OTA</option>
+                        </select>
+                      </>
+                    ) : bookingSource === 'Agent' ? (
+                      <>
+                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                          Agency Name
+                        </label>
+                        <input
+                          type="text"
+                          value={sourceType}
+                          onChange={(e) => setSourceType(e.target.value)}
+                          placeholder="Enter Agency Name"
+                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                        />
+                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5 mt-2">
+                          Contact Number
+                        </label>
+                        <input
+                          type="text"
+                          value={bookingRefId.includes('|') ? bookingRefId.split('|')[1] || '' : ''}
+                          onChange={(e) => {
+                            const name = sourceType || '';
+                            setBookingRefId(name ? `${name}|${e.target.value}` : `|${e.target.value}`);
+                          }}
+                          placeholder="Enter Contact Number"
+                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                        />
+                      </>
+                    ) : bookingSource === 'GDS' ? (
+                      <>
+                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                          GDS Name
+                        </label>
+                        <input
+                          type="text"
+                          value={sourceType}
+                          onChange={(e) => setSourceType(e.target.value)}
+                          placeholder="Enter GDS Name"
+                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                        />
+                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5 mt-2">
+                          Contact Number
+                        </label>
+                        <input
+                          type="text"
+                          value={bookingRefId.includes('|') ? bookingRefId.split('|')[1] || '' : ''}
+                          onChange={(e) => {
+                            const name = sourceType || '';
+                            setBookingRefId(name ? `${name}|${e.target.value}` : `|${e.target.value}`);
+                          }}
+                          placeholder="Enter Contact Number"
+                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                        />
+                      </>
+                    ) : bookingSource === 'Corp' || bookingSource === 'Corporate' ? (
+                      <>
+                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                          Company Name
+                        </label>
+                        <input
+                          type="text"
+                          value={sourceType}
+                          onChange={(e) => setSourceType(e.target.value)}
+                          placeholder="Enter Company Name"
+                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                        />
+                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5 mt-2">
+                          Contact Number
+                        </label>
+                        <input
+                          type="text"
+                          value={bookingRefId.includes('|') ? bookingRefId.split('|')[1] || '' : ''}
+                          onChange={(e) => {
+                            const name = sourceType || '';
+                            setBookingRefId(name ? `${name}|${e.target.value}` : `|${e.target.value}`);
+                          }}
+                          placeholder="Enter Contact Number"
+                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                        />
+                      </>
+                    ) : bookingSource === 'Booking Engine' ? (
+                      <>
+                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                          Booking Engine
+                        </label>
+                        <select
+                          value={sourceType}
+                          onChange={(e) => setSourceType(e.target.value)}
+                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                        >
+                          <option value="Website">Website</option>
+                          <option value="Djubo">Djubo</option>
+                        </select>
+                      </>
+                    ) : bookingSource === 'Meta' ? (
+                      <>
+                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                          Meta Source
+                        </label>
+                        <select
+                          value={sourceType}
+                          onChange={(e) => setSourceType(e.target.value)}
+                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                        >
+                          <option value="Google ads">Google ads</option>
+                          <option value="Trivago">Trivago</option>
+                          <option value="Tripadvisor">Tripadvisor</option>
+                        </select>
+                      </>
+                    ) : (
+                      <>
+                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                          Booking Type / Mode
+                        </label>
+                        <select
+                          value={sourceType}
+                          onChange={(e) => setSourceType(e.target.value)}
+                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                        >
+                          <option value="Phone">Phone Call Inquiry</option>
+                          <option value="Email">Email Confirmation</option>
+                          <option value="Web Portal">Web Portal / Engine</option>
+                          <option value="Front Desk">Front Desk Agent</option>
+                        </select>
+                      </>
+                    )}
                   </div>
 
                   <div>
                     <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
                       Reference ID <span className="text-danger-text">*</span>
                     </label>
+                    <input
+                      type="text"
+                      value={bookingRefId}
+                      onChange={(e) => setBookingRefId(e.target.value)}
+                      placeholder="Enter Reference ID"
+                      className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-mono font-bold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Row 2: Stay Dates & Booking Type */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 bg-page/70 p-3.5 rounded-2xl border border-border/70">
+                  <div>
+                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                      Check-in Date
+                    </label>
                     <div className="relative">
+                      <Lucide.Calendar size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
                       <input
-                        type="text"
-                        value={bookingRefId}
-                        onChange={(e) => setBookingRefId(e.target.value)}
-                        placeholder="e.g. DJB-2026-9042"
-                        className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-mono font-bold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                        type="date"
+                        value={checkInDate}
+                        onChange={(e) => setCheckInDate(e.target.value)}
+                        className="w-full rounded-lg border border-border bg-surface pl-8 pr-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setBookingRefId(`DJB-2026-${Math.floor(1000 + Math.random() * 9000)}`)}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-[var(--color-primary)] font-bold hover:underline cursor-pointer"
-                      >
-                        Auto
-                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                      Check-out Date
+                    </label>
+                    <div className="relative">
+                      <Lucide.Calendar size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+                      <input
+                        type="date"
+                        value={checkOutDate}
+                        onChange={(e) => setCheckOutDate(e.target.value)}
+                        className="w-full rounded-lg border border-border bg-surface pl-8 pr-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                      Booking Type
+                    </label>
+                    <select
+                      value={bookingCategory}
+                      onChange={(e) => setBookingCategory(e.target.value)}
+                      className="w-full rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all cursor-pointer"
+                    >
+                      <option value="FIT">FIT</option>
+                      <option value="Group">Group</option>
+                      <option value="MICE">MICE</option>
+                      <option value="SERIES">SERIES</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                      Check-in Time
+                    </label>
+                    <div className="relative">
+                      <Lucide.Clock size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+                      <input
+                        type="time"
+                        value={checkInTime}
+                        onChange={(e) => setCheckInTime(e.target.value)}
+                        className="w-full rounded-lg border border-border bg-page/50 pl-8 pr-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                      Check-out Time
+                    </label>
+                    <div className="relative">
+                      <Lucide.Clock size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+                      <input
+                        type="time"
+                        value={checkOutTime}
+                        onChange={(e) => setCheckOutTime(e.target.value)}
+                        className="w-full rounded-lg border border-border bg-page/50 pl-8 pr-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
+                      />
                     </div>
                   </div>
                 </div>
 
-                {/* Row 2: Stay Dates & Times (4-Grid) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-page/70 p-3.5 rounded-2xl border border-border/70">
-                  <div>
-                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1">
-                      Check-in Date
-                    </label>
+                <div className="flex flex-wrap items-center gap-6 pt-1">
+                  <label className="flex items-center gap-2 cursor-pointer">
                     <input
-                      type="date"
-                      value={checkInDate}
-                      onChange={(e) => setCheckInDate(e.target.value)}
-                      className="w-full rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)]"
+                      type="checkbox"
+                      checked={samePlanAllRooms}
+                      onChange={(e) => {
+                        setSamePlanAllRooms(e.target.checked);
+                        if (e.target.checked) {
+                          setRequirements((previous) => previous.map((room) => ({ ...room, ratePlan, mealPlan })));
+                        }
+                      }}
+                      className="w-4 h-4 rounded border-border text-[var(--color-primary)] focus:ring-[var(--color-primary)]/20"
                     />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1">
-                      Check-in Time
-                    </label>
+                    <span className="text-xs font-semibold text-ink">Same Plan for All Rooms</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
                     <input
-                      type="time"
-                      value={checkInTime}
-                      onChange={(e) => setCheckInTime(e.target.value)}
-                      className="w-full rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)]"
+                      type="checkbox"
+                      className="w-4 h-4 rounded border-border text-[var(--color-primary)] focus:ring-[var(--color-primary)]/20"
                     />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1">
-                      Check-out Date
-                    </label>
-                    <input
-                      type="date"
-                      value={checkOutDate}
-                      onChange={(e) => setCheckOutDate(e.target.value)}
-                      className="w-full rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1">
-                      Check-out Time
-                    </label>
-                    <input
-                      type="time"
-                      value={checkOutTime}
-                      onChange={(e) => setCheckOutTime(e.target.value)}
-                      className="w-full rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)]"
-                    />
-                  </div>
+                    <span className="text-xs font-semibold text-ink">Pay at Hotel</span>
+                  </label>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-divider">
-                  <label className="flex flex-col gap-1.5 text-[11px] font-bold text-ink-secondary uppercase tracking-wider">Default rate plan
-                    <select value={ratePlan} onChange={(event) => {
-                      setRatePlan(event.target.value);
-                      if (samePlanAllRooms) setRequirements((previous) => previous.map((room) => ({ ...room, ratePlan: event.target.value })));
-                    }} className="w-full rounded-xl border border-border bg-page/50 px-3 py-2 text-xs font-semibold normal-case text-ink focus:outline-none focus:border-[var(--color-primary)]">
-                      {RATE_PLANS.map((plan) => <option key={plan} value={plan}>{plan}</option>)}
+                {samePlanAllRooms && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <label className="flex flex-col gap-1.5 text-[11px] font-bold text-ink-secondary uppercase tracking-wider">
+                      Rate Plan
+                      <select
+                        value={ratePlan}
+                        onChange={(event) => {
+                          setRatePlan(event.target.value);
+                          setRequirements((previous) => previous.map((room) => ({ ...room, ratePlan: event.target.value })));
+                        }}
+                        className="w-full rounded-lg border border-border bg-page/50 px-3 py-1.5 text-xs font-semibold normal-case text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
+                      >
+                        <option value="Best Available Rates">Best Available Rates</option>
+                        {RATE_PLANS.filter((plan) => plan !== 'Best Available Rates').map((plan) => (
+                          <option key={plan} value={plan}>{plan}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="flex flex-col gap-1.5 text-[11px] font-bold text-ink-secondary uppercase tracking-wider">
+                      Meal Type
+                      <select
+                        value={mealPlan}
+                        onChange={(event) => {
+                          setMealPlan(event.target.value);
+                          setRequirements((previous) => previous.map((room) => ({ ...room, mealPlan: event.target.value })));
+                        }}
+                        className="w-full rounded-lg border border-border bg-page/50 px-3 py-1.5 text-xs font-semibold normal-case text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
+                      >
+                        <option value="EP">EP</option>
+                        <option value="CP">CP</option>
+                      </select>
+                    </label>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                      Room Type
+                    </label>
+                    <select
+                      value={requirements[0]?.roomTypeId ?? 'deluxe'}
+                      onChange={(e) => {
+                        const nextType = roomTypes.find((type) => type.id === e.target.value);
+                        if (nextType) {
+                          setRequirements((prev) => prev.map((room) => ({
+                            ...room,
+                            roomTypeId: nextType.id,
+                            category: nextType.name,
+                            rate: Number(nextType.baseRate),
+                            roomId: null,
+                            roomNo: '',
+                          })));
+                        }
+                      }}
+                      className="w-full rounded-lg border border-border bg-page/50 px-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all cursor-pointer"
+                    >
+                      {roomTypes.map((type) => (
+                        <option key={type.id} value={type.id}>{type.name}</option>
+                      ))}
                     </select>
-                  </label>
-                  <label className="flex flex-col gap-1.5 text-[11px] font-bold text-ink-secondary uppercase tracking-wider">Default meal plan
-                    <select value={mealPlan} onChange={(event) => {
-                      setMealPlan(event.target.value);
-                      if (samePlanAllRooms) setRequirements((previous) => previous.map((room) => ({ ...room, mealPlan: event.target.value })));
-                    }} className="w-full rounded-xl border border-border bg-page/50 px-3 py-2 text-xs font-semibold normal-case text-ink focus:outline-none focus:border-[var(--color-primary)]">
-                      {MEAL_PLANS.map((plan) => <option key={plan.code} value={plan.code}>{plan.label}{plan.surcharge > 0 ? ` (+₹${plan.surcharge}/adult/night)` : ''}</option>)}
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                      No of Rooms
+                    </label>
+                    <select
+                      value={requirements.length}
+                      onChange={(e) => {
+                        const count = parseInt(e.target.value);
+                        if (count >= requirements.length) {
+                          for (let i = requirements.length; i < count; i++) {
+                            handleAddRoom();
+                          }
+                        } else {
+                          for (let i = requirements.length; i > count; i--) {
+                            if (requirements[i - 1]) {
+                              handleRemoveRoom(requirements[i - 1].id);
+                            }
+                          }
+                        }
+                      }}
+                      className="w-full rounded-lg border border-border bg-page/50 px-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all cursor-pointer"
+                    >
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
                     </select>
-                  </label>
+                  </div>
                 </div>
               </section>
 
@@ -993,8 +1208,6 @@ export function NewReservation({
                 requirements={requirements}
                 roomTypes={roomTypes}
                 availableRoomsByType={availableRoomsByType}
-                defaultRatePlan={ratePlan}
-                defaultMealPlan={mealPlan}
                 samePlanAllRooms={samePlanAllRooms}
                 overridePrice={overridePrice}
                 roomCharges={roomCharges}
@@ -1002,20 +1215,12 @@ export function NewReservation({
                 roomTax={roomTax}
                 totalRooms={requirements.length}
                 nights={nightsCount}
-                onSamePlanChange={(same) => {
-                  setSamePlanAllRooms(same);
-                  if (same) setRequirements((previous) => previous.map((room) => ({ ...room, ratePlan, mealPlan })));
-                }}
                 onOverridePriceChange={setOverridePrice}
-                onAddRoom={handleAddRoom}
                 onRemoveRoom={handleRemoveRoom}
                 onUpdateRoom={(id, updates) => {
                   handleUpdateRequirement(id, updates);
                   if (updates.billingRoute === 'To Company') setBillingPreferences((previous) => ({ ...previous, billToCompany: true }));
                 }}
-                onAddOccupant={handleAddOccupant}
-                onUpdateOccupant={handleUpdateOccupant}
-                onRemoveOccupant={handleRemoveOccupant}
               />
 
               {/* SECTION 3: GUEST DETAILS & PROFILE SEARCH */}
@@ -1027,91 +1232,12 @@ export function NewReservation({
                     </span>
                     <div>
                       <h2 className="text-sm font-bold text-ink tracking-tight">Guest Information & Verification</h2>
-                      <p className="text-[11px] text-ink-muted mt-0.5">Search existing CRM profiles or register fresh visitor identity</p>
                     </div>
                   </div>
 
                   <span className="text-[11px] font-bold text-ink-secondary bg-page border border-border/80 px-2.5 py-1 rounded-lg">
                     Primary Resident
                   </span>
-                </div>
-
-                {/* Live Guest Search Bar */}
-                <div className="relative">
-                  <div className="flex items-center gap-2 rounded-2xl border border-border bg-page/50 px-3.5 py-2.5 text-xs text-ink shadow-2xs focus-within:bg-surface focus-within:border-[var(--color-primary)] focus-within:ring-2 focus-within:ring-[var(--color-primary)]/15 transition-all">
-                    <Lucide.Search size={15} className="text-ink-muted shrink-0" />
-                    <input
-                      type="text"
-                      value={guestSearch}
-                      onChange={(e) => {
-                        setGuestSearch(e.target.value);
-                        setShowGuestSearchDropdown(true);
-                      }}
-                      onFocus={() => setShowGuestSearchDropdown(true)}
-                      placeholder="Quick search by name, contact phone, or guest reference..."
-                      className="w-full bg-transparent border-none outline-none placeholder:text-ink-muted text-xs text-ink font-medium"
-                    />
-                    {guestSearch && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setGuestSearch('');
-                          setShowGuestSearchDropdown(false);
-                        }}
-                        className="text-ink-muted hover:text-ink-secondary"
-                      >
-                        <Lucide.X size={14} />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Dropdown with guest database */}
-                  {showGuestSearchDropdown && guestSearch && (
-                    <div className="absolute left-0 right-0 top-full mt-1.5 z-20 rounded-2xl border border-border bg-surface p-2 shadow-xl">
-                      <div className="text-[10px] font-bold text-ink-muted uppercase px-2 py-1">
-                        Matching Profiles in PMS
-                      </div>
-                      {SAMPLE_GUEST_DATABASE.filter(
-                        (g) =>
-                          g.name.toLowerCase().includes(guestSearch.toLowerCase()) ||
-                          g.phone.includes(guestSearch)
-                      ).map((g) => (
-                        <button
-                          key={g.id}
-                          type="button"
-                          onClick={() => {
-                            setGuestName(g.name);
-                            setGuestContact(g.phone);
-                            setGuestEmail(g.email);
-                            setPrimaryGuestId(g.id);
-                            if (g.gst) setBillingPreferences((previous) => ({
-                              ...previous,
-                              companyGst: g.gst,
-                              companyName: g.companyName || previous.companyName,
-                              billToCompany: true,
-                              roomBillTo: 'To Company',
-                              extrasBillTo: previous.noPost ? 'Direct Settlement' : 'To Company',
-                            }));
-                            setRequirements((previous) => previous.map((room, index) => index === 0
-                              ? { ...room, occupants: room.occupants.map((occupant, occupantIndex) => occupantIndex === 0 ? { ...occupant, name: g.name, role: 'Primary guest' } : occupant) }
-                              : room));
-                            setShowGuestSearchDropdown(false);
-                            setGuestSearch('');
-                            toast.success('Guest Profile Loaded', { detail: `${g.name} (${g.city})` });
-                          }}
-                          className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-page transition-colors text-left cursor-pointer"
-                        >
-                          <div>
-                            <span className="font-bold text-ink text-xs block">{g.name}</span>
-                            <span className="text-[11px] text-ink-secondary">{g.phone} · {g.email}</span>
-                          </div>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-muted-surface text-ink-secondary">
-                            {g.city}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 {/* Form fields */}
@@ -1242,7 +1368,6 @@ export function NewReservation({
                     </span>
                     <div>
                       <h2 className="text-sm font-bold text-ink tracking-tight">Payments & Master Folio Summary</h2>
-                      <p className="text-[11px] text-ink-muted mt-0.5">Payment receipts, advances collected & outstanding balance</p>
                     </div>
                   </div>
 
