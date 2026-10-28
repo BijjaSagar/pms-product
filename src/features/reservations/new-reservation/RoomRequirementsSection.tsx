@@ -17,6 +17,7 @@ interface Props {
   onOverridePriceChange: (enabled: boolean) => void;
   onRemoveRoom: (id: string) => void;
   onUpdateRoom: (id: string, updates: Partial<RoomRequirement>) => void;
+  onOverrideRoomTotalChange: (total: number) => void;
 }
 
 export function RoomRequirementsSection({
@@ -33,6 +34,7 @@ export function RoomRequirementsSection({
   onOverridePriceChange,
   onRemoveRoom,
   onUpdateRoom,
+  onOverrideRoomTotalChange,
 }: Props) {
   return (
     <section className="bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
@@ -113,8 +115,6 @@ export function RoomRequirementsSection({
                 )}
 
                 {room.roomNo && !roomChoices.some((choice) => choice.roomNumber === room.roomNo) && <p className="text-[11px] font-semibold text-warning-text" role="status">Room {room.roomNo} is no longer available for these dates.</p>}
-
-                {overridePrice && <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-2"><span className="text-[11px] font-semibold text-warning-text">Custom nightly rate</span><label className="flex items-center gap-1.5"><span className="text-xs font-bold text-ink-secondary">₹</span><input type="number" min={0} value={room.rate} onChange={(event) => onUpdateRoom(room.id, { rate: Math.max(0, Number(event.target.value) || 0) })} aria-label={`Custom nightly rate for room ${room.roomIndex}`} className="w-28 rounded-lg border border-warning-border bg-warning-bg/50 px-2.5 py-1 text-xs font-bold font-mono text-ink" /><span className="text-[10px] text-ink-secondary">/ night</span></label></div>}
               </div>
             </article>
           );
@@ -122,8 +122,24 @@ export function RoomRequirementsSection({
       </div>
 
       <div className="bg-page/80 rounded-2xl border border-border/70 p-4 text-xs">
-        <div className="flex items-center justify-between text-ink-secondary"><span>Rooms & stay</span><span className="font-bold text-ink">{totalRooms} rooms · {nights} night(s)</span></div>
-        <div className="mt-2 flex items-center justify-between text-ink-secondary"><span>Room charges</span><span className="font-bold font-mono text-ink">₹{roomCharges.toLocaleString('en-IN')}.00</span></div>
+        <div className="flex items-center justify-between text-ink-secondary"><span>Total Rooms</span><span className="font-bold text-ink">{totalRooms} room(s) · {nights} night(s)</span></div>
+        <div className="mt-2 flex items-center justify-between gap-3 text-ink-secondary">
+          <label htmlFor="room-total" className="shrink-0">Room total</label>
+          <label className={`flex min-w-0 items-center gap-1 rounded-lg border px-2.5 py-1.5 ${overridePrice ? 'border-warning-border bg-warning-bg/50' : 'border-border bg-surface'}`}>
+            <span className="font-bold text-ink-secondary">₹</span>
+            <input
+              id="room-total"
+              type="number"
+              min={0}
+              step="0.01"
+              value={roomCharges}
+              readOnly={!overridePrice}
+              onChange={(event) => onOverrideRoomTotalChange(Math.max(0, Number(event.target.value) || 0))}
+              aria-label="Room total"
+              className="w-32 min-w-0 bg-transparent text-right font-bold font-mono text-ink outline-none read-only:cursor-default"
+            />
+          </label>
+        </div>
         <div className="mt-2 flex items-center justify-between text-ink-secondary"><span>Meal plan supplements</span><span className="font-bold font-mono text-ink">₹{mealPlanCharges.toLocaleString('en-IN')}.00</span></div>
         <div className="mt-2 flex items-center justify-between text-ink-secondary"><span>Tax on room charges</span><span className="font-bold font-mono text-ink">₹{roomTax.toLocaleString('en-IN')}.00</span></div>
       </div>

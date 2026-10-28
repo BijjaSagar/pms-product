@@ -3,8 +3,6 @@ export type ViewId =
   | 'reservations'
   | 'room-calendar'
   | 'new-reservation'
-  | 'check-in'
-  | 'check-out'
   | 'guests'
   | 'room-overview'
   | 'room-types'
@@ -51,9 +49,6 @@ export const NAV_SECTIONS: NavSection[] = [
     title: 'Front Office',
     items: [
       { id: 'reservations', label: 'Reservations', hint: 'Bookings & calendar' },
-      { id: 'new-reservation', label: 'New Reservation', hint: 'Create a booking' },
-      { id: 'check-in', label: 'Check-in', hint: "Today's arrivals" },
-      { id: 'check-out', label: 'Check-out', hint: 'Departures & folios' },
       { id: 'guests', label: 'Guest Directory', hint: 'Profiles & loyalty' },
     ],
   },
@@ -122,8 +117,6 @@ export const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
   'new-reservation': 'reservation.create',
   'rate-management': 'reservation.read',
   'channel-manager': 'reservation.read',
-  'check-in': 'stay.check-in',
-  'check-out': 'stay.check-out',
   guests: 'guest.read',
   'room-overview': 'room.read',
   'room-types': 'room.read',

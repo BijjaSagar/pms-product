@@ -8,8 +8,6 @@ export const NAV_ICONS: Record<ViewId, Lucide.LucideIcon> = {
   'new-reservation': Lucide.CalendarPlus,
   'rate-management': Lucide.SlidersHorizontal,
   'channel-manager': Lucide.Globe,
-  'check-in': Lucide.DoorOpen,
-  'check-out': Lucide.DoorClosed,
   guests: Lucide.BookUser,
   'room-overview': Lucide.BedDouble,
   'room-types': Lucide.Layers,

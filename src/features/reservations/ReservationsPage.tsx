@@ -477,21 +477,11 @@ function ReservationDrawer({
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2.5">
-        {(r.status === 'Confirmed' || r.status === 'Pending') && (
-          <button
-            type="button"
-            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-md bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-white font-semibold text-xs shadow-xs cursor-pointer"
-            onClick={() => { go({ view: 'check-in', query: r.id }); onClose(); }}
-          >
-            <Lucide.LogIn size={15} />
-            <span>Check In</span>
-          </button>
-        )}
         {r.status === 'Checked-in' && (
           <button
             type="button"
             className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-md bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-white font-semibold text-xs shadow-xs cursor-pointer"
-            onClick={() => { go({ view: 'check-out' }); onClose(); }}
+            onClick={() => { go({ view: 'folios' }); onClose(); }}
           >
             <Lucide.Receipt size={15} />
             <span>Open Folio</span>
