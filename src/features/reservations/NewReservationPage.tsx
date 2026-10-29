@@ -589,7 +589,7 @@ export function NewReservation({
             ? calculatedRoomCharges > 0
               ? room.rate * (overrideRoomTotal / calculatedRoomCharges)
               : overrideRoomTotal /
-                Math.max(1, requirements.length * nightsCount)
+              Math.max(1, requirements.length * nightsCount)
             : room.rate;
         return {
           id: room.id,
@@ -1118,11 +1118,10 @@ export function NewReservation({
             <button
               type="button"
               onClick={() => setActiveTab("general")}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-                activeTab === "general"
-                  ? "bg-surface text-ink shadow-sm border border-border/60"
-                  : "text-ink-secondary hover:text-ink"
-              }`}
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === "general"
+                ? "bg-surface text-ink shadow-sm border border-border/60"
+                : "text-ink-secondary hover:text-ink"
+                }`}
             >
               <Lucide.FileText
                 size={13}
@@ -1137,11 +1136,10 @@ export function NewReservation({
             <button
               type="button"
               onClick={() => setActiveTab("outlet")}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-                activeTab === "outlet"
-                  ? "bg-surface text-ink shadow-sm border border-border/60"
-                  : "text-ink-secondary hover:text-ink"
-              }`}
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === "outlet"
+                ? "bg-surface text-ink shadow-sm border border-border/60"
+                : "text-ink-secondary hover:text-ink"
+                }`}
             >
               <Lucide.Receipt
                 size={13}
@@ -1165,7 +1163,7 @@ export function NewReservation({
                       1
                     </span>
                     <div>
-                      <h2 className="text-sm font-bold text-ink tracking-tight">
+                      <h2 className="text-sm font-bold text-ink-secondary tracking-tight">
                         Booking Details & Rate Plan
                       </h2>
                     </div>
@@ -1177,7 +1175,7 @@ export function NewReservation({
                     <select
                       value={bookingType}
                       onChange={(e) => setBookingType(e.target.value)}
-                      className="text-[11px] font-bold text-ink bg-page border border-border/80 px-2.5 py-1 rounded-lg focus:outline-none focus:border-[var(--color-primary)] cursor-pointer"
+                      className="text-[11px] font-semibold text-ink-secondary bg-page border border-border/80 px-2.5 py-1 rounded-lg focus:outline-none focus:border-[var(--color-primary)] cursor-pointer"
                     >
                       <option value="Confirmed">Confirmed</option>
                       <option value="Guaranteed">Guaranteed</option>
@@ -1190,7 +1188,7 @@ export function NewReservation({
                 {/* Booking source and source-specific booking type */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                    <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Booking Source
                     </label>
                     <select
@@ -1219,7 +1217,7 @@ export function NewReservation({
                           setSourceType("Phone");
                         }
                       }}
-                      className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                      className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all cursor-pointer"
                     >
                       <option value="Direct">Direct</option>
                       <option value="OTA">OTA</option>
@@ -1234,13 +1232,13 @@ export function NewReservation({
                   <div>
                     {bookingSource === "Direct" ? (
                       <>
-                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                        <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                           Booking Type
                         </label>
                         <select
                           value={sourceType}
                           onChange={(e) => setSourceType(e.target.value)}
-                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                          className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all cursor-pointer"
                         >
                           <option value="Walkin">Walkin</option>
                           <option value="Phone">Phone</option>
@@ -1250,13 +1248,13 @@ export function NewReservation({
                       </>
                     ) : bookingSource === "OTA" ? (
                       <>
-                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                        <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                           OTA Channel
                         </label>
                         <select
                           value={sourceType}
                           onChange={(e) => setSourceType(e.target.value)}
-                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                          className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all cursor-pointer"
                         >
                           <option value="Booking.com">Booking.com</option>
                           <option value="Expedia">Expedia</option>
@@ -1269,7 +1267,7 @@ export function NewReservation({
                       </>
                     ) : bookingSource === "Agent" ? (
                       <>
-                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                        <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                           Agency Name
                         </label>
                         <input
@@ -1277,9 +1275,9 @@ export function NewReservation({
                           value={sourceType}
                           onChange={(e) => setSourceType(e.target.value)}
                           placeholder="Enter Agency Name"
-                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                          className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all"
                         />
-                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5 mt-2">
+                        <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5 mt-2">
                           Contact Number
                         </label>
                         <input
@@ -1289,12 +1287,12 @@ export function NewReservation({
                             setSourceContactNumber(e.target.value)
                           }
                           placeholder="Enter Contact Number"
-                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                          className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all"
                         />
                       </>
                     ) : bookingSource === "GDS" ? (
                       <>
-                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                        <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                           GDS Name
                         </label>
                         <input
@@ -1302,9 +1300,9 @@ export function NewReservation({
                           value={sourceType}
                           onChange={(e) => setSourceType(e.target.value)}
                           placeholder="Enter GDS Name"
-                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                          className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all"
                         />
-                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5 mt-2">
+                        <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5 mt-2">
                           Contact Number
                         </label>
                         <input
@@ -1314,13 +1312,13 @@ export function NewReservation({
                             setSourceContactNumber(e.target.value)
                           }
                           placeholder="Enter Contact Number"
-                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                          className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all"
                         />
                       </>
                     ) : bookingSource === "Corp" ||
                       bookingSource === "Corporate" ? (
                       <>
-                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                        <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                           Company Name
                         </label>
                         <input
@@ -1328,9 +1326,9 @@ export function NewReservation({
                           value={sourceType}
                           onChange={(e) => setSourceType(e.target.value)}
                           placeholder="Enter Company Name"
-                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                          className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all"
                         />
-                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5 mt-2">
+                        <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5 mt-2">
                           Contact Number
                         </label>
                         <input
@@ -1340,18 +1338,18 @@ export function NewReservation({
                             setSourceContactNumber(e.target.value)
                           }
                           placeholder="Enter Contact Number"
-                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                          className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all"
                         />
                       </>
                     ) : bookingSource === "Booking Engine" ? (
                       <>
-                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                        <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                           Booking Engine
                         </label>
                         <select
                           value={sourceType}
                           onChange={(e) => setSourceType(e.target.value)}
-                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                          className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all cursor-pointer"
                         >
                           <option value="Website">Website</option>
                           <option value="Djubo">Djubo</option>
@@ -1359,13 +1357,13 @@ export function NewReservation({
                       </>
                     ) : bookingSource === "Meta" ? (
                       <>
-                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                        <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                           Meta Source
                         </label>
                         <select
                           value={sourceType}
                           onChange={(e) => setSourceType(e.target.value)}
-                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                          className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all cursor-pointer"
                         >
                           <option value="Google ads">Google ads</option>
                           <option value="Trivago">Trivago</option>
@@ -1374,13 +1372,13 @@ export function NewReservation({
                       </>
                     ) : (
                       <>
-                        <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                        <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                           Booking Type / Mode
                         </label>
                         <select
                           value={sourceType}
                           onChange={(e) => setSourceType(e.target.value)}
-                          className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                          className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all cursor-pointer"
                         >
                           <option value="Phone">Phone Call Inquiry</option>
                           <option value="Email">Email Confirmation</option>
@@ -1395,7 +1393,7 @@ export function NewReservation({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                  <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                     Reference ID
                   </label>
                   <input
@@ -1403,14 +1401,14 @@ export function NewReservation({
                     value={externalReferenceId}
                     onChange={(e) => setExternalReferenceId(e.target.value)}
                     placeholder="Enter external OTA / agent reference ID"
-                    className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-mono font-bold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                    className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all"
                   />
                 </div>
 
                 {/* Stay dates and booking category */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-page/70 p-3.5 rounded-2xl border border-border/70">
                   <div>
-                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                    <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Check-in Date
                     </label>
                     <div className="relative">
@@ -1422,12 +1420,12 @@ export function NewReservation({
                         type="date"
                         value={checkInDate}
                         onChange={(e) => setCheckInDate(e.target.value)}
-                        className="w-full rounded-lg border border-border bg-surface pl-8 pr-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
+                        className="w-full rounded-xl border border-border bg-page/50 font-semibold pl-8 pr-3 py-2 text-xs text-ink-secondary transition-all"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                    <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Check-out Date
                     </label>
                     <div className="relative">
@@ -1439,18 +1437,18 @@ export function NewReservation({
                         type="date"
                         value={checkOutDate}
                         onChange={(e) => setCheckOutDate(e.target.value)}
-                        className="w-full rounded-lg border border-border bg-surface pl-8 pr-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
+                        className="w-full rounded-xl border border-border bg-page/50 font-semibold pl-8 pr-3 py-2 text-xs text-ink-secondary transition-all"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                    <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Booking Type
                     </label>
                     <select
                       value={bookingCategory}
                       onChange={(e) => setBookingCategory(e.target.value)}
-                      className="w-full rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all cursor-pointer"
+                      className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all cursor-pointer"
                     >
                       <option value="FIT">FIT</option>
                       <option value="Group">Group</option>
@@ -1462,7 +1460,7 @@ export function NewReservation({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   <div>
-                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                    <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Check-in Time
                     </label>
                     <div className="relative">
@@ -1474,12 +1472,12 @@ export function NewReservation({
                         type="time"
                         value={checkInTime}
                         onChange={(e) => setCheckInTime(e.target.value)}
-                        className="w-full rounded-lg border border-border bg-page/50 pl-8 pr-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
+                        className="w-full rounded-xl border border-border bg-page/50 font-semibold pl-8 pr-3 py-2 text-xs text-ink-secondary transition-all"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                    <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Check-out Time
                     </label>
                     <div className="relative">
@@ -1491,7 +1489,7 @@ export function NewReservation({
                         type="time"
                         value={checkOutTime}
                         onChange={(e) => setCheckOutTime(e.target.value)}
-                        className="w-full rounded-lg border border-border bg-page/50 pl-8 pr-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
+                        className="w-full rounded-xl border border-border bg-page/50 font-semibold pl-8 pr-3 py-2 text-xs text-ink-secondary transition-all"
                       />
                     </div>
                   </div>
@@ -1533,33 +1531,33 @@ export function NewReservation({
 
                 {samePlanAllRooms && (
                   <div className="pt-1">
-                    <label className="flex flex-col gap-1.5 text-[11px] font-bold text-ink-secondary uppercase tracking-wider">
+                    <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Rate Plan
-                      <select
-                        value={ratePlan}
-                        onChange={(event) => {
-                          setRatePlan(event.target.value);
-                          setRequirements((previous) =>
-                            previous.map((room) => ({
-                              ...room,
-                              ratePlan: event.target.value,
-                            })),
-                          );
-                        }}
-                        className="w-full rounded-lg border border-border bg-page/50 px-3 py-1.5 text-xs font-semibold normal-case text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
-                      >
-                        <option value="Best Available Rates">
-                          Best Available Rates
-                        </option>
-                        {RATE_PLANS.filter(
-                          (plan) => plan !== "Best Available Rates",
-                        ).map((plan) => (
-                          <option key={plan} value={plan}>
-                            {plan}
-                          </option>
-                        ))}
-                      </select>
                     </label>
+                    <select
+                      value={ratePlan}
+                      onChange={(event) => {
+                        setRatePlan(event.target.value);
+                        setRequirements((previous) =>
+                          previous.map((room) => ({
+                            ...room,
+                            ratePlan: event.target.value,
+                          })),
+                        );
+                      }}
+                      className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all cursor-pointer"
+                    >
+                      <option value="Best Available Rates">
+                        Best Available Rates
+                      </option>
+                      {RATE_PLANS.filter(
+                        (plan) => plan !== "Best Available Rates",
+                      ).map((plan) => (
+                        <option key={plan} value={plan}>
+                          {plan}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 )}
 
@@ -1567,7 +1565,7 @@ export function NewReservation({
                   className={`grid grid-cols-1 gap-3 pt-1 ${samePlanAllRooms ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}
                 >
                   <div>
-                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                    <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Room Type
                     </label>
                     <select
@@ -1589,7 +1587,7 @@ export function NewReservation({
                           );
                         }
                       }}
-                      className="w-full rounded-lg border border-border bg-page/50 px-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all cursor-pointer"
+                      className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all cursor-pointer"
                     >
                       {roomTypes.map((type) => (
                         <option key={type.id} value={type.id}>
@@ -1600,7 +1598,7 @@ export function NewReservation({
                   </div>
                   {samePlanAllRooms && (
                     <div>
-                      <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                      <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                         Meal Plan
                       </label>
                       <select
@@ -1614,7 +1612,7 @@ export function NewReservation({
                             })),
                           );
                         }}
-                        className="w-full rounded-lg border border-border bg-page/50 px-2.5 py-1.5 text-xs font-semibold text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
+                        className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all cursor-pointer"
                       >
                         <option value="EP">EP</option>
                         <option value="CP">CP</option>
@@ -1622,7 +1620,7 @@ export function NewReservation({
                     </div>
                   )}
                   <div>
-                    <label className="block text-[10px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                    <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       No of Rooms
                     </label>
                     <select
@@ -1641,7 +1639,7 @@ export function NewReservation({
                           }
                         }
                       }}
-                      className="w-full rounded-lg border border-border bg-page/50 px-2.5 py-1.5 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all cursor-pointer"
+                      className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all cursor-pointer"
                     >
                       <option value="1">1</option>
                       <option value="2">2</option>
@@ -1695,7 +1693,7 @@ export function NewReservation({
                       4
                     </span>
                     <div>
-                      <h2 className="text-sm font-bold text-ink tracking-tight">
+                      <h2 className="text-sm font-bold text-ink-secondary tracking-tight">
                         Guest Information & Verification
                       </h2>
                     </div>
@@ -1709,13 +1707,13 @@ export function NewReservation({
                 {/* Form fields */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div className="sm:col-span-1">
-                    <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                    <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Salutation
                     </label>
                     <select
                       value={guestSalutation}
                       onChange={(e) => setGuestSalutation(e.target.value)}
-                      className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                      className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all cursor-pointer"
                     >
                       <option value="Mr.">Mr.</option>
                       <option value="Ms.">Ms.</option>
@@ -1725,7 +1723,7 @@ export function NewReservation({
                   </div>
 
                   <div className="sm:col-span-3">
-                    <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                    <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Full Legal Name{" "}
                       <span className="text-danger-text">*</span>
                     </label>
@@ -1739,27 +1737,27 @@ export function NewReservation({
                           previous.map((room, index) =>
                             index === 0
                               ? {
-                                  ...room,
-                                  occupants: room.occupants.map(
-                                    (occupant, occupantIndex) =>
-                                      occupantIndex === 0
-                                        ? { ...occupant, name: e.target.value }
-                                        : occupant,
-                                  ),
-                                }
+                                ...room,
+                                occupants: room.occupants.map(
+                                  (occupant, occupantIndex) =>
+                                    occupantIndex === 0
+                                      ? { ...occupant, name: e.target.value }
+                                      : occupant,
+                                ),
+                              }
                               : room,
                           ),
                         );
                       }}
                       placeholder="e.g. Rohan Sharma"
-                      className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3.5 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                      className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                    <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Phone Number <span className="text-danger-text">*</span>
                     </label>
                     <div className="relative">
@@ -1771,7 +1769,7 @@ export function NewReservation({
                           setPrimaryGuestId(null);
                         }}
                         placeholder="e.g. +91 88829 51951"
-                        className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3.5 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                        className="w-full rounded-xl border border-border bg-page/50 font-semibold pl-3 pr-9 py-2 text-xs text-ink-secondary transition-all"
                       />
                       <Lucide.Phone
                         size={13}
@@ -1781,7 +1779,7 @@ export function NewReservation({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                    <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Email Address
                     </label>
                     <div className="relative">
@@ -1793,7 +1791,7 @@ export function NewReservation({
                           setPrimaryGuestId(null);
                         }}
                         placeholder="e.g. guest@example.com"
-                        className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3.5 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                        className="w-full rounded-xl border border-border bg-page/50 font-semibold pl-3 pr-9 py-2 text-xs text-ink-secondary transition-all"
                       />
                       <Lucide.Mail
                         size={13}
@@ -1806,13 +1804,13 @@ export function NewReservation({
                 {/* ID Verification Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-divider">
                   <div>
-                    <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                    <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Identity Document
                     </label>
                     <select
                       value={guestIdType}
                       onChange={(e) => setGuestIdType(e.target.value)}
-                      className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all cursor-pointer"
+                      className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all cursor-pointer"
                     >
                       <option value="Aadhaar Card">Aadhaar Card</option>
                       <option value="Passport">Passport</option>
@@ -1822,7 +1820,7 @@ export function NewReservation({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                    <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Document Number
                     </label>
                     <input
@@ -1830,14 +1828,14 @@ export function NewReservation({
                       value={guestIdNumber}
                       onChange={(e) => setGuestIdNumber(e.target.value)}
                       placeholder="e.g. 9842 1290 8731"
-                      className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3.5 py-2 text-xs text-ink font-mono font-bold focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all"
+                      className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Special Requests */}
                 <div>
-                  <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                  <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                     Front Desk & Stay Notes
                   </label>
                   <textarea
@@ -1845,7 +1843,7 @@ export function NewReservation({
                     value={specialRequests}
                     onChange={(e) => setSpecialRequests(e.target.value)}
                     placeholder="Guest preferences, arrival notes, or housekeeping requests..."
-                    className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface p-3 text-xs text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15 transition-all resize-none"
+                    className="w-full rounded-xl border border-border px-3 py-2 bg-page/50 font-semibold text-xs text-ink-secondary transition-all resize-none"
                   />
                 </div>
               </section>
@@ -1858,7 +1856,7 @@ export function NewReservation({
                       5
                     </span>
                     <div>
-                      <h2 className="text-sm font-bold text-ink tracking-tight">
+                      <h2 className="text-sm font-bold text-ink-secondary tracking-tight">
                         Payments & Master Folio Summary
                       </h2>
                     </div>
@@ -1917,7 +1915,7 @@ export function NewReservation({
 
                 {/* Payment Notes */}
                 <div>
-                  <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                  <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                     Payment & Accounting Notes
                   </label>
                   <input
@@ -1925,7 +1923,7 @@ export function NewReservation({
                     value={paymentNotes}
                     onChange={(e) => setPaymentNotes(e.target.value)}
                     placeholder="e.g. Card pre-authorization held or UPI transaction reference..."
-                    className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3.5 py-2 text-xs text-ink font-semibold focus:outline-none focus:border-[var(--color-primary)] transition-all"
+                    className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all"
                   />
                 </div>
 
@@ -2064,28 +2062,25 @@ export function NewReservation({
                 <div
                   key={task.id}
                   onClick={() => handleToggleTask(task.id)}
-                  className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
-                    task.done
-                      ? "bg-page border-border/60 opacity-60"
-                      : "bg-surface border-border hover:border-ink-disabled shadow-2xs"
-                  }`}
+                  className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${task.done
+                    ? "bg-page border-border/60 opacity-60"
+                    : "bg-surface border-border hover:border-ink-disabled shadow-2xs"
+                    }`}
                 >
                   <button
                     type="button"
-                    className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded border transition-colors ${
-                      task.done
-                        ? "bg-success-text border-success-text text-white"
-                        : "border-ink-disabled bg-surface"
-                    }`}
+                    className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded border transition-colors ${task.done
+                      ? "bg-success-text border-success-text text-white"
+                      : "border-ink-disabled bg-surface"
+                      }`}
                   >
                     {task.done && <Lucide.Check size={11} />}
                   </button>
                   <span
-                    className={`text-xs flex-1 ${
-                      task.done
-                        ? "line-through text-ink-muted font-normal"
-                        : "font-semibold text-ink"
-                    }`}
+                    className={`text-xs flex-1 ${task.done
+                      ? "line-through text-ink-muted font-normal"
+                      : "font-semibold text-ink"
+                      }`}
                   >
                     {task.text}
                   </span>
@@ -2101,7 +2096,7 @@ export function NewReservation({
                 onChange={(e) => setNewTaskInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
                 placeholder="Add front desk task..."
-                className="flex-1 rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3 py-1.5 text-xs text-ink focus:outline-none focus:border-[var(--color-primary)]"
+                className="flex-1 rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all"
               />
               <button
                 type="button"
@@ -2205,7 +2200,7 @@ export function NewReservation({
 
             <div className="flex flex-col gap-3">
               <div>
-                <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                   Payment Amount (₹)
                 </label>
                 <div className="relative">
@@ -2216,13 +2211,13 @@ export function NewReservation({
                     type="number"
                     value={collectAmount}
                     onChange={(e) => setCollectAmount(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface pl-8 pr-4 py-2.5 text-sm font-bold font-mono text-ink focus:outline-none focus:border-[var(--color-primary)]"
+                    className="w-full rounded-xl border border-border bg-page/50 pl-8 pr-3 py-2 text-xs font-semibold text-ink-secondary transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                   Payment Mode
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -2233,11 +2228,10 @@ export function NewReservation({
                       key={method}
                       type="button"
                       onClick={() => setCollectMethod(method)}
-                      className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                        collectMethod === method
-                          ? "bg-[var(--color-primary)] text-white border-transparent shadow-xs"
-                          : "bg-surface border-border text-ink hover:bg-page"
-                      }`}
+                      className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${collectMethod === method
+                        ? "bg-[var(--color-primary)] text-white border-transparent shadow-xs"
+                        : "bg-surface border-border text-ink hover:bg-page"
+                        }`}
                     >
                       {method}
                     </button>
@@ -2246,7 +2240,7 @@ export function NewReservation({
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                   Transaction / Slip Reference
                 </label>
                 <input
@@ -2254,7 +2248,7 @@ export function NewReservation({
                   value={collectRef}
                   onChange={(e) => setCollectRef(e.target.value)}
                   placeholder="e.g. UPI-984210982 / POS Approval Code"
-                  className="w-full rounded-xl border border-border bg-page/50 hover:bg-surface focus:bg-surface px-3.5 py-2 text-xs text-ink font-mono"
+                  className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all"
                 />
               </div>
             </div>
@@ -2311,7 +2305,7 @@ export function NewReservation({
               value={issueText}
               onChange={(e) => setIssueText(e.target.value)}
               placeholder="Describe the issue (e.g. rate mismatch on OTA, room allocation conflict)..."
-              className="w-full rounded-xl border border-border p-3 text-xs text-ink focus:outline-none focus:border-[var(--color-primary)] resize-none"
+              className="w-full rounded-xl border border-border px-3 py-2 bg-page/50 font-semibold text-xs text-ink-secondary transition-all resize-none"
             />
 
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-divider">
