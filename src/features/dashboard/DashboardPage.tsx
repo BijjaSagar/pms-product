@@ -86,7 +86,7 @@ const DEMO_TIMELINE: ActivityItem[] = [
     statusTone: 'bg-info-bg text-info-text border-info-border/60',
     actionLabel: 'Mark Done',
     actionTone: 'text-ink bg-page hover:bg-muted-surface border-border',
-    target: { view: 'housekeeping' } as NavTarget,
+    target: { view: 'room-overview' } as NavTarget,
   },
   {
     id: 't-5',
@@ -531,7 +531,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   key={tab.key}
                   type="button"
                   onClick={() => setTimelineTab(tab.key)}
-                  className={`flex-1 min-w-[70px] py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer text-center ${timelineTab === tab.key
+                  className={`flex-1 min-w-[70px] py-1.5 text-[12px] font-semibold rounded-lg transition-all cursor-pointer text-center ${timelineTab === tab.key
                     ? 'bg-surface text-ink shadow-2xs font-bold border border-border/50'
                     : 'text-ink-secondary hover:text-ink'
                     }`}
@@ -1127,10 +1127,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
               </div>
               <button
                 type="button"
-                onClick={() => go({ view: 'housekeeping' })}
+                onClick={() => go({ view: 'room-overview' })}
                 className="text-xs font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
-                <span>View all</span>
+                <span>Room board</span>
                 <Lucide.ArrowRight size={13} />
               </button>
             </div>
@@ -1217,10 +1217,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             <span className="text-xs text-ink-muted">4 priority turnovers due before 2:00 PM</span>
             <button
               type="button"
-              onClick={() => go({ view: 'housekeeping' })}
+              onClick={() => go({ view: 'room-overview' })}
               className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
-              <span>Housekeeping board</span>
+              <span>Room board</span>
               <Lucide.ArrowRight size={12} />
             </button>
           </div>

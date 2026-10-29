@@ -70,6 +70,11 @@
   --font-mono: var(--font-mono);
 }
 
+:root {
+  /* Height of the app header (4rem bar + 1px border). Keep in sync with Header.tsx. */
+  --app-header-h: calc(4rem + 1px);
+}
+
 html,
 body,
 #root {
@@ -78,10 +83,11 @@ body,
   background-color: var(--color-page);
 }
 
-/* Reserve the scrollbar gutter so locking the body (when a dialog opens) does
-   not remove the scrollbar and shift the whole layout sideways. */
-html {
+/* Reserve the scrollbar gutter on the app scroller so locking the page (when a
+   dialog opens) does not remove the scrollbar and shift the layout sideways. */
+[data-app-scroll] {
   scrollbar-gutter: stable;
+  overscroll-behavior: contain;
 }
 
 img,
@@ -831,6 +837,15 @@ li .rounded-control.border {
 }
 
 @media print {
+
+  .pms-app-shell,
+  .pms-app-column,
+  .pms-app-scroll {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
 
   aside,
   header,

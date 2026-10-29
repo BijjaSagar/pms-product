@@ -22,7 +22,6 @@ import type {
 import {
   BUSINESS_DATE,
   MOCK_ROOMS,
-  ROOM_TYPE_CONFIG,
   addDaysToIso,
   countNights,
   formatCalendarDate,
@@ -286,52 +285,6 @@ const DEMO_RESERVATIONS: Reservation[] = [
 ];
 
 type SortKey = 'checkIn' | 'guest' | 'amount';
-
-// Channel Badge Component matching screenshot
-function ChannelBadge({ channel }: { channel: string }) {
-  const c = channel.toLowerCase();
-  if (c.includes('booking')) {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink">
-        {/* palette-allow: Booking.com brand colour */}
-        <span className="flex h-5 w-5 items-center justify-center rounded bg-[#003580] text-[11px] font-black text-white">
-          B
-        </span>
-        <span className="text-[11px] uppercase tracking-wider font-bold text-ink">BOOKING.COM</span>
-      </span>
-    );
-  }
-  if (c.includes('agoda')) {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink">
-        {/* palette-allow: Agoda brand colour */}
-        <span className="flex h-5 w-5 items-center justify-center rounded bg-[#0b72e7] text-[11px] font-black text-white">
-          A
-        </span>
-        <span className="text-[11px] uppercase tracking-wider font-bold text-ink">AGODA</span>
-      </span>
-    );
-  }
-  if (c.includes('expedia')) {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink">
-        {/* palette-allow: Expedia brand colour */}
-        <span className="flex h-5 w-5 items-center justify-center rounded bg-[#001c54] text-[11px] font-black text-white">
-          E
-        </span>
-        <span className="text-[11px] uppercase tracking-wider font-bold text-ink">EXPEDIA</span>
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink">
-      <span className="flex h-5 w-5 items-center justify-center rounded bg-info-bg text-info-text border border-info-border">
-        <Lucide.Image size={11} />
-      </span>
-      <span className="text-[11px] uppercase tracking-wider font-bold text-ink">DIRECT</span>
-    </span>
-  );
-}
 
 // Status Pill Badge matching screenshot
 function StatusPill({ status }: { status: ReservationStatus }) {
@@ -632,7 +585,7 @@ const RESERVATION_BAR_TONES: Record<
 };
 
 export function RoomCalendar({
-  go: _go,
+  go,
   onReservationUpdated,
 }: {
   go?: (t: NavTarget) => void;
@@ -702,6 +655,51 @@ export function RoomCalendar({
   const jumpToToday = () => {
     setBaseDate(BUSINESS_DATE);
     toast.info('Jumped to Today', { detail: `Calendar anchored on ${BUSINESS_DATE}` });
+  };
+
+  /**
+   * Clicking a free cell on the room rack starts a new reservation pre-filled
+   * with that room and that night (check-out defaults to the next day).
+   */
+  const handleNewReservation = (room: CalendarRoom, checkIn: string) => {
+    const covered = reservations.some(
+      (res) =>
+        (res.roomId === room.id || res.roomNumber === room.number) &&
+        res.status !== 'Cancelled' &&
+        res.status !== 'No-show' &&
+        res.checkInDate <= checkIn &&
+        checkIn < res.checkOutDate
+    );
+    if (covered) return;
+
+    if (room.status === 'Out-of-Order') {
+      toast.info('Room unavailable', {
+        detail: `Room ${room.number} is out of order and cannot be booked.`,
+      });
+      return;
+    }
+
+    if (!go) {
+      toast.info('New reservation', {
+        detail: 'Open Reservations to create this booking.',
+      });
+      return;
+    }
+
+    const checkOut = addDaysToIso(checkIn, 1);
+    go({
+      view: 'new-reservation',
+      draft: {
+        roomId: room.id,
+        roomNumber: room.number,
+        roomType: room.type,
+        checkIn,
+        checkOut,
+      },
+    });
+    toast.success('New reservation started', {
+      detail: `Room ${room.number} · ${checkIn} → ${checkOut}`,
+    });
   };
 
   // Occupancy metrics for the current visible horizon
@@ -1276,7 +1274,6 @@ export function RoomCalendar({
             ) : filteredRooms.map((room) => {
               const isOOO = room.status === 'Out-of-Order';
               const isTargetRow = dragState?.isDragging && dragState?.proposedRoomId === room.id;
-              const typeCfg = ROOM_TYPE_CONFIG[room.type] || ROOM_TYPE_CONFIG.Standard;
 
               // Find reservations assigned to this room
               const roomReservations = reservations.filter(
@@ -1333,9 +1330,37 @@ export function RoomCalendar({
                     {calendarDates.map((dateStr) => {
                       const isToday = dateStr === baseDate;
                       const dateInfo = formatCalendarDate(dateStr);
+                      const isBooked = reservations.some(
+                        (res) =>
+                          (res.roomId === room.id || res.roomNumber === room.number) &&
+                          res.status !== 'Cancelled' &&
+                          res.status !== 'No-show' &&
+                          res.checkInDate <= dateStr &&
+                          dateStr < res.checkOutDate
+                      );
+                      const canCreate = !isBooked && !isOOO;
                       return (
                         <div
                           key={dateStr}
+                          role={canCreate ? 'button' : undefined}
+                          tabIndex={canCreate ? 0 : undefined}
+                          aria-label={
+                            canCreate
+                              ? `New reservation for room ${room.number} on ${dateStr}`
+                              : undefined
+                          }
+                          title={
+                            canCreate
+                              ? `New reservation · Room ${room.number} · ${dateStr}`
+                              : undefined
+                          }
+                          onClick={() => handleNewReservation(room, dateStr)}
+                          onKeyDown={(e) => {
+                            if ((e.key === 'Enter' || e.key === ' ') && canCreate) {
+                              e.preventDefault();
+                              handleNewReservation(room, dateStr);
+                            }
+                          }}
                           style={{
                             width: `${COL_WIDTH}px`,
                             borderColor: 'var(--color-border)',
@@ -1347,8 +1372,14 @@ export function RoomCalendar({
                                   ? 'color-mix(in srgb, var(--color-muted-surface) 45%, var(--color-surface))'
                                   : 'var(--color-surface)',
                           }}
-                          className="relative flex h-full shrink-0 items-center justify-center border-r"
-                        />
+                          className={`group relative flex h-full shrink-0 items-center justify-center border-r ${canCreate ? 'cursor-pointer' : ''}`}
+                        >
+                          {canCreate ? (
+                            <span className="pointer-events-none flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-[var(--color-primary)]/40 bg-[var(--color-primary)]/5 text-[var(--color-primary)] opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                              <Lucide.Plus size={12} />
+                            </span>
+                          ) : null}
+                        </div>
                       );
                     })}
 
@@ -1592,27 +1623,6 @@ export function Reservations({
   const [openId, setOpenId] = useState<string | null>(focusId ?? null);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
 
-  // Selected Date bar
-  const [selectedDate, setSelectedDate] = useState('2026-10-17');
-
-  const stepDate = (days: number) => {
-    const d = new Date(`${selectedDate}T12:00:00Z`);
-    d.setDate(d.getDate() + days);
-    setSelectedDate(d.toISOString().slice(0, 10));
-  };
-
-  const resetToToday = () => {
-    setSelectedDate('2026-10-17');
-  };
-
-  const formattedDate = useMemo(() => {
-    return new Date(`${selectedDate}T12:00:00Z`).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  }, [selectedDate]);
-
   // Unique options for filters
   const sources = useMemo(
     () => ['All', 'Direct', 'Booking.com', 'Agoda', 'Expedia', 'Corporate', 'Walk-in'],
@@ -1755,7 +1765,6 @@ export function Reservations({
                 }`}
             >
               <Lucide.CalendarRange size={14} />
-              <span>Room Calendar</span>
             </button>
             <button
               type="button"
@@ -1766,7 +1775,6 @@ export function Reservations({
                 }`}
             >
               <Lucide.List size={14} />
-              <span>List View</span>
             </button>
           </div>
         </div>
@@ -2018,7 +2026,7 @@ export function Reservations({
                           <div className="font-bold text-ink tracking-tight text-sm font-mono">
                             {r.id}
                           </div>
-                          <div className="text-xs text-ink-muted mt-0.5">
+                          <div className="text-[12px] text-ink-muted mt-0.5">
                             {r.checkInIso ? `Oct 15, 2026 • 10:24 AM` : 'Oct 15, 2026 • 09:12 AM'}
                           </div>
                         </td>
@@ -2028,8 +2036,8 @@ export function Reservations({
                           <div className="flex items-center gap-3">
                             <Avatar name={r.guest} size={36} />
                             <div>
-                              <p className="font-semibold text-ink text-sm leading-tight">{r.guest}</p>
-                              <p className="text-xs text-ink-muted mt-0.5">
+                              <p className="font-semibold text-ink text-[12px] leading-tight">{r.guest}</p>
+                              <p className="text-[12px] text-ink-muted mt-0.5">
                                 {r.guest === 'Rahul Sharma'
                                   ? '+91 91234 56789'
                                   : r.guest === 'Priya Mehta'
@@ -2058,7 +2066,7 @@ export function Reservations({
                                 className="h-9 w-9 rounded-md object-cover shrink-0 border border-border"
                               />
                               <div>
-                                <p className="font-bold text-ink text-sm leading-tight">{r.roomSummary ?? r.roomNumber}</p>
+                                <p className="font-bold text-ink text-[12px] leading-tight">{r.roomSummary ?? r.roomNumber}</p>
                               </div>
                             </div>
                           ) : (

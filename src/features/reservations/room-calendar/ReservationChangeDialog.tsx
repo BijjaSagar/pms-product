@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
 import type { ProposedReservationChange } from './types';
 import { ROOM_TYPE_CONFIG } from './mockData';
+import { lockAppScroll } from '../../../lib/scrollLock';
 
 interface Props {
   change: ProposedReservationChange | null;
@@ -22,10 +23,7 @@ export function ReservationChangeDialog({
   // Lock background scroll when modal is active
   useEffect(() => {
     if (!change) return;
-    const prevBody = document.body.style.overflow;
-    const prevHtml = document.documentElement.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
+    const releaseScroll = lockAppScroll();
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !isSaving) {
@@ -35,8 +33,7 @@ export function ReservationChangeDialog({
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.body.style.overflow = prevBody;
-      document.documentElement.style.overflow = prevHtml;
+      releaseScroll();
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [change, isSaving, onCancel]);

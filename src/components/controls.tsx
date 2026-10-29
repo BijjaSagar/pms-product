@@ -109,11 +109,10 @@ export function Pagination({
                 onClick={() => onChange(i)}
                 aria-current={isCurrent ? 'page' : undefined}
                 aria-label={`Page ${i + 1}`}
-                className={`flex h-8 w-8 flex-none items-center justify-center rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  isCurrent
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'border border-border bg-surface text-ink hover:bg-hover-surface'
-                }`}
+                className={`flex h-8 w-8 flex-none items-center justify-center rounded-lg text-xs font-semibold transition-all cursor-pointer ${isCurrent
+                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  : 'border border-border bg-surface text-ink hover:bg-hover-surface'
+                  }`}
                 style={{
                   background: isCurrent ? 'var(--color-primary)' : 'var(--color-surface)',
                   borderColor: isCurrent ? 'var(--color-primary)' : 'var(--color-border)',
@@ -206,7 +205,7 @@ export function FilterChip({
       onClick={onClick}
       aria-pressed={active}
       aria-label={pressedLabel}
-      className="min-h-[34px] flex-none whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold snap-start"
+      className="min-h-[30px] flex-none whitespace-nowrap rounded-full border px-3 py-1.5 text-[12px] font-semibold snap-start"
       style={{
         borderColor: active ? 'var(--color-primary)' : 'var(--color-border)',
         background: active ? 'var(--color-primary)' : 'var(--color-surface)',

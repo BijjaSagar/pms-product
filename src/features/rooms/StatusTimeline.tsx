@@ -329,9 +329,8 @@ const INITIAL_ROOMS_DATA: RoomTimelineRow[] = [
   },
 ];
 
-export function StatusBoard() {
+export function StatusTimeline() {
   const [roomsData, setRoomsData] = useState<RoomTimelineRow[]>(INITIAL_ROOMS_DATA);
-  const [viewMode, setViewMode] = useState<'timeline' | 'grid'>('timeline');
   const [selectedStatus, setSelectedStatus] = useState<StatusType | null>(null);
   const [currentDate, setCurrentDate] = useState('Oct 14, 2026');
   const [expandedFloors, setExpandedFloors] = useState<Record<number, boolean>>({
@@ -390,15 +389,15 @@ export function StatusBoard() {
       setSelectedRoomModal((old) =>
         old
           ? {
-              ...old,
-              event: {
-                id: `${roomNumber}-${newStatus.toLowerCase()}`,
-                type: newStatus,
-                label: newStatus === 'Maintenance' ? 'Maintenance' : newStatus,
-                startHour: 8,
-                endHour: 22,
-              },
-            }
+            ...old,
+            event: {
+              id: `${roomNumber}-${newStatus.toLowerCase()}`,
+              type: newStatus,
+              label: newStatus === 'Maintenance' ? 'Maintenance' : newStatus,
+              startHour: 8,
+              endHour: 22,
+            },
+          }
           : null
       );
     }
@@ -441,39 +440,43 @@ export function StatusBoard() {
   };
 
   return (
-    <div className="flex flex-col gap-4 pms-animate-fade-in pb-8">
-      {/* ================= PAGE HEADER & TOOLBAR ================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/20 mt-0.5">
-            <Lucide.LayoutGrid size={20} strokeWidth={2.4} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
-                Status Board
-              </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text/60 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
-                </span>
-                Live Floorplan
-              </span>
-            </div>
-            <p className="text-xs text-ink-secondary mt-1">
-              Live view of room status, housekeeping cycles, and guest movements
-            </p>
-          </div>
+    <div className="flex flex-col gap-4">
+      {/* ================= TOOLBAR: STATUS PILLS & DATE CONTROLS ================= */}
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        {/* Status Legend Filter Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1" aria-label="Status filters">
+          {STATUS_PILLS.map((pill) => {
+            const isFilterActive = selectedStatus === pill.id;
+            return (
+              <button
+                key={pill.id}
+                type="button"
+                onClick={() => setSelectedStatus(isFilterActive ? null : pill.id)}
+                className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-bold whitespace-nowrap transition-all shadow-2xs ${isFilterActive ? 'ring-2 ring-primary ring-offset-1 scale-105' : 'hover:opacity-90'
+                  }`}
+                style={{
+                  background: pill.bg,
+                  color: pill.color,
+                  border: `1px solid ${pill.border}`,
+                }}
+              >
+                <span
+                  className="h-2 w-2 rounded-full flex-none"
+                  style={{ background: pill.dot }}
+                />
+                <span>{pill.label}</span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Header Action Controls */}
-        <div className="flex items-center gap-2 flex-wrap">
+        {/* Date Controls */}
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
           {/* Date Selector Button */}
           <button
             type="button"
             onClick={() => toast('Date picker dialog', { tone: 'info' })}
-            className="flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-ink shadow-2xs hover:bg-ink/[0.03] transition-colors"
+            className="flex items-center gap-2 rounded-md border px-3 py-1.5 text-[12px] font-medium text-ink shadow-2xs hover:bg-ink/[0.03] transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
             <Lucide.Calendar size={15} className="text-ink-secondary" />
@@ -487,338 +490,206 @@ export function StatusBoard() {
               setCurrentDate('Oct 16, 2026');
               toast('Jumped to Today', { tone: 'success' });
             }}
-            className="rounded-md border px-3 py-1.5 text-sm font-medium text-primary shadow-2xs hover:bg-ink/[0.03] transition-colors"
+            className="rounded-md border px-3 py-1.5 text-[12px] font-medium text-primary shadow-2xs hover:bg-ink/[0.03] transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
             Today
           </button>
 
-          {/* Grid vs Timeline Switcher */}
-          <div
-            className="flex rounded-md border p-0.5 gap-0.5 shadow-2xs"
-            style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
-          >
-            <button
-              type="button"
-              onClick={() => setViewMode('grid')}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
-                viewMode === 'grid'
-                  ? 'bg-primary text-white font-semibold shadow-xs'
-                  : 'text-ink-secondary hover:text-ink'
-              }`}
-            >
-              Grid
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('timeline')}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
-                viewMode === 'timeline'
-                  ? 'bg-primary text-white font-semibold shadow-xs'
-                  : 'text-ink-secondary hover:text-ink'
-              }`}
-            >
-              Timeline
-            </button>
-          </div>
 
-          {/* More options */}
-          <button
-            type="button"
-            onClick={() => toast('Status board options: Export, Print, Refresh', { tone: 'info' })}
-            className="flex h-9 w-9 items-center justify-center rounded-md border text-ink-secondary hover:text-ink hover:bg-ink/[0.03] transition-colors shadow-2xs"
-            style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
-            title="More actions"
-          >
-            <Lucide.MoreHorizontal size={17} />
-          </button>
         </div>
       </div>
 
-      {/* ================= STATUS LEGEND FILTER PILLS ================= */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1" aria-label="Status filters">
-        {STATUS_PILLS.map((pill) => {
-          const isFilterActive = selectedStatus === pill.id;
-          return (
-            <button
-              key={pill.id}
-              type="button"
-              onClick={() => setSelectedStatus(isFilterActive ? null : pill.id)}
-              className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-[12.5px] font-bold whitespace-nowrap transition-all shadow-2xs ${
-                isFilterActive ? 'ring-2 ring-primary ring-offset-1 scale-105' : 'hover:opacity-90'
-              }`}
+      {/* ================= TIMELINE HOURLY VIEW ================= */}
+      <div
+        className="rounded-2xl border shadow-sm overflow-hidden"
+        style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+      >
+        {/* Scrollable Timeline Grid */}
+        <div className="overflow-x-auto">
+          <div className="min-w-[880px]">
+            {/* TIMELINE TIME HEADER */}
+            <div
+              className="grid grid-cols-[160px_repeat(8,1fr)] items-center border-b text-[12px] font-bold"
               style={{
-                background: pill.bg,
-                color: pill.color,
-                border: `1px solid ${pill.border}`,
+                background: 'color-mix(in srgb, var(--color-muted-surface) 60%, var(--color-surface))',
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-ink)',
               }}
             >
-              <span
-                className="h-2 w-2 rounded-full flex-none"
-                style={{ background: pill.dot }}
-              />
-              <span>{pill.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ================= MAIN BOARD CONTENT ================= */}
-      {viewMode === 'timeline' ? (
-        /* ================= 1. TIMELINE HOURLY VIEW ================= */
-        <div
-          className="rounded-2xl border shadow-sm overflow-hidden"
-          style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
-        >
-          {/* Scrollable Timeline Grid */}
-          <div className="overflow-x-auto">
-            <div className="min-w-[880px]">
-              {/* TIMELINE TIME HEADER */}
-              <div
-                className="grid grid-cols-[160px_repeat(8,1fr)] items-center border-b text-[12.5px] font-bold"
-                style={{
-                  background: 'color-mix(in srgb, var(--color-muted-surface) 60%, var(--color-surface))',
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-ink)',
-                }}
-              >
-                <div className="px-5 py-3 border-r" style={{ borderColor: 'var(--color-border)' }}>
-                  Room
-                </div>
-                {TIME_SLOTS.map((slot) => (
-                  <div
-                    key={slot.hour}
-                    className="py-3 text-center border-r last:border-r-0"
-                    style={{ borderColor: 'var(--color-border-subtle)' }}
-                  >
-                    {slot.label}
-                  </div>
-                ))}
+              <div className="px-5 py-3 border-r" style={{ borderColor: 'var(--color-border)' }}>
+                Room
               </div>
+              {TIME_SLOTS.map((slot) => (
+                <div
+                  key={slot.hour}
+                  className="py-3 text-center border-r last:border-r-0"
+                  style={{ borderColor: 'var(--color-border-subtle)' }}
+                >
+                  {slot.label}
+                </div>
+              ))}
+            </div>
 
-              {/* TIMELINE BODY GROUPED BY FLOORS */}
-              {floorsList.map((floorNum) => {
-                const isExpanded = expandedFloors[floorNum] !== false;
-                const floorRooms = roomsData.filter((r) => r.floor === floorNum);
+            {/* TIMELINE BODY GROUPED BY FLOORS */}
+            {floorsList.map((floorNum) => {
+              const isExpanded = expandedFloors[floorNum] !== false;
+              const floorRooms = roomsData.filter((r) => r.floor === floorNum);
 
-                return (
-                  <div key={floorNum} className="border-b last:border-b-0" style={{ borderColor: 'var(--color-border)' }}>
-                    {/* Floor Accordion Button */}
-                    <button
-                      type="button"
-                      onClick={() => toggleFloor(floorNum)}
-                      className="flex w-full items-center gap-2 px-4 py-2.5 text-left font-bold text-[13px] transition-colors hover:bg-ink/[0.02]"
-                      style={{
-                        background: 'color-mix(in srgb, var(--color-primary) 6%, var(--color-surface))',
-                        color: 'var(--color-primary)',
-                        borderBottom: isExpanded ? '1px solid var(--color-border-subtle)' : 'none',
-                      }}
-                    >
-                      {isExpanded ? (
-                        <Lucide.ChevronDown size={17} strokeWidth={2.4} />
-                      ) : (
-                        <Lucide.ChevronRight size={17} strokeWidth={2.4} />
-                      )}
-                      <span>Floor {floorNum}</span>
-                      <span className="text-[11px] font-medium text-ink-muted ml-1">
-                        ({floorRooms.length} rooms)
-                      </span>
-                    </button>
+              return (
+                <div key={floorNum} className="border-b last:border-b-0" style={{ borderColor: 'var(--color-border)' }}>
+                  {/* Floor Accordion Button */}
+                  <button
+                    type="button"
+                    onClick={() => toggleFloor(floorNum)}
+                    className="flex w-full items-center gap-2 px-4 py-2.5 text-left font-bold text-[12px] transition-colors hover:bg-ink/[0.02]"
+                    style={{
+                      background: 'color-mix(in srgb, var(--color-primary) 6%, var(--color-surface))',
+                      color: 'var(--color-primary)',
+                      borderBottom: isExpanded ? '1px solid var(--color-border-subtle)' : 'none',
+                    }}
+                  >
+                    {isExpanded ? (
+                      <Lucide.ChevronDown size={17} strokeWidth={2.4} />
+                    ) : (
+                      <Lucide.ChevronRight size={17} strokeWidth={2.4} />
+                    )}
+                    <span>Floor {floorNum}</span>
+                    <span className="text-[11px] font-medium text-ink-muted ml-1">
+                      ({floorRooms.length} rooms)
+                    </span>
+                  </button>
 
-                    {/* Floor Rooms Rows */}
-                    {isExpanded &&
-                      floorRooms.map((room) => {
-                        // Check if room matches status filter
-                        if (selectedStatus) {
-                          const matches = room.events.some((e) => e.type === selectedStatus);
-                          if (!matches) return null;
-                        }
+                  {/* Floor Rooms Rows */}
+                  {isExpanded &&
+                    floorRooms.map((room) => {
+                      // Check if room matches status filter
+                      if (selectedStatus) {
+                        const matches = room.events.some((e) => e.type === selectedStatus);
+                        if (!matches) return null;
+                      }
 
-                        return (
+                      return (
+                        <div
+                          key={room.number}
+                          className="grid grid-cols-[160px_1fr] items-center border-b last:border-b-0 min-h-[46px] hover:bg-ink/[0.01] transition-colors"
+                          style={{ borderColor: 'var(--color-border-subtle)' }}
+                        >
+                          {/* Room Info Cell (CLICKABLE) */}
                           <div
-                            key={room.number}
-                            className="grid grid-cols-[160px_1fr] items-center border-b last:border-b-0 min-h-[46px] hover:bg-ink/[0.01] transition-colors"
-                            style={{ borderColor: 'var(--color-border-subtle)' }}
+                            onClick={() =>
+                              setSelectedRoomModal({
+                                number: room.number,
+                                type: room.type,
+                                floor: room.floor,
+                                event: room.events[0],
+                              })
+                            }
+                            className="group flex items-center justify-between px-5 py-2 border-r h-full cursor-pointer hover:bg-primary/[0.05] transition-colors"
+                            style={{ borderColor: 'var(--color-border)' }}
+                            title={`Click to manage Room ${room.number}`}
                           >
-                            {/* Room Info Cell (CLICKABLE) */}
-                            <div
-                              onClick={() =>
-                                setSelectedRoomModal({
-                                  number: room.number,
-                                  type: room.type,
-                                  floor: room.floor,
-                                  event: room.events[0],
-                                })
-                              }
-                              className="group flex items-center justify-between px-5 py-2 border-r h-full cursor-pointer hover:bg-primary/[0.05] transition-colors"
-                              style={{ borderColor: 'var(--color-border)' }}
-                              title={`Click to manage Room ${room.number}`}
+                            <span className="text-[12px] font-bold text-ink group-hover:text-primary transition-colors">
+                              {room.number}
+                            </span>
+                            <span
+                              className="rounded px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider"
+                              style={{
+                                background: 'color-mix(in srgb, var(--color-muted-surface) 90%, var(--color-surface))',
+                                color: 'var(--color-ink-secondary)',
+                              }}
                             >
-                              <span className="text-[14px] font-bold text-ink group-hover:text-primary transition-colors">
-                                {room.number}
-                              </span>
-                              <span
-                                className="rounded px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider"
-                                style={{
-                                  background: 'color-mix(in srgb, var(--color-muted-surface) 90%, var(--color-surface))',
-                                  color: 'var(--color-ink-secondary)',
-                                }}
-                              >
-                                {room.type}
-                              </span>
+                              {room.type}
+                            </span>
+                          </div>
+
+                          {/* Timeline Track with Background Hour Grid */}
+                          <div
+                            className="relative h-full flex items-center px-1 py-1.5 cursor-pointer"
+                            onClick={() =>
+                              setSelectedRoomModal({
+                                number: room.number,
+                                type: room.type,
+                                floor: room.floor,
+                                event: room.events[0],
+                              })
+                            }
+                          >
+                            {/* Background Hour Dividers */}
+                            <div className="absolute inset-0 grid grid-cols-8 pointer-events-none">
+                              {TIME_SLOTS.map((s) => (
+                                <div
+                                  key={s.hour}
+                                  className="border-r last:border-r-0 h-full opacity-35"
+                                  style={{ borderColor: 'var(--color-border-subtle)' }}
+                                />
+                              ))}
                             </div>
 
-                            {/* Timeline Track with Background Hour Grid */}
-                            <div
-                              className="relative h-full flex items-center px-1 py-1.5 cursor-pointer"
-                              onClick={() =>
-                                setSelectedRoomModal({
-                                  number: room.number,
-                                  type: room.type,
-                                  floor: room.floor,
-                                  event: room.events[0],
-                                })
-                              }
-                            >
-                              {/* Background Hour Dividers */}
-                              <div className="absolute inset-0 grid grid-cols-8 pointer-events-none">
-                                {TIME_SLOTS.map((s) => (
-                                  <div
-                                    key={s.hour}
-                                    className="border-r last:border-r-0 h-full opacity-35"
-                                    style={{ borderColor: 'var(--color-border-subtle)' }}
-                                  />
-                                ))}
-                              </div>
+                            {/* Timeline Events / Blocks */}
+                            {room.events.map((ev) => {
+                              const leftPercent = ((ev.startHour - START_HOUR) / TOTAL_SPAN) * 100;
+                              const widthPercent = ((ev.endHour - ev.startHour) / TOTAL_SPAN) * 100;
+                              const style = getEventStyle(ev);
+                              const Icon = ev.icon;
 
-                              {/* Timeline Events / Blocks */}
-                              {room.events.map((ev) => {
-                                const leftPercent = ((ev.startHour - START_HOUR) / TOTAL_SPAN) * 100;
-                                const widthPercent = ((ev.endHour - ev.startHour) / TOTAL_SPAN) * 100;
-                                const style = getEventStyle(ev);
-                                const Icon = ev.icon;
-
-                                return (
-                                  <div
-                                    key={ev.id}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedRoomModal({
-                                        number: room.number,
-                                        type: room.type,
-                                        floor: room.floor,
-                                        event: ev,
-                                      })
-                                    }}
-                                    className="absolute h-9 rounded-md border flex items-center justify-center px-3 text-center cursor-pointer shadow-2xs transition-all hover:scale-[1.01] hover:shadow-sm"
-                                    style={{
-                                      left: `${Math.max(0.5, leftPercent)}%`,
-                                      width: `${Math.min(99, widthPercent - 1)}%`,
-                                      background: style.bg,
-                                      color: style.color,
-                                      borderColor: style.border,
-                                    }}
-                                    title={`Room ${room.number}: ${ev.label}${ev.subLabel ? ` (${ev.subLabel})` : ''}`}
-                                  >
-                                    <div className="flex items-center gap-2 truncate">
-                                      {Icon ? (
-                                        <div
-                                          className="flex h-5 w-5 flex-none items-center justify-center rounded-md"
-                                          style={{
-                                            background: 'color-mix(in srgb, currentColor 15%, transparent)',
-                                          }}
-                                        >
-                                          <Icon size={12} strokeWidth={2.4} />
-                                        </div>
-                                      ) : null}
-                                      <div className="min-w-0 flex items-center gap-1.5 truncate">
-                                        <span className="text-[12.5px] font-bold truncate">
-                                          {ev.label}
-                                        </span>
-                                        {ev.subLabel ? (
-                                          <span className="text-[11px] opacity-80 font-medium truncate">
-                                            {ev.subLabel}
-                                          </span>
-                                        ) : null}
+                              return (
+                                <div
+                                  key={ev.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedRoomModal({
+                                      number: room.number,
+                                      type: room.type,
+                                      floor: room.floor,
+                                      event: ev,
+                                    })
+                                  }}
+                                  className="absolute h-9 rounded-md border flex items-center justify-center px-3 text-center cursor-pointer shadow-2xs transition-all hover:scale-[1.01] hover:shadow-sm"
+                                  style={{
+                                    left: `${Math.max(0.5, leftPercent)}%`,
+                                    width: `${Math.min(99, widthPercent - 1)}%`,
+                                    background: style.bg,
+                                    color: style.color,
+                                    borderColor: style.border,
+                                  }}
+                                  title={`Room ${room.number}: ${ev.label}${ev.subLabel ? ` (${ev.subLabel})` : ''}`}
+                                >
+                                  <div className="flex items-center gap-2 truncate">
+                                    {Icon ? (
+                                      <div
+                                        className="flex h-5 w-5 flex-none items-center justify-center rounded-md"
+                                        style={{
+                                          background: 'color-mix(in srgb, currentColor 15%, transparent)',
+                                        }}
+                                      >
+                                        <Icon size={12} strokeWidth={2.4} />
                                       </div>
+                                    ) : null}
+                                    <div className="min-w-0 flex items-center gap-1.5 truncate">
+                                      <span className="text-[12px] font-bold truncate">
+                                        {ev.label}
+                                      </span>
+                                      {ev.subLabel ? (
+                                        <span className="text-[11px] opacity-80 font-medium truncate">
+                                          {ev.subLabel}
+                                        </span>
+                                      ) : null}
                                     </div>
                                   </div>
-                                );
-                              })}
-                            </div>
+                                </div>
+                              );
+                            })}
                           </div>
-                        );
-                      })}
-                  </div>
-                );
-              })}
-            </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              );
+            })}
           </div>
         </div>
-      ) : (
-        /* ================= 2. GRID MATRIX VIEW ================= */
-        <div className="flex flex-col gap-4">
-          {floorsList.map((f) => {
-            const floorRooms = roomsData.filter((r) => r.floor === f);
-            return (
-              <div
-                key={f}
-                className="rounded-2xl border p-5 shadow-sm"
-                style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
-              >
-                <div className="flex items-center justify-between pb-3 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[15px] font-bold text-ink">Floor {f}</span>
-                    <span className="text-[12px] text-ink-muted">({floorRooms.length} rooms)</span>
-                  </div>
-                  <span className="text-[12px] text-ink-muted">Level {f}</span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                  {floorRooms.map((room) => {
-                    const primaryEv = room.events[0];
-                    const style = primaryEv
-                      ? getEventStyle(primaryEv)
-                      : getEventStyle({ id: '0', type: 'Available', label: 'Available', startHour: 8, endHour: 22 });
-
-                    return (
-                      <div
-                        key={room.number}
-                        onClick={() =>
-                          setSelectedRoomModal({
-                            number: room.number,
-                            type: room.type,
-                            floor: room.floor,
-                            event: primaryEv,
-                          })
-                        }
-                        className="rounded-md border p-3 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-sm"
-                        style={{
-                          background: style.bg,
-                          borderColor: style.border,
-                        }}
-                      >
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-[16px] font-bold text-ink">{room.number}</span>
-                          <span className="rounded px-1.5 py-0.5 text-[10.5px] font-bold uppercase bg-surface/80 text-ink border border-border/40">
-                            {room.type}
-                          </span>
-                        </div>
-                        <p className="text-[12px] font-bold truncate" style={{ color: style.color }}>
-                          {primaryEv?.label ?? 'Available'}
-                        </p>
-                        {primaryEv?.subLabel ? (
-                          <p className="text-[11px] opacity-80 truncate">{primaryEv.subLabel}</p>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      </div>
 
       {/* ================= ULTRA-LUXURY ROOM DETAIL & STATUS MODAL (PORTALED TO BODY) ================= */}
       {selectedRoomModal &&
@@ -903,9 +774,8 @@ export function StatusBoard() {
                           key={opt.type}
                           type="button"
                           onClick={() => updateRoomStatus(selectedRoomModal.number, opt.type)}
-                          className={`flex items-center gap-1.5 p-2 rounded-md border text-[12px] font-bold transition-all ${
-                            isCurrent ? 'ring-2 ring-primary ring-offset-1 shadow-xs' : 'hover:scale-[1.02]'
-                          }`}
+                          className={`flex items-center gap-1.5 p-2 rounded-md border text-[12px] font-bold transition-all ${isCurrent ? 'ring-2 ring-primary ring-offset-1 shadow-xs' : 'hover:scale-[1.02]'
+                            }`}
                           style={{
                             background: opt.bg,
                             color: opt.color,
@@ -922,7 +792,7 @@ export function StatusBoard() {
 
                 {/* 2. Room Timeline & Movement Summary */}
                 <div
-                  className="rounded-2xl border p-4 flex flex-col gap-2.5 text-[12.5px]"
+                  className="rounded-2xl border p-4 flex flex-col gap-2.5 text-[12px]"
                   style={{
                     background: 'color-mix(in srgb, var(--color-muted-surface) 40%, var(--color-surface))',
                     borderColor: 'var(--color-border)',
@@ -992,7 +862,7 @@ export function StatusBoard() {
                 <button
                   type="button"
                   onClick={() => setSelectedRoomModal(null)}
-                  className="rounded-md border px-4 py-2 text-[12.5px] font-bold text-ink hover:bg-ink/[0.04] transition-colors"
+                  className="rounded-md border px-4 py-2 text-[12px] font-bold text-ink hover:bg-ink/[0.04] transition-colors"
                   style={{ borderColor: 'var(--color-border)' }}
                 >
                   Close
@@ -1003,7 +873,7 @@ export function StatusBoard() {
                     updateRoomStatus(selectedRoomModal.number, 'Inspected');
                     setSelectedRoomModal(null);
                   }}
-                  className="pms-btn-primary px-4 py-2 text-[12.5px] font-bold rounded-md shadow-xs"
+                  className="pms-btn-primary px-4 py-2 text-[12px] font-bold rounded-md shadow-xs"
                 >
                   Mark Inspected & Ready
                 </button>
