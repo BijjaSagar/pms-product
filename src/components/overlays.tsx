@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
+import { lockAppScroll } from '../lib/scrollLock';
 export { Toaster } from './Toaster';
 export type { ToasterProps } from './Toaster';
 
@@ -19,23 +20,14 @@ function useEsc(onClose: () => void) {
 /**
  * Locks background scrolling while a dialog is open, restoring it on close.
  *
- * Locks both the root element and the body: with `overflow-x: clip` on `html`
- * the root element can be the scroller, so locking only the body would leave the
- * page scrollable behind the dialog. `html { scrollbar-gutter: stable }` keeps
+ * The shell scrolls inside `[data-app-scroll]`, so the shared helper locks
+ * that region as well as the root/body. Its `scrollbar-gutter: stable` keeps
  * the scrollbar space reserved, so nothing shifts when the bar disappears.
  */
 function useScrollLock(locked: boolean) {
   useEffect(() => {
     if (!locked) return;
-    const root = document.documentElement;
-    const previousRoot = root.style.overflow;
-    const previousBody = document.body.style.overflow;
-    root.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-    return () => {
-      root.style.overflow = previousRoot;
-      document.body.style.overflow = previousBody;
-    };
+    return lockAppScroll();
   }, [locked]);
 }
 

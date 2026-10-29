@@ -55,7 +55,6 @@ const SEARCH_KEYWORDS: Record<ViewId, string[]> = {
   'room-overview': ['rooms', 'beds', 'room matrix', 'floor plan', 'available rooms', 'room status', 'grid', 'inventory', 'room list', 'room numbers'],
   'room-types': ['categories', 'suites', 'deluxe', 'rates', 'pricing', 'amenities', 'bedding', 'room category'],
   'status-board': ['grid', 'live board', 'room board', 'occupancy board', 'status grid'],
-  housekeeping: ['cleaning', 'clean', 'dirty', 'maid', 'linen', 'housekeeper', 'turn down', 'inspected', 'room cleaning'],
   maintenance: ['repairs', 'broken', 'leak', 'ac', 'plumbing', 'work order', 'issue', 'ticket', 'fix', 'engineer'],
   folios: ['billing', 'charges', 'invoice', 'guest bill', 'account', 'tab', 'ledger', 'balance', 'guest folio'],
   payments: ['cash', 'card', 'credit', 'payment ledger', 'transactions', 'receipt', 'settlement', 'refund'],
@@ -335,7 +334,7 @@ export function Header({
     <>
       <header
         ref={kpiDismissRef}
-        className="sticky top-0 z-30 relative border-b backdrop-blur-xl transition-all"
+        className="relative z-30 flex-none border-b backdrop-blur-xl transition-all"
         style={{
           background: 'color-mix(in srgb, var(--color-surface) 88%, transparent)',
           borderColor: 'var(--color-border)',
@@ -644,8 +643,8 @@ export function Header({
                         type="button"
                         onClick={() => setNoticeTab('all')}
                         className={`flex-1 rounded-lg py-1.5 text-center text-[12px] font-bold transition-all ${noticeTab === 'all'
-                            ? 'bg-surface shadow-xs text-ink'
-                            : 'text-ink-secondary hover:text-ink'
+                          ? 'bg-surface shadow-xs text-ink'
+                          : 'text-ink-secondary hover:text-ink'
                           }`}
                         style={noticeTab === 'all' ? { background: 'var(--color-surface)' } : undefined}
                       >
@@ -655,8 +654,8 @@ export function Header({
                         type="button"
                         onClick={() => setNoticeTab('unread')}
                         className={`flex-1 rounded-lg py-1.5 text-center text-[12px] font-bold transition-all ${noticeTab === 'unread'
-                            ? 'bg-surface shadow-xs text-ink'
-                            : 'text-ink-secondary hover:text-ink'
+                          ? 'bg-surface shadow-xs text-ink'
+                          : 'text-ink-secondary hover:text-ink'
                           }`}
                         style={noticeTab === 'unread' ? { background: 'var(--color-surface)' } : undefined}
                       >
@@ -666,8 +665,8 @@ export function Header({
                         type="button"
                         onClick={() => setNoticeTab('urgent')}
                         className={`flex-1 rounded-lg py-1.5 text-center text-[12px] font-bold transition-all ${noticeTab === 'urgent'
-                            ? 'bg-surface shadow-xs text-ink'
-                            : 'text-ink-secondary hover:text-ink'
+                          ? 'bg-surface shadow-xs text-ink'
+                          : 'text-ink-secondary hover:text-ink'
                           }`}
                         style={noticeTab === 'urgent' ? { background: 'var(--color-surface)' } : undefined}
                       >
@@ -688,8 +687,8 @@ export function Header({
                           <div
                             key={n.id}
                             className={`group relative flex items-start gap-3.5 p-4 transition-all cursor-pointer ${isRead
-                                ? 'opacity-70 hover:opacity-100 hover:bg-ink/[0.02]'
-                                : 'hover:bg-primary/[0.04]'
+                              ? 'opacity-70 hover:opacity-100 hover:bg-ink/[0.02]'
+                              : 'hover:bg-primary/[0.04]'
                               }`}
                             style={!isRead ? { background: 'color-mix(in srgb, var(--color-primary) 3.5%, var(--color-surface))' } : undefined}
                             onClick={() => openNotice(n.target, n.id)}
@@ -978,27 +977,8 @@ export function Header({
             role="dialog"
             aria-label="Dashboard KPI summary"
           >
-            <div className="h-1.5 bg-gradient-to-r from-primary via-primary-hover to-dark-accent" />
+            <div className="h-1 bg-gradient-to-r from-primary via-primary-hover to-dark-accent" />
             <div className="bg-gradient-to-br from-surface via-surface to-page/80 p-4 sm:p-6">
-              <div className="mb-4 flex items-center justify-between gap-3 sm:mb-5">
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-10 w-10 flex-none items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-xs">
-                    <Lucide.LayoutDashboard size={19} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Property snapshot</p>
-                    <h2 className="truncate text-sm font-bold tracking-tight text-ink sm:text-base">Today&apos;s performance at a glance</h2>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setKpiDrawerOpen(false)}
-                  aria-label="Close KPI drawer"
-                  className="flex h-9 w-9 flex-none items-center justify-center rounded-xl border border-border bg-surface text-ink-secondary shadow-xs transition-colors hover:bg-page hover:text-ink"
-                >
-                  <Lucide.X size={17} />
-                </button>
-              </div>
 
               <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-6 sm:gap-3">
                 {kpiDrawerItems.map((item) => {
@@ -1128,8 +1108,8 @@ export function Header({
                                   onGo({ view: item.id });
                                 }}
                                 className={`group flex items-center justify-between rounded-xl px-3.5 py-2.5 text-left transition-all ${isSelected
-                                    ? 'bg-primary text-white shadow-md'
-                                    : 'hover:bg-primary/[0.07] text-ink'
+                                  ? 'bg-primary text-white shadow-md'
+                                  : 'hover:bg-primary/[0.07] text-ink'
                                   }`}
                                 style={
                                   !isSelected
@@ -1143,8 +1123,8 @@ export function Header({
                                 <div className="flex items-center gap-3 min-w-0">
                                   <div
                                     className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl ${isSelected
-                                        ? 'bg-surface/20 text-white'
-                                        : 'bg-primary/10 text-primary'
+                                      ? 'bg-surface/20 text-white'
+                                      : 'bg-primary/10 text-primary'
                                       }`}
                                   >
                                     <Icon size={18} strokeWidth={2.2} />
@@ -1157,8 +1137,8 @@ export function Header({
                                       {section ? (
                                         <span
                                           className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${isSelected
-                                              ? 'bg-surface/25 text-white'
-                                              : 'bg-ink/[0.05] text-ink-muted'
+                                            ? 'bg-surface/25 text-white'
+                                            : 'bg-ink/[0.05] text-ink-muted'
                                             }`}
                                         >
                                           {section.title}
@@ -1232,8 +1212,8 @@ export function Header({
                                 act.action();
                               }}
                               className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-left transition-all ${isSelected
-                                  ? 'bg-primary text-white shadow-md'
-                                  : 'hover:bg-ink/[0.04] text-ink'
+                                ? 'bg-primary text-white shadow-md'
+                                : 'hover:bg-ink/[0.04] text-ink'
                                 }`}
                               style={
                                 !isSelected
@@ -1302,13 +1282,12 @@ export function Header({
 
                     <div>
                       <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
-                        Rooms, Housekeeping & Billing
+                        Rooms, Maintenance & Billing
                       </p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1">
                         {[
                           { id: 'room-overview' as const, label: 'Room Matrix', icon: Lucide.BedDouble },
                           { id: 'status-board' as const, label: 'Status Board', icon: Lucide.LayoutGrid },
-                          { id: 'housekeeping' as const, label: 'Housekeeping', icon: Lucide.Sparkles },
                           { id: 'maintenance' as const, label: 'Maintenance', icon: Lucide.Wrench },
                           { id: 'folios' as const, label: 'Folios & Billing', icon: Lucide.ReceiptText },
                           { id: 'invoices' as const, label: 'Invoices', icon: Lucide.FileText },

@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Header, Sidebar } from './components/layout';
 import type { NavTarget } from './components/nav';
 import { viewPermission } from './components/nav';
@@ -34,8 +34,6 @@ const RateManagement = lazy(() => import('./features/distribution/RateManagement
 const ChannelManager = lazy(() => import('./features/distribution/ChannelManagerPage').then((m) => ({ default: m.ChannelManager })));
 const Guests = lazy(() => import('./features/guests/GuestsPage').then((m) => ({ default: m.Guests })));
 const Rooms = lazy(() => import('./features/rooms/RoomsPage').then((m) => ({ default: m.Rooms })));
-const StatusBoard = lazy(() => import('./features/rooms/StatusBoardPage').then((m) => ({ default: m.StatusBoard })));
-const Housekeeping = lazy(() => import('./features/housekeeping/HousekeepingPage').then((m) => ({ default: m.Housekeeping })));
 const Maintenance = lazy(() => import('./features/maintenance/MaintenancePage').then((m) => ({ default: m.Maintenance })));
 const Billing = lazy(() => import('./features/finance/BillingPage').then((m) => ({ default: m.Billing })));
 const Payments = lazy(() => import('./features/finance/PaymentsPage').then((m) => ({ default: m.Payments })));
@@ -67,10 +65,11 @@ function Shell() {
   const [navOpen, setNavOpen] = useState(false);
   const [swatcherOpen, setSwatcherOpen] = useState(false);
   const { preset } = useTheme();
+  const scrollRef = useRef<HTMLDivElement>(null);
   const view = target.view;
 
   useEffect(() => {
-    window.scrollTo({ top: 0 });
+    scrollRef.current?.scrollTo({ top: 0 });
   }, [view, target.focusId]);
 
   const go = useCallback((t: NavTarget) => {
@@ -102,7 +101,7 @@ function Shell() {
       case 'room-calendar':
         return <Reservations initialViewMode="calendar" initialQuery={target.query} focusId={target.focusId} go={go} />;
       case 'new-reservation':
-        return <NewReservation go={go} />;
+        return <NewReservation go={go} initialDraft={target.draft} />;
       case 'rate-management':
         return <RateManagement />;
       case 'channel-manager':
@@ -110,13 +109,19 @@ function Shell() {
       case 'guests':
         return <Guests initialQuery={target.query} focusId={target.focusId} go={go} />;
       case 'room-overview':
-        return <Rooms initialQuery={target.query} focusId={target.focusId} />;
+        // Timeline is the default landing view; a deep link that targets a
+        // specific room needs the grid so the detail drawer can open.
+        return (
+          <Rooms
+            initialViewMode={target.focusId ? 'grid' : 'timeline'}
+            initialQuery={target.query}
+            focusId={target.focusId}
+          />
+        );
       case 'room-types':
         return <Settings initialTab="room-settings" onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'status-board':
-        return <StatusBoard />;
-      case 'housekeeping':
-        return <Housekeeping />;
+        return <Rooms initialViewMode="timeline" />;
       case 'maintenance':
         return <Maintenance />;
       case 'folios':
@@ -142,10 +147,10 @@ function Shell() {
       default:
         return <NotFoundPage onGo={go} />;
     }
-  }, [view, target.query, target.focusId, go, can, me]);
+  }, [view, target.query, target.focusId, target.draft, go, can, me]);
 
   return (
-    <div className="flex min-h-screen" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
+    <div className="pms-app-shell flex h-dvh min-h-0" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
       <a href="#pms-main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[70] focus:rounded-control focus:border focus:px-4 focus:py-2 focus:text-[13px] focus:font-semibold" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)', color: 'var(--color-ink)' }}>
         Skip to main content
       </a>
@@ -156,25 +161,31 @@ function Shell() {
         onClose={() => setNavOpen(false)}
         onOpenThemes={() => setSwatcherOpen(true)}
       />
-      <div className="flex min-w-0 flex-1 flex-col" style={{ background: 'var(--color-page)' }}>
+      <div className="pms-app-column flex min-h-0 min-w-0 flex-1 flex-col" style={{ background: 'var(--color-page)' }}>
         <Header
           currentView={view}
           onMenu={() => setNavOpen(true)}
           onOpenThemes={() => setSwatcherOpen(true)}
           onGo={go}
         />
-        <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}`} className={`pms-animate-fade-up mx-auto w-full flex-1 px-4 py-4 lg:px-6 lg:py-6 ${view === 'dashboard' || view === 'new-reservation' || view === 'reservations' || view === 'room-calendar' || view === 'status-board' ? 'max-w-[1600px] 2xl:max-w-[1760px]' : 'max-w-[1280px] 2xl:max-w-[1440px]'}`} style={{ background: 'var(--color-page)' }}>
-          <Suspense fallback={<PageFallback />}>{page}</Suspense>
-        </main>
-        <footer
-          className="border-t px-4 py-3.5 lg:px-6"
-          style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+        <div
+          ref={scrollRef}
+          data-app-scroll
+          className="pms-app-scroll flex min-h-0 flex-1 flex-col overflow-x-clip overflow-y-auto"
         >
-          <p className="tnum mx-auto w-full max-w-[1280px] text-xs font-normal 2xl:max-w-[1440px]" style={{ color: 'var(--color-ink-secondary)' }}>
-            TriponX PMS · {THEME_PRESETS[preset]?.name ?? 'Theme'} · 9 colour themes ·
-            status colours fixed across themes · unsupported modules remain demo-only
-          </p>
-        </footer>
+          <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}-${target.draft?.roomNumber ?? ''}-${target.draft?.checkIn ?? ''}`} className={`pms-animate-fade-in mx-auto w-full flex-1 px-4 py-4 lg:px-6 lg:py-6 ${view === 'dashboard' || view === 'new-reservation' || view === 'reservations' || view === 'room-calendar' || view === 'status-board' ? 'max-w-[1600px] 2xl:max-w-[1760px]' : 'max-w-[1280px] 2xl:max-w-[1440px]'}`} style={{ background: 'var(--color-page)' }}>
+            <Suspense fallback={<PageFallback />}>{page}</Suspense>
+          </main>
+          <footer
+            className="border-t px-4 py-3.5 lg:px-6"
+            style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+          >
+            <p className="tnum mx-auto w-full max-w-[1280px] text-xs font-normal 2xl:max-w-[1440px]" style={{ color: 'var(--color-ink-secondary)' }}>
+              TriponX PMS · {THEME_PRESETS[preset]?.name ?? 'Theme'} · 9 colour themes ·
+              status colours fixed across themes · unsupported modules remain demo-only
+            </p>
+          </footer>
+        </div>
       </div>
       <ErrorBoundary
         resetKeys={[swatcherOpen]}

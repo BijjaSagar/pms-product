@@ -7,7 +7,6 @@ export type ViewId =
   | 'room-overview'
   | 'room-types'
   | 'status-board'
-  | 'housekeeping'
   | 'maintenance'
   | 'folios'
   | 'payments'
@@ -33,11 +32,21 @@ export interface NavSection {
   items: NavItem[];
 }
 
+/** Prefill payload for create forms (e.g. a room + dates picked on the calendar). */
+export interface NavDraft {
+  roomId?: string;
+  roomNumber?: string;
+  roomType?: string;
+  checkIn?: string;
+  checkOut?: string;
+}
+
 /** Cross-view navigation target. `query` pre-fills search, `focusId` opens a detail record. */
 export interface NavTarget {
   view: ViewId;
   query?: string;
   focusId?: string;
+  draft?: NavDraft;
 }
 
 export const NAV_SECTIONS: NavSection[] = [
@@ -53,11 +62,9 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    title: 'Rooms & Housekeeping',
+    title: 'Rooms & Maintenance',
     items: [
-      { id: 'room-overview', label: 'Room Overview', hint: 'Cards & status' },
-      { id: 'status-board', label: 'Status Board', hint: 'Compact live board' },
-      { id: 'housekeeping', label: 'Housekeeping', hint: 'Tasks & upkeep' },
+      { id: 'room-overview', label: 'Room Overview', hint: 'Grid & timeline' },
       { id: 'maintenance', label: 'Maintenance', hint: 'Requests & work orders' },
     ],
   },
@@ -121,7 +128,6 @@ export const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
   'room-overview': 'room.read',
   'room-types': 'room.read',
   'status-board': 'room.read',
-  housekeeping: 'housekeeping.read',
   maintenance: 'maintenance.read',
   folios: 'folio.read',
   payments: 'payment.read',

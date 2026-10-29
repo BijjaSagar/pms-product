@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import * as Lucide from "lucide-react";
-import type { NavTarget } from "../../components/nav";
+import type { NavDraft, NavTarget } from "../../components/nav";
 import { toast } from "../../components/toastStore";
 import { inventoryApi, guestApi, reservationApi } from "../../lib/api/pms";
 import type {
@@ -17,7 +17,6 @@ import {
   MEAL_PLANS,
   OUTLET_CATALOG,
   RATE_PLANS,
-  SAMPLE_GUEST_DATABASE,
 } from "./new-reservation/data";
 import type {
   BillingPreferences,
@@ -28,8 +27,33 @@ import type {
   RoomRequirement,
 } from "./new-reservation/types";
 
-export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
+/** ISO date (YYYY-MM-DD) for the day after the given ISO date. */
+function nextDayIso(iso: string): string {
+  const date = new Date(`${iso}T12:00:00Z`);
+  if (Number.isNaN(date.getTime())) return iso;
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10);
+}
+
+export function NewReservation({
+  go,
+  initialDraft,
+}: {
+  go: (t: NavTarget) => void;
+  initialDraft?: NavDraft;
+}) {
   const [activeTab, setActiveTab] = useState<"general" | "outlet">("general");
+
+  // Prefill from the room calendar (room + night clicked on the rack).
+  const draftRoomTypeName = initialDraft?.roomType ?? "";
+  const draftCategory =
+    FALLBACK_ROOM_CATEGORIES.find(
+      (category) =>
+        category.name.toLowerCase() === draftRoomTypeName.toLowerCase(),
+    ) ?? FALLBACK_ROOM_CATEGORIES[1];
+  const initialCheckIn = initialDraft?.checkIn ?? "2026-10-20";
+  const initialCheckOut =
+    initialDraft?.checkOut ?? nextDayIso(initialCheckIn);
 
   // Booking Parameters
   const [bookingSource, setBookingSource] = useState("Direct");
@@ -37,8 +61,8 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
   const [externalReferenceId, setExternalReferenceId] = useState("");
   const [bookingId, setBookingId] = useState("");
   const [sourceContactNumber, setSourceContactNumber] = useState("");
-  const [checkInDate, setCheckInDate] = useState("2026-10-20");
-  const [checkOutDate, setCheckOutDate] = useState("2026-10-21");
+  const [checkInDate, setCheckInDate] = useState(initialCheckIn);
+  const [checkOutDate, setCheckOutDate] = useState(initialCheckOut);
   const [bookingType, setBookingType] = useState("Confirmed"); // Status
   const [bookingCategory, setBookingCategory] = useState("FIT"); // Booking Type
   const [checkInTime, setCheckInTime] = useState("13:00");
@@ -85,26 +109,28 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
   ]);
   const roomTypes: RoomCategoryOption[] =
     inventoryResource.data?.roomTypes ?? FALLBACK_ROOM_CATEGORIES;
-  const availableRoomsByType =
-    inventoryResource.data?.availableRoomsByType ?? {};
+  const availableRoomsByType = useMemo(
+    () => inventoryResource.data?.availableRoomsByType ?? {},
+    [inventoryResource.data],
+  );
 
   // Requirements (Rooms list)
   const [overridePrice, setOverridePrice] = useState(false);
   const [overrideRoomTotal, setOverrideRoomTotal] = useState<number | null>(
     null,
   );
-  const [requirements, setRequirements] = useState<RoomRequirement[]>([
+  const [roomRequirements, setRequirements] = useState<RoomRequirement[]>([
     {
       id: "req-1",
       roomIndex: 1,
-      roomTypeId: "deluxe",
-      category: "Deluxe",
+      roomTypeId: draftCategory.id,
+      category: draftCategory.name,
       adults: 2,
       children: 0,
       infant: 0,
       roomId: null,
-      roomNo: "",
-      rate: 4500,
+      roomNo: initialDraft?.roomNumber ?? "",
+      rate: draftCategory.baseRate,
       ratePlan: "Best Available Rates",
       mealPlan: "EP",
       billingRoute: "Default",
@@ -113,6 +139,39 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
       ],
     },
   ]);
+
+  // Resolve the physical room picked on the room calendar against live
+  // availability. The calendar's room types are display-only and can differ
+  // from inventory types, so the room number is the source of truth. Deriving
+  // this keeps the prefill without writing state from an effect.
+  const requirements = useMemo(() => {
+    const lookup = new Map<string, { roomId: string; typeId: string }>();
+    for (const [typeId, rooms] of Object.entries(availableRoomsByType)) {
+      for (const option of rooms) {
+        lookup.set(option.roomNumber, { roomId: option.id, typeId });
+      }
+    }
+    return roomRequirements.map((requirement) => {
+      const match = requirement.roomNo
+        ? lookup.get(requirement.roomNo)
+        : undefined;
+      if (!match) return requirement;
+      if (
+        match.roomId === requirement.roomId &&
+        match.typeId === requirement.roomTypeId
+      ) {
+        return requirement;
+      }
+      const type = roomTypes.find((item) => item.id === match.typeId);
+      return {
+        ...requirement,
+        roomTypeId: match.typeId,
+        category: type?.name ?? requirement.category,
+        rate: type?.baseRate ?? requirement.rate,
+        roomId: match.roomId,
+      };
+    });
+  }, [roomRequirements, availableRoomsByType, roomTypes]);
 
   // Billing Preferences
   const [billingPreferences, setBillingPreferences] =
@@ -127,8 +186,6 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
   const [posAddons, setPosAddons] = useState<OutletAddonLine[]>([]);
 
   // Guest Details
-  const [guestSearch, setGuestSearch] = useState("");
-  const [showGuestSearchDropdown, setShowGuestSearchDropdown] = useState(false);
   const [guestSalutation, setGuestSalutation] = useState("Mr.");
   const [guestName, setGuestName] = useState("Rohan Sharma");
   const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(null);
@@ -779,9 +836,9 @@ export function NewReservation({ go }: { go: (t: NavTarget) => void }) {
       {/* ================= 4-COLUMN MASTER WORKBENCH ================= */}
       <div className="grid grid-cols-1 gap-4 items-start lg:grid-cols-2 xl:grid-cols-[repeat(24,minmax(0,1fr))]">
         {/* ================= LEFT COLUMN: LUXURY FOLIO BOARDING TICKET ================= */}
-        <div className="flex flex-col rounded-3xl border border-border/90 bg-surface shadow-sm overflow-hidden lg:sticky lg:top-4 xl:col-span-5">
+        <div className="flex flex-col rounded-3xl border border-border/90 bg-surface shadow-sm overflow-hidden lg:sticky lg:top-6 lg:z-10 lg:max-h-[calc(100dvh_-_var(--app-header-h)_-_3rem)] lg:overflow-y-auto xl:col-span-5">
           {/* Top Boarding Pass Header Strip */}
-          <div className="bg-gradient-to-r from-primary via-primary-hover to-dark-accent p-4 text-primary-foreground border-b border-dark-accent">
+          <div className="bg-gradient-to-r from-primary via-primary-hover to-dark-accent p-4 text-primary-foreground border-b border-dark-accent lg:sticky lg:top-0 lg:z-10">
             <div className="grid grid-cols-2 gap-3">
               <div className="min-w-0 border-r border-primary-foreground/25 pr-3">
                 <span className="block text-[10px] font-bold tracking-wider text-primary-foreground/70">

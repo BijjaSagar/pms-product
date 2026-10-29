@@ -173,26 +173,8 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20 mt-0.5">
-            <Lucide.Users size={20} strokeWidth={2.4} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
-                Guest Directory
-              </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
-                </span>
-                CRM Active
-              </span>
-            </div>
-            <p className="text-xs text-ink-secondary mt-1">
-              Guest profiles, VIP tiers, contact preferences, and stay histories
-            </p>
-          </div>
+
+
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -227,102 +209,102 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
             </span>
           }
         />
-      {resource.error ? <p role="alert" className="pms-helper">Could not load guests: {resource.error}</p> : null}
-      <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-4">
-        <input value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} placeholder="Name, ID or phone…" aria-label="Search guests" className={inputClass('text-sm')} />
-        <select value={sort} onChange={(e) => setSort(e.target.value as never)} aria-label="Sort guests" className={inputClass('text-sm')}>
-          <option value="name">Sort: name</option>
-          <option value="stays">Sort: most stays</option>
-          <option value="spent">Sort: lifetime value</option>
-        </select>
-        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by tier">
-          {['All', 'VIP', 'Gold', 'Regular', 'New'].map((t) => (
-            <FilterChip key={t} active={tier === t} onClick={() => { setTier(t); setPage(0); }}>{t}</FilterChip>
-          ))}
-        </div>
-        <button type="button" className="pms-btn-ghost px-3 py-2 text-sm font-medium" onClick={() => { setQ(''); setTier('All'); setSort('name'); setPage(0); }}>Clear</button>
-      </div>
-      <TableContainer>
-        <table className="pms-table min-w-[760px]">
-          <thead>
-            <tr>
-              <th className="w-12 text-center text-xs font-semibold">#</th>
-              <th className="text-xs font-semibold">GUEST NAME</th>
-              <th className="text-xs font-semibold">CONTACT</th>
-              <th className="text-xs font-semibold">COMPANY</th>
-              <th className="text-xs font-semibold">TIER</th>
-              <th className="text-right text-xs font-semibold">STAYS</th>
-              <th className="text-right text-xs font-semibold">BALANCE</th>
-              <th className="text-xs font-semibold">LAST VISIT</th>
-              <th className="text-right text-xs font-semibold">ACTIONS</th>
-            </tr>
-          </thead>
-          <tbody>
-            {slice.map((g, idx) => (
-              <tr key={g.id}>
-                <td className="text-center font-medium text-ink-secondary text-xs">
-                  {safe * PAGE_SIZE + idx + 1}
-                </td>
-                <td>
-                  <div className="flex items-center gap-3">
-                    <Avatar name={g.name} size={36} />
-                    <div>
-                      <span className="block font-semibold text-ink text-sm">{g.name}</span>
-                      <span className="tnum block font-mono text-xs text-ink-secondary">{g.id}</span>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <span className="block text-ink text-sm">{g.email}</span>
-                  <span className="tnum block text-xs text-ink-secondary">{g.phone}</span>
-                </td>
-                <td>
-                  <span className="text-ink text-sm">{g.company ?? '—'}</span>
-                </td>
-                <td>
-                  <Badge tone={tierTone(g.tier)}>{g.tier}</Badge>
-                </td>
-                <td className="tnum text-right font-medium text-ink text-sm">
-                  {g.stays}
-                </td>
-                <td className="tnum text-right font-bold text-ink text-sm">
-                  {g.balance > 0 ? formatCurrency(g.balance, 'INR') : '—'}
-                </td>
-                <td>
-                  <span className="text-ink-secondary text-sm">{g.lastVisit}</span>
-                </td>
-                <td className="text-right">
-                  <div className="flex items-center justify-end gap-1.5">
-                    <TableActionBtn
-                      icon={Lucide.Eye}
-                      title={`View details for ${g.name}`}
-                      onClick={() => setOpenId(g.id)}
-                    />
-                  </div>
-                </td>
-              </tr>
+        {resource.error ? <p role="alert" className="pms-helper">Could not load guests: {resource.error}</p> : null}
+        <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-4">
+          <input value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} placeholder="Name, ID or phone…" aria-label="Search guests" className={inputClass('text-[12px]')} />
+          <select value={sort} onChange={(e) => setSort(e.target.value as never)} aria-label="Sort guests" className={inputClass('text-[12px]')}>
+            <option value="name">Sort: name</option>
+            <option value="stays">Sort: most stays</option>
+            <option value="spent">Sort: lifetime value</option>
+          </select>
+          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by tier">
+            {['All', 'VIP', 'Gold', 'Regular', 'New'].map((t) => (
+              <FilterChip key={t} active={tier === t} onClick={() => { setTier(t); setPage(0); }}>{t}</FilterChip>
             ))}
-          </tbody>
-        </table>
-        {slice.length === 0 ? <p className="pms-helper py-8 text-center text-xs text-ink-secondary">No guests match.</p> : null}
-      </TableContainer>
-      <div className="mt-4 pt-1">
-        <Pagination
-          page={safe}
-          totalPages={pages}
-          onChange={setPage}
-          summary={`Showing ${filtered.length > 0 ? safe * PAGE_SIZE + 1 : 0} to ${Math.min((safe + 1) * PAGE_SIZE, filtered.length)} of ${filtered.length} guests`}
-        />
-      </div>
-      <Modal open={adding} onClose={() => setAdding(false)} title="Add guest" subtitle="Saved to the guest directory">
-        <div className="flex flex-col gap-3">
-          <Field label="Full name"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Jordan Miles" className={inputClass('text-sm')} /></Field>
-          <Field label="Email"><input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jordan@mail.com" inputMode="email" className={inputClass('text-sm')} /></Field>
-          <Field label="Phone"><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 010 2030" inputMode="tel" className={inputClass('text-sm')} /></Field>
-          <button type="button" className="pms-btn-primary px-4 py-2.5 text-sm font-semibold" onClick={addGuest}>Add guest</button>
+          </div>
+          <button type="button" className="pms-btn-ghost px-3 py-2 text-[12px] font-medium" onClick={() => { setQ(''); setTier('All'); setSort('name'); setPage(0); }}>Clear</button>
         </div>
-      </Modal>
-    </Card>
+        <TableContainer>
+          <table className="pms-table min-w-[760px]">
+            <thead>
+              <tr>
+                <th className="w-12 text-center text-[12px] font-semibold">#</th>
+                <th className="text-[12px] font-semibold">GUEST NAME</th>
+                <th className="text-[12px] font-semibold">CONTACT</th>
+                <th className="text-[12px] font-semibold">COMPANY</th>
+                <th className="text-[12px] font-semibold">TIER</th>
+                <th className="text-right text-[12px] font-semibold">STAYS</th>
+                <th className="text-right text-[12px] font-semibold">BALANCE</th>
+                <th className="text-[12px] font-semibold">LAST VISIT</th>
+                <th className="text-right text-[12px] font-semibold">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {slice.map((g, idx) => (
+                <tr key={g.id}>
+                  <td className="text-center font-medium text-ink-secondary text-xs">
+                    {safe * PAGE_SIZE + idx + 1}
+                  </td>
+                  <td>
+                    <div className="flex items-center gap-3">
+                      <Avatar name={g.name} size={36} />
+                      <div>
+                        <span className="block font-semibold text-ink text-[12px]">{g.name}</span>
+                        <span className="tnum block font-mono text-xs text-ink-secondary">{g.id}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="block text-ink text-[12px]">{g.email}</span>
+                    <span className="tnum block text-xs text-ink-secondary">{g.phone}</span>
+                  </td>
+                  <td>
+                    <span className="text-ink text-[12px]">{g.company ?? '—'}</span>
+                  </td>
+                  <td>
+                    <Badge tone={tierTone(g.tier)}>{g.tier}</Badge>
+                  </td>
+                  <td className="tnum text-right font-medium text-ink text-[12px]">
+                    {g.stays}
+                  </td>
+                  <td className="tnum text-right font-bold text-ink text-[12px]">
+                    {g.balance > 0 ? formatCurrency(g.balance, 'INR') : '—'}
+                  </td>
+                  <td>
+                    <span className="text-ink-secondary text-[12px]">{g.lastVisit}</span>
+                  </td>
+                  <td className="text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <TableActionBtn
+                        icon={Lucide.Eye}
+                        title={`View details for ${g.name}`}
+                        onClick={() => setOpenId(g.id)}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {slice.length === 0 ? <p className="pms-helper py-8 text-center text-xs text-ink-secondary">No guests match.</p> : null}
+        </TableContainer>
+        <div className="mt-4 pt-1">
+          <Pagination
+            page={safe}
+            totalPages={pages}
+            onChange={setPage}
+            summary={`Showing ${filtered.length > 0 ? safe * PAGE_SIZE + 1 : 0} to ${Math.min((safe + 1) * PAGE_SIZE, filtered.length)} of ${filtered.length} guests`}
+          />
+        </div>
+        <Modal open={adding} onClose={() => setAdding(false)} title="Add guest" subtitle="Saved to the guest directory">
+          <div className="flex flex-col gap-3">
+            <Field label="Full name"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Jordan Miles" className={inputClass('text-sm')} /></Field>
+            <Field label="Email"><input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jordan@mail.com" inputMode="email" className={inputClass('text-sm')} /></Field>
+            <Field label="Phone"><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 010 2030" inputMode="tel" className={inputClass('text-sm')} /></Field>
+            <button type="button" className="pms-btn-primary px-4 py-2.5 text-sm font-semibold" onClick={addGuest}>Add guest</button>
+          </div>
+        </Modal>
+      </Card>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import type { CalendarReservation, CalendarRoom, ProposedReservationChange } fro
 import { countNights, ROOM_TYPE_CONFIG } from './mockData';
 import { validateReservationMove } from './validation';
 import { toast } from '../../../components/toastStore';
+import { lockAppScroll } from '../../../lib/scrollLock';
 
 interface Props {
   reservation: CalendarReservation | null;
@@ -31,10 +32,7 @@ export function ReservationDetailModal({
   // Lock background scroll when modal is active
   useEffect(() => {
     if (!reservation) return;
-    const prevBody = document.body.style.overflow;
-    const prevHtml = document.documentElement.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
+    const releaseScroll = lockAppScroll();
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -44,8 +42,7 @@ export function ReservationDetailModal({
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.body.style.overflow = prevBody;
-      document.documentElement.style.overflow = prevHtml;
+      releaseScroll();
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [reservation, onClose]);

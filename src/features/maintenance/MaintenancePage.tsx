@@ -150,26 +150,6 @@ export function Maintenance() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-warning-text to-warning-border text-white shadow-xs shadow-warning-text/20 mt-0.5">
-            <Lucide.Wrench size={20} strokeWidth={2.4} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
-                Maintenance & Repairs
-              </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
-                </span>
-                Active Queue
-              </span>
-            </div>
-            <p className="text-xs text-ink-secondary mt-1">
-              Manage engineering work orders, prioritize urgent repairs, and return rooms to service
-            </p>
-          </div>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -192,23 +172,7 @@ export function Maintenance() {
         </div>
       </div>
 
-      {oosCount > 0 ? (
-        <div
-          className="flex items-start gap-3 rounded-2xl border p-4 shadow-xs"
-          style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)' }}
-          role="alert"
-        >
-          <Lucide.AlertTriangle size={20} className="text-danger flex-none mt-0.5" />
-          <div>
-            <p className="text-sm font-bold text-danger">
-              {oosCount} room(s) currently out of order
-            </p>
-            <p className="mt-0.5 text-xs text-danger/90">
-              Resolve the maintenance ticket, then return each room to service from Room Overview.
-            </p>
-          </div>
-        </div>
-      ) : null}
+
 
       <Card>
         <CardTitle
@@ -247,7 +211,7 @@ export function Maintenance() {
               onChange={(e) => setQ(e.target.value)}
               placeholder="Ticket ID, room or issue…"
               aria-label="Search work orders"
-              className={`${inputClass()} pl-9 w-full`}
+              className={`${inputClass()} pl-9 w-full text-[12px]`}
             />
           </div>
           <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by status">
@@ -259,7 +223,7 @@ export function Maintenance() {
           </div>
           <button
             type="button"
-            className="pms-btn-ghost px-3 py-2 text-xs font-semibold"
+            className="pms-btn-ghost px-3 py-2 text-[12px] font-semibold"
             onClick={() => { setQ(''); setStatus('All'); }}
           >
             Reset
@@ -284,17 +248,17 @@ export function Maintenance() {
             <tbody>
               {filtered.map((r, idx) => (
                 <tr key={r.id} className="transition-colors hover:bg-page/70">
-                  <td className="text-center font-medium text-ink-muted text-xs">
+                  <td className="text-center font-medium text-ink-muted text-[12px]">
                     {idx + 1}
                   </td>
-                  <td className="tnum font-mono font-bold text-ink text-xs">{r.id}</td>
-                  <td className="tnum font-semibold text-ink text-sm">{r.room}</td>
-                  <td className="max-w-[280px] truncate text-ink-secondary text-sm font-medium">{r.description}</td>
+                  <td className="tnum font-mono font-bold text-ink text-[12px]">{r.id}</td>
+                  <td className="tnum font-semibold text-ink text-[12px]">{r.room}</td>
+                  <td className="max-w-[280px] truncate text-ink-secondary text-[12px] font-medium">{r.description}</td>
                   <td>
                     <Badge tone={priorityTone(r.priority)}>{r.priority}</Badge>
                   </td>
-                  <td className="text-ink-secondary text-sm">{r.assignee}</td>
-                  <td className="tnum text-xs text-ink-secondary">{r.due}</td>
+                  <td className="text-ink-secondary text-[12px]">{r.assignee}</td>
+                  <td className="tnum text-[12px] text-ink-secondary">{r.due}</td>
                   <td>
                     <Badge tone={statusTone(r.status)}>{r.status}</Badge>
                   </td>

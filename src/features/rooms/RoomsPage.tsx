@@ -15,6 +15,7 @@ import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { formatCurrency } from '../../lib/api/format';
 import { useAuth } from '../../features/auth/AuthContext';
+import { StatusTimeline } from './StatusTimeline';
 
 const STATUS_FILTERS: ('All' | RoomStatus)[] = ['All', 'Available', 'Occupied', 'Dirty', 'Inspected', 'Out-of-service'];
 
@@ -155,7 +156,15 @@ function RoomDetail({
   );
 }
 
-export function Rooms({ initialQuery, focusId }: { initialQuery?: string; focusId?: string } = {}) {
+export function Rooms({
+  initialQuery,
+  focusId,
+  initialViewMode = 'timeline',
+}: {
+  initialQuery?: string;
+  focusId?: string;
+  initialViewMode?: 'grid' | 'timeline';
+} = {}) {
   const { me } = useAuth();
   const currencyCode =
     me?.user.propertyMemberships.find((membership) => membership.propertyId === me.activePropertyId)?.property
@@ -179,6 +188,9 @@ export function Rooms({ initialQuery, focusId }: { initialQuery?: string; focusI
   const all = useMemo(() => resource.data?.rooms ?? [], [resource.data?.rooms]);
   const hkTasks = useMemo(() => resource.data?.hkTasks ?? [], [resource.data?.hkTasks]);
   const mxTickets = useMemo(() => resource.data?.mxTickets ?? [], [resource.data?.mxTickets]);
+
+  // Grid vs Timeline — mirrors the Reservations page view switcher.
+  const [viewMode, setViewMode] = useState<'grid' | 'timeline'>(initialViewMode);
 
   const [q, setQ] = useState(initialQuery ?? '');
   const [status, setStatus] = useState<('All' | RoomStatus)>('All');
@@ -235,220 +247,219 @@ export function Rooms({ initialQuery, focusId }: { initialQuery?: string; focusI
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Page Header */}
+    <div className="flex flex-col gap-4 pms-animate-fade-in pb-8">
+      {/* ================= PAGE HEADER & VIEW SWITCHER ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20 mt-0.5">
-            <Lucide.BedDouble size={20} strokeWidth={2.4} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
-                Room Directory
-              </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
-                </span>
-                Live Inventory
-              </span>
-            </div>
-            <p className="text-xs text-ink-secondary mt-1">
-              Live room status, guest occupancy, housekeeping cycles, and out-of-service controls
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
-            title="Refresh rooms"
-          >
-            <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
-            <span>Refresh</span>
-          </button>
-        </div>
-      </div>
-
-      <Card>
-        <CardTitle
-          icon={Lucide.BedDouble}
-          iconBg="bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20"
-          title="Room Directory"
-          subtitle={resource.loading ? 'Loading room inventory…' : `${filtered.length} of ${all.length} rooms shown`}
-          badge={
-            <span className="flex items-center gap-1 rounded-full bg-info-bg px-2 py-0.5 text-[10px] font-bold text-info-text border border-info-border/60">
-              {all.length} Rooms
-            </span>
-          }
-        />
-        {resource.error ? (
-          <div className="mb-3 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-sm text-danger-text">
-            <Lucide.AlertCircle size={18} />
-            <span>Could not load room inventory: {resource.error}</span>
-          </div>
-        ) : null}
-
-        <div className="grid grid-cols-1 gap-2.5 md:grid-cols-4">
-          <div className="relative">
-            <Lucide.Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Room number or guest name…"
-              aria-label="Search rooms"
-              className={`${inputClass()} pl-9 w-full`}
-            />
-          </div>
-          <select
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            aria-label="Filter by room type"
-            className={inputClass()}
-          >
-            {types.map((t) => (
-              <option key={t} value={t}>{t === 'All' ? 'All room types' : t}</option>
-            ))}
-          </select>
-          <select
-            value={floor}
-            onChange={(e) => setFloor(e.target.value)}
-            aria-label="Filter by floor"
-            className={inputClass()}
-          >
-            {floorOptions.map((f) => (
-              <option key={f} value={f}>{f === 'All' ? 'All floors' : f === '0' ? 'Ground / Unassigned' : `Floor ${f}`}</option>
-            ))}
-          </select>
-          <select
-            value={hk}
-            onChange={(e) => setHk(e.target.value)}
-            aria-label="Filter by housekeeping status"
-            className={inputClass()}
-          >
-            {['All', 'Clean', 'Dirty', 'Cleaning', 'Inspected'].map((h) => (
-              <option key={h} value={h}>{h === 'All' ? 'All housekeeping' : `HK: ${h}`}</option>
-            ))}
-          </select>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by room status">
-          {STATUS_FILTERS.map((s) => (
-            <FilterChip key={s} active={status === s} onClick={() => setStatus(s)}>
-              {s}
-            </FilterChip>
-          ))}
-          <button
-            type="button"
-            onClick={clear}
-            className="ml-auto text-xs font-semibold text-primary hover:underline"
+        {/* View Switcher: Grid vs Timeline */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div
+            className="flex items-center p-1 rounded-xl border border-border bg-surface shadow-2xs"
+            role="group"
+            aria-label="Room board view"
           >
-            Reset filters
-          </button>
-        </div>
-      </Card>
-
-      {/* Room Grid */}
-      <div className="pms-stagger grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-        {filtered.map((room) => (
-          <article
-            key={room.number}
-            className="pms-card pms-card-hover p-3.5 sm:p-4 flex flex-col justify-between transition-all duration-200"
-          >
-            <div>
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="tnum text-[22px] font-bold leading-none text-ink">Room {room.number}</p>
-                  <p className="mt-1 text-[12.5px] text-ink-secondary">
-                    {room.type} · Floor {room.floor} · <span className="tnum font-semibold text-ink">{formatCurrency(room.rate, currencyCode)}</span>
-                  </p>
-                </div>
-                <span className="flex flex-col items-end gap-1">
-                  <Badge tone={roomTone(room.status)}>{room.status}</Badge>
-                  <Badge tone={hkTone(room.hk)}>HK: {room.hk}</Badge>
-                </span>
-              </div>
-              <p className="tnum mt-3 min-h-[20px] text-[12.5px] text-ink-secondary">
-                {room.guest
-                  ? `Guest: ${room.guest}${room.checkIn ? ` · ${room.checkIn} → ${room.checkOut}` : ''}`
-                  : room.status === 'Out-of-service'
-                  ? `Blocked: ${room.oosReason || 'Maintenance in progress'}`
-                  : 'Ready to allocate'}
-              </p>
-            </div>
-            <div className="mt-4 flex gap-2 pt-2 border-t" style={{ borderColor: 'var(--color-border-subtle)' }}>
-              <button
-                type="button"
-                className="pms-btn-ghost flex-1 py-1.5 text-xs font-medium"
-                onClick={() => setOpenNo(room.number)}
-              >
-                Details
-              </button>
-              <button
-                type="button"
-                className="pms-btn-primary flex-1 py-1.5 text-xs font-semibold"
-                onClick={() => setOpenNo(room.number)}
-              >
-                Manage
-              </button>
-            </div>
-          </article>
-        ))}
-      </div>
-
-      {filtered.length === 0 ? (
-        <Card>
-          <div className="py-12 text-center">
-            <Lucide.DoorClosed size={40} className="mx-auto text-ink-muted mb-2 opacity-40" />
-            <p className="pms-helper">No rooms match these filters.</p>
             <button
               type="button"
-              onClick={clear}
-              className="mt-2 text-xs font-semibold text-primary hover:underline"
+              onClick={() => setViewMode('grid')}
+              aria-pressed={viewMode === 'grid'}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'grid'
+                ? 'bg-[var(--color-primary)] text-white shadow-xs'
+                : 'text-ink-secondary hover:text-ink'
+                }`}
             >
-              Clear all filters
+              <Lucide.LayoutGrid size={14} />
+              <span>Grid</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('timeline')}
+              aria-pressed={viewMode === 'timeline'}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'timeline'
+                ? 'bg-[var(--color-primary)] text-white shadow-xs'
+                : 'text-ink-secondary hover:text-ink'
+                }`}
+            >
+              <Lucide.CalendarRange size={14} />
+              <span>Timeline</span>
             </button>
           </div>
-        </Card>
-      ) : null}
+        </div>
+      </div>
 
-      {/* Room Drawer */}
-      <Drawer
-        open={openRoom !== null}
-        onClose={() => setOpenNo(null)}
-        title={openRoom ? `Room ${openRoom.number}` : ''}
-        subtitle="Specifications, guest folio, housekeeping & maintenance history"
-      >
-        {openRoom ? (
-          <RoomDetail
-            room={openRoom}
-            hkHistory={hkTasks.filter((task) => task.room === openRoom.number)}
-            mxHistory={mxTickets.filter((ticket) => ticket.room === openRoom.number)}
-            currencyCode={currencyCode}
-            onStatus={(r, s) => setStatusPrompt({ room: r, targetStatus: s })}
+      {viewMode === 'timeline' ? (
+        <StatusTimeline />
+      ) : (
+        <>
+          {/* ================= GRID VIEW: ROOM DIRECTORY ================= */}
+          <Card>
+            <CardTitle
+              icon={Lucide.BedDouble}
+              iconBg="bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20"
+              title="Room Directory"
+              badge={
+                <span className="flex items-center gap-1 rounded-full bg-info-bg px-2 py-0.5 text-[10px] font-bold text-info-text">
+                  {all.length} Rooms
+                </span>
+              }
+            />
+            {resource.error ? (
+              <div className="mb-3 flex items-center gap-2 rounded-xl bg-danger-bg p-4 text-sm text-danger-text">
+                <Lucide.AlertCircle size={18} />
+                <span>Could not load room inventory: {resource.error}</span>
+              </div>
+            ) : null}
+
+            <div className="grid grid-cols-1 gap-2.5 md:grid-cols-4">
+              <div className="relative">
+                <Lucide.Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Room number or guest name…"
+                  aria-label="Search rooms"
+                  className={`${inputClass()} pl-9 w-full text-[12px]`}
+                />
+              </div>
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                aria-label="Filter by room type"
+                className={`${inputClass()} text-[12px]`}
+              >
+                {types.map((t) => (
+                  <option key={t} value={t}>{t === 'All' ? 'All room types' : t}</option>
+                ))}
+              </select>
+              <select
+                value={floor}
+                onChange={(e) => setFloor(e.target.value)}
+                aria-label="Filter by floor"
+                className={`${inputClass()} text-[12px]`}
+              >
+                {floorOptions.map((f) => (
+                  <option key={f} value={f}>{f === 'All' ? 'All floors' : f === '0' ? 'Ground / Unassigned' : `Floor ${f}`}</option>
+                ))}
+              </select>
+
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by room status">
+              {STATUS_FILTERS.map((s) => (
+                <FilterChip key={s} active={status === s} onClick={() => setStatus(s)}>
+                  {s}
+                </FilterChip>
+              ))}
+              <button
+                type="button"
+                onClick={clear}
+                className="ml-auto text-xs font-semibold text-primary hover:underline"
+              >
+                Reset filters
+              </button>
+            </div>
+          </Card>
+
+          {/* Room Grid */}
+          <div className="pms-stagger grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {filtered.map((room) => (
+              <article
+                key={room.number}
+                className="pms-card pms-card-hover p-3.5 sm:p-4 flex flex-col justify-between transition-all duration-200"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="tnum text-[20px] font-bold leading-none text-ink">Room {room.number}</p>
+                      <p className="mt-1 text-[12px] text-ink-secondary">
+                        {room.type} · Floor {room.floor} · <span className="tnum font-semibold text-ink">{formatCurrency(room.rate, currencyCode)}</span>
+                      </p>
+                    </div>
+                    <span className="flex flex-col items-end gap-1">
+                      <Badge tone={roomTone(room.status)}>{room.status}</Badge>
+                    </span>
+                  </div>
+                  <p className="tnum mt-3 min-h-[20px] text-[12px] text-ink-secondary">
+                    {room.guest
+                      ? `Guest: ${room.guest}${room.checkIn ? ` · ${room.checkIn} → ${room.checkOut}` : ''}`
+                      : room.status === 'Out-of-service'
+                        ? `Blocked: ${room.oosReason || 'Maintenance in progress'}`
+                        : 'Ready to allocate'}
+                  </p>
+                </div>
+                <div className="mt-4 flex gap-2 pt-2 border-t" style={{ borderColor: 'var(--color-border-subtle)' }}>
+                  <button
+                    type="button"
+                    className="pms-btn-ghost flex-1 py-1.5 text-xs font-medium"
+                    onClick={() => setOpenNo(room.number)}
+                  >
+                    Details
+                  </button>
+                  <button
+                    type="button"
+                    className="pms-btn-primary flex-1 py-1.5 text-xs font-semibold"
+                    onClick={() => setOpenNo(room.number)}
+                  >
+                    Manage
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          {filtered.length === 0 ? (
+            <Card>
+              <div className="py-12 text-center">
+                <Lucide.DoorClosed size={40} className="mx-auto text-ink-muted mb-2 opacity-40" />
+                <p className="pms-helper">No rooms match these filters.</p>
+                <button
+                  type="button"
+                  onClick={clear}
+                  className="mt-2 text-xs font-semibold text-primary hover:underline"
+                >
+                  Clear all filters
+                </button>
+              </div>
+            </Card>
+          ) : null}
+
+          {/* Room Drawer */}
+          <Drawer
+            open={openRoom !== null}
+            onClose={() => setOpenNo(null)}
+            title={openRoom ? `Room ${openRoom.number}` : ''}
+            subtitle="Specifications, guest folio, housekeeping & maintenance history"
+          >
+            {openRoom ? (
+              <RoomDetail
+                room={openRoom}
+                hkHistory={hkTasks.filter((task) => task.room === openRoom.number)}
+                mxHistory={mxTickets.filter((ticket) => ticket.room === openRoom.number)}
+                currencyCode={currencyCode}
+                onStatus={(r, s) => setStatusPrompt({ room: r, targetStatus: s })}
+              />
+            ) : null}
+          </Drawer>
+
+          {/* PromptDialog for Out-of-service / Return to service */}
+          <PromptDialog
+            open={statusPrompt !== null}
+            onClose={() => setStatusPrompt(null)}
+            onSubmit={handleStatusSubmit}
+            title={statusPrompt?.targetStatus === 'Out-of-service' ? 'Take Room Out of Service' : 'Return Room to Service'}
+            subtitle={`Room ${statusPrompt?.room.number} (${statusPrompt?.room.type})`}
+            label={
+              statusPrompt?.targetStatus === 'Out-of-service'
+                ? 'Reason for taking room out of service'
+                : 'Operational note for returning to service'
+            }
+            placeholder="Enter notes or justification..."
+            confirmLabel={statusPrompt?.targetStatus === 'Out-of-service' ? 'Take out of service' : 'Return to service'}
+            danger={statusPrompt?.targetStatus === 'Out-of-service'}
           />
-        ) : null}
-      </Drawer>
-
-      {/* PromptDialog for Out-of-service / Return to service */}
-      <PromptDialog
-        open={statusPrompt !== null}
-        onClose={() => setStatusPrompt(null)}
-        onSubmit={handleStatusSubmit}
-        title={statusPrompt?.targetStatus === 'Out-of-service' ? 'Take Room Out of Service' : 'Return Room to Service'}
-        subtitle={`Room ${statusPrompt?.room.number} (${statusPrompt?.room.type})`}
-        label={
-          statusPrompt?.targetStatus === 'Out-of-service'
-            ? 'Reason for taking room out of service'
-            : 'Operational note for returning to service'
-        }
-        placeholder="Enter notes or justification..."
-        confirmLabel={statusPrompt?.targetStatus === 'Out-of-service' ? 'Take out of service' : 'Return to service'}
-        danger={statusPrompt?.targetStatus === 'Out-of-service'}
-      />
+        </>
+      )}
     </div>
   );
 }

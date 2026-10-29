@@ -1,4 +1,4 @@
-export type { ViewId, NavItem, NavSection, NavTarget } from '../config/navigation';
+export type { ViewId, NavItem, NavSection, NavTarget, NavDraft } from '../config/navigation';
 export {
   NAV_SECTIONS,
   NAV_ITEMS,
