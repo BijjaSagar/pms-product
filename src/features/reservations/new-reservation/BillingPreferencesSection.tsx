@@ -15,16 +15,16 @@ export function BillingPreferencesSection({ preferences, totalsByRoute, onChange
     <section className="bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
       <div className="flex items-center gap-2.5 border-b border-divider pb-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-xs shadow-xs shadow-primary/20">3</span>
-        <h2 className="text-sm font-bold text-ink tracking-tight">Billing Preferences</h2>
+        <h2 className="text-sm font-bold text-ink-secondary tracking-tight">Billing Preferences</h2>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-3">
-          <label className="flex flex-col gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-secondary">Room bill
+          <label className="flex flex-col gap-1.5 text-[11px] font-bold tracking-wider text-ink">Room bill
             <select value={preferences.roomBillTo} onChange={(event) => {
               const roomBillTo = event.target.value as BillingPreferences['roomBillTo'];
               onChange({ roomBillTo, billToCompany: roomBillTo === 'To Company' || preferences.extrasBillTo === 'To Company' });
-            }} className="w-full rounded-xl border border-border bg-page/50 px-3 py-2 text-xs font-semibold normal-case text-ink focus:border-[var(--color-primary)] focus:outline-none">
+            }} className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all cursor-pointer">
               {BILLING_ROUTES.map((route) => <option key={route} value={route}>{route}</option>)}
             </select>
           </label>
@@ -35,11 +35,11 @@ export function BillingPreferencesSection({ preferences, totalsByRoute, onChange
           <label className="inline-flex items-center gap-2 text-xs font-semibold text-ink"><input type="checkbox" checked={preferences.noPost} onChange={(event) => onChange({ noPost: event.target.checked })} className="h-4 w-4 rounded border-ink-disabled accent-[var(--color-primary)]" /><span>No Post</span></label>
         </div>
         <div className="flex flex-col gap-3">
-          <label className="flex flex-col gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-secondary">Extras
+          <label className="flex flex-col gap-1.5 text-[11px] font-bold tracking-wider text-ink">Extras
             <select value={preferences.extrasBillTo} onChange={(event) => {
               const extrasBillTo = event.target.value as BillingPreferences['extrasBillTo'];
               onChange({ extrasBillTo, billToCompany: extrasBillTo === 'To Company' || preferences.roomBillTo === 'To Company' });
-            }} className="w-full rounded-xl border border-border bg-page/50 px-3 py-2 text-xs font-semibold normal-case text-ink focus:border-[var(--color-primary)] focus:outline-none">
+            }} className="w-full rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all cursor-pointer">
               {BILLING_ROUTES.map((route) => <option key={route} value={route}>{route}</option>)}
             </select>
           </label>

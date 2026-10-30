@@ -42,7 +42,7 @@ export function RoomRequirementsSection({
         <div className="flex min-w-0 items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-xs shadow-xs shadow-primary/20">2</span>
           <div>
-            <h2 className="text-sm font-bold text-ink tracking-tight">Room Requirements & Allocation</h2>
+            <h2 className="text-sm font-bold text-ink-secondary tracking-tight">Room Requirements & Allocation</h2>
           </div>
         </div>
         <div className="w-full sm:w-auto sm:flex-none">
