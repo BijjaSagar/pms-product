@@ -833,11 +833,11 @@ export function NewReservation({
   }
 
   return (
-    <div className="w-full text-ink font-sans pb-24 flex flex-col gap-4">
+    <div className="w-full text-ink font-sans pb-36 sm:pb-24 flex flex-col gap-4">
       {/* ================= 4-COLUMN MASTER WORKBENCH ================= */}
       <div className="grid grid-cols-1 gap-4 items-start lg:grid-cols-2 xl:grid-cols-[repeat(24,minmax(0,1fr))]">
         {/* ================= LEFT COLUMN: LUXURY FOLIO BOARDING TICKET ================= */}
-        <div className="flex flex-col rounded-3xl border border-border/90 bg-surface shadow-sm overflow-hidden lg:sticky lg:top-6 lg:z-10 lg:max-h-[calc(100dvh_-_var(--app-header-h)_-_3rem)] lg:overflow-y-auto xl:col-span-5">
+        <div className="flex min-w-0 flex-col rounded-3xl border border-border/90 bg-surface shadow-sm overflow-hidden lg:sticky lg:top-6 lg:z-10 lg:max-h-[calc(100dvh_-_var(--app-header-h)_-_3rem)] lg:overflow-y-auto xl:col-span-5">
           {/* Top Boarding Pass Header Strip */}
           <div className="bg-gradient-to-r from-primary via-primary-hover to-dark-accent p-4 text-primary-foreground border-b border-dark-accent lg:sticky lg:top-0 lg:z-10">
             <div className="grid grid-cols-2 gap-3">
@@ -886,31 +886,31 @@ export function NewReservation({
           </div>
 
           {/* Ticket Body with Notched Perforations */}
-          <div className="p-5 flex flex-col gap-4 relative">
+          <div className="relative flex flex-col gap-4 p-3 sm:p-4 2xl:p-5">
             {/* Elegant Calendar Journey Tile */}
-            <div className="bg-gradient-to-b from-page to-surface rounded-2xl border border-border/80 p-4 shadow-2xs">
-              <div className="flex items-center justify-between text-center">
+            <div className="bg-gradient-to-b from-page to-surface rounded-2xl border border-border/80 p-3 shadow-2xs xl:p-2 2xl:p-4">
+              <div className="flex items-center justify-between gap-1 text-center">
                 {/* Check In */}
                 <div className="text-left">
                   <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">
                     CHECK-IN
                   </span>
                   <div className="flex items-baseline gap-1 mt-0.5">
-                    <span className="text-3xl font-black text-ink leading-none">
+                    <span className="text-3xl font-black text-ink leading-none xl:text-2xl 2xl:text-3xl">
                       {inDate.day}
                     </span>
-                    <span className="text-xs font-bold text-ink-secondary uppercase">
+                    <span className="text-[10px] font-bold text-ink-secondary uppercase xl:text-[9px] 2xl:text-xs">
                       {inDate.month}
                     </span>
                   </div>
-                  <span className="text-[10px] font-semibold text-ink-muted mt-1 block">
+                  <span className="text-[10px] font-semibold text-ink-muted mt-1 block xl:text-[9px] 2xl:text-[10px]">
                     {inDate.weekday} · {checkInTime}
                   </span>
                 </div>
 
                 {/* Duration Badge with line */}
-                <div className="flex-1 flex flex-col items-center px-3">
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-ink bg-surface px-2.5 py-1 rounded-full border border-border shadow-2xs">
+                <div className="flex min-w-0 flex-1 flex-col items-center px-1 xl:px-0.5 2xl:px-3">
+                  <div className="flex items-center gap-1 whitespace-nowrap rounded-full border border-border bg-surface px-2 py-1 text-[9px] font-bold text-ink shadow-2xs xl:px-1.5 2xl:px-2.5 2xl:text-[10px]">
                     <Lucide.Moon size={11} className="text-primary" />
                     <span>
                       {nightsCount} {nightsCount === 1 ? "Night" : "Nights"}
@@ -923,7 +923,7 @@ export function NewReservation({
                       className="text-ink-muted absolute bg-surface px-0.5"
                     />
                   </div>
-                  <span className="text-[9px] text-ink-muted font-medium">
+                    <span className="text-[9px] text-ink-muted font-medium xl:text-[8px] 2xl:text-[9px]">
                     Allotment
                   </span>
                 </div>
@@ -934,14 +934,14 @@ export function NewReservation({
                     CHECK-OUT
                   </span>
                   <div className="flex items-baseline justify-end gap-1 mt-0.5">
-                    <span className="text-3xl font-black text-ink leading-none">
+                    <span className="text-3xl font-black text-ink leading-none xl:text-2xl 2xl:text-3xl">
                       {outDate.day}
                     </span>
-                    <span className="text-xs font-bold text-ink-secondary uppercase">
+                    <span className="text-[10px] font-bold text-ink-secondary uppercase xl:text-[9px] 2xl:text-xs">
                       {outDate.month}
                     </span>
                   </div>
-                  <span className="text-[10px] font-semibold text-ink-muted mt-1 block">
+                  <span className="text-[10px] font-semibold text-ink-muted mt-1 block xl:text-[9px] 2xl:text-[10px]">
                     {outDate.weekday} · {checkOutTime}
                   </span>
                 </div>
@@ -949,7 +949,7 @@ export function NewReservation({
             </div>
 
             <p
-              className="text-xs font-semibold tracking-wide text-ink-secondary"
+              className="break-words text-xs font-semibold tracking-wide text-ink-secondary"
               aria-label="Room summary"
             >
               {requirements.length}-
@@ -964,17 +964,17 @@ export function NewReservation({
             </p>
 
             {/* Guest Profile Chip with Confirmed Stamp Overlay */}
-            <div className="relative p-3 rounded-xl border border-divider bg-surface shadow-2xs flex items-center justify-between">
-              <div className="flex items-center gap-2.5 min-w-0">
+            <div className="relative flex flex-wrap items-center justify-between gap-2 rounded-xl border border-divider bg-surface p-3 shadow-2xs">
+              <div className="flex min-w-0 flex-1 items-center gap-2.5">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-white font-bold text-xs shrink-0">
                   {guestName ? guestName.charAt(0).toUpperCase() : "G"}
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-ink truncate">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <span className="min-w-0 flex-1 truncate text-xs font-bold text-ink">
                       {guestName || "Unnamed Guest"}
                     </span>
-                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-warning-bg text-warning-text border border-warning-border">
+                    <span className="flex-none text-[9px] font-bold px-1.5 py-0.2 rounded bg-warning-bg text-warning-text border border-warning-border">
                       VIP
                     </span>
                   </div>
@@ -985,7 +985,7 @@ export function NewReservation({
               </div>
               <a
                 href={`tel:${guestContact}`}
-                className="flex h-7 w-7 items-center justify-center rounded-lg border border-border text-ink-secondary hover:bg-page transition-colors shrink-0"
+                className="ml-auto flex h-7 w-7 flex-none items-center justify-center rounded-lg border border-border text-ink-secondary hover:bg-page transition-colors"
                 title="Call Guest"
               >
                 <Lucide.Phone size={13} />
@@ -993,7 +993,7 @@ export function NewReservation({
 
               {/* Double-Ring Luxury Confirmed Front Desk Stamp Overlay - Half on name and half out */}
               <div
-                className="pointer-events-none absolute -top-5 left-28 sm:left-43 flex items-center justify-center select-none z-20"
+                className="pointer-events-none absolute -top-5 left-28 flex items-center justify-center select-none z-20 sm:left-43 xl:left-20 2xl:left-43"
                 aria-hidden="true"
               >
                 <div className="relative inline-flex items-center justify-center p-1.5 rounded-full border-2 border-dashed border-success-text/80 bg-success-bg/25 rotate-[-10deg] shadow-xs">
@@ -1015,8 +1015,8 @@ export function NewReservation({
 
             {/* Receipt-style bill summary */}
             <div className="border-y border-divider py-3">
-              <div className="grid grid-cols-2 divide-x divide-divider">
-                <div className="pr-3">
+              <div className="grid grid-cols-1 divide-y divide-divider lg:grid-cols-2 lg:divide-x lg:divide-y-0 xl:grid-cols-1 xl:divide-x-0 xl:divide-y 2xl:grid-cols-2 2xl:divide-x 2xl:divide-y-0">
+                <div className="pb-2 lg:pb-0 lg:pr-3 xl:pb-2 xl:pr-0 2xl:pb-0 2xl:pr-3">
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-ink-muted">
                     Total Bill
                   </span>
@@ -1024,7 +1024,7 @@ export function NewReservation({
                     ₹{totalBill.toLocaleString("en-IN")}.00
                   </span>
                 </div>
-                <div className="pl-3">
+                <div className="pt-2 lg:pl-3 lg:pt-0 xl:pl-0 xl:pt-2 2xl:pl-3 2xl:pt-0">
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-ink-muted">
                     Outstanding
                   </span>
@@ -1060,7 +1060,7 @@ export function NewReservation({
             </div>
 
             {/* Quick Tile Buttons Footer */}
-            <div className="grid grid-cols-4 gap-2 pt-2 border-t border-divider text-center">
+            <div className="grid grid-cols-4 gap-2 pt-2 border-t border-divider text-center xl:grid-cols-2 2xl:grid-cols-4">
               <button
                 type="button"
                 className="flex flex-col items-center justify-center py-2 px-1 rounded-xl border border-border/80 hover:bg-page text-ink-secondary transition-colors shadow-2xs cursor-pointer group"
@@ -1115,11 +1115,11 @@ export function NewReservation({
         {/* ================= CENTER COLUMN: REFINED WORKBENCH & INTAKE CONSOLE ================= */}
         <div className="flex flex-col gap-4 min-w-0 xl:col-span-10">
           {/* Sub Navigation Segmented Tabs */}
-          <div className="flex items-center gap-1.5 p-1 bg-muted-surface/80 rounded-2xl border border-border/80 w-fit">
+          <div className="flex max-w-full items-center gap-1.5 overflow-x-auto p-1 bg-muted-surface/80 rounded-2xl border border-border/80 w-fit">
             <button
               type="button"
               onClick={() => setActiveTab("general")}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === "general"
+              className={`flex flex-none items-center gap-1.5 whitespace-nowrap px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === "general"
                 ? "bg-surface text-ink shadow-sm border border-border/60"
                 : "text-ink-secondary hover:text-ink"
                 }`}
@@ -1137,7 +1137,7 @@ export function NewReservation({
             <button
               type="button"
               onClick={() => setActiveTab("outlet")}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === "outlet"
+              className={`flex flex-none items-center gap-1.5 whitespace-nowrap px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === "outlet"
                 ? "bg-surface text-ink shadow-sm border border-border/60"
                 : "text-ink-secondary hover:text-ink"
                 }`}
@@ -1157,9 +1157,9 @@ export function NewReservation({
           {activeTab === "general" && (
             <div className="flex flex-col gap-4">
               {/* SECTION 1: BOOKING PARAMETERS & DETAILS */}
-              <section className="bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
-                <div className="flex items-center justify-between border-b border-divider pb-3">
-                  <div className="flex items-center gap-2.5">
+              <section className="min-w-0 bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider pb-3">
+                  <div className="flex min-w-0 items-center gap-2.5">
                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-xs shadow-xs shadow-primary/20">
                       1
                     </span>
@@ -1407,7 +1407,7 @@ export function NewReservation({
                 </div>
 
                 {/* Stay dates and booking category */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-page/70 p-3.5 rounded-2xl border border-border/70">
+                <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-3 bg-page/70 p-3.5 rounded-2xl border border-border/70">
                   <div>
                     <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Check-in Date
@@ -1563,7 +1563,7 @@ export function NewReservation({
                 )}
 
                 <div
-                  className={`grid grid-cols-1 gap-3 pt-1 ${samePlanAllRooms ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}
+                  className={`grid grid-cols-1 gap-3 pt-1 ${samePlanAllRooms ? "sm:grid-cols-2 2xl:grid-cols-3" : "sm:grid-cols-2"}`}
                 >
                   <div>
                     <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
@@ -1687,9 +1687,9 @@ export function NewReservation({
               />
 
               {/* SECTION 4: GUEST DETAILS & PROFILE SEARCH */}
-              <section className="bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
-                <div className="flex items-center justify-between border-b border-divider pb-3">
-                  <div className="flex items-center gap-2.5">
+              <section className="min-w-0 bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider pb-3">
+                  <div className="flex min-w-0 items-center gap-2.5">
                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-xs shadow-xs shadow-primary/20">
                       4
                     </span>
@@ -1706,7 +1706,7 @@ export function NewReservation({
                 </div>
 
                 {/* Form fields */}
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-4">
                   <div className="sm:col-span-1">
                     <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Salutation
@@ -1723,7 +1723,7 @@ export function NewReservation({
                     </select>
                   </div>
 
-                  <div className="sm:col-span-3">
+                  <div className="sm:col-span-1 2xl:col-span-3">
                     <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Full Legal Name{" "}
                       <span className="text-danger-text">*</span>
@@ -1850,9 +1850,9 @@ export function NewReservation({
               </section>
 
               {/* SECTION 5: PAYMENTS & SUMMARY BREAKDOWN */}
-              <section className="bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
-                <div className="flex items-center justify-between border-b border-divider pb-3">
-                  <div className="flex items-center gap-2.5">
+              <section className="min-w-0 bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider pb-3">
+                  <div className="flex min-w-0 items-center gap-2.5">
                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-xs shadow-xs shadow-primary/20">
                       5
                     </span>
@@ -1869,7 +1869,7 @@ export function NewReservation({
                       setCollectAmount(String(outstanding));
                       setCollectModalOpen(true);
                     }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-warning-text hover:bg-warning-text text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                    className="flex flex-none items-center gap-1.5 rounded-xl bg-warning-text px-3 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:bg-warning-text cursor-pointer"
                   >
                     <Lucide.Banknote size={13} />
                     <span>Collect Payment</span>
@@ -1885,9 +1885,9 @@ export function NewReservation({
                     {paymentsList.map((p) => (
                       <div
                         key={p.id}
-                        className="flex items-center justify-between p-3 rounded-xl border border-border/80 bg-page/60 text-xs"
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/80 bg-page/60 p-3 text-xs"
                       >
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex min-w-0 flex-1 items-center gap-2.5">
                           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-success-bg text-success-text">
                             <Lucide.Check size={14} />
                           </div>
@@ -1895,12 +1895,12 @@ export function NewReservation({
                             <span className="font-bold text-ink block">
                               {p.method}
                             </span>
-                            <span className="text-[10px] text-ink-secondary font-mono">
+                            <span className="break-words text-[10px] text-ink-secondary font-mono">
                               Ref: {p.ref} · {p.time}
                             </span>
                           </div>
                         </div>
-                        <span className="font-extrabold font-mono text-success-text">
+                        <span className="ml-auto flex-none font-extrabold font-mono text-success-text">
                           ₹{p.amount.toLocaleString("en-IN")}.00
                         </span>
                       </div>
@@ -1929,39 +1929,39 @@ export function NewReservation({
                 </div>
 
                 {/* Itemized Bill Summary Table */}
-                <div className="rounded-2xl border border-border/90 bg-surface p-4 flex flex-col gap-2 text-xs">
-                  <div className="flex items-center justify-between text-ink-secondary">
-                    <span>
+                <div className="rounded-2xl border border-border/90 bg-surface p-3 sm:p-4 flex flex-col gap-2 text-xs">
+                  <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-ink-secondary">
+                    <span className="min-w-0 flex-1">
                       Room Charges ({requirements.length} room(s), {nightsCount}{" "}
                       night(s))
                     </span>
-                    <span className="font-semibold font-mono text-ink">
+                    <span className="shrink-0 text-right font-semibold font-mono text-ink">
                       ₹{roomCharges.toLocaleString("en-IN")}.00
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-ink-secondary">
-                    <span>Meal plan supplements</span>
-                    <span className="font-semibold font-mono text-ink">
+                  <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-ink-secondary">
+                    <span className="min-w-0 flex-1">Meal plan supplements</span>
+                    <span className="shrink-0 text-right font-semibold font-mono text-ink">
                       ₹{mealPlanCharges.toLocaleString("en-IN")}.00
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-ink-secondary">
-                    <span>Outlet / POS add-ons ({posAddons.length})</span>
-                    <span className="font-semibold font-mono text-ink">
+                  <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-ink-secondary">
+                    <span className="min-w-0 flex-1">Outlet / POS add-ons ({posAddons.length})</span>
+                    <span className="shrink-0 text-right font-semibold font-mono text-ink">
                       ₹{addonSubtotal.toLocaleString("en-IN")}.00
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-ink-secondary">
-                    <div className="flex items-center gap-1.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-ink-secondary">
+                    <div className="flex min-w-0 flex-1 items-center gap-1.5">
                       <span>Discount Applied</span>
                       <span className="text-[10px] text-ink-muted font-medium">
                         (Editable)
                       </span>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex flex-none items-center gap-1">
                       <span className="text-ink-muted font-mono text-xs">
                         -₹
                       </span>
@@ -1982,32 +1982,32 @@ export function NewReservation({
 
                   <div className="h-[1px] bg-muted-surface my-0.5" />
 
-                  <div className="flex items-center justify-between font-bold text-ink">
-                    <span>Sub-Total</span>
-                    <span className="font-mono text-ink">
+                  <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 font-bold text-ink">
+                    <span className="min-w-0 flex-1">Sub-Total</span>
+                    <span className="shrink-0 text-right font-mono text-ink">
                       ₹{subTotal.toLocaleString("en-IN")}.00
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-ink-secondary">
-                    <span>Goods & Services Tax (GST {TAX_RATE * 100}%)</span>
-                    <span className="font-semibold font-mono text-ink">
+                  <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-ink-secondary">
+                    <span className="min-w-0 flex-1">Goods & Services Tax (GST {TAX_RATE * 100}%)</span>
+                    <span className="shrink-0 text-right font-semibold font-mono text-ink">
                       ₹{taxAmount.toLocaleString("en-IN")}.00
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-success-text font-bold">
-                    <span>Payments Received</span>
-                    <span className="font-mono">
+                  <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-success-text font-bold">
+                    <span className="min-w-0 flex-1">Payments Received</span>
+                    <span className="shrink-0 text-right font-mono">
                       ₹{totalPaid.toLocaleString("en-IN")}.00
                     </span>
                   </div>
 
                   <div className="h-[1px] bg-border my-1" />
 
-                  <div className="flex items-center justify-between text-sm font-extrabold text-ink pt-0.5">
-                    <span>Net Payable at Hotel</span>
-                    <span className="font-mono text-base text-[var(--color-primary)]">
+                  <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 pt-0.5 text-sm font-extrabold text-ink">
+                    <span className="min-w-0 flex-1">Net Payable at Hotel</span>
+                    <span className="shrink-0 text-right font-mono text-base text-[var(--color-primary)]">
                       ₹{outstanding.toLocaleString("en-IN")}.00
                     </span>
                   </div>
@@ -2040,19 +2040,19 @@ export function NewReservation({
         <div aria-hidden="true" className="hidden xl:block xl:col-span-4" />
 
         {/* ================= FOURTH COLUMN: TASKS & CHECKLIST ================= */}
-        <div className="flex flex-col gap-4 xl:col-span-5">
+        <div className="flex min-w-0 flex-col gap-4 xl:col-span-5">
           {/* Front Desk Tasks Panel */}
-          <div className="bg-surface rounded-3xl border border-border/90 shadow-sm p-5 flex flex-col gap-3.5">
-            <div className="flex items-center justify-between border-b border-divider pb-3">
-              <div className="flex items-center gap-2">
+          <div className="min-w-0 bg-surface rounded-3xl border border-border/90 shadow-sm p-3 2xl:p-5 flex flex-col gap-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-divider pb-3">
+              <div className="flex min-w-0 items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-warning-bg text-warning-text">
                   <Lucide.CheckSquare size={15} />
                 </div>
-                <h3 className="text-xs font-bold text-ink uppercase tracking-wider">
+                <h3 className="min-w-0 flex-1 text-xs font-bold text-ink uppercase tracking-wider">
                   Checklist & Tasks
                 </h3>
               </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted-surface text-ink">
+              <span className="flex-none text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted-surface text-ink">
                 {tasks.filter((t) => t.done).length}/{tasks.length} Done
               </span>
             </div>
@@ -2078,7 +2078,7 @@ export function NewReservation({
                     {task.done && <Lucide.Check size={11} />}
                   </button>
                   <span
-                    className={`text-xs flex-1 ${task.done
+                    className={`min-w-0 flex-1 break-words text-xs ${task.done
                       ? "line-through text-ink-muted font-normal"
                       : "font-semibold text-ink"
                       }`}
@@ -2097,7 +2097,7 @@ export function NewReservation({
                 onChange={(e) => setNewTaskInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
                 placeholder="Add front desk task..."
-                className="flex-1 rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all"
+                className="min-w-0 flex-1 rounded-xl border border-border px-3 bg-page/50 font-semibold py-2 text-xs text-ink-secondary transition-all"
               />
               <button
                 type="button"
@@ -2113,7 +2113,7 @@ export function NewReservation({
 
       {/* ================= FLOATING ACTION DOCK (BOTTOM BAR) ================= */}
       <div className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2">
-        <div className="backdrop-blur-md bg-surface/95 rounded-2xl border border-border/90 p-3 sm:px-4 shadow-lg flex items-center justify-between gap-3">
+        <div className="backdrop-blur-md bg-surface/95 rounded-2xl border border-border/90 p-3 sm:px-4 shadow-lg flex flex-wrap items-center justify-between gap-2 sm:gap-3">
           {/* Left: Report an issue */}
           <button
             type="button"
@@ -2136,11 +2136,11 @@ export function NewReservation({
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-2">
+          <div className="ml-auto flex w-full flex-wrap items-center justify-end gap-1.5 sm:w-auto sm:gap-2">
             <button
               type="button"
               onClick={() => go({ view: "reservations" })}
-              className="px-3.5 py-2 rounded-xl border border-border bg-surface hover:bg-page text-ink text-xs font-bold transition-colors cursor-pointer"
+              className="rounded-xl border border-border bg-surface px-2.5 py-2 text-xs font-bold text-ink transition-colors hover:bg-page cursor-pointer sm:px-3.5"
             >
               Cancel
             </button>
@@ -2150,7 +2150,7 @@ export function NewReservation({
                 setCollectAmount(String(outstanding));
                 setCollectModalOpen(true);
               }}
-              className="px-4 py-2 rounded-xl bg-warning-text hover:bg-warning-text active:bg-warning-text text-white text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+              className="flex items-center gap-1.5 rounded-xl bg-warning-text px-3 py-2 text-xs font-bold text-white shadow-xs transition-all hover:bg-warning-text active:bg-warning-text cursor-pointer sm:px-4"
             >
               <Lucide.Banknote size={14} />
               <span>Save & Pay</span>
@@ -2159,14 +2159,15 @@ export function NewReservation({
               type="button"
               disabled={savingReservation}
               onClick={() => void handleConfirmReservation(true)}
-              className="px-5 py-2 rounded-xl bg-[var(--color-primary)] hover:opacity-95 text-white text-xs font-bold shadow-md shadow-[var(--color-primary)]/20 transition-all cursor-pointer flex items-center gap-1.5"
+              className="flex items-center gap-1.5 rounded-xl bg-[var(--color-primary)] px-3 py-2 text-xs font-bold text-white shadow-md shadow-[var(--color-primary)]/20 transition-all hover:opacity-95 cursor-pointer sm:px-5"
             >
               {savingReservation ? (
                 <Lucide.LoaderCircle size={14} className="animate-spin" />
               ) : (
                 <Lucide.CheckCircle2 size={14} />
               )}
-              <span>{savingReservation ? "Saving…" : "Confirm & Email"}</span>
+              <span className="sm:hidden">{savingReservation ? "Saving…" : "Confirm"}</span>
+              <span className="hidden sm:inline">{savingReservation ? "Saving…" : "Confirm & Email"}</span>
             </button>
           </div>
         </div>
@@ -2175,7 +2176,7 @@ export function NewReservation({
       {/* ================= PAYMENT COLLECT MODAL ================= */}
       {collectModalOpen && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-xs">
-          <div className="bg-surface rounded-3xl border border-border max-w-md w-full p-6 shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
+          <div className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-3xl border border-border bg-surface p-4 shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150 sm:p-6">
             <div className="flex items-center justify-between border-b border-divider pb-3">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-warning-bg text-warning-text">
@@ -2278,7 +2279,7 @@ export function NewReservation({
       {/* ================= REPORT ISSUE MODAL ================= */}
       {issueModalOpen && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-xs">
-          <div className="bg-surface rounded-3xl border border-border max-w-md w-full p-6 shadow-2xl flex flex-col gap-4">
+          <div className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-3xl border border-border bg-surface p-4 shadow-2xl flex flex-col gap-4 sm:p-6">
             <div className="flex items-center justify-between border-b border-divider pb-3">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-danger-bg text-danger-text">

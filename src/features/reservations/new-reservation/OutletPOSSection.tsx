@@ -21,8 +21,8 @@ export function OutletPOSSection({ requirements, addons, catalog, noPost, defaul
   const addonTotal = addons.reduce((sum, addon) => sum + addon.unitPrice * addon.quantity, 0);
 
   return (
-    <section className="bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
-      <div className="flex flex-col gap-3 border-b border-divider pb-3 sm:flex-row sm:items-center sm:justify-between">
+    <section className="min-w-0 bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
+      <div className="flex flex-col gap-3 border-b border-divider pb-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-warning-text to-warning-border text-white shadow-xs shadow-warning-text/20"><Lucide.Receipt size={17} /></div>
           <div><h2 className="text-sm font-bold text-ink-secondary tracking-tight">Outlet & Point of Sale Charges</h2><p className="text-[11px] text-ink-muted mt-0.5">Pre-assign restaurant, bar, spa, laundry or transport charges to this booking.</p></div>
@@ -39,7 +39,7 @@ export function OutletPOSSection({ requirements, addons, catalog, noPost, defaul
             <button key={outlet.id} type="button" onClick={() => setActiveOutlet(outlet.id)} aria-pressed={activeOutlet === outlet.id} className={`min-h-[32px] flex-none rounded-full border px-3 text-[11px] font-semibold transition-colors ${activeOutlet === outlet.id ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white' : 'border-border bg-surface text-ink-secondary hover:bg-page'}`}>{outlet.label}</button>
           ))}
         </div>
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-2 sm:grid-cols-2 2xl:grid-cols-3">
           {visibleCatalog.map((item) => (
             <article key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-border/80 bg-page/50 p-3">
               <div className="flex min-w-0 items-center gap-2.5"><span className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-surface text-[var(--color-primary)] shadow-xs"><Lucide.Utensils size={15} /></span><div className="min-w-0"><p className="truncate text-xs font-bold text-ink">{item.name}</p><p className="mt-0.5 truncate text-[10px] text-ink-secondary">{item.outletName} · {item.description}</p><p className="mt-1 text-[11px] font-semibold text-ink">₹{item.unitPrice.toLocaleString('en-IN')}</p></div></div>
@@ -56,8 +56,8 @@ export function OutletPOSSection({ requirements, addons, catalog, noPost, defaul
         ) : (
           <div className="flex flex-col divide-y divide-divider">
             {addons.map((addon) => (
-              <div key={addon.id} className="grid grid-cols-1 items-center gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_130px_115px_90px_32px]">
-                <div className="min-w-0"><p className="truncate text-xs font-semibold text-ink">{addon.name}</p><p className="mt-0.5 text-[10px] text-ink-secondary">{addon.outletName} · ₹{addon.unitPrice.toLocaleString('en-IN')} each</p></div>
+              <div key={addon.id} className="grid grid-cols-1 items-center gap-2 py-3 sm:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_130px_115px_90px_32px]">
+                <div className="min-w-0 sm:col-span-2 2xl:col-span-1"><p className="truncate text-xs font-semibold text-ink">{addon.name}</p><p className="mt-0.5 text-[10px] text-ink-secondary">{addon.outletName} · ₹{addon.unitPrice.toLocaleString('en-IN')} each</p></div>
                 <label className="flex flex-col gap-1 text-[9px] font-bold uppercase text-ink-secondary sm:text-[9px]">Room
                   <select value={addon.roomRequirementId} onChange={(event) => onUpdate(addon.id, { roomRequirementId: event.target.value })} className="rounded-lg border border-border bg-surface px-2 py-1.5 text-xs font-medium normal-case text-ink">
                     {requirements.map((room) => <option key={room.id} value={room.id}>Room {room.roomIndex} · {room.category}</option>)}
