@@ -1,7 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Header, Sidebar } from './components/layout';
-import type { NavTarget } from './components/nav';
-import { viewPermission } from './components/nav';
+import type { NavTarget } from './config/navigation';
+import { viewPermission } from './config/navigation';
 import { ThemeSwatcher } from './theme/ThemeSwatcher';
 import { AppCrashFallback, ErrorBoundary, PanelCrashFallback } from './components/ErrorBoundary';
 import { ForbiddenPage, NotFoundPage } from './components/ErrorPages';
@@ -12,7 +12,7 @@ import type { ThemePresetId } from './theme/presets';
 import { Toaster } from './components/overlays';
 import { Dashboard } from './features/dashboard/DashboardPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
-import { themeApi } from './lib/api/themeApi';
+import { themeApi } from './lib/api/pms';
 import type { ThemeKey } from './types';
 
 const THEME_KEY_TO_PRESET: Record<ThemeKey, ThemePresetId> = {
@@ -173,14 +173,14 @@ function Shell() {
           data-app-scroll
           className="pms-app-scroll flex min-h-0 flex-1 flex-col overflow-x-clip overflow-y-auto"
         >
-          <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}-${target.draft?.roomNumber ?? ''}-${target.draft?.checkIn ?? ''}`} className={`pms-animate-fade-in mx-auto w-full flex-1 px-4 py-4 lg:px-6 lg:py-6 ${view === 'dashboard' || view === 'new-reservation' || view === 'reservations' || view === 'room-calendar' || view === 'status-board' ? 'max-w-[1600px] 2xl:max-w-[1760px]' : 'max-w-[1280px] 2xl:max-w-[1440px]'}`} style={{ background: 'var(--color-page)' }}>
+          <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}-${target.draft?.roomNumber ?? ''}-${target.draft?.checkIn ?? ''}`} className={`pms-animate-fade-in mx-auto w-full flex-1 px-4 py-4 lg:px-6 lg:py-6 max-w-[1600px] 2xl:max-w-[1760px]`} style={{ background: 'var(--color-page)' }}>
             <Suspense fallback={<PageFallback />}>{page}</Suspense>
           </main>
           <footer
             className="border-t px-4 py-3.5 lg:px-6"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
-            <p className="tnum mx-auto w-full max-w-[1280px] text-xs font-normal 2xl:max-w-[1440px]" style={{ color: 'var(--color-ink-secondary)' }}>
+            <p className="tnum mx-auto w-full max-w-[1600px] text-xs font-normal 2xl:max-w-[1760px]" style={{ color: 'var(--color-ink-secondary)' }}>
               TriponX PMS · {THEME_PRESETS[preset]?.name ?? 'Theme'} · 9 colour themes ·
               status colours fixed across themes · unsupported modules remain demo-only
             </p>

@@ -14,7 +14,7 @@ const RULES: Array<{ key: keyof Pick<SyncSettings, 'availability' | 'rates' | 'r
   { key: 'stopSell', label: 'Stop sell', detail: 'Close dates to new channel bookings', icon: Lucide.Ban },
 ];
 
-export function RestrictionsPanel({ settings, onChange }: Props) {
+export function ChannelRestrictionsPanel({ settings, onChange }: Props) {
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="sync-rules-title">
       <div className="flex items-center gap-2.5 border-b px-4 py-4 sm:px-5" style={{ borderColor: 'var(--color-border)' }}>

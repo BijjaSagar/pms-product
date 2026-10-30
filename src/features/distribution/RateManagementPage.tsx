@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
+import { FLOOR_PLAN, ROOM_TYPES as CATALOG_ROOM_TYPES } from '../../data/catalog';
 import * as Lucide from 'lucide-react';
-import { toast } from '../../components/toastStore';
+import { toast } from '../../utils/toast';
 import {
   BUSINESS_DATE,
   CHANNELS,
@@ -28,7 +29,7 @@ import { RateCalendarPanel } from './rate-management/RateCalendarPanel';
 import { RatePerformancePanel } from './rate-management/RatePerformancePanel';
 import { RatePlanDialog } from './rate-management/RatePlanDialog';
 import { RatePlansPanel } from './rate-management/RatePlansPanel';
-import { RestrictionsPanel } from './rate-management/RestrictionsPanel';
+import { RateRestrictionsPanel } from './rate-management/RateRestrictionsPanel';
 import { SeasonDialog } from './rate-management/SeasonDialog';
 import { SeasonalityPanel } from './rate-management/SeasonalityPanel';
 import type { BulkUpdatePayload, EditableRateRow, RateHistoryEvent, RatePlan, RateTabId, Season } from './rate-management/types';
@@ -263,9 +264,9 @@ export function RateManagement() {
 
   const metrics = [
     { label: 'Active rate plans', value: String(ratePlans.filter((plan) => plan.status === 'Active').length), hint: `${ratePlans.length} configured`, icon: Lucide.Layers3, tint: 'primary' as const },
-    { label: 'Room inventory', value: '50', hint: 'Across 6 room types', icon: Lucide.BedDouble, tint: 'info' as const },
-    { label: 'Average daily rate', value: '₹8,450', hint: '+12% vs last month', icon: Lucide.CircleDollarSign, tint: 'success' as const },
-    { label: 'Occupancy forecast', value: '78%', hint: '+6% vs last month', icon: Lucide.ChartNoAxesCombined, tint: 'warning' as const },
+    { label: 'Room inventory', value: String(FLOOR_PLAN.reduce((sum, plan) => sum + plan.count, 0)), hint: `Across ${CATALOG_ROOM_TYPES.length} room types`, icon: Lucide.BedDouble, tint: 'info' as const },
+    { label: 'Average daily rate', value: '₹8,450', hint: 'Demo forecast', icon: Lucide.CircleDollarSign, tint: 'success' as const },
+    { label: 'Occupancy forecast', value: '78%', hint: 'Demo forecast', icon: Lucide.ChartNoAxesCombined, tint: 'warning' as const },
     { label: 'Projected revenue', value: '₹4,22,500', hint: 'Next 30 days', icon: Lucide.TrendingUp, tint: 'success' as const },
   ];
 
@@ -278,7 +279,7 @@ export function RateManagement() {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">Rate Management</h1>
+              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">Rate Management</h1>
               <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
@@ -417,7 +418,7 @@ export function RateManagement() {
           )}
           {activeTab === 'plans' && <RatePlansPanel plans={ratePlans} onCreate={openCreatePlan} onEdit={openEditPlan} onToggleStatus={handleTogglePlanStatus} />}
           {activeTab === 'seasonality' && <SeasonalityPanel seasons={seasons} onAdd={() => setSeasonDialogOpen(true)} onToggleStatus={handleToggleSeason} />}
-          {activeTab === 'restrictions' && <RestrictionsPanel dates={dates} minStays={minStays} maxStays={maxStays} closedToArrival={closedToArrival} closedToDeparture={closedToDeparture} stopSell={stopSell} onOpenCalendar={() => setActiveTab('calendar')} />}
+          {activeTab === 'restrictions' && <RateRestrictionsPanel dates={dates} minStays={minStays} maxStays={maxStays} closedToArrival={closedToArrival} closedToDeparture={closedToDeparture} stopSell={stopSell} onOpenCalendar={() => setActiveTab('calendar')} />}
           {activeTab === 'mapping' && <ChannelMappingPanel channels={CHANNELS} connectedChannelIds={connectedChannelIds} plans={ratePlans} onToggle={handleToggleChannel} onSync={(channel) => { addHistory('Channel sync requested', channel.name, 'info'); toast(`${channel.name} sync completed`, { tone: 'success', detail: 'Demo action; no external channel was contacted.' }); }} />}
           {activeTab === 'bulk' && <BulkUpdatePanel startDate={rangeStart} endDate={endDate} onApply={handleBulkUpdate} />}
           {activeTab === 'history' && <HistoryPanel events={history} />}

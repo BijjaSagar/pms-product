@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import type { BadgeTone } from '../../components/status';
+import type { BadgeTone } from '../../utils/status';
 import type { MaintenanceRequest, MaintenanceStatus } from '../../types';
 import { Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../../components/ui';
 import { Field, FilterChip } from '../../components/controls';
-import { inputClass } from '../../components/inputClass';
+import { inputClass } from '../../utils/styling';
 import { Drawer, Modal, PromptDialog } from '../../components/overlays';
-import { toast } from '../../components/toastStore';
+import { toast } from '../../utils/toast';
 import { adminApi, operationsApi } from '../../lib/api/pms';
 import type { UserRow } from '../../lib/api/pms';
 import { maintenanceFromApi } from '../../lib/api/adapters';
@@ -285,7 +285,7 @@ export function Maintenance() {
         subtitle="Details, technician assignment and resolution"
       >
         {open ? (
-          <div className="flex flex-col gap-4 text-[13.5px]">
+          <div className="flex flex-col gap-4 text-[13px]">
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone={priorityTone(open.priority)}>{open.priority}</Badge>
               <Badge tone={statusTone(open.status)}>{open.status}</Badge>

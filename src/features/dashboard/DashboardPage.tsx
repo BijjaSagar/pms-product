@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import type { NavTarget } from '../../components/nav';
+import type { NavTarget } from '../../config/navigation';
 import { folioApi, frontDeskApi, operationsApi, reportsApi, reservationApi } from '../../lib/api/pms';
 import { paymentFromApi, reservationFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { useAuth } from '../../features/auth/AuthContext';
 import type { PaymentRow, ReservationRow, StayRow } from '../../lib/api/pms';
-import { toast } from '../../components/toastStore';
+import { toast } from '../../utils/toast';
 import { Avatar, Badge, TableActionBtn, TableContainer } from '../../components/ui';
 
 // ================= DEMO FALLBACK DATA MATCHING REFERENCE IMAGE =================
@@ -390,6 +390,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
   const departures = resource.data?.departures;
   const reservations = resource.data?.reservations;
   const payments = resource.data?.payments;
+  const roomReadiness = resource.data?.housekeeping?.rooms;
+  const readyRooms = roomReadiness?.ready ?? 0;
+  const totalRoomCount = roomReadiness?.total ?? 0;
+  const readyPct = totalRoomCount > 0 ? Math.round((readyRooms / totalRoomCount) * 100) : 0;
 
   const pendingCheckins = useMemo(() => {
     if (arrivals && arrivals.length > 0) {
@@ -1138,10 +1142,9 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             {/* Progress Summary */}
             <div className="flex items-baseline justify-between mb-1.5">
               <div className="flex items-baseline gap-2">
-                <span className="text-xs font-bold text-ink">18%</span>
-                <span className="text-xs text-ink-secondary font-normal">9 of 50 rooms cleaned</span>
+                <span className="text-xs font-bold text-ink">{readyPct}%</span>
+                <span className="text-xs text-ink-secondary font-normal">{readyRooms} of {totalRoomCount} rooms ready</span>
               </div>
-              <span className="text-xs font-semibold text-ink-muted">Target: 85% by 2:00 PM</span>
             </div>
 
             {/* Progress Bar */}

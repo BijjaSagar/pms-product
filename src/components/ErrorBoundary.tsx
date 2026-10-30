@@ -162,7 +162,7 @@ export function AppCrashFallback({ reset }: { reset: () => void }) {
           Something went unexpectedly wrong
         </h1>
 
-        <p className="mt-2 text-[13.5px] leading-relaxed text-ink-secondary max-w-[420px] mx-auto">
+        <p className="mt-2 text-[13px] leading-relaxed text-ink-secondary max-w-[420px] mx-auto">
           The property management interface encountered an unhandled exception. Your property databases, local theme, and user session remain completely intact.
         </p>
 

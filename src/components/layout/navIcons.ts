@@ -1,5 +1,5 @@
 import * as Lucide from 'lucide-react';
-import type { ViewId } from '../nav';
+import type { ViewId } from '../../config/navigation';
 
 export const NAV_ICONS: Record<ViewId, Lucide.LucideIcon> = {
   dashboard: Lucide.LayoutDashboard,

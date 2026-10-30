@@ -107,34 +107,11 @@ export const TONE_VARS: Record<Tone, ToneVars> = TONES.reduce((acc, tone) => {
 }, {} as Record<Tone, ToneVars>);
 
 /** Theme-driven accent tokens for decorative UI (page headers, icon wells). */
-export const ACCENT_VARS = {
-  text: 'var(--color-primary)',
-  hover: 'var(--color-primary-hover)',
-  active: 'var(--color-primary-active)',
-  foreground: 'var(--color-primary-foreground)',
-  dark: 'var(--color-dark-accent)',
-  soft: 'var(--color-soft)',
-  muted: 'var(--color-muted-surface)',
-  gradient: 'var(--gradient-accent)',
-} as const;
-
 /** Accent classes for decorative UI, kept literal for Tailwind detection. */
-export const ACCENT_CLASSES = {
-  gradient: 'bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground',
-  text: 'text-primary',
-  bg: 'bg-primary',
-  soft: 'bg-primary/10',
-  border: 'border-primary/30',
-} as const;
-
 /**
  * Build an inline tint of a tone's readable colour.
  * `base` defaults to transparent so it can sit on any surface.
  */
-export function toneMix(tone: Tone, weight: number, base = 'transparent'): string {
-  return `color-mix(in srgb, ${TONE_VARS[tone].text} ${weight}%, ${base})`;
-}
-
 /** Token-backed colour strings for SVG charts and inline styles. */
 export const CHART_COLORS = {
   primary: 'var(--color-primary)',
@@ -151,11 +128,3 @@ export const CHART_COLORS = {
 } as const;
 
 /** Ordered series used by small charts that need more than one slice. */
-export const CHART_SERIES = [
-  CHART_COLORS.primary,
-  CHART_COLORS.warning,
-  CHART_COLORS.info,
-  CHART_COLORS.danger,
-  CHART_COLORS.success,
-  CHART_COLORS.soft,
-] as const;

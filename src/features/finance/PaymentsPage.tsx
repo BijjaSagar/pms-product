@@ -3,12 +3,12 @@ import * as Lucide from 'lucide-react';
 import { formatCurrency } from '../../lib/api/format';
 import type { Payment } from '../../types';
 import { Avatar, Badge, Card, CardTitle, TableContainer } from '../../components/ui';
-import { paymentTone } from '../../components/status';
+import { paymentTone } from '../../utils/status';
 import { FilterChip, Pagination } from '../../components/controls';
 import { Field } from '../../components/controls';
-import { inputClass } from '../../components/inputClass';
+import { inputClass } from '../../utils/styling';
 import { Modal } from '../../components/overlays';
-import { toast } from '../../components/toastStore';
+import { toast } from '../../utils/toast';
 import { folioApi } from '../../lib/api/pms';
 import { paymentFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
@@ -85,7 +85,7 @@ export function Payments() {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
+              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">
                 Payments & Transactions
               </h1>
               <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">

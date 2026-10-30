@@ -3,7 +3,7 @@ import * as Lucide from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { propertyApi, adminApi, inventoryApi } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
-import { toast } from '../../components/toastStore';
+import { toast } from '../../utils/toast';
 import { displayApiError } from '../../lib/api/client';
 import { useTheme } from '../../theme/useTheme';
 import { PRESET_LIST } from '../../theme/presets';
@@ -11,7 +11,7 @@ import { loadRoomInventory } from '../../lib/api/loaders';
 import { formatCurrency } from '../../lib/api/format';
 import { Modal } from '../../components/overlays';
 import { Field } from '../../components/controls';
-import { inputClass } from '../../components/inputClass';
+import { inputClass } from '../../utils/styling';
 import type { RoomType } from '../../types';
 
 type SettingsTab =
@@ -684,7 +684,7 @@ export function Settings({
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
+              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">
                 Property Settings
               </h1>
               <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
@@ -1009,7 +1009,7 @@ export function Settings({
                   >
                     <div className="flex flex-col items-center justify-center">
                       <Lucide.Building2 size={20} className="text-warning-text mb-0.5" />
-                      <span className="text-[8px] font-bold uppercase tracking-wider text-ink-secondary leading-tight">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-ink-secondary leading-tight">
                         Grand Horizon
                       </span>
                     </div>

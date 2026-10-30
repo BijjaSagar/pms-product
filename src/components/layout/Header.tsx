@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
-import { NAV_ITEMS, NAV_SECTIONS, viewPermission } from '../nav';
-import type { NavTarget, ViewId } from '../nav';
-import { NOTICES } from '../../constants/notices';
-import { toast } from '../toastStore';
+import { NAV_ITEMS, NAV_SECTIONS, viewPermission } from '../../config/navigation';
+import type { NavTarget, ViewId } from '../../config/navigation';
+import { loadNotices } from '../../lib/api/notices';
+import type { Notice } from '../../types';
+import { toast } from '../../utils/toast';
 import { useAuth } from '../../features/auth/AuthContext';
 import { displayApiError } from '../../lib/api/client';
 import { folioApi, frontDeskApi, reportsApi } from '../../lib/api/pms';
@@ -103,6 +104,19 @@ export function Header({
   const [kpiDrawerOpen, setKpiDrawerOpen] = useState(false);
   const [readNotices, setReadNotices] = useState<string[]>([]);
   const [dismissedNotices, setDismissedNotices] = useState<string[]>([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    loadNotices()
+      .then((items) => {
+        if (mounted) setNotices(items);
+      })
+      .catch(() => undefined);
+    return () => {
+      mounted = false;
+    };
+  }, [me?.activePropertyId]);
   const [noticeTab, setNoticeTab] = useState<'all' | 'unread' | 'urgent'>('all');
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -113,13 +127,17 @@ export function Header({
   const dismissRef = useDismiss(closePanels);
   const kpiDismissRef = useDismiss(() => setKpiDrawerOpen(false));
 
+  // Every figure comes from the store (see the effect below). Nothing is invented:
+  // until the data arrives, and when it is genuinely zero, the value is 0.
   const [kpi, setKpi] = useState({
-    occupancyPct: 30,
-    arrivalsCount: 8,
-    departuresCount: 7,
-    inHouseCount: 8,
+    occupancyPct: 0,
+    occupiedRooms: 0,
+    totalRooms: 0,
+    arrivalsCount: 0,
+    departuresCount: 0,
+    inHouseCount: 0,
     totalRevenue: 0,
-    pendingPaymentsCount: 3,
+    pendingPaymentsCount: 0,
   });
 
   useEffect(() => {
@@ -134,12 +152,12 @@ export function Header({
         ]);
         if (!mounted) return;
         const rooms = daily?.rooms;
-        const occupiedRooms = rooms?.occupied ?? 6;
-        const totalRooms = rooms?.total ?? 20;
-        const occupancyPct = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 30;
-        const arrivalsCount = arrivals?.data?.length || 8;
-        const departuresCount = departures?.data?.length || 7;
-        const inHouseCount = daily?.inHouseCount || 8;
+        const occupiedRooms = rooms?.occupied ?? 0;
+        const totalRooms = rooms?.total ?? 0;
+        const occupancyPct = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+        const arrivalsCount = arrivals?.data?.length ?? 0;
+        const departuresCount = departures?.data?.length ?? 0;
+        const inHouseCount = daily?.inHouseCount ?? 0;
 
         let totalRevenue = 0;
         if (daily?.businessDate) {
@@ -149,11 +167,13 @@ export function Header({
           }
         }
 
-        const pendingPaymentsCount = payments?.filter((p: { status?: string }) => p.status === 'Pending').length || 3;
+        const pendingPaymentsCount = payments?.filter((p: { status?: string }) => p.status === 'Pending').length ?? 0;
 
         if (mounted) {
           setKpi({
             occupancyPct,
+            occupiedRooms,
+            totalRooms,
             arrivalsCount,
             departuresCount,
             inHouseCount,
@@ -211,7 +231,7 @@ export function Header({
   }, [searchOpen]);
 
   // Notices filtering & permissions
-  const visibleNotices = NOTICES.filter((notice) => {
+  const visibleNotices = notices.filter((notice) => {
     if (dismissedNotices.includes(notice.id)) return false;
     const target = NAV_ITEMS.find((i) => i.id === notice.target);
     if (!target) return true;
@@ -325,7 +345,6 @@ export function Header({
     {
       label: 'Occupancy',
       value: `${kpi.occupancyPct}%`,
-      badge: '+12%',
       icon: Lucide.BedDouble,
       iconStrokeWidth: 2.2,
       iconStyle: 'bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/25',
@@ -336,7 +355,6 @@ export function Header({
     {
       label: 'Arrivals',
       value: String(kpi.arrivalsCount),
-      badge: '2 VIP',
       icon: Lucide.ArrowUpRight,
       iconStrokeWidth: 2.5,
       iconStyle: 'bg-gradient-to-tr from-success-text to-success-border text-success-foreground shadow-xs shadow-success-text/25',
@@ -347,7 +365,6 @@ export function Header({
     {
       label: 'Departures',
       value: String(kpi.departuresCount),
-      badge: '7 sched',
       icon: Lucide.ArrowDownRight,
       iconStrokeWidth: 2.5,
       iconStyle: 'bg-gradient-to-tr from-warning-text to-warning-border text-warning-foreground shadow-xs shadow-warning-text/25',
@@ -433,18 +450,15 @@ export function Header({
               type="button"
               onClick={() => onGo({ view: 'occupancy-report' })}
               className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
-              title="Occupancy: 30% (6 of 20 rooms)"
+              title={`Occupancy: ${kpi.occupancyPct}% (${kpi.occupiedRooms} of ${kpi.totalRooms} rooms)`}
             >
               <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/25 group-hover:scale-105 transition-transform">
                 <Lucide.BedDouble size={14} strokeWidth={2.2} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">Occupancy</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">Occupancy</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[13.5px] font-bold tnum text-ink">{kpi.occupancyPct}%</span>
-                  <span className="text-[10px] font-bold text-success-text bg-success-text/10 px-1.5 py-0.5 rounded-md leading-tight">
-                    +12%
-                  </span>
+                  <span className="text-[13px] font-bold tnum text-ink">{kpi.occupancyPct}%</span>
                 </div>
               </div>
             </button>
@@ -456,18 +470,15 @@ export function Header({
               type="button"
               onClick={() => onGo({ view: 'reservations' })}
               className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
-              title="Today's Arrivals: 8 (+3 vs yesterday)"
+              title={`Today's Arrivals: ${kpi.arrivalsCount}`}
             >
               <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-success-text to-success-border text-success-foreground shadow-xs shadow-success-text/25 group-hover:scale-105 transition-transform">
                 <Lucide.ArrowUpRight size={14} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">Arrivals</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">Arrivals</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[13.5px] font-bold tnum text-ink">{kpi.arrivalsCount}</span>
-                  <span className="text-[10px] font-bold text-warning-text bg-warning-text/15 px-1.5 py-0.5 rounded-md leading-tight">
-                    2 VIP
-                  </span>
+                  <span className="text-[13px] font-bold tnum text-ink">{kpi.arrivalsCount}</span>
                 </div>
               </div>
             </button>
@@ -479,18 +490,15 @@ export function Header({
               type="button"
               onClick={() => onGo({ view: 'folios' })}
               className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
-              title="Today's Departures: 7 (-1 vs yesterday)"
+              title={`Today's Departures: ${kpi.departuresCount}`}
             >
               <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-warning-text to-warning-border text-warning-foreground shadow-xs shadow-warning-text/25 group-hover:scale-105 transition-transform">
                 <Lucide.ArrowDownRight size={14} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">Departures</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">Departures</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[13.5px] font-bold tnum text-ink">{kpi.departuresCount}</span>
-                  <span className="text-[10px] font-semibold text-ink-secondary bg-ink/[0.04]  px-1.5 py-0.5 rounded-md leading-tight">
-                    7 sched
-                  </span>
+                  <span className="text-[13px] font-bold tnum text-ink">{kpi.departuresCount}</span>
                 </div>
               </div>
             </button>
@@ -508,9 +516,9 @@ export function Header({
                 <Lucide.Users size={14} strokeWidth={2.2} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">In-House</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">In-House</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[13.5px] font-bold tnum text-ink">{kpi.inHouseCount}</span>
+                  <span className="text-[13px] font-bold tnum text-ink">{kpi.inHouseCount}</span>
                   <span className="text-[10px] font-semibold text-primary bg-primary/15 px-1.5 py-0.5 rounded-md leading-tight">
                     Active
                   </span>
@@ -531,9 +539,9 @@ export function Header({
                 <Lucide.CreditCard size={14} strokeWidth={2.2} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">Revenue</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">Revenue</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[13.5px] font-bold tnum text-success-text">₹{kpi.totalRevenue.toLocaleString('en-IN')}</span>
+                  <span className="text-[13px] font-bold tnum text-success-text">₹{kpi.totalRevenue.toLocaleString('en-IN')}</span>
                   <span className="text-[10px] font-bold text-success-text bg-success-text/15 px-1.5 py-0.5 rounded-md leading-tight">
                     Today
                   </span>
@@ -554,9 +562,9 @@ export function Header({
                 <Lucide.AlertCircle size={14} strokeWidth={2.3} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">Pending</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">Pending</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[13.5px] font-bold tnum text-danger-text">{kpi.pendingPaymentsCount}</span>
+                  <span className="text-[13px] font-bold tnum text-danger-text">{kpi.pendingPaymentsCount}</span>
                   <span className="text-[10px] font-bold text-danger-text bg-danger-text/15 px-1.5 py-0.5 rounded-md leading-tight">
                     Due
                   </span>
@@ -613,7 +621,7 @@ export function Header({
                 <Lucide.Bell size={18} strokeWidth={1.9} className="group-hover:rotate-6 transition-transform" />
                 {unreadCount > 0 ? (
                   <span
-                    className="tnum absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1.5 text-[10.5px] font-bold text-white shadow-md ring-2 ring-[var(--color-surface)] animate-pulse"
+                    className="tnum absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-white shadow-md ring-2 ring-[var(--color-surface)] animate-pulse"
                     style={{ background: 'var(--color-danger-text)' }}
                   >
                     {unreadCount}
@@ -652,8 +660,8 @@ export function Header({
                           <Lucide.BellRing size={17} />
                         </div>
                         <div>
-                          <h2 className="text-[14.5px] font-bold text-ink leading-tight">Notifications Hub</h2>
-                          <p className="text-[11.5px] text-ink-muted">
+                          <h2 className="text-[14px] font-bold text-ink leading-tight">Notifications Hub</h2>
+                          <p className="text-[11px] text-ink-muted">
                             {unreadCount > 0 ? `${unreadCount} unread operational alerts` : 'All operational alerts are cleared'}
                           </p>
                         </div>
@@ -664,7 +672,7 @@ export function Header({
                           <button
                             type="button"
                             onClick={markAllAsRead}
-                            className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11.5px] font-bold transition-all hover:bg-ink/[0.04]"
+                            className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-bold transition-all hover:bg-ink/[0.04]"
                             style={{
                               borderColor: 'var(--color-border)',
                               color: 'var(--color-primary)',
@@ -680,7 +688,7 @@ export function Header({
                           <button
                             type="button"
                             onClick={clearAllRead}
-                            className="flex items-center gap-1 rounded-lg border px-2 py-1 text-[11.5px] font-semibold text-ink-muted hover:text-danger-text transition-colors"
+                            className="flex items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-semibold text-ink-muted hover:text-danger-text transition-colors"
                             style={{ borderColor: 'var(--color-border)' }}
                             title="Clear read notifications"
                           >
@@ -779,7 +787,7 @@ export function Header({
                             {/* Content Body */}
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center justify-between gap-2">
-                                <span className="text-[13.5px] font-bold text-ink group-hover:text-primary transition-colors">
+                                <span className="text-[13px] font-bold text-ink group-hover:text-primary transition-colors">
                                   {n.title}
                                 </span>
                                 <span className="tnum flex-none text-[11px] font-semibold text-ink-muted">
@@ -787,14 +795,14 @@ export function Header({
                                 </span>
                               </div>
 
-                              <p className="mt-1 text-[12.5px] leading-relaxed text-ink-secondary">
+                              <p className="mt-1 text-[12px] leading-relaxed text-ink-secondary">
                                 {n.detail}
                               </p>
 
                               <div className="mt-2.5 flex items-center justify-between gap-2 flex-wrap">
                                 <div className="flex items-center gap-1.5">
                                   <span
-                                    className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wider"
+                                    className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider"
                                     style={{
                                       background: cfg.badgeBg,
                                       color: cfg.badgeText,
@@ -808,7 +816,7 @@ export function Header({
                                   <button
                                     type="button"
                                     onClick={(e) => toggleSingleRead(n.id, e)}
-                                    className="text-[11.5px] font-semibold text-ink-muted hover:text-ink transition-colors"
+                                    className="text-[11px] font-semibold text-ink-muted hover:text-ink transition-colors"
                                   >
                                     {isRead ? 'Mark as unread' : 'Mark as read'}
                                   </button>
@@ -848,7 +856,7 @@ export function Header({
                           <Lucide.CheckCircle2 size={28} />
                         </div>
                         <p className="text-[15px] font-bold text-ink">You are all caught up!</p>
-                        <p className="mt-1 text-[12.5px] text-ink-muted max-w-[240px]">
+                        <p className="mt-1 text-[12px] text-ink-muted max-w-[240px]">
                           No alerts matching the {noticeTab} filter at this moment.
                         </p>
                       </div>
@@ -863,14 +871,14 @@ export function Header({
                       borderColor: 'var(--color-border)',
                     }}
                   >
-                    <span className="text-[11.5px] text-ink-muted">TriponX Notification Hub · Operational Alerts</span>
+                    <span className="text-[11px] text-ink-muted">TriponX Notification Hub · Operational Alerts</span>
                     <button
                       type="button"
                       onClick={() => {
                         onGo({ view: 'settings' });
                         closePanels();
                       }}
-                      className="text-[11.5px] font-bold text-primary hover:underline flex items-center gap-1"
+                      className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1"
                     >
                       <Lucide.SlidersHorizontal size={13} />
                       <span>Preferences</span>
@@ -922,10 +930,10 @@ export function Header({
                         {initials}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[13.5px] font-bold text-ink">{fullName}</p>
-                        <p className="truncate text-[11.5px] text-ink-muted">{me?.user.email ?? roleName}</p>
+                        <p className="truncate text-[13px] font-bold text-ink">{fullName}</p>
+                        <p className="truncate text-[11px] text-ink-muted">{me?.user.email ?? roleName}</p>
                         <span
-                          className="mt-1 inline-block rounded-md px-1.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wider"
+                          className="mt-1 inline-block rounded-md px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider"
                           style={{
                             background: 'color-mix(in srgb, var(--color-primary) 14%, transparent)',
                             color: 'var(--color-primary)',
@@ -1058,9 +1066,9 @@ export function Header({
                         <Icon size={14} strokeWidth={item.iconStrokeWidth} />
                       </span>
                       <div className="flex min-w-0 flex-col gap-0.5 leading-tight">
-                        <span className="truncate text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">{item.label}</span>
+                        <span className="truncate text-[11px] font-bold uppercase tracking-wider text-ink-muted">{item.label}</span>
                         <div className="flex min-w-0 items-center gap-1.5">
-                          <span className={`truncate text-[13.5px] font-bold tnum ${item.valueStyle}`} title={item.value}>{item.value}</span>
+                          <span className={`truncate text-[13px] font-bold tnum ${item.valueStyle}`} title={item.value}>{item.value}</span>
                           <span className={`flex-none rounded-md px-1.5 py-0.5 text-[10px] leading-tight ${item.badgeStyle}`}>
                             {item.badge}
                           </span>
@@ -1294,9 +1302,9 @@ export function Header({
                                   <act.icon size={18} strokeWidth={2.2} />
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="text-[13.5px] font-bold truncate">{act.label}</p>
+                                  <p className="text-[13px] font-bold truncate">{act.label}</p>
                                   <p
-                                    className={`text-[11.5px] truncate mt-0.5 ${isSelected ? 'text-white/80' : 'text-ink-secondary'
+                                    className={`text-[11px] truncate mt-0.5 ${isSelected ? 'text-white/80' : 'text-ink-secondary'
                                       }`}
                                   >
                                     {act.sub}

@@ -142,10 +142,10 @@ export function RateCalendarPanel({
                 <th key={date.iso} className={`min-w-[58px] border-r px-1.5 py-2 text-center ${date.isWeekend ? 'bg-danger-bg/50' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
                   <span className="block text-[10px] font-medium text-ink-muted">{date.weekday}</span>
                   <span className={`mt-0.5 block text-sm font-bold ${date.iso === businessDate ? 'text-primary' : 'text-ink'}`}>{date.day}</span>
-                  <span className="block text-[9px] font-medium text-ink-muted">{date.month}</span>
+                  <span className="block text-[10px] font-medium text-ink-muted">{date.month}</span>
                 </th>
               ))}
-              <th className="w-12 px-1 py-2 text-center text-[9px] font-semibold text-ink-muted">Copy</th>
+              <th className="w-12 px-1 py-2 text-center text-[10px] font-semibold text-ink-muted">Copy</th>
             </tr>
           </thead>
           <tbody>
@@ -157,7 +157,7 @@ export function RateCalendarPanel({
                 <td key={dates[index].iso} className={`border-r p-1 ${dates[index].isWeekend ? 'bg-danger-bg/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
                   <label className="sr-only" htmlFor={`rate-${dates[index].iso}`}>Nightly rate for {dates[index].weekday}, {dates[index].month} {dates[index].day}</label>
                   <div className="relative">
-                    <span className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 text-[9px] text-ink-muted">₹</span>
+                    <span className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 text-[10px] text-ink-muted">₹</span>
                     <input id={`rate-${dates[index].iso}`} type="number" min={0} step={100} value={rate} onChange={(event) => onRateChange(index, Number(event.target.value))} className="pms-input min-h-[34px] w-full px-1 py-1 pl-4 text-center text-[10px] font-semibold tnum" />
                   </div>
                 </td>
@@ -212,7 +212,7 @@ export function RateCalendarPanel({
               <th scope="row" className="sticky left-0 z-10 border-r px-4 py-2.5 text-left font-medium text-ink-secondary" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}>Demand forecast</th>
               {demand.map((value, index) => (
                 <td key={dates[index].iso} className={`border-r px-1 py-2 text-center ${dates[index].isWeekend ? 'bg-danger-bg/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
-                  <span className={`inline-flex rounded-full px-2 py-0.5 text-[9px] font-semibold ${value === 'High' ? 'bg-warning-bg text-warning-text' : 'bg-muted-surface text-ink-secondary'}`}>{value}</span>
+                  <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${value === 'High' ? 'bg-warning-bg text-warning-text' : 'bg-muted-surface text-ink-secondary'}`}>{value}</span>
                 </td>
               ))}
               <td />
@@ -227,9 +227,9 @@ export function RateCalendarPanel({
             <div className="mb-3 flex items-center justify-between gap-2">
               <div className="flex items-baseline gap-1.5">
                 <span className="text-xs font-semibold text-ink">{date.weekday}, {date.month} {date.day}</span>
-                {date.iso === businessDate && <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold text-primary">Today</span>}
+                {date.iso === businessDate && <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">Today</span>}
               </div>
-              <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold ${demand[index] === 'High' ? 'bg-warning-bg text-warning-text' : 'bg-muted-surface text-ink-secondary'}`}>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${demand[index] === 'High' ? 'bg-warning-bg text-warning-text' : 'bg-muted-surface text-ink-secondary'}`}>
                 {demand[index]} demand · {availability[index]} rooms
               </span>
             </div>

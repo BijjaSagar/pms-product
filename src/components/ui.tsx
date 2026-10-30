@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { BadgeTone } from './status';
+import type { BadgeTone } from '../utils/status';
 import { TONE_CLASSES, TONE_VARS } from '../theme/tone';
 
 export function Badge({
@@ -71,49 +71,6 @@ export function CardTitle({
         </div>
       </div>
       {action ? <div className="flex flex-none items-center gap-2">{action}</div> : null}
-    </div>
-  );
-}
-
-export const SectionHeader = CardTitle;
-
-export function PageHeader({
-  title,
-  subtitle,
-  icon: Icon,
-  iconBg = 'bg-primary text-primary-foreground shadow-md shadow-primary/20',
-  actions,
-  badge,
-  breadcrumb,
-}: {
-  title: string;
-  subtitle?: string;
-  icon?: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
-  iconBg?: string;
-  actions?: ReactNode;
-  badge?: ReactNode;
-  breadcrumb?: ReactNode;
-}) {
-  return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div className="flex items-start gap-3">
-        {Icon ? (
-          <div className={`flex h-10 w-10 flex-none items-center justify-center rounded-xl shadow-xs mt-0.5 ${iconBg}`}>
-            <Icon size={20} strokeWidth={2.4} />
-          </div>
-        ) : null}
-        <div>
-          {breadcrumb}
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
-              {title}
-            </h1>
-            {badge}
-          </div>
-          {subtitle ? <p className="text-xs text-ink-secondary mt-1">{subtitle}</p> : null}
-        </div>
-      </div>
-      {actions ? <div className="flex items-center gap-2 flex-wrap">{actions}</div> : null}
     </div>
   );
 }
@@ -190,30 +147,6 @@ export function Sparkline({ points, width = 120, height = 36 }: { points: readon
       <path d={line} fill="none" stroke="var(--color-primary)" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 2px 4px color-mix(in srgb, var(--color-ink) 22%, transparent))' }} />
       <circle cx={width} cy={lastY} r="3.5" fill="var(--color-primary)" stroke="var(--color-surface)" strokeWidth="1.5" />
     </svg>
-  );
-}
-
-export function ProgressBar({ value }: { value: number }) {
-  const clamped = Math.min(100, Math.max(0, value));
-  return (
-    <div
-      className="h-2 w-full overflow-hidden rounded-full"
-      style={{ background: 'var(--color-divider)', boxShadow: 'var(--shadow-inner)' }}
-      role="progressbar"
-      aria-valuenow={clamped}
-      aria-valuemin={0}
-      aria-valuemax={100}
-    >
-      <div
-        className="h-full rounded-full"
-        style={{
-          width: `${clamped}%`,
-          background: 'linear-gradient(90deg, var(--color-primary-hover), var(--color-primary))',
-          boxShadow: '0 1px 4px color-mix(in srgb, var(--color-ink) 30%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-primary-foreground) 35%, transparent)',
-          transition: 'width 500ms cubic-bezier(0.4,0,0.2,1)',
-        }}
-      />
-    </div>
   );
 }
 

@@ -3,11 +3,11 @@ import * as Lucide from 'lucide-react';
 import { formatCurrency } from '../../lib/api/format';
 import type { Invoice } from '../../types';
 import { Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../../components/ui';
-import { paymentTone } from '../../components/status';
+import { paymentTone } from '../../utils/status';
 import { FilterChip } from '../../components/controls';
-import { inputClass } from '../../components/inputClass';
+import { inputClass } from '../../utils/styling';
 import { Drawer, PromptDialog } from '../../components/overlays';
-import { toast } from '../../components/toastStore';
+import { toast } from '../../utils/toast';
 import { folioApi } from '../../lib/api/pms';
 import { invoiceFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
@@ -61,7 +61,7 @@ export function Invoices() {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
+              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">
                 Invoices & Billing Documents
               </h1>
               <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
@@ -81,7 +81,7 @@ export function Invoices() {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
+            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl cursor-pointer"
             title="Refresh invoices"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />

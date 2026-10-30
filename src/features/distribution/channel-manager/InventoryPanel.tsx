@@ -82,7 +82,7 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
               {dates.map((date, index) => {
                 const available = row.availability[index] ?? 0;
                 const tone = availabilityStyle(available, row.totalRooms);
-                return <button key={date.iso} type="button" onClick={() => onSelectCell({ roomType: row.roomType, date, available, total: row.totalRooms })} title={`${date.weekday}, ${date.month} ${date.day}: ${available}/${row.totalRooms} rooms`} aria-label={`${row.roomType}, ${date.month} ${date.day}: ${available} of ${row.totalRooms} rooms available`} className="flex min-h-[48px] flex-col items-center justify-center rounded-control transition-transform active:scale-95" style={{ background: tone.background, color: tone.color }}><span className="text-[9px] font-medium opacity-80">{date.day}</span><span className="text-xs font-bold tnum">{available}</span></button>;
+                return <button key={date.iso} type="button" onClick={() => onSelectCell({ roomType: row.roomType, date, available, total: row.totalRooms })} title={`${date.weekday}, ${date.month} ${date.day}: ${available}/${row.totalRooms} rooms`} aria-label={`${row.roomType}, ${date.month} ${date.day}: ${available} of ${row.totalRooms} rooms available`} className="flex min-h-[48px] flex-col items-center justify-center rounded-control transition-transform active:scale-95" style={{ background: tone.background, color: tone.color }}><span className="text-[10px] font-medium opacity-80">{date.day}</span><span className="text-xs font-bold tnum">{available}</span></button>;
               })}
             </div>
           </section>
@@ -94,7 +94,7 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
           <thead><tr>
             <th className="sticky left-0 z-20 min-w-[140px] border-r px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-ink-muted" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}>Room type</th>
             <th className="min-w-[72px] border-r px-2 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-ink-muted" style={{ borderColor: 'var(--color-divider)' }}>Total</th>
-            {dates.map((date) => <th key={date.iso} className={`min-w-[48px] border-r px-1 py-2 text-center ${date.isWeekend ? 'bg-primary/5' : ''}`} style={{ borderColor: 'var(--color-divider)' }}><span className="block text-[9px] font-medium text-ink-muted">{date.weekday}</span><span className="block text-sm font-bold text-ink">{date.day}</span><span className="block text-[9px] text-ink-muted">{date.month}</span></th>)}
+            {dates.map((date) => <th key={date.iso} className={`min-w-[48px] border-r px-1 py-2 text-center ${date.isWeekend ? 'bg-primary/5' : ''}`} style={{ borderColor: 'var(--color-divider)' }}><span className="block text-[10px] font-medium text-ink-muted">{date.weekday}</span><span className="block text-sm font-bold text-ink">{date.day}</span><span className="block text-[10px] text-ink-muted">{date.month}</span></th>)}
           </tr></thead>
           <tbody>
             {visibleRows.map((row) => (

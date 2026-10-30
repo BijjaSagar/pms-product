@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
-import { toast } from '../../components/toastStore';
+import { toast } from '../../utils/toast';
 import { TONE_VARS } from '../../theme/tone';
 import type { Tone } from '../../theme/tone';
 
@@ -756,7 +756,7 @@ export function StatusTimeline() {
               <div className="p-5 flex flex-col gap-4 max-h-[calc(85vh-130px)] overflow-y-auto">
                 {/* 1. Quick Change Status Chips */}
                 <div>
-                  <p className="text-[11.5px] font-bold uppercase tracking-wider text-ink-muted mb-2">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-2">
                     Quick Change Room Status
                   </p>
                   <div className="grid grid-cols-3 gap-2">

@@ -3,16 +3,16 @@ import * as Lucide from 'lucide-react';
 import { Avatar, Badge, Card, CardTitle } from '../../components/ui';
 import { BarChart, DonutChart } from '../../components/charts';
 import { Tabs } from '../../components/controls';
-import { reservationTone } from '../../components/status';
-import { inputClass } from '../../components/inputClass';
-import type { NavTarget } from '../../components/nav';
+import { reservationTone } from '../../utils/status';
+import { inputClass } from '../../utils/styling';
+import type { NavTarget } from '../../config/navigation';
 import { auditApi, nightAuditApi, reportsApi } from '../../lib/api/pms';
 import { apiReservationStatus } from '../../lib/api/adapters';
 import { formatCurrency } from '../../lib/api/format';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { useAuth } from '../../features/auth/AuthContext';
 import { newIdempotencyKey, displayApiError, downloadApiFile } from '../../lib/api/client';
-import { toast } from '../../components/toastStore';
+import { toast } from '../../utils/toast';
 import { PromptDialog } from '../../components/overlays';
 import { CHART_COLORS } from '../../theme/tone';
 
@@ -159,7 +159,7 @@ export function Reports({
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
+              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">
                 Analytics & Reports
               </h1>
               <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
@@ -181,7 +181,7 @@ export function Reports({
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
+            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl cursor-pointer"
             title="Refresh analytics data"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : 'text-ink-secondary'} />
@@ -246,10 +246,7 @@ export function Reports({
               </div>
               <div className="mt-2">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-black text-ink tnum">{occupancy?.occupancyPct ?? 68}%</span>
-                  <span className="text-[10px] font-bold text-success-text bg-success-bg px-1.5 py-0.5 rounded-md">
-                    +12% vs last wk
-                  </span>
+                  <span className="text-2xl font-black text-ink tnum">{occupancy?.occupancyPct ?? 0}%</span>
                 </div>
                 <p className="text-[11px] text-ink-muted mt-0.5">
                   {data?.flash.rooms.ready ?? 10} rooms available tonight
@@ -379,7 +376,7 @@ export function Reports({
                 {/* Bar + Line Combo Chart */}
                 <div className="relative h-48 w-full flex items-end pt-3">
                   {/* Y-axis left lines */}
-                  <div className="absolute inset-0 flex flex-col justify-between text-[9.5px] text-ink-muted pointer-events-none select-none">
+                  <div className="absolute inset-0 flex flex-col justify-between text-[10px] text-ink-muted pointer-events-none select-none">
                     <div className="border-b border-dashed border-divider pb-0.5">100%</div>
                     <div className="border-b border-dashed border-divider pb-0.5">80%</div>
                     <div className="border-b border-dashed border-divider pb-0.5">60%</div>
@@ -389,7 +386,7 @@ export function Reports({
                   </div>
 
                   {/* Y-axis right labels */}
-                  <div className="absolute right-0 inset-y-0 flex flex-col justify-between text-[9.5px] text-ink-muted pointer-events-none select-none text-right">
+                  <div className="absolute right-0 inset-y-0 flex flex-col justify-between text-[10px] text-ink-muted pointer-events-none select-none text-right">
                     <div>₹7K</div>
                     <div>₹6K</div>
                     <div>₹5K</div>
@@ -403,7 +400,7 @@ export function Reports({
                     {OCCUPANCY_CHART_DATA.map((item, idx) => (
                       <div key={idx} className="flex flex-col items-center flex-1 h-full justify-end group relative">
                         {/* Tooltip on hover */}
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5 text-[9.5px] font-bold bg-ink text-white rounded-md px-1.5 py-0.5 pointer-events-none z-30 whitespace-nowrap shadow-md">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5 text-[10px] font-bold bg-ink text-white rounded-md px-1.5 py-0.5 pointer-events-none z-30 whitespace-nowrap shadow-md">
                           {item.day}: {item.occ}% · ₹{item.adr}
                         </div>
                         {/* The bar */}
@@ -413,7 +410,7 @@ export function Reports({
                         />
                         <span className="text-[10px] text-ink-secondary mt-2 leading-tight text-center font-medium">
                           {item.day.split(' ')[0]}<br />
-                          <span className="text-ink-muted text-[9px]">{item.day.split(' ')[1]}</span>
+                          <span className="text-ink-muted text-[10px]">{item.day.split(' ')[1]}</span>
                         </span>
                       </div>
                     ))}
@@ -437,7 +434,7 @@ export function Reports({
               </div>
 
               <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-xs text-ink-secondary">
-                <span className="text-[11.5px] text-ink-muted">Peak demand: 24 Oct (95% Occupancy · ₹6,500 ADR)</span>
+                <span className="text-[11px] text-ink-muted">Peak demand: 24 Oct (95% Occupancy · ₹6,500 ADR)</span>
                 <button
                   type="button"
                   onClick={() => setActiveTab('occupancy')}
@@ -527,7 +524,7 @@ export function Reports({
               </div>
 
               <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-xs">
-                <span className="text-[11.5px] text-ink-muted">Available to sell: 10 units</span>
+                <span className="text-[11px] text-ink-muted">Available to sell: 10 units</span>
                 <button
                   type="button"
                   onClick={() => go({ view: 'room-overview' })}

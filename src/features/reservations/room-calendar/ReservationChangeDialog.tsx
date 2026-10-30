@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
 import type { ProposedReservationChange } from './types';
-import { ROOM_TYPE_CONFIG } from './mockData';
+import { ROOM_TYPE_CONFIG } from './calendarData';
 import { lockAppScroll } from '../../../lib/scrollLock';
 
 interface Props {

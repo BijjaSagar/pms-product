@@ -1,14 +1,14 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import type { BadgeTone } from '../../components/status';
+import type { BadgeTone } from '../../utils/status';
 import type { Guest } from '../../types';
 import { Avatar, Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../../components/ui';
 import { FilterChip, Pagination, Tabs } from '../../components/controls';
-import { inputClass } from '../../components/inputClass';
+import { inputClass } from '../../utils/styling';
 import { Field } from '../../components/controls';
 import { Modal } from '../../components/overlays';
-import { toast } from '../../components/toastStore';
-import type { NavTarget } from '../../components/nav';
+import { toast } from '../../utils/toast';
+import type { NavTarget } from '../../config/navigation';
 import { guestApi } from '../../lib/api/pms';
 import { guestFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';

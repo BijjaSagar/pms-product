@@ -60,7 +60,7 @@ export function NightAudit({ go }: NightAuditProps) {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
+              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">
                 Night Audit
               </h1>
               <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
@@ -214,7 +214,7 @@ export function NightAudit({ go }: NightAuditProps) {
           <div>
             <p className="text-2xl font-black text-ink leading-tight">12</p>
             <p className="text-xs font-semibold text-ink-secondary">Expected Arrivals</p>
-            <p className="text-[11.5px] font-bold text-success-text flex items-center gap-0.5">
+            <p className="text-[11px] font-bold text-success-text flex items-center gap-0.5">
               <span>↗</span> 2 walk-ins
             </p>
           </div>
@@ -231,7 +231,7 @@ export function NightAudit({ go }: NightAuditProps) {
           <div>
             <p className="text-2xl font-black text-ink leading-tight">8</p>
             <p className="text-xs font-semibold text-ink-secondary">Expected Departures</p>
-            <p className="text-[11.5px] font-bold text-danger-text flex items-center gap-0.5">
+            <p className="text-[11px] font-bold text-danger-text flex items-center gap-0.5">
               <span>↓</span> 1 early check-out
             </p>
           </div>
@@ -248,7 +248,7 @@ export function NightAudit({ go }: NightAuditProps) {
           <div>
             <p className="text-2xl font-black text-ink leading-tight">2</p>
             <p className="text-xs font-semibold text-ink-secondary">In-House Guests</p>
-            <p className="text-[11.5px] font-medium text-ink-muted">124 total guests</p>
+            <p className="text-[11px] font-medium text-ink-muted">124 total guests</p>
           </div>
         </div>
 
@@ -266,7 +266,7 @@ export function NightAudit({ go }: NightAuditProps) {
             <button
               type="button"
               onClick={() => setOpenFoliosModalOpen(true)}
-              className="text-[11.5px] font-bold hover:underline cursor-pointer"
+              className="text-[11px] font-bold hover:underline cursor-pointer"
               style={{ color: 'var(--color-primary)' }}
             >
               View details →
@@ -510,19 +510,19 @@ export function NightAudit({ go }: NightAuditProps) {
 
                 {/* Total Revenue Highlight */}
                 <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-info-bg/90 border border-info-border">
-                  <span className="font-semibold text-info-text text-[11.5px]">Total Revenue</span>
+                  <span className="font-semibold text-info-text text-[11px]">Total Revenue</span>
                   <span className="font-extrabold text-info-text font-mono text-[12px]">₹3,85,200</span>
                 </div>
 
                 {/* Total Payments Highlight */}
                 <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-success-bg/90 border border-success-border">
-                  <span className="font-semibold text-success-text text-[11.5px]">Total Payments</span>
+                  <span className="font-semibold text-success-text text-[11px]">Total Payments</span>
                   <span className="font-extrabold text-success-text font-mono text-[12px]">₹3,72,500</span>
                 </div>
 
                 {/* Outstanding Balance Highlight */}
                 <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-danger-bg/90 border border-danger-border">
-                  <span className="font-semibold text-danger-text text-[11.5px]">Outstanding Balance</span>
+                  <span className="font-semibold text-danger-text text-[11px]">Outstanding Balance</span>
                   <span className="font-extrabold text-danger-text font-mono text-[12px]">₹12,700</span>
                 </div>
               </div>
@@ -539,7 +539,7 @@ export function NightAudit({ go }: NightAuditProps) {
                 <Lucide.Info size={15} />
               </div>
               <div>
-                <p className="text-[10.5px] font-bold text-ink-muted uppercase tracking-wider">Audit Date</p>
+                <p className="text-[11px] font-bold text-ink-muted uppercase tracking-wider">Audit Date</p>
                 <p className="text-xs font-bold text-ink">{currentBusinessDate}</p>
               </div>
             </div>
@@ -582,7 +582,7 @@ export function NightAudit({ go }: NightAuditProps) {
             <div className="pms-table-scroll overflow-x-auto">
               <table className="pms-table w-full text-left text-xs mt-2">
                 <thead>
-                  <tr className="text-ink-muted text-[10.5px] font-bold uppercase tracking-wider border-b" style={{ borderColor: 'var(--color-border)' }}>
+                  <tr className="text-ink-muted text-[11px] font-bold uppercase tracking-wider border-b" style={{ borderColor: 'var(--color-border)' }}>
                     <th className="py-2 pr-2">GUEST NAME</th>
                     <th className="py-2 px-2">ROOM</th>
                     <th className="py-2 px-2 text-right">BALANCE (₹)</th>
@@ -595,7 +595,7 @@ export function NightAudit({ go }: NightAuditProps) {
                     <td className="py-2.5 px-2 text-ink-secondary">205</td>
                     <td className="py-2.5 px-2 text-right font-mono font-semibold text-ink">2,500.00</td>
                     <td className="py-2.5 pl-2 text-right">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-danger-bg text-danger-text border border-danger-border inline-flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-danger-bg text-danger-text border border-danger-border inline-flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-danger-text" />
                         Open
                       </span>
@@ -606,7 +606,7 @@ export function NightAudit({ go }: NightAuditProps) {
                     <td className="py-2.5 px-2 text-ink-secondary">312</td>
                     <td className="py-2.5 px-2 text-right font-mono font-semibold text-ink">1,200.00</td>
                     <td className="py-2.5 pl-2 text-right">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-danger-bg text-danger-text border border-danger-border inline-flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-danger-bg text-danger-text border border-danger-border inline-flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-danger-text" />
                         Open
                       </span>
@@ -617,7 +617,7 @@ export function NightAudit({ go }: NightAuditProps) {
                     <td className="py-2.5 px-2 text-ink-secondary">418</td>
                     <td className="py-2.5 px-2 text-right font-mono font-semibold text-ink">3,000.00</td>
                     <td className="py-2.5 pl-2 text-right">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-danger-bg text-danger-text border border-danger-border inline-flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-danger-bg text-danger-text border border-danger-border inline-flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-danger-text" />
                         Open
                       </span>
@@ -652,7 +652,7 @@ export function NightAudit({ go }: NightAuditProps) {
             <div className="pms-table-scroll overflow-x-auto">
               <table className="pms-table w-full text-left text-xs mt-2">
                 <thead>
-                  <tr className="text-ink-muted text-[10.5px] font-bold uppercase tracking-wider border-b" style={{ borderColor: 'var(--color-border)' }}>
+                  <tr className="text-ink-muted text-[11px] font-bold uppercase tracking-wider border-b" style={{ borderColor: 'var(--color-border)' }}>
                     <th className="py-2 pr-2">BOOKING ID</th>
                     <th className="py-2 px-2">GUEST NAME</th>
                     <th className="py-2 px-2 text-right">AMOUNT (₹)</th>
@@ -701,7 +701,7 @@ export function NightAudit({ go }: NightAuditProps) {
             <div className="pms-table-scroll overflow-x-auto">
               <table className="pms-table w-full text-left text-xs mt-2">
                 <thead>
-                  <tr className="text-ink-muted text-[10.5px] font-bold uppercase tracking-wider border-b" style={{ borderColor: 'var(--color-border)' }}>
+                  <tr className="text-ink-muted text-[11px] font-bold uppercase tracking-wider border-b" style={{ borderColor: 'var(--color-border)' }}>
                     <th className="py-2 pr-2">DATE</th>
                     <th className="py-2 px-2">STATUS</th>
                     <th className="py-2 px-2 text-right">TOTAL REVENUE (₹)</th>
@@ -712,7 +712,7 @@ export function NightAudit({ go }: NightAuditProps) {
                   <tr>
                     <td className="py-2 pr-2 font-medium text-ink">Oct 13, 2026</td>
                     <td className="py-2 px-2">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
                         Completed
                       </span>
@@ -723,7 +723,7 @@ export function NightAudit({ go }: NightAuditProps) {
                   <tr>
                     <td className="py-2 pr-2 font-medium text-ink">Oct 12, 2026</td>
                     <td className="py-2 px-2">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
                         Completed
                       </span>
@@ -734,7 +734,7 @@ export function NightAudit({ go }: NightAuditProps) {
                   <tr>
                     <td className="py-2 pr-2 font-medium text-ink">Oct 11, 2026</td>
                     <td className="py-2 px-2">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
                         Completed
                       </span>
@@ -745,7 +745,7 @@ export function NightAudit({ go }: NightAuditProps) {
                   <tr>
                     <td className="py-2 pr-2 font-medium text-ink">Oct 10, 2026</td>
                     <td className="py-2 px-2">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
                         Completed
                       </span>
@@ -756,7 +756,7 @@ export function NightAudit({ go }: NightAuditProps) {
                   <tr>
                     <td className="py-2 pr-2 font-medium text-ink">Oct 09, 2026</td>
                     <td className="py-2 px-2">
-                      <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
                         Completed
                       </span>

@@ -1,6 +1,9 @@
+import { BUSINESS_DATE } from '../../../data/catalog';
+import { shiftDate } from '../../../utils/date';
+
+export { BUSINESS_DATE, shiftDate };
 import type { DistributionChannel, RateHistoryEvent, RatePlan, Season } from './types';
 
-export const BUSINESS_DATE = '2026-10-17';
 export const INITIAL_RANGE_START = '2026-10-14';
 export const ROOM_TYPES = ['Standard', 'Deluxe', 'Superior', 'Executive', 'Family', 'Suite'];
 
@@ -116,11 +119,6 @@ export const INITIAL_HISTORY: RateHistoryEvent[] = [
   { id: 'h-4', title: 'Member Discount plan created', detail: 'All room types · 6 channels', user: 'Anaya Sharma', timestamp: 'Oct 15, 2026 · 2:05 PM', tone: 'success' },
 ];
 
-export function shiftDate(isoDate: string, days: number): string {
-  const date = new Date(`${isoDate}T12:00:00Z`);
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
-}
 
 export function buildDateRange(startDate: string, length = 15) {
   return Array.from({ length }, (_, index) => {

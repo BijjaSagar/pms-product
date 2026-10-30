@@ -1,5 +1,5 @@
 import type { CalendarReservation, CalendarRoom, ValidationResult } from './types';
-import { countNights } from './mockData';
+import { countNights } from './calendarData';
 
 /**
  * Validates a proposed reservation move (dates and/or room) against all operational constraints.

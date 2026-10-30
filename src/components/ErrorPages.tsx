@@ -1,6 +1,6 @@
 import * as Lucide from 'lucide-react';
-import type { NavTarget } from './nav';
-import { toast } from './toastStore';
+import type { NavTarget } from '../config/navigation';
+import { toast } from '../utils/toast';
 
 /**
  * Premium 403 Forbidden / Restricted Access Page
@@ -67,7 +67,7 @@ export function ForbiddenPage({
           Access Restricted to This View
         </h1>
 
-        <p className="mt-2 text-[13.5px] leading-relaxed text-ink-secondary max-w-[440px] mx-auto">
+        <p className="mt-2 text-[13px] leading-relaxed text-ink-secondary max-w-[440px] mx-auto">
           Your staff role at <strong className="text-ink">{propertyName || 'this property'}</strong> does not include the required permission{' '}
           <code className="rounded px-1.5 py-0.5 font-mono text-xs bg-muted text-ink font-semibold border" style={{ borderColor: 'var(--color-border)' }}>
             {permission}
@@ -157,7 +157,7 @@ export function NotFoundPage({ onGo }: { onGo: (t: NavTarget) => void }) {
           Page or View Unavailable
         </h1>
 
-        <p className="mt-2 text-[13.5px] leading-relaxed text-ink-secondary max-w-[440px] mx-auto">
+        <p className="mt-2 text-[13px] leading-relaxed text-ink-secondary max-w-[440px] mx-auto">
           The view or route you requested could not be resolved in this hotel PMS session. It may have moved or been decommissioned.
         </p>
 

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Sparkline } from './ui';
+
 
 export function Field({
   label,
@@ -135,56 +135,6 @@ export function Pagination({
         </button>
       </div>
     </div>
-  );
-}
-
-export function StatCard({
-  label,
-  value,
-  hint,
-  spark,
-  onClick,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-  spark?: readonly number[];
-  onClick?: () => void;
-}) {
-  const inner = (
-    <>
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-[3px] rounded-t-[16px]"
-        style={{ background: 'linear-gradient(90deg, var(--color-primary), var(--color-soft))', opacity: 0.9 }}
-      />
-      <p className="pms-label truncate">{label}</p>
-      <div className="mt-1.5 flex items-end justify-between gap-2">
-        <p className="pms-kpi-value tnum min-w-0 flex-1 truncate">{value}</p>
-        {spark ? (
-          <span className="flex-none">
-            <Sparkline points={spark} width={88} height={30} />
-          </span>
-        ) : null}
-      </div>
-      {hint ? <p className="pms-helper mt-1.5 line-clamp-1">{hint}</p> : null}
-    </>
-  );
-  if (!onClick)
-    return (
-      <section className="pms-card relative overflow-hidden p-3 sm:p-3.5">
-        {inner}
-      </section>
-    );
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="pms-card pms-card-hover relative overflow-hidden p-3 sm:p-3.5 text-left"
-      aria-label={`${label}: ${value}. View details`}
-    >
-      {inner}
-    </button>
   );
 }
 

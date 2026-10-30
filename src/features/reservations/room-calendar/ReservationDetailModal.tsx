@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
 import type { CalendarReservation, CalendarRoom, ProposedReservationChange } from './types';
-import { countNights, ROOM_TYPE_CONFIG } from './mockData';
+import { countNights, ROOM_TYPE_CONFIG } from './calendarData';
 import { validateReservationMove } from './validation';
-import { toast } from '../../../components/toastStore';
+import { toast } from '../../../utils/toast';
 import { lockAppScroll } from '../../../lib/scrollLock';
 
 interface Props {
@@ -178,7 +178,7 @@ export function ReservationDetailModal({
                 <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">Assigned Room</span>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-sm font-extrabold text-ink">Room {currentRoom.number}</span>
-                  <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${typeConfig.badgeBg}`}>
+                  <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded border ${typeConfig.badgeBg}`}>
                     {currentRoom.type}
                   </span>
                 </div>
