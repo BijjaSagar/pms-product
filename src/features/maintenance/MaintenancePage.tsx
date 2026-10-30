@@ -285,7 +285,7 @@ export function Maintenance() {
         subtitle="Details, technician assignment and resolution"
       >
         {open ? (
-          <div className="flex flex-col gap-4 text-[13.5px]">
+          <div className="flex flex-col gap-4 text-[13px]">
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone={priorityTone(open.priority)}>{open.priority}</Badge>
               <Badge tone={statusTone(open.status)}>{open.status}</Badge>

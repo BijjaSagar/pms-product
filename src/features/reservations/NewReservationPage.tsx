@@ -9,7 +9,7 @@ import type {
   ReservationRoomRow,
 } from "../../lib/api/pms";
 import { useApiResource } from "../../lib/api/useApiResource";
-import { TAX_RATE } from "../../data/catalog";
+import { BUSINESS_DATE, GUESTS, TAX_RATE } from "../../data/catalog";
 import { BillingPreferencesSection } from "./new-reservation/BillingPreferencesSection";
 import { OutletPOSSection } from "./new-reservation/OutletPOSSection";
 import { RoomRequirementsSection } from "./new-reservation/RoomRequirementsSection";
@@ -27,6 +27,10 @@ import type {
   RoomCategoryOption,
   RoomRequirement,
 } from "./new-reservation/types";
+
+/* The form opens on the store's first guest, so its defaults match the seeded data. */
+const DEFAULT_GUEST = GUESTS[0];
+const DEFAULT_GUEST_NAME = `${DEFAULT_GUEST.firstName} ${DEFAULT_GUEST.lastName}`;
 
 /** ISO date (YYYY-MM-DD) for the day after the given ISO date. */
 function nextDayIso(iso: string): string {
@@ -61,7 +65,7 @@ export function NewReservation({
       (category) =>
         category.name.toLowerCase() === draftRoomTypeName.toLowerCase(),
     ) ?? FALLBACK_ROOM_CATEGORIES[1];
-  const initialCheckIn = initialDraft?.checkIn ?? "2026-10-20";
+  const initialCheckIn = initialDraft?.checkIn ?? BUSINESS_DATE;
   const initialCheckOut =
     initialDraft?.checkOut ?? nextDayIso(initialCheckIn);
 
@@ -145,7 +149,7 @@ export function NewReservation({
       mealPlan: "EP",
       billingRoute: "Default",
       occupants: [
-        { id: "occupant-primary", name: "Rohan Sharma", role: "Primary guest" },
+        { id: "occupant-primary", name: DEFAULT_GUEST_NAME, role: "Primary guest" },
       ],
     },
   ]);
@@ -197,19 +201,19 @@ export function NewReservation({
 
   // Guest Details
   const [guestSalutation, setGuestSalutation] = useState("Mr.");
-  const [guestName, setGuestName] = useState("Rohan Sharma");
+  const [guestName, setGuestName] = useState(DEFAULT_GUEST_NAME);
   const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(null);
-  const [guestContact, setGuestContact] = useState("+91 88829 51951");
-  const [guestEmail, setGuestEmail] = useState("support@djubo.com");
+  const [guestContact, setGuestContact] = useState(DEFAULT_GUEST.phone);
+  const [guestEmail, setGuestEmail] = useState(DEFAULT_GUEST.email);
   const [guestIdType, setGuestIdType] = useState("Aadhaar Card");
-  const [guestIdNumber, setGuestIdNumber] = useState("9842 1290 8731");
+  const [guestIdNumber, setGuestIdNumber] = useState("");
   const [specialRequests, setSpecialRequests] = useState(
-    "Quiet room on upper floor preferred.",
+    "",
   );
 
   // Payments & Financials
   const [paymentNotes, setPaymentNotes] = useState(
-    "Pre-booking verified via direct call.",
+    "",
   );
   const [paymentsList, setPaymentsList] = useState<
     { id: string; method: string; amount: number; time: string; ref: string }[]

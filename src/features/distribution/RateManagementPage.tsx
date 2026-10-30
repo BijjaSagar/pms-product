@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { FLOOR_PLAN, ROOM_TYPES as CATALOG_ROOM_TYPES } from '../../data/catalog';
 import * as Lucide from 'lucide-react';
 import { toast } from '../../utils/toast';
 import {
@@ -263,9 +264,9 @@ export function RateManagement() {
 
   const metrics = [
     { label: 'Active rate plans', value: String(ratePlans.filter((plan) => plan.status === 'Active').length), hint: `${ratePlans.length} configured`, icon: Lucide.Layers3, tint: 'primary' as const },
-    { label: 'Room inventory', value: '50', hint: 'Across 6 room types', icon: Lucide.BedDouble, tint: 'info' as const },
-    { label: 'Average daily rate', value: '₹8,450', hint: '+12% vs last month', icon: Lucide.CircleDollarSign, tint: 'success' as const },
-    { label: 'Occupancy forecast', value: '78%', hint: '+6% vs last month', icon: Lucide.ChartNoAxesCombined, tint: 'warning' as const },
+    { label: 'Room inventory', value: String(FLOOR_PLAN.reduce((sum, plan) => sum + plan.count, 0)), hint: `Across ${CATALOG_ROOM_TYPES.length} room types`, icon: Lucide.BedDouble, tint: 'info' as const },
+    { label: 'Average daily rate', value: '₹8,450', hint: 'Demo forecast', icon: Lucide.CircleDollarSign, tint: 'success' as const },
+    { label: 'Occupancy forecast', value: '78%', hint: 'Demo forecast', icon: Lucide.ChartNoAxesCombined, tint: 'warning' as const },
     { label: 'Projected revenue', value: '₹4,22,500', hint: 'Next 30 days', icon: Lucide.TrendingUp, tint: 'success' as const },
   ];
 
@@ -278,7 +279,7 @@ export function RateManagement() {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">Rate Management</h1>
+              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">Rate Management</h1>
               <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>

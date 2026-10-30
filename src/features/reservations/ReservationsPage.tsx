@@ -21,12 +21,12 @@ import type {
 } from './room-calendar/types';
 import {
   BUSINESS_DATE,
-  MOCK_ROOMS,
   addDaysToIso,
   countNights,
   formatCalendarDate,
+  loadCalendarRooms,
   loadSyncedReservations,
-} from './room-calendar/mockData';
+} from './room-calendar/calendarData';
 import { validateReservationMove } from './room-calendar/validation';
 import { ReservationChangeDialog } from './room-calendar/ReservationChangeDialog';
 import { ReservationDetailModal } from './room-calendar/ReservationDetailModal';
@@ -39,249 +39,6 @@ const STATUS_FILTERS: (ReservationStatus | 'All')[] = [
   'Checked-out',
   'Cancelled',
   'No-show',
-];
-
-const DEMO_RESERVATIONS: Reservation[] = [
-  {
-    id: 'RSV-20261015-015763',
-    guest: 'Aarav Iyer',
-    guestId: 'g-1023',
-    room: 'Unassigned',
-    roomNumber: null,
-    roomType: 'Deluxe',
-    checkIn: 'Apr 13',
-    checkOut: 'Apr 15',
-    checkInIso: '2026-04-13',
-    checkOutIso: '2026-04-15',
-    nights: 2,
-    adults: 1,
-    children: 0,
-    status: 'Confirmed',
-    ratePlan: 'Best available rate',
-    channel: 'Direct',
-    total: 9440,
-    paid: 9440,
-    currencyCode: 'INR',
-    nightlyRate: 4000,
-    specialRequests: '',
-    notes: '',
-  },
-  {
-    id: 'RSV-20261015-484482',
-    guest: 'Aarav Iyer',
-    guestId: 'g-1023',
-    room: '201',
-    roomNumber: '201',
-    roomType: 'Deluxe',
-    checkIn: 'Jun 12',
-    checkOut: 'Jun 14',
-    checkInIso: '2026-06-12',
-    checkOutIso: '2026-06-14',
-    nights: 2,
-    adults: 1,
-    children: 0,
-    status: 'Confirmed',
-    ratePlan: 'Best available rate',
-    channel: 'Direct',
-    total: 9440,
-    paid: 9440,
-    currencyCode: 'INR',
-    nightlyRate: 4000,
-    specialRequests: 'High floor preferred',
-    notes: 'Returning corporate guest',
-  },
-  {
-    id: 'TST-8e9e8f26',
-    guest: 'Aarav Iyer',
-    guestId: 'g-1023',
-    room: 'Unassigned',
-    roomNumber: null,
-    roomType: 'Standard',
-    checkIn: 'Mar 01',
-    checkOut: 'Mar 03',
-    checkInIso: '2026-03-01',
-    checkOutIso: '2026-03-03',
-    nights: 2,
-    adults: 1,
-    children: 0,
-    status: 'Confirmed',
-    ratePlan: 'Complimentary stay',
-    channel: 'Direct',
-    total: 0,
-    paid: 0,
-    currencyCode: 'INR',
-    nightlyRate: 0,
-    specialRequests: '',
-    notes: '',
-  },
-  {
-    id: 'TST-2f9ed697',
-    guest: 'Aarav Iyer',
-    guestId: 'g-1023',
-    room: '404',
-    roomNumber: '404',
-    roomType: 'Deluxe',
-    checkIn: 'Mar 11',
-    checkOut: 'Mar 13',
-    checkInIso: '2026-03-11',
-    checkOutIso: '2026-03-13',
-    nights: 2,
-    adults: 1,
-    children: 0,
-    status: 'Confirmed',
-    ratePlan: 'Complimentary stay',
-    channel: 'Direct',
-    total: 0,
-    paid: 0,
-    currencyCode: 'INR',
-    nightlyRate: 0,
-    specialRequests: '',
-    notes: '',
-  },
-  {
-    id: 'RSV-20261015-379376',
-    guest: 'Aarav Iyer',
-    guestId: 'g-1023',
-    room: '503',
-    roomNumber: '503',
-    roomType: 'Deluxe',
-    checkIn: 'Nov 14',
-    checkOut: 'Nov 16',
-    checkInIso: '2026-11-14',
-    checkOutIso: '2026-11-16',
-    nights: 2,
-    adults: 1,
-    children: 0,
-    status: 'Confirmed',
-    ratePlan: 'Best available rate',
-    channel: 'Direct',
-    total: 9440,
-    paid: 9440,
-    currencyCode: 'INR',
-    nightlyRate: 4000,
-    specialRequests: 'Quiet room',
-    notes: '',
-  },
-  {
-    id: 'RSV-DM-0001',
-    guest: 'Aarav Iyer',
-    guestId: 'g-1023',
-    room: '102',
-    roomNumber: '102',
-    roomType: 'Standard',
-    checkIn: 'Oct 02',
-    checkOut: 'Oct 04',
-    checkInIso: '2026-10-02',
-    checkOutIso: '2026-10-04',
-    nights: 2,
-    adults: 1,
-    children: 0,
-    status: 'Checked-out',
-    ratePlan: 'Best available rate',
-    channel: 'Direct',
-    total: 9440,
-    paid: 9440,
-    currencyCode: 'INR',
-    nightlyRate: 4000,
-    specialRequests: '',
-    notes: '',
-  },
-  {
-    id: 'RSV-20261010-118273',
-    guest: 'Rahul Sharma',
-    guestId: 'g-2041',
-    room: '305',
-    roomNumber: '305',
-    roomType: 'Superior',
-    checkIn: 'Oct 10',
-    checkOut: 'Oct 12',
-    checkInIso: '2026-10-10',
-    checkOutIso: '2026-10-12',
-    nights: 2,
-    adults: 2,
-    children: 0,
-    status: 'Checked-in',
-    ratePlan: 'OTA Standard Rate',
-    channel: 'Booking.com',
-    total: 12980,
-    paid: 12980,
-    currencyCode: 'INR',
-    nightlyRate: 5500,
-    specialRequests: 'Extra pillows',
-    notes: 'Booking.com prepaid',
-  },
-  {
-    id: 'RSV-20261008-662900',
-    guest: 'Priya Mehta',
-    guestId: 'g-3092',
-    room: 'Unassigned',
-    roomNumber: null,
-    roomType: 'Deluxe',
-    checkIn: 'Oct 08',
-    checkOut: 'Oct 10',
-    checkInIso: '2026-10-08',
-    checkOutIso: '2026-10-10',
-    nights: 2,
-    adults: 2,
-    children: 0,
-    status: 'Pending',
-    ratePlan: 'Early Bird Promo',
-    channel: 'Agoda',
-    total: 11200,
-    paid: 5000,
-    currencyCode: 'INR',
-    nightlyRate: 4800,
-    specialRequests: 'Airport pickup requested',
-    notes: 'Deposit received',
-  },
-  {
-    id: 'RSV-20261005-221144',
-    guest: 'Vikram Rao',
-    guestId: 'g-4018',
-    room: '101',
-    roomNumber: '101',
-    roomType: 'Standard',
-    checkIn: 'Oct 05',
-    checkOut: 'Oct 06',
-    checkInIso: '2026-10-05',
-    checkOutIso: '2026-10-06',
-    nights: 1,
-    adults: 1,
-    children: 0,
-    status: 'Cancelled',
-    ratePlan: 'Standard Flexible',
-    channel: 'Direct',
-    total: 4720,
-    paid: 0,
-    currencyCode: 'INR',
-    nightlyRate: 4000,
-    specialRequests: '',
-    notes: 'Cancelled via customer request',
-  },
-  {
-    id: 'RSV-20261001-339912',
-    guest: 'Neha Kapoor',
-    guestId: 'g-5022',
-    room: '408',
-    roomNumber: '408',
-    roomType: 'Deluxe',
-    checkIn: 'Oct 01',
-    checkOut: 'Oct 04',
-    checkInIso: '2026-10-01',
-    checkOutIso: '2026-10-04',
-    nights: 3,
-    adults: 1,
-    children: 0,
-    status: 'Confirmed',
-    ratePlan: 'Holiday Retreat Package',
-    channel: 'Expedia',
-    total: 14160,
-    paid: 14160,
-    currencyCode: 'INR',
-    nightlyRate: 4200,
-    specialRequests: 'Late arrival after 8 PM',
-    notes: 'Guaranteed with card',
-  },
 ];
 
 type SortKey = 'checkIn' | 'guest' | 'amount';
@@ -596,7 +353,14 @@ export function RoomCalendar({
   const [viewHorizonDays, setViewHorizonDays] = useState<7 | 14 | 30>(14);
 
   // Master Data synchronized with central PMS store
-  const [rooms] = useState<CalendarRoom[]>(MOCK_ROOMS);
+  const [rooms] = useState<CalendarRoom[]>(loadCalendarRooms);
+  const floorOptions = useMemo(() => {
+    const floors = [...new Set(rooms.map((room) => room.floor))].sort((a, b) => a - b);
+    return floors.map((floor) => {
+      const numbers = rooms.filter((room) => room.floor === floor).map((room) => room.number).sort();
+      return { floor, first: numbers[0], last: numbers[numbers.length - 1] };
+    });
+  }, [rooms]);
   const [reservations, setReservations] = useState<CalendarReservation[]>(() =>
     loadSyncedReservations()
   );
@@ -1144,10 +908,12 @@ export function RoomCalendar({
               aria-label="Filter by floor"
               className="min-h-10 w-full border border-border bg-page/60 px-3 py-2 text-xs font-semibold text-ink focus:bg-surface focus:outline-none cursor-pointer"
             >
-              <option value="All">All Floors (15 Rooms)</option>
-              <option value="1">Floor 1 (Rooms 101–105)</option>
-              <option value="2">Floor 2 (Rooms 201–205)</option>
-              <option value="3">Floor 3 (Rooms 301–305)</option>
+              <option value="All">All Floors ({rooms.length} Rooms)</option>
+              {floorOptions.map((option) => (
+                <option key={option.floor} value={option.floor}>
+                  Floor {option.floor} (Rooms {option.first}–{option.last})
+                </option>
+              ))}
             </select>
           </div>
 
@@ -1240,7 +1006,7 @@ export function RoomCalendar({
                   >
                     {dateInfo.dayNum}
                   </span>
-                  <span className="mt-0.5 text-[9px] font-medium text-ink-secondary">
+                  <span className="mt-0.5 text-[10px] font-medium text-ink-secondary">
                     {dateInfo.month}
                   </span>
                 </div>
@@ -1602,15 +1368,11 @@ export function Reservations({
   const loadRows = useCallback(async () => {
     const result = await reservationApi.list('', undefined, 1, 100);
     const apiMapped = result.data.map(reservationFromApi);
-    return apiMapped.length > 0 ? apiMapped : DEMO_RESERVATIONS;
+    return apiMapped;
   }, []);
 
   const resource = useApiResource(loadRows);
-  const rows = useMemo(() => {
-    const loaded = resource.data;
-    if (!loaded || loaded.length === 0) return DEMO_RESERVATIONS;
-    return loaded;
-  }, [resource.data]);
+  const rows = useMemo(() => resource.data ?? [], [resource.data]);
 
   const [q, setQ] = useState(initialQuery);
   const [status, setStatus] = useState<(typeof STATUS_FILTERS)[number]>('All');

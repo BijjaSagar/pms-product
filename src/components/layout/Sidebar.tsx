@@ -229,7 +229,7 @@ export function Sidebar({
           <button
             type="button"
             onClick={() => go('dashboard')}
-            className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-[19px] font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+            className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-[18px] font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 cursor-pointer"
             style={{ background: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
             aria-label="Dashboard"
           >
@@ -239,7 +239,7 @@ export function Sidebar({
             <p className="font-brand truncate text-[18px] font-bold leading-none tracking-tight text-ink">
               TriponX
             </p>
-            <p className="mt-1 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
+            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
               Hotel PMS
             </p>
           </div>
@@ -348,7 +348,7 @@ export function Sidebar({
           onClick={() => go('dashboard')}
           onMouseEnter={(e) => handleMouseEnter(e, 'TriponX Hotel PMS', 'Go to Dashboard', 'PMS')}
           onMouseLeave={handleMouseLeave}
-          className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-[19px] font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+          className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-[18px] font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 cursor-pointer"
           style={{ background: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
           aria-label="TriponX Home"
         >
@@ -415,7 +415,7 @@ export function Sidebar({
                 {/* Sub-item count badge indicator */}
                 {!isDirectItem && (
                   <span
-                    className="absolute -bottom-0.5 -right-0.5 flex h-3.5 min-w-[14px] px-0.5 items-center justify-center rounded-full text-[8.5px] font-bold"
+                    className="absolute -bottom-0.5 -right-0.5 flex h-3.5 min-w-[14px] px-0.5 items-center justify-center rounded-full text-[10px] font-bold"
                     style={{
                       background: isSectionActive ? 'var(--color-primary)' : 'var(--color-ink-muted)',
                       color: 'var(--color-primary-foreground)',
@@ -487,11 +487,11 @@ export function Sidebar({
             <div className="mr-[-1px] h-0 w-0 border-y-[5px] border-y-transparent border-r-[6px] border-r-slate-900" />
             <div className="rounded-xl bg-ink/95 backdrop-blur-md px-3 py-1.5 text-white shadow-2xl border border-ink-disabled/60 text-left">
               <div className="flex items-center gap-1.5">
-                <span className="text-[12.5px] font-semibold tracking-tight text-white">
+                <span className="text-[12px] font-semibold tracking-tight text-white">
                   {tooltip.title}
                 </span>
                 {tooltip.badge && (
-                  <span className="rounded-md bg-surface/20 px-1.5 py-0.5 text-[9.5px] font-bold tracking-wide uppercase text-ink-disabled">
+                  <span className="rounded-md bg-surface/20 px-1.5 py-0.5 text-[10px] font-bold tracking-wide uppercase text-ink-disabled">
                     {tooltip.badge}
                   </span>
                 )}
@@ -538,7 +538,7 @@ export function Sidebar({
                     <p className="text-[13px] font-bold text-ink leading-tight">
                       {activeSection.title}
                     </p>
-                    <p className="text-[10.5px] font-medium text-ink-muted">
+                    <p className="text-[11px] font-medium text-ink-muted">
                       {activeSection.items.length} views available
                     </p>
                   </div>

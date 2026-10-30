@@ -308,7 +308,7 @@ export function ChannelManager() {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">Channel Manager</h1>
+              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">Channel Manager</h1>
               <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
@@ -353,9 +353,9 @@ export function ChannelManager() {
             </div>
             {selectedChannel.status === 'error' && <div className="mt-4 rounded-control border p-3 text-[11px] leading-relaxed text-danger-text" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)' }}><span className="font-bold">Connection error</span><br />{selectedChannel.errorDetail}</div>}
             <div className="mt-4 grid grid-cols-3 divide-x rounded-control border py-3" style={{ borderColor: 'var(--color-divider)' }}>
-              <div className="px-2 text-center"><p className="text-[9px] font-semibold uppercase tracking-wider text-ink-muted">Rooms</p><p className="mt-1 text-sm font-bold text-ink tnum">{selectedChannel.activeRooms}</p></div>
-              <div className="px-2 text-center"><p className="text-[9px] font-semibold uppercase tracking-wider text-ink-muted">Bookings MTD</p><p className="mt-1 text-sm font-bold text-ink tnum">{selectedChannel.bookingsMtd}</p></div>
-              <div className="px-2 text-center"><p className="text-[9px] font-semibold uppercase tracking-wider text-ink-muted">Sync health</p><p className="mt-1 text-sm font-bold text-ink tnum">{selectedChannel.syncSuccess}%</p></div>
+              <div className="px-2 text-center"><p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Rooms</p><p className="mt-1 text-sm font-bold text-ink tnum">{selectedChannel.activeRooms}</p></div>
+              <div className="px-2 text-center"><p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Bookings MTD</p><p className="mt-1 text-sm font-bold text-ink tnum">{selectedChannel.bookingsMtd}</p></div>
+              <div className="px-2 text-center"><p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Sync health</p><p className="mt-1 text-sm font-bold text-ink tnum">{selectedChannel.syncSuccess}%</p></div>
             </div>
             <div className="mt-4 flex items-center justify-between gap-2 text-xs"><span className="text-ink-muted">Last sync</span><span className={`font-semibold ${selectedChannel.status === 'error' ? 'text-danger-text' : 'text-ink-secondary'}`}>{selectedChannel.lastSync}</span></div>
             <div className="mt-2 flex items-center justify-between gap-2 text-xs"><span className="text-ink-muted">Rate mappings</span><button type="button" onClick={() => handleTabChange('mapping')} className="font-semibold text-primary hover:underline">{mappedCount} mapped · Review</button></div>

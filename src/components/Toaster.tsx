@@ -130,7 +130,7 @@ function ToastCard({ toast: t, onDismiss }: ToastCardProps) {
         <div className="min-w-0 flex-1 pt-0.5">
           <div className="flex items-center justify-between gap-2 pr-1">
             <h4
-              className="text-[13.5px] font-semibold tracking-tight leading-snug truncate"
+              className="text-[13px] font-semibold tracking-tight leading-snug truncate"
               style={{ color: 'var(--color-ink)' }}
             >
               {t.title}
@@ -164,7 +164,7 @@ function ToastCard({ toast: t, onDismiss }: ToastCardProps) {
                   void t.action?.onClick();
                   onDismiss(t.id);
                 }}
-                className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold px-2.5 py-1 rounded-lg border shadow-xs transition-all duration-150 active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-lg border shadow-xs transition-all duration-150 active:scale-95 cursor-pointer"
                 style={{
                   background: 'var(--color-surface)',
                   borderColor: 'var(--color-border)',

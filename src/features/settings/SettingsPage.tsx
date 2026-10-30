@@ -684,7 +684,7 @@ export function Settings({
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
+              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">
                 Property Settings
               </h1>
               <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
@@ -1009,7 +1009,7 @@ export function Settings({
                   >
                     <div className="flex flex-col items-center justify-center">
                       <Lucide.Building2 size={20} className="text-warning-text mb-0.5" />
-                      <span className="text-[8px] font-bold uppercase tracking-wider text-ink-secondary leading-tight">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-ink-secondary leading-tight">
                         Grand Horizon
                       </span>
                     </div>

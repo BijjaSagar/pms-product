@@ -2,7 +2,9 @@ import { useState, useMemo, useCallback } from 'react';
 import * as Lucide from 'lucide-react';
 import { Modal } from '../../components/overlays';
 import { toast } from '../../utils/toast';
-import { folioApi, frontDeskApi } from '../../lib/api/pms';
+import { folioApi, frontDeskApi, type FolioDetailRow, type StayRow } from '../../lib/api/pms';
+import { BUSINESS_DATE, GUESTS } from '../../data/catalog';
+import { addDays, nightsBetween } from '../../data/model';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { formatINR, formatNumber } from '../../utils';
 
@@ -74,547 +76,171 @@ export interface GuestBillingData {
   backendFolioId?: string;
 }
 
-// Preset Guests Data (Aarav Iyer matches screenshot 100%)
-const PRESET_GUESTS: GuestBillingData[] = [
-  {
-    id: 'aarav-iyer',
-    guestId: 'G-1023',
-    name: 'Aarav Iyer',
-    avatarInitials: 'AI',
+/* Store rows -> billing view. Every figure comes from the stay, the folio or the guest catalog. */
+
+const ITEM_CATEGORY: Record<string, BillingTransaction['category']> = {
+  ROOM: 'room',
+  POS: 'food',
+  MINIBAR: 'minibar',
+  LAUNDRY: 'service',
+  DISCOUNT: 'other',
+};
+
+const ITEM_ICON: Record<string, BillingTransaction['iconType']> = {
+  ROOM: 'room',
+  POS: 'dinner',
+  MINIBAR: 'minibar',
+  LAUNDRY: 'other',
+  DISCOUNT: 'other',
+};
+
+function toDisplayDate(iso: string): string {
+  const [y, m, d] = iso.split('-');
+  return `${d}-${m}-${y}`;
+}
+
+function formatLongDate(iso: string): string {
+  return new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+function formatDateTime(iso: string): { date: string; time: string } {
+  const d = new Date(iso);
+  return {
+    date: d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }),
+    time: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }),
+  };
+}
+
+function billingGuestFromStore(stay: StayRow, folio: FolioDetailRow): GuestBillingData {
+  const guest = GUESTS.find((g) => g.id === (stay.primaryGuestId || stay.guestId));
+  const name = stay.guestName || (guest ? `${guest.firstName} ${guest.lastName}` : 'Guest');
+  const initials = name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
+  const checkIn = String(stay.checkInDate).slice(0, 10);
+  const checkOut = String(stay.checkOutDate).slice(0, 10);
+  const nights = nightsBetween(checkIn, checkOut);
+  const adults = Number(stay.adults ?? 1);
+  const children = Number(stay.children ?? 0);
+  const items = folio.items.filter((item) => !item.isVoided);
+  const sumWhere = (types: string[]) =>
+    items.filter((item) => types.includes(item.type)).reduce((total, item) => total + Number(item.totalAmount), 0);
+
+  const transactions: BillingTransaction[] = [];
+  let running = 0;
+  for (const item of [...items].sort((x, y) => x.createdAt.localeCompare(y.createdAt))) {
+    running += Number(item.totalAmount);
+    const when = formatDateTime(item.createdAt);
+    transactions.push({
+      id: item.id,
+      date: when.date,
+      time: when.time,
+      rawDate: item.createdAt.slice(0, 10),
+      category: ITEM_CATEGORY[item.type] ?? 'other',
+      title: item.description,
+      detail: `${item.quantity} × ${item.unitAmount}`,
+      reference: item.id,
+      charge: Number(item.totalAmount),
+      credit: 0,
+      balance: running,
+      iconType: ITEM_ICON[item.type] ?? 'other',
+    });
+  }
+  for (const payment of folio.payments) {
+    running -= Number(payment.amount);
+    const when = formatDateTime(payment.recordedAt);
+    transactions.push({
+      id: `pay-${payment.id}`,
+      date: when.date,
+      time: when.time,
+      rawDate: payment.recordedAt.slice(0, 10),
+      category: 'payment',
+      title: `Payment · ${payment.method}`,
+      detail: payment.reference ?? '',
+      reference: payment.reference ?? payment.id,
+      charge: 0,
+      credit: Number(payment.amount),
+      balance: running,
+      iconType: 'card',
+    });
+  }
+  transactions.sort((x, y) => x.rawDate.localeCompare(y.rawDate));
+
+  const { balance } = folio;
+  return {
+    id: stay.id,
+    guestId: guest?.id ?? stay.guestId ?? '',
+    name,
+    avatarInitials: initials,
     status: 'In-house',
-    phone: '+91 98765 43210',
-    email: 'aarav.iyer@example.com',
-    stayDates: 'Oct 13, 2026 → Oct 17, 2026 (4 nights)',
-    fromDate: '2026-10-13',
-    toDate: '2026-10-17',
-    nights: 4,
-    room: 'Room 201 • Deluxe',
-    roomNumber: '201',
-    roomType: 'Deluxe',
-    occupancy: '2 Adults • 0 Children',
-    adults: 2,
-    children: 0,
-    reservationCode: 'RSV-20261013-001',
-    reservationStatus: 'Confirmed',
-    folioStatus: 'Open',
-    currency: '₹',
-    currencyCode: 'INR',
-    transactions: [
-      {
-        id: 'tx-1',
-        date: '13 Oct 2026',
-        time: '02:15 PM',
-        rawDate: '2026-10-13',
-        category: 'room',
-        title: 'Room Charge - Deluxe',
-        detail: 'Room 201 (1 night)',
-        reference: 'AUTO',
-        charge: 4000.0,
-        credit: 0,
-        balance: 4000.0,
-        iconType: 'room',
-      },
-      {
-        id: 'tx-2',
-        date: '13 Oct 2026',
-        time: '02:16 PM',
-        rawDate: '2026-10-13',
-        category: 'service',
-        title: 'Breakfast',
-        detail: '2 guests × ₹350',
-        reference: 'SVC-1001',
-        charge: 700.0,
-        credit: 0,
-        balance: 4700.0,
-        iconType: 'breakfast',
-      },
-      {
-        id: 'tx-3',
-        date: '14 Oct 2026',
-        time: '12:30 PM',
-        rawDate: '2026-10-14',
-        category: 'food',
-        title: 'Restaurant - Lunch',
-        detail: 'Room 201',
-        reference: 'POS-4589',
-        charge: 1250.0,
-        credit: 0,
-        balance: 5950.0,
-        iconType: 'lunch',
-      },
-      {
-        id: 'tx-4',
-        date: '14 Oct 2026',
-        time: '08:45 PM',
-        rawDate: '2026-10-14',
-        category: 'spa',
-        title: 'Spa Treatment',
-        detail: 'Aarav Iyer',
-        reference: 'SPA-0201',
-        charge: 2000.0,
-        credit: 0,
-        balance: 7950.0,
-        iconType: 'spa',
-      },
-      {
-        id: 'tx-5',
-        date: '15 Oct 2026',
-        time: '10:10 AM',
-        rawDate: '2026-10-15',
-        category: 'transport',
-        title: 'Airport Transfer',
-        detail: 'Drop service',
-        reference: 'SVC-2034',
-        charge: 1200.0,
-        credit: 0,
-        balance: 9150.0,
-        iconType: 'car',
-      },
-      {
-        id: 'tx-6',
-        date: '15 Oct 2026',
-        time: '07:40 PM',
-        rawDate: '2026-10-15',
-        category: 'food',
-        title: 'Restaurant - Dinner',
-        detail: 'Room 201',
-        reference: 'POS-4678',
-        charge: 1680.0,
-        credit: 0,
-        balance: 10830.0,
-        iconType: 'dinner',
-      },
-      {
-        id: 'tx-7',
-        date: '16 Oct 2026',
-        time: '09:00 AM',
-        rawDate: '2026-10-16',
-        category: 'service',
-        title: 'Breakfast',
-        detail: '2 guests × ₹350',
-        reference: 'SVC-1001',
-        charge: 700.0,
-        credit: 0,
-        balance: 11530.0,
-        iconType: 'breakfast',
-      },
-      {
-        id: 'tx-8',
-        date: '16 Oct 2026',
-        time: '06:25 PM',
-        rawDate: '2026-10-16',
-        category: 'minibar',
-        title: 'Minibar',
-        detail: 'Room 201',
-        reference: 'MINI-014',
-        charge: 480.0,
-        credit: 0,
-        balance: 12010.0,
-        iconType: 'minibar',
-      },
-      {
-        id: 'tx-9',
-        date: '17 Oct 2026',
-        time: '10:15 AM',
-        rawDate: '2026-10-17',
-        category: 'payment',
-        title: 'Payment - Card',
-        detail: 'VISA **** 4242',
-        reference: 'PAY-0012',
-        charge: 0,
-        credit: 5000.0,
-        balance: 7010.0,
-        iconType: 'card',
-      },
-    ],
-    payments: [
-      {
-        id: 'pm-1',
-        date: '17 Oct 2026, 10:15 AM',
-        amount: 5000.0,
-        method: 'Card (VISA **** 4242)',
-        ref: 'PAY-0012',
-        status: 'Received',
-        cardLast4: '4242',
-      },
-    ],
+    phone: guest?.phone ?? '',
+    email: guest?.email ?? '',
+    stayDates: `${formatLongDate(checkIn)} → ${formatLongDate(checkOut)} (${nights} night${nights === 1 ? '' : 's'})`,
+    fromDate: checkIn,
+    toDate: checkOut,
+    nights,
+    room: `Room ${stay.roomNumber ?? '—'}`,
+    roomNumber: stay.roomNumber ?? '—',
+    roomType: stay.roomLines?.[0]?.roomTypeName ?? stay.roomTypeName ?? '',
+    occupancy: `${adults} Adult${adults === 1 ? '' : 's'} • ${children} Child${children === 1 ? '' : 'ren'}`,
+    adults,
+    children,
+    reservationCode: stay.bookingCode ?? stay.id,
+    reservationStatus: 'Checked-in',
+    folioStatus: folio.status === 'CLOSED' ? 'Settled' : 'Open',
+    currency: folio.currencyCode === 'INR' ? '₹' : folio.currencyCode,
+    currencyCode: folio.currencyCode,
+    transactions,
+    payments: folio.payments.map((payment) => {
+      const when = formatDateTime(payment.recordedAt);
+      return {
+        id: payment.id,
+        date: `${when.date}, ${when.time}`,
+        amount: Number(payment.amount),
+        method: payment.method,
+        ref: payment.reference ?? payment.id,
+        status: payment.status === 'REFUNDED' ? 'Refunded' : 'Received',
+      };
+    }),
     summary: {
-      roomCharges: 12000.0,
-      extraServices: 3800.0,
-      foodBeverage: 2930.0,
-      otherCharges: 480.0,
-      subtotal: 19210.0,
-      discount: 0.0,
-      taxesAndFees: 2305.2,
-      gstAmount: 1921.2,
-      occupancyTax: 384.0,
-      totalAmount: 21515.2,
-      paymentsReceived: 5000.0,
-      outstandingBalance: 16515.2,
+      roomCharges: sumWhere(['ROOM']),
+      extraServices: sumWhere(['LAUNDRY']),
+      foodBeverage: sumWhere(['POS']),
+      otherCharges: sumWhere(['MINIBAR', 'DISCOUNT']),
+      subtotal: Number(balance.charges),
+      discount: 0,
+      taxesAndFees: Number(balance.tax),
+      gstAmount: Number(balance.tax),
+      occupancyTax: 0,
+      totalAmount: Number(balance.total),
+      paymentsReceived: Number(balance.paid),
+      outstandingBalance: Number(balance.balance),
     },
-  },
-  {
-    id: 'amelia-hart',
-    guestId: 'G-1048',
-    name: 'Amelia Hart',
-    avatarInitials: 'AH',
-    status: 'In-house',
-    phone: '+1 415 555 0192',
-    email: 'amelia.hart@example.com',
-    stayDates: 'Oct 14, 2026 → Oct 18, 2026 (4 nights)',
-    fromDate: '2026-10-14',
-    toDate: '2026-10-18',
-    nights: 4,
-    room: 'Room 204 • Suite',
-    roomNumber: '204',
-    roomType: 'Suite',
-    occupancy: '1 Adult • 0 Children',
-    adults: 1,
-    children: 0,
-    reservationCode: 'RSV-20261014-002',
-    reservationStatus: 'Confirmed',
-    folioStatus: 'Open',
-    currency: '₹',
-    currencyCode: 'INR',
-    transactions: [
-      {
-        id: 'ah-1',
-        date: '14 Oct 2026',
-        time: '01:00 PM',
-        rawDate: '2026-10-14',
-        category: 'room',
-        title: 'Room Charge - Suite',
-        detail: 'Room 204 (1 night)',
-        reference: 'AUTO',
-        charge: 8000.0,
-        credit: 0,
-        balance: 8000.0,
-        iconType: 'room',
-      },
-      {
-        id: 'ah-2',
-        date: '14 Oct 2026',
-        time: '08:30 PM',
-        rawDate: '2026-10-14',
-        category: 'spa',
-        title: 'Spa Treatment - Aromatherapy',
-        detail: 'Amelia Hart',
-        reference: 'SPA-0312',
-        charge: 3500.0,
-        credit: 0,
-        balance: 11500.0,
-        iconType: 'spa',
-      },
-      {
-        id: 'ah-3',
-        date: '15 Oct 2026',
-        time: '09:15 AM',
-        rawDate: '2026-10-15',
-        category: 'service',
-        title: 'Room Service - Breakfast',
-        detail: 'Continental platter',
-        reference: 'SVC-1045',
-        charge: 850.0,
-        credit: 0,
-        balance: 12350.0,
-        iconType: 'breakfast',
-      },
-      {
-        id: 'ah-4',
-        date: '15 Oct 2026',
-        time: '02:00 PM',
-        rawDate: '2026-10-15',
-        category: 'payment',
-        title: 'Payment - Card',
-        detail: 'Mastercard **** 8812',
-        reference: 'PAY-0034',
-        charge: 0,
-        credit: 8000.0,
-        balance: 4350.0,
-        iconType: 'card',
-      },
-    ],
-    payments: [
-      {
-        id: 'pm-ah1',
-        date: '15 Oct 2026, 02:00 PM',
-        amount: 8000.0,
-        method: 'Card (Mastercard **** 8812)',
-        ref: 'PAY-0034',
-        status: 'Received',
-        cardLast4: '8812',
-      },
-    ],
-    summary: {
-      roomCharges: 8000.0,
-      extraServices: 4350.0,
-      foodBeverage: 0.0,
-      otherCharges: 0.0,
-      subtotal: 12350.0,
-      discount: 0.0,
-      taxesAndFees: 1482.0,
-      gstAmount: 1235.0,
-      occupancyTax: 247.0,
-      totalAmount: 13832.0,
-      paymentsReceived: 8000.0,
-      outstandingBalance: 5832.0,
-    },
-  },
-  {
-    id: 'sofia-lind',
-    guestId: 'G-1015',
-    name: 'Sofia Lind',
-    avatarInitials: 'SL',
-    status: 'In-house',
-    phone: '+46 8 123 4567',
-    email: 'sofia.lind@example.com',
-    stayDates: 'Oct 12, 2026 → Oct 16, 2026 (4 nights)',
-    fromDate: '2026-10-12',
-    toDate: '2026-10-16',
-    nights: 4,
-    room: 'Room 305 • Superior',
-    roomNumber: '305',
-    roomType: 'Superior',
-    occupancy: '2 Adults • 1 Child',
-    adults: 2,
-    children: 1,
-    reservationCode: 'RSV-20261012-003',
-    reservationStatus: 'Confirmed',
-    folioStatus: 'Open',
-    currency: '₹',
-    currencyCode: 'INR',
-    transactions: [
-      {
-        id: 'sl-1',
-        date: '12 Oct 2026',
-        time: '03:00 PM',
-        rawDate: '2026-10-12',
-        category: 'room',
-        title: 'Room Charge - Superior',
-        detail: 'Room 305 (1 night)',
-        reference: 'AUTO',
-        charge: 5500.0,
-        credit: 0,
-        balance: 5500.0,
-        iconType: 'room',
-      },
-      {
-        id: 'sl-2',
-        date: '13 Oct 2026',
-        time: '07:30 PM',
-        rawDate: '2026-10-13',
-        category: 'food',
-        title: 'Buffet Dinner',
-        detail: 'Family table (3 pax)',
-        reference: 'POS-4890',
-        charge: 2400.0,
-        credit: 0,
-        balance: 7900.0,
-        iconType: 'dinner',
-      },
-      {
-        id: 'sl-3',
-        date: '14 Oct 2026',
-        time: '11:00 AM',
-        rawDate: '2026-10-14',
-        category: 'payment',
-        title: 'Payment - Transfer',
-        detail: 'Bank Transfer (IMPS)',
-        reference: 'PAY-0089',
-        charge: 0,
-        credit: 6000.0,
-        balance: 1900.0,
-        iconType: 'card',
-      },
-    ],
-    payments: [
-      {
-        id: 'pm-sl1',
-        date: '14 Oct 2026, 11:00 AM',
-        amount: 6000.0,
-        method: 'Bank Transfer (IMPS)',
-        ref: 'PAY-0089',
-        status: 'Received',
-      },
-    ],
-    summary: {
-      roomCharges: 5500.0,
-      extraServices: 0.0,
-      foodBeverage: 2400.0,
-      otherCharges: 0.0,
-      subtotal: 7900.0,
-      discount: 0.0,
-      taxesAndFees: 948.0,
-      gstAmount: 790.0,
-      occupancyTax: 158.0,
-      totalAmount: 8848.0,
-      paymentsReceived: 6000.0,
-      outstandingBalance: 2848.0,
-    },
-  },
-  {
-    id: 'daniel-okafor',
-    guestId: 'G-1002',
-    name: 'Daniel Okafor',
-    avatarInitials: 'DO',
-    status: 'In-house',
-    phone: '+44 20 7946 0912',
-    email: 'daniel.okafor@example.com',
-    stayDates: 'Oct 11, 2026 → Oct 19, 2026 (8 nights)',
-    fromDate: '2026-10-11',
-    toDate: '2026-10-19',
-    nights: 8,
-    room: 'Room 501 • Penthouse',
-    roomNumber: '501',
-    roomType: 'Penthouse',
-    occupancy: '2 Adults • 2 Children',
-    adults: 2,
-    children: 2,
-    reservationCode: 'RSV-20261011-004',
-    reservationStatus: 'Confirmed',
-    folioStatus: 'Settled',
-    currency: '₹',
-    currencyCode: 'INR',
-    transactions: [
-      {
-        id: 'do-1',
-        date: '11 Oct 2026',
-        time: '02:00 PM',
-        rawDate: '2026-10-11',
-        category: 'room',
-        title: 'Room Charge - Penthouse',
-        detail: 'Room 501 (1 night)',
-        reference: 'AUTO',
-        charge: 15000.0,
-        credit: 0,
-        balance: 15000.0,
-        iconType: 'room',
-      },
-      {
-        id: 'do-2',
-        date: '11 Oct 2026',
-        time: '04:00 PM',
-        rawDate: '2026-10-11',
-        category: 'payment',
-        title: 'Payment - Card',
-        detail: 'Amex **** 1009',
-        reference: 'PAY-0099',
-        charge: 0,
-        credit: 17100.0,
-        balance: 0.0,
-        iconType: 'card',
-      },
-    ],
-    payments: [
-      {
-        id: 'pm-do1',
-        date: '11 Oct 2026, 04:00 PM',
-        amount: 17100.0,
-        method: 'Amex (**** 1009)',
-        ref: 'PAY-0099',
-        status: 'Received',
-        cardLast4: '1009',
-      },
-    ],
-    summary: {
-      roomCharges: 15000.0,
-      extraServices: 0.0,
-      foodBeverage: 0.0,
-      otherCharges: 0.0,
-      subtotal: 15000.0,
-      discount: 0.0,
-      taxesAndFees: 2100.0,
-      gstAmount: 1800.0,
-      occupancyTax: 300.0,
-      totalAmount: 17100.0,
-      paymentsReceived: 17100.0,
-      outstandingBalance: 0.0,
-    },
-  },
-];
+    backendFolioId: folio.id,
+  };
+}
 
 export function Billing() {
-  // Load in-house stays from backend if available
-  const loadStays = useCallback(async () => {
-    try {
-      const res = await frontDeskApi.inHouse();
-      return res.data || [];
-    } catch {
-      return [];
-    }
+  // In-house guests and their folios, all read from the store.
+  const loadGuests = useCallback(async (): Promise<GuestBillingData[]> => {
+    const res = await frontDeskApi.inHouse();
+    const stays = res.data.filter((stay) => stay.folioId);
+    return Promise.all(
+      stays.map(async (stay) => billingGuestFromStore(stay, await folioApi.detail(stay.folioId as string))),
+    );
   }, []);
 
-  const resource = useApiResource(loadStays);
-
-  // Guest list state with presets
-  const [guests, setGuests] = useState<GuestBillingData[]>(PRESET_GUESTS);
-  const [selectedGuestId, setSelectedGuestId] = useState<string>('aarav-iyer');
-
-  // Synchronize backend in-house stays if available
-  const [prevStays, setPrevStays] = useState(resource.data);
-  if (resource.data !== prevStays) {
-    setPrevStays(resource.data);
-    const stays = resource.data;
-    if (stays && stays.length > 0) {
-      const existingCodes = new Set(guests.map((g) => g.reservationCode));
-      const backendGuests: GuestBillingData[] = stays
-        .filter((stay) => stay.folioId && !existingCodes.has(stay.bookingCode || stay.id))
-        .map((stay) => {
-          const initials = stay.guestName
-            ? stay.guestName
-                .split(' ')
-                .map((n) => n[0])
-                .join('')
-                .slice(0, 2)
-                .toUpperCase()
-            : 'GH';
-          return {
-            id: stay.id,
-            guestId: stay.guestId || `G-${stay.id.slice(0, 4)}`,
-            name: stay.guestName || 'In-House Guest',
-            avatarInitials: initials,
-            status: 'In-house',
-            phone: '+91 98765 00000',
-            email: 'guest@example.com',
-            stayDates: `${stay.checkInDate} → ${stay.checkOutDate}`,
-            fromDate: stay.checkInDate,
-            toDate: stay.checkOutDate,
-            nights: 1,
-            room: `Room ${stay.roomNumber || '—'}`,
-            roomNumber: stay.roomNumber || '—',
-            roomType: 'Deluxe',
-            occupancy: '1 Adult • 0 Children',
-            adults: 1,
-            children: 0,
-            reservationCode: stay.bookingCode || stay.id,
-            reservationStatus: 'Confirmed',
-            folioStatus: 'Open',
-            currency: '₹',
-            currencyCode: 'INR',
-            transactions: [],
-            payments: [],
-            summary: {
-              roomCharges: 0,
-              extraServices: 0,
-              foodBeverage: 0,
-              otherCharges: 0,
-              subtotal: 0,
-              discount: 0,
-              taxesAndFees: 0,
-              gstAmount: 0,
-              occupancyTax: 0,
-              totalAmount: 0,
-              paymentsReceived: 0,
-              outstandingBalance: 0,
-            },
-            backendFolioId: stay.folioId || undefined,
-          };
-        });
-      if (backendGuests.length > 0) {
-        setGuests((prev) => [...prev, ...backendGuests]);
-      }
-    }
+  const resource = useApiResource(loadGuests);
+  const [guests, setGuests] = useState<GuestBillingData[]>([]);
+  const [prevLoaded, setPrevLoaded] = useState(resource.data);
+  if (resource.data !== prevLoaded) {
+    setPrevLoaded(resource.data);
+    setGuests(resource.data ?? []);
   }
+  const [selectedGuestId, setSelectedGuestId] = useState<string>('');
 
   // Currently active guest
   const currentGuest = useMemo(() => {
@@ -628,8 +254,8 @@ export function Billing() {
 
   // Table filters
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
-  const [fromDate, setFromDate] = useState<string>('13-10-2026');
-  const [toDate, setToDate] = useState<string>('17-10-2026');
+  const [fromDate, setFromDate] = useState<string>(toDisplayDate(addDays(BUSINESS_DATE, -4)));
+  const [toDate, setToDate] = useState<string>(toDisplayDate(BUSINESS_DATE));
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -676,7 +302,7 @@ export function Billing() {
 
   // Filter transactions
   const filteredTransactions = useMemo(() => {
-    return currentGuest.transactions.filter((tx) => {
+    return (currentGuest?.transactions ?? []).filter((tx) => {
       // Category filter
       if (categoryFilter !== 'All') {
         if (categoryFilter === 'Room charges' && tx.category !== 'room') return false;
@@ -695,7 +321,7 @@ export function Billing() {
       }
       return true;
     });
-  }, [currentGuest.transactions, categoryFilter, searchQuery]);
+  }, [currentGuest?.transactions, categoryFilter, searchQuery]);
 
   // Toggle selection
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1101,6 +727,14 @@ export function Billing() {
     }
   };
 
+  if (!currentGuest) {
+    return (
+      <div className="pms-card p-6 text-center text-sm text-ink-secondary">
+        No in-house guests with an open folio. Check in a guest to start billing.
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4 pb-8">
       {/* 1. TOP HEADER & GUEST SELECTOR */}
@@ -1113,7 +747,7 @@ export function Billing() {
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-[26px] font-bold tracking-tight text-ink leading-tight">
+                <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">
                   Folios & Billing
                 </h1>
                 <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
@@ -1496,7 +1130,7 @@ export function Billing() {
 
                           {/* Date & Time */}
                           <td className="py-2.5 px-3 whitespace-nowrap">
-                            <div className="font-semibold text-ink text-[12.5px]">{tx.date}</div>
+                            <div className="font-semibold text-ink text-[12px]">{tx.date}</div>
                             <div className="text-[11px] text-ink-muted font-medium">{tx.time}</div>
                           </td>
 
@@ -1506,7 +1140,7 @@ export function Billing() {
                               {renderItemIcon(tx.iconType)}
                               <div>
                                 <div className="font-bold text-ink text-[13px]">{tx.title}</div>
-                                <div className="text-[11.5px] text-ink-muted">{tx.detail}</div>
+                                <div className="text-[11px] text-ink-muted">{tx.detail}</div>
                               </div>
                             </div>
                           </td>
@@ -1873,7 +1507,7 @@ export function Billing() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-ink text-[12.5px]">{p.date}</span>
+                        <span className="font-bold text-ink text-[12px]">{p.date}</span>
                         <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[10px] font-bold bg-success-bg/70 text-success-text">
                           <span className="w-1 h-1 rounded-full bg-success-text" />
                           <span>{p.status}</span>
@@ -1903,7 +1537,7 @@ export function Billing() {
                 <button
                   type="button"
                   onClick={() => setPostChargeModalOpen(true)}
-                  className="pms-btn-ghost px-2 py-2 text-[11.5px] font-semibold flex flex-col items-center justify-center gap-1 hover:border-primary/40"
+                  className="pms-btn-ghost px-2 py-2 text-[11px] font-semibold flex flex-col items-center justify-center gap-1 hover:border-primary/40"
                 >
                   <Lucide.Zap size={15} className="text-primary" />
                   <span>Post Charge</span>
@@ -1911,7 +1545,7 @@ export function Billing() {
                 <button
                   type="button"
                   onClick={() => setDiscountModalOpen(true)}
-                  className="pms-btn-ghost px-2 py-2 text-[11.5px] font-semibold flex flex-col items-center justify-center gap-1 hover:border-primary/40"
+                  className="pms-btn-ghost px-2 py-2 text-[11px] font-semibold flex flex-col items-center justify-center gap-1 hover:border-primary/40"
                 >
                   <Lucide.Tag size={15} className="text-warning-text" />
                   <span>Apply Discount</span>
@@ -1919,7 +1553,7 @@ export function Billing() {
                 <button
                   type="button"
                   onClick={() => setSplitFolioModalOpen(true)}
-                  className="pms-btn-ghost px-2 py-2 text-[11.5px] font-semibold flex flex-col items-center justify-center gap-1 hover:border-primary/40"
+                  className="pms-btn-ghost px-2 py-2 text-[11px] font-semibold flex flex-col items-center justify-center gap-1 hover:border-primary/40"
                 >
                   <Lucide.Split size={15} className="text-primary" />
                   <span>Split Folio</span>
@@ -2383,7 +2017,7 @@ export function Billing() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 text-[11.5px]">
+            <div className="grid grid-cols-2 gap-4 text-[11px]">
               <div>
                 <span className="font-bold text-ink block">Billed To:</span>
                 <p className="text-ink font-semibold">{currentGuest.name}</p>

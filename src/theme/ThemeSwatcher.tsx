@@ -87,7 +87,7 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                       />
                     ))}
                   </span>
-                  <span className="pms-helper mt-2 block text-[11.5px]">{p.description}</span>
+                  <span className="pms-helper mt-2 block text-[11px]">{p.description}</span>
                 </button>
               );
             })}

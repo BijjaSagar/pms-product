@@ -10,6 +10,7 @@ This build is fully static. There is no server, no network calls and no database
 - `src/data/fixtures.ts` generates rooms, reservations and folios for the business date `2026-10-17`.
 - `src/data/store.ts` is the interactive store. Every create, update and delete the UI performs (check-in, check-out, posting charges, taking payments, raising tickets, inviting staff) changes this store in place, so the change shows everywhere in the app.
 - `src/lib/api/*` keeps the feature-facing API shape. The API objects delegate to the store instead of `fetch`.
+- Every screen reads from this one store: the header KPIs and notifications, the dashboard, the room calendar, billing and the reservation list all show the same rooms, dates and guests.
 
 Because the store lives in memory, **all changes reset when you reload the page**. There is no persistence layer. The one exception is the chosen colour theme and the sidebar collapsed state, which are saved in the browser.
 
@@ -59,7 +60,7 @@ src/
   App.tsx                 providers, navigation shell and view switch
   main.tsx                React root
   index.css               Tailwind entry and shared component classes
-  config/                 navigation (views, sections, permissions) and notices
+  config/                 navigation (views, sections, permissions)
   components/             shared UI primitives, overlays, toasts, error pages
     layout/               sidebar and header
   features/

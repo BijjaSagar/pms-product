@@ -39,11 +39,10 @@ src/
   index.css               Tailwind entry, global base rules, shared .pms-* components
   config/
     navigation.ts         view ids, sidebar sections, view-to-permission map
-    notices.ts            header notification copy
   components/             shared UI, one component per file
     layout/               Sidebar and Header (app chrome only)
   features/<domain>/      one folder per screen area; a page file plus its sub-parts
-  data/                   demo catalog, fixtures, in-memory store
+  data/                   demo catalog, fixtures, in-memory store (the single source of demo data)
   lib/
     api/                  feature-facing API objects (pms.ts) and adapters
     scrollLock.ts         body scroll lock used by dialogs
@@ -74,7 +73,8 @@ Rules for placing code:
 
 - TypeScript strict. Avoid `any`; if one is unavoidable, add a comment that says why.
 - Functional components and hooks only. Keep components small; extract logic that is not rendering into `utils/` or a hook.
-- Demo data changes go in `data/`, not inside components.
+- All demo data lives in `data/`. Screens read counts, dates, guests, rooms and folios from the store through `lib/api`. Do not type a record, a count or a date into a component, and do not add a second copy of a dataset.
+- Notices, KPIs and calendar rooms are derived from the store (`lib/api/notices.ts`, the header effect, `room-calendar/calendarData.ts`).
 - User-visible failures show a toast or an inline message through the existing `toast` helper. Do not swallow errors silently.
 - Comments explain why, not what. Remove comments that describe code that no longer exists.
 
