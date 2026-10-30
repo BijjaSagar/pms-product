@@ -54,8 +54,6 @@ export function Maintenance() {
   const [reasonModal, setReasonModal] = useState<{ ticket: MaintenanceRequest; action: 'close' | 'reopen' } | null>(null);
 
   const open = reqs.find((r) => r.id === openId) ?? null;
-  const oosCount = resource.data?.rooms.filter((r) => r.status === 'Out-of-service').length ?? 0;
-
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return reqs.filter(
