@@ -938,7 +938,7 @@ export function NightAudit({ go }: NightAuditProps) {
               <div className="w-14 h-14 rounded-full bg-success-bg text-success-text flex items-center justify-center">
                 <Lucide.CheckCircle2 size={32} />
               </div>
-              <h3 className="font-extrabold text-lg text-ink">Night Audit Completed!</h3>
+              <h3 className="font-extrabold text-sm text-ink">Night Audit Completed!</h3>
               <p className="text-ink-secondary max-w-sm text-xs leading-relaxed">
                 The business day has been successfully closed. All room charges have posted, ledger accounts are balanced, and the system business date has advanced to <strong>Wednesday, Oct 15, 2026</strong>.
               </p>

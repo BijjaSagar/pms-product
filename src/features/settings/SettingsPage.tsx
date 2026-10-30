@@ -246,19 +246,19 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
                 <tr key={t.id} className="transition-colors hover:bg-page/70 border-b border-divider last:border-b-0">
                   <td className="text-center font-medium text-ink-muted text-xs py-3">{idx + 1}</td>
                   <td className="py-3">
-                    <span className="block font-bold text-ink text-sm">{t.name}</span>
+                    <span className="block font-bold text-ink text-xs">{t.name}</span>
                     <span className="block max-w-[260px] truncate text-xs text-ink-muted mt-0.5">
                       {t.description || 'Standard room category'}
                     </span>
                   </td>
-                  <td className="tnum font-semibold text-ink text-sm py-3">{t.count}</td>
+                  <td className="tnum font-semibold text-ink text-xs py-3">{t.count}</td>
                   <td className="tnum text-ink-secondary text-xs py-3">
                     <span className="inline-flex items-center gap-1 bg-muted-surface px-2 py-0.5 rounded-md">
                       <Lucide.Users size={12} className="text-ink-secondary" />
                       <span>{t.maxOccupancy} guests max</span>
                     </span>
                   </td>
-                  <td className="tnum text-right font-bold text-ink text-sm py-3">
+                  <td className="tnum text-right font-bold text-ink text-xs py-3">
                     {formatCurrency(t.baseRate, currencyCode)}
                   </td>
                   <td className="max-w-[220px] py-3">
@@ -1279,7 +1279,7 @@ export function Settings({
             >
               <div>
                 <div className="pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <h2 className="text-base font-semibold text-ink">Quick Actions</h2>
+                  <h2 className="text-sm font-semibold text-ink">Quick Actions</h2>
                   <p className="text-xs text-ink-secondary mt-0.5">Common property actions</p>
                 </div>
 
@@ -1357,7 +1357,7 @@ export function Settings({
               <div>
                 <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
                   <div>
-                    <h2 className="text-base font-semibold text-ink">Property Description</h2>
+                    <h2 className="text-sm font-semibold text-ink">Property Description</h2>
                     <p className="text-xs text-ink-secondary mt-0.5">This description is shown to guests on booking channels</p>
                   </div>
                   <button
@@ -1404,7 +1404,7 @@ export function Settings({
               <div>
                 <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
                   <div>
-                    <h2 className="text-base font-semibold text-ink">Amenities & Facilities</h2>
+                    <h2 className="text-sm font-semibold text-ink">Amenities & Facilities</h2>
                     <p className="text-xs text-ink-secondary mt-0.5">Select amenities available at your property</p>
                   </div>
                   <button
@@ -1455,7 +1455,7 @@ export function Settings({
             >
               <div>
                 <div className="pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <h2 className="text-base font-semibold text-ink">Property Status</h2>
+                  <h2 className="text-sm font-semibold text-ink">Property Status</h2>
                   <p className="text-xs text-ink-secondary mt-0.5">Current configuration status</p>
                 </div>
 
@@ -1508,7 +1508,7 @@ export function Settings({
       {activeTab === 'policies' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-base font-semibold text-ink mb-1">Booking & Cancellation Policies</h2>
+            <h2 className="text-sm font-semibold text-ink mb-1">Booking & Cancellation Policies</h2>
             <p className="text-xs text-ink-secondary mb-4">Guest-facing terms applied on confirmed bookings</p>
             <div className="flex flex-col gap-3">
               <div>
@@ -1546,7 +1546,7 @@ export function Settings({
           </div>
 
           <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-base font-semibold text-ink mb-1">Stay Rules & Check-in Requirements</h2>
+            <h2 className="text-sm font-semibold text-ink mb-1">Stay Rules & Check-in Requirements</h2>
             <p className="text-xs text-ink-secondary mb-4">Standard hospitality verification procedures</p>
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--color-border-subtle)' }}>
@@ -1579,7 +1579,7 @@ export function Settings({
       {activeTab === 'taxes' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-base font-semibold text-ink mb-1">Active Tax Rules</h2>
+            <h2 className="text-sm font-semibold text-ink mb-1">Active Tax Rules</h2>
             <p className="text-xs text-ink-secondary mb-4">Taxes applied dynamically to folios and invoices</p>
             <div className="flex flex-col gap-3">
               <div>
@@ -1621,7 +1621,7 @@ export function Settings({
           </div>
 
           <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-base font-semibold text-ink mb-1">Invoice Details & Legal Header</h2>
+            <h2 className="text-sm font-semibold text-ink mb-1">Invoice Details & Legal Header</h2>
             <p className="text-xs text-ink-secondary mb-4">Printed information on guest folios & receipts</p>
             <div className="flex flex-col gap-3">
               <div>
@@ -1649,7 +1649,7 @@ export function Settings({
         <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
             <div>
-              <h2 className="text-base font-semibold text-ink">Appearance & House Themes</h2>
+              <h2 className="text-sm font-semibold text-ink">Appearance & House Themes</h2>
               <p className="text-xs text-ink-secondary mt-0.5">Select from 9 luxury curated hotel house color palettes</p>
             </div>
             <button
@@ -1704,7 +1704,7 @@ export function Settings({
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-3">
             <Lucide.Sliders size={26} />
           </div>
-          <h2 className="text-lg font-semibold text-ink capitalize">{activeTab.replace('-', ' ')} Settings</h2>
+          <h2 className="text-sm font-semibold text-ink capitalize">{activeTab.replace('-', ' ')} Settings</h2>
           <p className="text-sm text-ink-secondary max-w-md mx-auto mt-1 mb-5">
             Manage your hotel's {activeTab.replace('-', ' ')} preferences, configurations, and channel integrations.
           </p>

@@ -35,7 +35,7 @@ function GuestProfile({ g, onClose, go, onSave }: { g: Guest; onClose: () => voi
       <div className="flex flex-wrap items-center gap-3">
         <Avatar name={g.name} />
         <div className="min-w-0 flex-1">
-          <p className="text-base font-semibold text-ink">{g.name}</p>
+          <p className="text-sm font-semibold text-ink">{g.name}</p>
           <p className="tnum font-mono text-xs text-ink-secondary">{g.id} · {g.category}</p>
         </div>
         <Badge tone={tierTone(g.tier)}>{g.tier}</Badge>

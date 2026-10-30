@@ -59,7 +59,7 @@ export function RatesPanel({ channels, performance, channelFilter, onChannelFilt
                 </tr>
               );
             })}
-            {rows.length === 0 && <tr><td colSpan={5} className="py-9 text-center text-sm text-ink-muted">No performance data for this channel.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={5} className="py-9 text-center text-xs text-ink-muted">No performance data for this channel.</td></tr>}
           </tbody>
         </table>
       </div>

@@ -102,7 +102,7 @@ export function ChannelDirectoryPanel({ channels, selectedChannelId, syncingChan
                 </tr>
               );
             })}
-            {filtered.length === 0 && <tr><td colSpan={7} className="py-9 text-center text-sm text-ink-muted">No channels match these filters.</td></tr>}
+            {filtered.length === 0 && <tr><td colSpan={7} className="py-9 text-center text-xs text-ink-muted">No channels match these filters.</td></tr>}
           </tbody>
         </table>
       </div>

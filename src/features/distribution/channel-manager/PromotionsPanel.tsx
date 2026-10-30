@@ -42,7 +42,7 @@ export function PromotionsPanel({ channels, bookings, channelFilter, onChannelFi
                 const channel = channels.find((item) => item.id === booking.channelId);
                 return <tr key={booking.id}><td><div className="flex items-center gap-2"><ChannelLogo channel={channel ?? { name: booking.channelId, logoBg: 'var(--color-primary)', logoText: '•' }} /><span className="font-medium">{channel?.name ?? booking.channelId}</span></div></td><td className="font-mono text-[11px]">{booking.id}</td><td className="font-semibold">{booking.guestName}</td><td>{booking.roomType}</td><td className="whitespace-nowrap">{formatStayDates(booking.checkIn, booking.checkOut)}</td><td><span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${booking.status === 'Confirmed' ? 'bg-success-bg text-success-text' : booking.status === 'Pending' ? 'bg-warning-bg text-warning-text' : 'bg-muted-surface text-ink-secondary'}`}>{booking.status}</span></td></tr>;
               })}
-              {visibleBookings.length === 0 && <tr><td colSpan={6} className="py-9 text-center text-sm text-ink-muted">No bookings for this channel.</td></tr>}
+              {visibleBookings.length === 0 && <tr><td colSpan={6} className="py-9 text-center text-xs text-ink-muted">No bookings for this channel.</td></tr>}
             </tbody>
           </table>
         </div>

@@ -219,7 +219,7 @@ export function Payments() {
                   <td>
                     <div className="flex items-center gap-3">
                       <Avatar name={p.guest} size={36} />
-                      <span className="font-semibold text-ink text-sm">{p.guest}</span>
+                      <span className="font-semibold text-ink text-xs">{p.guest}</span>
                     </div>
                   </td>
                   <td className="tnum font-mono text-ink-secondary text-xs">{p.bookingId}</td>
@@ -232,7 +232,7 @@ export function Payments() {
                   <td>
                     <Badge tone={paymentTone(p.status)}>{p.status}</Badge>
                   </td>
-                  <td className="tnum text-right font-bold text-ink text-sm">
+                  <td className="tnum text-right font-bold text-ink text-xs">
                     {formatCurrency(p.amount, p.currencyCode)}
                   </td>
                   {can('payment.refund') ? (

@@ -83,7 +83,7 @@ export function RatePlansPanel({ plans, onCreate, onEdit, onToggleStatus }: Prop
               </tr>
             ))}
             {visiblePlans.length === 0 && (
-              <tr><td colSpan={7} className="py-10 text-center text-sm text-ink-muted">No rate plans match “{query}”.</td></tr>
+              <tr><td colSpan={7} className="py-10 text-center text-xs text-ink-muted">No rate plans match “{query}”.</td></tr>
             )}
           </tbody>
         </table>

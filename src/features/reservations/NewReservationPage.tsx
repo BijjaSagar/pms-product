@@ -837,46 +837,46 @@ export function NewReservation({
       {/* ================= 4-COLUMN MASTER WORKBENCH ================= */}
       <div className="grid grid-cols-1 gap-4 items-start lg:grid-cols-2 xl:grid-cols-[repeat(24,minmax(0,1fr))]">
         {/* ================= LEFT COLUMN: LUXURY FOLIO BOARDING TICKET ================= */}
-        <div className="flex min-w-0 flex-col rounded-3xl border border-border/90 bg-surface shadow-sm overflow-hidden lg:sticky lg:top-6 lg:z-10 lg:max-h-[calc(100dvh_-_var(--app-header-h)_-_3rem)] lg:overflow-y-auto xl:col-span-5">
+        <div className="flex min-w-0 flex-col rounded-3xl border border-border/90 bg-surface shadow-sm overflow-hidden lg:sticky lg:top-6 lg:z-10 lg:max-h-[calc(100dvh_-_var(--app-header-h,_4rem)_-_6.5rem)] lg:overflow-y-auto xl:col-span-5">
           {/* Top Boarding Pass Header Strip */}
-          <div className="bg-gradient-to-r from-primary via-primary-hover to-dark-accent p-4 text-primary-foreground border-b border-dark-accent lg:sticky lg:top-0 lg:z-10">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="min-w-0 border-r border-primary-foreground/25 pr-3">
-                <span className="block text-[10px] font-bold tracking-wider text-primary-foreground/70">
+          <div className="bg-gradient-to-r from-primary via-primary-hover to-dark-accent p-3 sm:p-4 text-primary-foreground border-b border-dark-accent lg:sticky lg:top-0 lg:z-10">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <div className="min-w-0 border-r border-primary-foreground/25 pr-2 sm:pr-3">
+                <span className="block text-[9px] sm:text-[10px] font-bold tracking-wider text-primary-foreground/75 uppercase">
                   BOOKING ID
                 </span>
-                <div className="mt-1 flex min-w-0 items-center gap-1.5">
+                <div className="mt-0.5 sm:mt-1 flex min-w-0 items-center justify-between gap-1">
                   <span
-                    className="min-w-0 truncate text-xs font-bold font-mono"
-                    title={bookingId || "Assigned on save"}
+                    className="min-w-0 truncate text-[11px] sm:text-xs font-bold font-mono"
+                    title={bookingId || "Auto on save"}
                   >
-                    {bookingId || "Assigned on save"}
+                    {bookingId || "Auto on save"}
                   </span>
                   <button
                     type="button"
                     onClick={handleCopyCode}
                     disabled={!bookingId}
-                    className="ml-auto flex-none text-primary-foreground/70 transition-colors hover:text-primary-foreground disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex-none text-primary-foreground/70 transition-colors hover:text-primary-foreground disabled:cursor-not-allowed disabled:opacity-40 p-0.5"
                     title="Copy Booking ID"
                     aria-label="Copy Booking ID"
                   >
                     {copiedCode ? (
                       <Lucide.Check
                         size={12}
-                        className="text-success-foreground"
+                        className="text-success-foreground shrink-0"
                       />
                     ) : (
-                      <Lucide.Copy size={12} />
+                      <Lucide.Copy size={12} className="shrink-0" />
                     )}
                   </button>
                 </div>
               </div>
-              <div className="min-w-0">
-                <span className="block text-[10px] font-bold tracking-wider text-primary-foreground/70">
+              <div className="min-w-0 pl-1 sm:pl-0">
+                <span className="block text-[9px] sm:text-[10px] font-bold tracking-wider text-primary-foreground/75 uppercase">
                   REFERENCE ID
                 </span>
                 <span
-                  className="mt-1 block truncate text-xs font-bold font-mono"
+                  className="mt-0.5 sm:mt-1 block truncate text-[11px] sm:text-xs font-bold font-mono"
                   title={externalReferenceId || "No external reference"}
                 >
                   {externalReferenceId || "—"}
@@ -886,62 +886,62 @@ export function NewReservation({
           </div>
 
           {/* Ticket Body with Notched Perforations */}
-          <div className="relative flex flex-col gap-4 p-3 sm:p-4 2xl:p-5">
+          <div className="relative flex flex-col gap-3.5 sm:gap-4 p-3 sm:p-4 2xl:p-5">
             {/* Elegant Calendar Journey Tile */}
-            <div className="bg-gradient-to-b from-page to-surface rounded-2xl border border-border/80 p-3 shadow-2xs xl:p-2 2xl:p-4">
-              <div className="flex items-center justify-between gap-1 text-center">
+            <div className="bg-gradient-to-b from-page to-surface rounded-2xl border border-border/80 p-2.5 sm:p-3 2xl:p-4 shadow-2xs">
+              <div className="flex items-center justify-between gap-1 sm:gap-2 text-center">
                 {/* Check In */}
-                <div className="text-left">
-                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">
+                <div className="text-left min-w-0 flex-1">
+                  <span className="text-[9px] sm:text-[10px] font-bold text-ink-muted uppercase tracking-wider block">
                     CHECK-IN
                   </span>
                   <div className="flex items-baseline gap-1 mt-0.5">
-                    <span className="text-3xl font-black text-ink leading-none xl:text-2xl 2xl:text-3xl">
+                    <span className="text-2xl sm:text-3xl font-black text-ink leading-none">
                       {inDate.day}
                     </span>
-                    <span className="text-[10px] font-bold text-ink-secondary uppercase xl:text-[9px] 2xl:text-xs">
+                    <span className="text-[10px] sm:text-xs font-bold text-ink-secondary uppercase">
                       {inDate.month}
                     </span>
                   </div>
-                  <span className="text-[10px] font-semibold text-ink-muted mt-1 block xl:text-[9px] 2xl:text-[10px]">
+                  <span className="text-[9px] sm:text-[10px] font-semibold text-ink-muted mt-1 block truncate">
                     {inDate.weekday} · {checkInTime}
                   </span>
                 </div>
 
                 {/* Duration Badge with line */}
-                <div className="flex min-w-0 flex-1 flex-col items-center px-1 xl:px-0.5 2xl:px-3">
-                  <div className="flex items-center gap-1 whitespace-nowrap rounded-full border border-border bg-surface px-2 py-1 text-[9px] font-bold text-ink shadow-2xs xl:px-1.5 2xl:px-2.5 2xl:text-[10px]">
-                    <Lucide.Moon size={11} className="text-primary" />
-                    <span>
+                <div className="flex min-w-0 flex-1 flex-col items-center px-0.5 sm:px-1">
+                  <div className="flex items-center gap-1 whitespace-nowrap rounded-full border border-border bg-surface px-1.5 sm:px-2 py-0.5 sm:py-1 text-[8.5px] sm:text-[9.5px] font-bold text-ink shadow-2xs">
+                    <Lucide.Moon size={10} className="text-primary shrink-0" />
+                    <span className="truncate">
                       {nightsCount} {nightsCount === 1 ? "Night" : "Nights"}
                     </span>
                   </div>
-                  <div className="w-full relative flex items-center justify-center my-1.5">
+                  <div className="w-full relative flex items-center justify-center my-1 sm:my-1.5">
                     <div className="w-full border-t border-dashed border-ink-disabled" />
                     <Lucide.BedDouble
-                      size={13}
+                      size={12}
                       className="text-ink-muted absolute bg-surface px-0.5"
                     />
                   </div>
-                    <span className="text-[9px] text-ink-muted font-medium xl:text-[8px] 2xl:text-[9px]">
+                  <span className="text-[8px] sm:text-[9px] text-ink-muted font-medium">
                     Allotment
                   </span>
                 </div>
 
                 {/* Check Out */}
-                <div className="text-right">
-                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">
+                <div className="text-right min-w-0 flex-1">
+                  <span className="text-[9px] sm:text-[10px] font-bold text-ink-muted uppercase tracking-wider block">
                     CHECK-OUT
                   </span>
                   <div className="flex items-baseline justify-end gap-1 mt-0.5">
-                    <span className="text-3xl font-black text-ink leading-none xl:text-2xl 2xl:text-3xl">
+                    <span className="text-2xl sm:text-3xl font-black text-ink leading-none">
                       {outDate.day}
                     </span>
-                    <span className="text-[10px] font-bold text-ink-secondary uppercase xl:text-[9px] 2xl:text-xs">
+                    <span className="text-[10px] sm:text-xs font-bold text-ink-secondary uppercase">
                       {outDate.month}
                     </span>
                   </div>
-                  <span className="text-[10px] font-semibold text-ink-muted mt-1 block xl:text-[9px] 2xl:text-[10px]">
+                  <span className="text-[9px] sm:text-[10px] font-semibold text-ink-muted mt-1 block truncate">
                     {outDate.weekday} · {checkOutTime}
                   </span>
                 </div>
@@ -964,48 +964,48 @@ export function NewReservation({
             </p>
 
             {/* Guest Profile Chip with Confirmed Stamp Overlay */}
-            <div className="relative flex flex-wrap items-center justify-between gap-2 rounded-xl border border-divider bg-surface p-3 shadow-2xs">
-              <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-white font-bold text-xs shrink-0">
+            <div className="relative flex items-center justify-between gap-2 rounded-xl border border-divider bg-surface p-2.5 sm:p-3 shadow-2xs overflow-hidden">
+              <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5 relative z-10">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-white font-bold text-xs shrink-0 shadow-2xs">
                   {guestName ? guestName.charAt(0).toUpperCase() : "G"}
                 </div>
-                <div className="min-w-0">
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <span className="min-w-0 flex-1 truncate text-xs font-bold text-ink">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="truncate text-xs font-bold text-ink" title={guestName}>
                       {guestName || "Unnamed Guest"}
                     </span>
-                    <span className="flex-none text-[9px] font-bold px-1.5 py-0.2 rounded bg-warning-bg text-warning-text border border-warning-border">
+                    <span className="shrink-0 text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded bg-warning-bg text-warning-text border border-warning-border">
                       VIP
                     </span>
                   </div>
-                  <span className="text-[11px] text-ink-secondary font-medium truncate block">
+                  <span className="text-[10px] sm:text-[11px] text-ink-secondary font-medium truncate block">
                     {guestContact || "No contact"}
                   </span>
                 </div>
               </div>
               <a
                 href={`tel:${guestContact}`}
-                className="ml-auto flex h-7 w-7 flex-none items-center justify-center rounded-lg border border-border text-ink-secondary hover:bg-page transition-colors"
+                className="relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border text-ink-secondary hover:bg-page transition-colors"
                 title="Call Guest"
               >
                 <Lucide.Phone size={13} />
               </a>
 
-              {/* Double-Ring Luxury Confirmed Front Desk Stamp Overlay - Half on name and half out */}
+              {/* Luxury Confirmed Front Desk Stamp Overlay - Positioned cleanly in background as a watermark */}
               <div
-                className="pointer-events-none absolute -top-5 left-28 flex items-center justify-center select-none z-20 sm:left-43 xl:left-20 2xl:left-43"
+                className="pointer-events-none absolute -top-3 right-8 sm:right-10 flex items-center justify-center select-none z-0 opacity-25"
                 aria-hidden="true"
               >
-                <div className="relative inline-flex items-center justify-center p-1.5 rounded-full border-2 border-dashed border-success-text/80 bg-success-bg/25 rotate-[-10deg] shadow-xs">
-                  <div className="flex flex-col h-14 w-14 items-center justify-center rounded-full border-2 border-success-text bg-surface/95 text-success-text shadow-xs text-center backdrop-blur-[1px]">
+                <div className="relative inline-flex items-center justify-center p-1 rounded-full border-2 border-dashed border-success-text bg-success-bg/25 rotate-[-12deg]">
+                  <div className="flex flex-col h-13 w-13 items-center justify-center rounded-full border-2 border-success-text text-success-text text-center">
                     <Lucide.ShieldCheck
-                      size={14}
+                      size={13}
                       className="text-success-text"
                     />
-                    <span className="font-black text-[8px] uppercase tracking-wider mt-0.5 leading-none">
+                    <span className="font-black text-[7px] uppercase tracking-wider mt-0.5 leading-none">
                       CONFIRMED
                     </span>
-                    <span className="text-[6.5px] font-bold text-success-text/90 font-mono mt-0.5">
+                    <span className="text-[5.5px] font-bold text-success-text/90 font-mono mt-0.5">
                       FRONT DESK
                     </span>
                   </div>
@@ -1014,23 +1014,23 @@ export function NewReservation({
             </div>
 
             {/* Receipt-style bill summary */}
-            <div className="border-y border-divider py-3">
+            <div className="border-y border-divider py-2.5 sm:py-3">
               <div className="grid grid-cols-1 divide-y divide-divider lg:grid-cols-2 lg:divide-x lg:divide-y-0 xl:grid-cols-1 xl:divide-x-0 xl:divide-y 2xl:grid-cols-2 2xl:divide-x 2xl:divide-y-0">
-                <div className="pb-2 lg:pb-0 lg:pr-3 xl:pb-2 xl:pr-0 2xl:pb-0 2xl:pr-3">
+                <div className="pb-2 lg:pb-0 lg:pr-3 xl:pb-2 xl:pr-0 2xl:pb-0 2xl:pr-3 min-w-0">
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-ink-muted">
                     Total Bill
                   </span>
-                  <span className="mt-1 block text-sm font-extrabold font-mono text-ink">
+                  <span className="mt-1 block text-sm font-extrabold font-mono text-ink truncate">
                     ₹{totalBill.toLocaleString("en-IN")}.00
                   </span>
                 </div>
-                <div className="pt-2 lg:pl-3 lg:pt-0 xl:pl-0 xl:pt-2 2xl:pl-3 2xl:pt-0">
+                <div className="pt-2 lg:pl-3 lg:pt-0 xl:pl-0 xl:pt-2 2xl:pl-3 2xl:pt-0 min-w-0">
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-ink-muted">
                     Outstanding
                   </span>
-                  <div className="mt-1 flex items-center gap-1.5">
+                  <div className="mt-1 flex items-center gap-1.5 min-w-0">
                     <span
-                      className={`text-sm font-extrabold font-mono ${outstanding > 0 ? "text-warning-text" : "text-success-text"}`}
+                      className={`text-sm font-extrabold font-mono truncate ${outstanding > 0 ? "text-warning-text" : "text-success-text"}`}
                     >
                       ₹{outstanding.toLocaleString("en-IN")}.00
                     </span>
@@ -1041,7 +1041,7 @@ export function NewReservation({
                           setCollectAmount(String(outstanding));
                           setCollectModalOpen(true);
                         }}
-                        className="flex h-6 w-6 flex-none items-center justify-center rounded-md text-warning-text hover:bg-warning-bg"
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-warning-text hover:bg-warning-bg"
                         title="e-Collect payment"
                         aria-label="e-Collect payment"
                       >
@@ -1050,7 +1050,7 @@ export function NewReservation({
                     ) : (
                       <Lucide.Check
                         size={14}
-                        className="text-success-text"
+                        className="text-success-text shrink-0"
                         aria-label="Paid in full"
                       />
                     )}
@@ -1059,18 +1059,18 @@ export function NewReservation({
               </div>
             </div>
 
-            {/* Quick Tile Buttons Footer */}
-            <div className="grid grid-cols-4 gap-2 pt-2 border-t border-divider text-center xl:grid-cols-2 2xl:grid-cols-4">
+            {/* Quick Tile Buttons Footer - 4 buttons in 1 compact row */}
+            <div className="grid grid-cols-4 gap-1 sm:gap-1.5 pt-2 border-t border-divider text-center">
               <button
                 type="button"
-                className="flex flex-col items-center justify-center py-2 px-1 rounded-xl border border-border/80 hover:bg-page text-ink-secondary transition-colors shadow-2xs cursor-pointer group"
+                className="flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl border border-border/80 hover:bg-page text-ink-secondary transition-colors shadow-2xs cursor-pointer group min-w-0"
                 title="Direct Phone Booking"
               >
                 <Lucide.PhoneCall
-                  size={14}
-                  className="text-ink-secondary group-hover:text-[var(--color-primary)] transition-colors"
+                  size={13}
+                  className="text-ink-secondary group-hover:text-[var(--color-primary)] transition-colors shrink-0"
                 />
-                <span className="text-[9px] font-bold mt-1 text-ink">
+                <span className="text-[8px] sm:text-[9px] font-bold mt-1 text-ink truncate w-full">
                   DIRECT
                 </span>
               </button>
@@ -1080,31 +1080,31 @@ export function NewReservation({
                   setCollectAmount(String(outstanding));
                   setCollectModalOpen(true);
                 }}
-                className="flex flex-col items-center justify-center py-2 px-1 rounded-xl border border-border/80 hover:bg-page text-ink-secondary transition-colors shadow-2xs cursor-pointer group"
+                className="flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl border border-border/80 hover:bg-page text-ink-secondary transition-colors shadow-2xs cursor-pointer group min-w-0"
                 title="Collect Payment"
               >
-                <Lucide.Banknote size={14} className="text-warning-text" />
-                <span className="text-[9px] font-bold mt-1 text-ink">
+                <Lucide.Banknote size={13} className="text-warning-text shrink-0" />
+                <span className="text-[8px] sm:text-[9px] font-bold mt-1 text-ink truncate w-full">
                   ₹ PAY
                 </span>
               </button>
               <button
                 type="button"
-                className="flex flex-col items-center justify-center py-2 px-1 rounded-xl border border-border/80 hover:bg-page text-ink-secondary transition-colors shadow-2xs cursor-pointer group"
+                className="flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl border border-border/80 hover:bg-page text-ink-secondary transition-colors shadow-2xs cursor-pointer group min-w-0"
                 title="Assigned Rooms"
               >
-                <Lucide.BedDouble size={14} className="text-primary" />
-                <span className="text-[9px] font-bold mt-1 text-ink">
+                <Lucide.BedDouble size={13} className="text-primary shrink-0" />
+                <span className="text-[8px] sm:text-[9px] font-bold mt-1 text-ink truncate w-full">
                   ROOMS
                 </span>
               </button>
               <button
                 type="button"
-                className="flex flex-col items-center justify-center py-2 px-1 rounded-xl border border-border/80 hover:bg-page text-ink-secondary transition-colors shadow-2xs cursor-pointer group"
+                className="flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl border border-border/80 hover:bg-page text-ink-secondary transition-colors shadow-2xs cursor-pointer group min-w-0"
                 title="Guest ID Verification"
               >
-                <Lucide.CreditCard size={14} className="text-success-text" />
-                <span className="text-[9px] font-bold mt-1 text-ink">
+                <Lucide.CreditCard size={13} className="text-success-text shrink-0" />
+                <span className="text-[8px] sm:text-[9px] font-bold mt-1 text-ink truncate w-full">
                   ID / CARD
                 </span>
               </button>
@@ -1407,7 +1407,7 @@ export function NewReservation({
                 </div>
 
                 {/* Stay dates and booking category */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-3 bg-page/70 p-3.5 rounded-2xl border border-border/70">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-page/70 p-3.5 rounded-2xl border border-border/70">
                   <div>
                     <label className="block text-[11px] font-bold text-ink tracking-wider mb-1.5">
                       Check-in Date
@@ -2040,7 +2040,7 @@ export function NewReservation({
         <div aria-hidden="true" className="hidden xl:block xl:col-span-4" />
 
         {/* ================= FOURTH COLUMN: TASKS & CHECKLIST ================= */}
-        <div className="flex min-w-0 flex-col gap-4 xl:col-span-5">
+        <div className="flex min-w-0 flex-col gap-4 lg:col-span-2 xl:col-span-5 xl:sticky xl:top-6">
           {/* Front Desk Tasks Panel */}
           <div className="min-w-0 bg-surface rounded-3xl border border-border/90 shadow-sm p-3 2xl:p-5 flex flex-col gap-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-divider pb-3">
@@ -2048,7 +2048,7 @@ export function NewReservation({
                 <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-warning-bg text-warning-text">
                   <Lucide.CheckSquare size={15} />
                 </div>
-                <h3 className="min-w-0 flex-1 text-xs font-bold text-ink uppercase tracking-wider">
+                <h3 className="min-w-0 flex-1 text-sm font-bold text-ink uppercase tracking-wider">
                   Checklist & Tasks
                 </h3>
               </div>
