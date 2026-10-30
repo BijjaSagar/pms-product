@@ -33,7 +33,7 @@ export function OutletPOSSection({ requirements, addons, catalog, noPost, defaul
       {noPost && <div className="flex items-start gap-2 rounded-xl border border-warning-border bg-warning-bg p-3 text-[11px] leading-relaxed text-warning-text" role="status"><Lucide.Info size={14} className="mt-0.5 flex-none" /><span><strong>No Post is enabled.</strong> Add-ons are marked for direct settlement and won’t be routed to a room folio.</span></div>}
 
       <div>
-        <div className="mb-3 flex items-center justify-between gap-2"><h3 className="text-xs font-bold text-ink">Available services</h3><span className="text-[10px] text-ink-muted">Demo outlet catalog</span></div>
+        <div className="mb-3 flex items-center justify-between gap-2"><h3 className="text-sm font-bold text-ink">Available services</h3><span className="text-[10px] text-ink-muted">Demo outlet catalog</span></div>
         <div className="mb-3 flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label="Filter POS catalog by outlet">
           {[{ id: 'all', label: 'All outlets' }, ...outlets.map((id) => ({ id, label: outletNames.get(id) ?? id }))].map((outlet) => (
             <button key={outlet.id} type="button" onClick={() => setActiveOutlet(outlet.id)} aria-pressed={activeOutlet === outlet.id} className={`min-h-[32px] flex-none rounded-full border px-3 text-[11px] font-semibold transition-colors ${activeOutlet === outlet.id ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white' : 'border-border bg-surface text-ink-secondary hover:bg-page'}`}>{outlet.label}</button>
@@ -50,7 +50,7 @@ export function OutletPOSSection({ requirements, addons, catalog, noPost, defaul
       </div>
 
       <div className="border-t border-divider pt-3">
-        <div className="mb-2 flex items-center justify-between"><h3 className="text-xs font-bold text-ink">Booking add-ons</h3><span className="text-[10px] text-ink-muted">Not posted until check-in</span></div>
+        <div className="mb-2 flex items-center justify-between"><h3 className="text-sm font-bold text-ink">Booking add-ons</h3><span className="text-[10px] text-ink-muted">Not posted until check-in</span></div>
         {addons.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-page/40 p-6 text-center"><Lucide.PackageOpen size={22} className="mx-auto text-ink-muted" /><p className="mt-2 text-xs font-semibold text-ink">No add-ons selected</p><p className="mt-1 text-[11px] text-ink-secondary">Choose a service above to add it to this booking.</p></div>
         ) : (

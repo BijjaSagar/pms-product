@@ -727,7 +727,7 @@ export function StatusTimeline() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-base font-bold text-ink tracking-tight">
+                      <h2 className="text-sm font-bold text-ink tracking-tight">
                         Room {selectedRoomModal.number}
                       </h2>
                       <span

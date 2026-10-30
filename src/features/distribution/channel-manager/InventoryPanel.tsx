@@ -114,7 +114,7 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
                 })}
               </tr>
             ))}
-            {visibleRows.length === 0 && <tr><td colSpan={dates.length + 2} className="py-10 text-center text-sm text-ink-muted">No room types match this filter.</td></tr>}
+            {visibleRows.length === 0 && <tr><td colSpan={dates.length + 2} className="py-10 text-center text-xs text-ink-muted">No room types match this filter.</td></tr>}
           </tbody>
         </table>
       </div>

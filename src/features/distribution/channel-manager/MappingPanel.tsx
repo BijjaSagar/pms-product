@@ -43,7 +43,7 @@ export function MappingPanel({ mappings, channels, onChange, onAdd, onSave }: Pr
                 </tr>
               );
             })}
-            {mappings.length === 0 && <tr><td colSpan={6} className="py-10 text-center text-sm text-ink-muted">No mappings configured.</td></tr>}
+            {mappings.length === 0 && <tr><td colSpan={6} className="py-10 text-center text-xs text-ink-muted">No mappings configured.</td></tr>}
           </tbody>
         </table>
       </div>

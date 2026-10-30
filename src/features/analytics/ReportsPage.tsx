@@ -347,7 +347,7 @@ export function Reports({
                       <Lucide.BarChart3 size={18} strokeWidth={2.4} />
                     </div>
                     <div>
-                      <h2 className="text-base font-bold text-ink tracking-tight">Occupancy & ADR Demand Forecast (14 Days)</h2>
+                      <h2 className="text-sm font-bold text-ink tracking-tight">Occupancy & ADR Demand Forecast (14 Days)</h2>
                       <p className="text-[11px] text-ink-muted">Demand forecast and projected Average Daily Rate</p>
                     </div>
                   </div>
@@ -458,7 +458,7 @@ export function Reports({
                       <Lucide.BedDouble size={18} strokeWidth={2.4} />
                     </div>
                     <div>
-                      <h2 className="text-base font-bold text-ink tracking-tight">Room Status Breakdown</h2>
+                      <h2 className="text-sm font-bold text-ink tracking-tight">Room Status Breakdown</h2>
                       <p className="text-[11px] text-ink-muted">Live operational room allocation</p>
                     </div>
                   </div>
@@ -651,7 +651,7 @@ export function Reports({
           {/* Top Controls Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface rounded-2xl border border-border/90 p-4 shadow-2xs">
             <div>
-              <h2 className="text-base font-bold text-ink tracking-tight flex items-center gap-2">
+              <h2 className="text-sm font-bold text-ink tracking-tight flex items-center gap-2">
                 <Lucide.BedDouble className="text-[var(--color-primary)]" size={18} />
                 <span>Occupancy Trends & Utilization</span>
               </h2>
@@ -795,7 +795,7 @@ export function Reports({
           {/* Top Controls Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface rounded-2xl border border-border/90 p-4 shadow-2xs">
             <div>
-              <h2 className="text-base font-bold text-ink tracking-tight flex items-center gap-2">
+              <h2 className="text-sm font-bold text-ink tracking-tight flex items-center gap-2">
                 <Lucide.TrendingUp className="text-success-text" size={18} />
                 <span>Revenue & Financial Analytics</span>
               </h2>
@@ -947,7 +947,7 @@ export function Reports({
           {/* Top Controls Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface rounded-2xl border border-border/90 p-4 shadow-2xs">
             <div>
-              <h2 className="text-base font-bold text-ink tracking-tight flex items-center gap-2">
+              <h2 className="text-sm font-bold text-ink tracking-tight flex items-center gap-2">
                 <Lucide.ArrowLeftRight className="text-[var(--color-primary)]" size={18} />
                 <span>Daily Guest Movements Manifest</span>
               </h2>

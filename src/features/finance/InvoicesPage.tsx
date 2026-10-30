@@ -178,7 +178,7 @@ export function Invoices() {
                   </td>
                   <td className="tnum font-mono font-bold text-ink text-xs">{i.id}</td>
                   <td>
-                    <span className="block font-semibold text-ink text-sm">{i.guest}</span>
+                    <span className="block font-semibold text-ink text-xs">{i.guest}</span>
                     <span className="tnum block text-xs text-ink-muted">Room {i.room}</span>
                   </td>
                   <td className="tnum text-xs text-ink-secondary">{i.due}</td>
@@ -190,7 +190,7 @@ export function Invoices() {
                   <td>
                     <Badge tone={paymentTone(i.status)}>{i.status}</Badge>
                   </td>
-                  <td className="tnum text-right font-bold text-ink text-sm">
+                  <td className="tnum text-right font-bold text-ink text-xs">
                     {formatCurrency(i.amount, i.currencyCode)}
                   </td>
                   <td className="text-right">

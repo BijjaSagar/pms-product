@@ -265,13 +265,13 @@ export function Staff() {
                     <div className="flex items-center gap-3">
                       <Avatar name={staff.fullName} size={36} />
                       <div>
-                        <span className="block font-semibold text-ink text-sm">{staff.fullName}</span>
+                        <span className="block font-semibold text-ink text-xs">{staff.fullName}</span>
                         <span className="block font-mono text-xs text-ink-secondary">{staff.userId}</span>
                       </div>
                     </div>
                   </td>
                   <td>
-                    <span className="text-ink text-sm">{staff.email}</span>
+                    <span className="text-ink text-xs">{staff.email}</span>
                   </td>
                   <td>
                     {roleBadge(staff.roleName || staff.roleKey)}
@@ -342,8 +342,8 @@ export function Staff() {
               <div className="pms-table-scroll overflow-x-auto"><table className="pms-table min-w-[640px]">
                 <thead><tr><th className="text-xs font-semibold">Permission</th>{resource.data?.matrix?.roles.map((role) => <th key={role.key} className="text-xs font-semibold">{role.name}</th>)}</tr></thead>
                 <tbody>{group.permissions.map((permission) => <tr key={permission.key}>
-                  <td><span className="block font-medium text-sm text-ink">{permission.key}</span><span className="block text-xs text-ink-secondary">{permission.description}</span></td>
-                  {resource.data?.matrix?.roles.map((role) => <td key={role.key} className="text-center text-sm">{permission.roles.includes(role.key) ? '✓' : '—'}</td>)}
+                  <td><span className="block font-medium text-xs text-ink">{permission.key}</span><span className="block text-xs text-ink-secondary">{permission.description}</span></td>
+                  {resource.data?.matrix?.roles.map((role) => <td key={role.key} className="text-center text-xs">{permission.roles.includes(role.key) ? '✓' : '—'}</td>)}
                 </tr>)}</tbody>
               </table></div>
             </div>

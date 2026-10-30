@@ -137,7 +137,7 @@ export function ReservationDetailModal({
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-base font-extrabold text-ink">
+                <h3 className="text-sm font-extrabold text-ink">
                   {reservation.guestName}
                 </h3>
                 <span

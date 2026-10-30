@@ -1947,7 +1947,7 @@ export function Reservations({
             </div>
 
             <div className="pms-table-scroll overflow-x-auto">
-              <table className="pms-table min-w-[1020px] w-full border-collapse text-left text-sm">
+              <table className="pms-table min-w-[1020px] w-full border-collapse text-left text-xs">
                 {/* Table Header */}
                 <thead>
                   <tr className="border-b border-border bg-page/80 text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
@@ -2023,7 +2023,7 @@ export function Reservations({
 
                         {/* Reference & Created Time */}
                         <td className="py-2.5 px-3">
-                          <div className="font-bold text-ink tracking-tight text-sm font-mono">
+                          <div className="font-bold text-ink tracking-tight text-xs font-mono">
                             {r.id}
                           </div>
                           <div className="text-[12px] text-ink-muted mt-0.5">

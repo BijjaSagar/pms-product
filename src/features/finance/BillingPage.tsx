@@ -1229,7 +1229,7 @@ export function Billing() {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h2 className="text-lg font-bold text-ink truncate">{currentGuest.name}</h2>
+              <h2 className="text-sm font-bold text-ink truncate">{currentGuest.name}</h2>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-info-bg text-info-text border border-info-border">
                 {currentGuest.status}
               </span>

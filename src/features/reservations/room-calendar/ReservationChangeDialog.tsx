@@ -83,7 +83,7 @@ export function ReservationChangeDialog({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-ink tracking-tight">
+                <h3 className="text-sm font-bold text-ink tracking-tight">
                   Confirm Reservation Adjustment
                 </h3>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted-surface text-ink">
