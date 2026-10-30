@@ -322,12 +322,72 @@ export function Header({
   };
 
   const kpiDrawerItems = [
-    { label: 'Occupancy', value: `${kpi.occupancyPct}%`, detail: 'Rooms occupied', icon: Lucide.BedDouble, accent: 'var(--color-primary)' },
-    { label: 'Arrivals', value: String(kpi.arrivalsCount), detail: 'Expected today', icon: Lucide.ArrowUpRight, accent: 'var(--color-success-text)' },
-    { label: 'Departures', value: String(kpi.departuresCount), detail: 'Scheduled today', icon: Lucide.ArrowDownRight, accent: 'var(--color-warning-text)' },
-    { label: 'In-house', value: String(kpi.inHouseCount), detail: 'Current guests', icon: Lucide.Users, accent: 'var(--color-info-text)' },
-    { label: 'Revenue', value: `₹${kpi.totalRevenue.toLocaleString('en-IN')}`, detail: 'Gross today', icon: Lucide.CreditCard, accent: 'var(--color-success-text)' },
-    { label: 'Pending payments', value: String(kpi.pendingPaymentsCount), detail: 'Awaiting settlement', icon: Lucide.AlertCircle, accent: 'var(--color-danger-text)' },
+    {
+      label: 'Occupancy',
+      value: `${kpi.occupancyPct}%`,
+      badge: '+12%',
+      icon: Lucide.BedDouble,
+      iconStrokeWidth: 2.2,
+      iconStyle: 'bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/25',
+      valueStyle: 'text-ink',
+      badgeStyle: 'font-bold text-success-text bg-success-text/10',
+      target: { view: 'occupancy-report' } as NavTarget,
+    },
+    {
+      label: 'Arrivals',
+      value: String(kpi.arrivalsCount),
+      badge: '2 VIP',
+      icon: Lucide.ArrowUpRight,
+      iconStrokeWidth: 2.5,
+      iconStyle: 'bg-gradient-to-tr from-success-text to-success-border text-success-foreground shadow-xs shadow-success-text/25',
+      valueStyle: 'text-ink',
+      badgeStyle: 'font-bold text-warning-text bg-warning-text/15',
+      target: { view: 'reservations' } as NavTarget,
+    },
+    {
+      label: 'Departures',
+      value: String(kpi.departuresCount),
+      badge: '7 sched',
+      icon: Lucide.ArrowDownRight,
+      iconStrokeWidth: 2.5,
+      iconStyle: 'bg-gradient-to-tr from-warning-text to-warning-border text-warning-foreground shadow-xs shadow-warning-text/25',
+      valueStyle: 'text-ink',
+      badgeStyle: 'font-semibold text-ink-secondary bg-ink/[0.04]',
+      target: { view: 'folios' } as NavTarget,
+    },
+    {
+      label: 'In-House',
+      value: String(kpi.inHouseCount),
+      badge: 'Active',
+      icon: Lucide.Users,
+      iconStrokeWidth: 2.2,
+      iconStyle: 'bg-gradient-to-tr from-primary to-primary-hover text-primary-foreground shadow-xs shadow-primary/25',
+      valueStyle: 'text-ink',
+      badgeStyle: 'font-semibold text-primary bg-primary/15',
+      target: { view: 'reservations' } as NavTarget,
+    },
+    {
+      label: 'Revenue',
+      value: `₹${kpi.totalRevenue.toLocaleString('en-IN')}`,
+      badge: 'Today',
+      icon: Lucide.CreditCard,
+      iconStrokeWidth: 2.2,
+      iconStyle: 'bg-gradient-to-tr from-success-text to-success-border text-success-foreground shadow-xs shadow-success-text/25',
+      valueStyle: 'text-success-text',
+      badgeStyle: 'font-bold text-success-text bg-success-text/15',
+      target: { view: 'revenue-report' } as NavTarget,
+    },
+    {
+      label: 'Pending',
+      value: String(kpi.pendingPaymentsCount),
+      badge: 'Due',
+      icon: Lucide.AlertCircle,
+      iconStrokeWidth: 2.3,
+      iconStyle: 'bg-gradient-to-tr from-danger-text to-danger-border text-danger-foreground shadow-xs shadow-danger-text/25',
+      valueStyle: 'text-danger-text',
+      badgeStyle: 'font-bold text-danger-text bg-danger-text/15',
+      target: { view: 'payments' } as NavTarget,
+    },
   ];
 
   return (
@@ -980,32 +1040,33 @@ export function Header({
             <div className="h-1 bg-gradient-to-r from-primary via-primary-hover to-dark-accent" />
             <div className="bg-gradient-to-br from-surface via-surface to-page/80 p-4 sm:p-6">
 
-              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-6 sm:gap-3">
+              <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 xl:grid-cols-6">
                 {kpiDrawerItems.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={item.label}
-                      className="group relative min-w-0 overflow-hidden rounded-2xl border border-border/80 bg-surface p-3 shadow-xs transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-3.5"
+                      onClick={() => {
+                        setKpiDrawerOpen(false);
+                        onGo(item.target);
+                      }}
+                      className="group flex min-w-0 items-center gap-2 rounded-xl px-2.5 py-1 text-left transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer xl:px-3"
+                      title={`${item.label}: ${item.value}`}
                     >
-                      <div className="absolute inset-x-0 top-0 h-0.5 opacity-70" style={{ background: item.accent }} />
-                      <div className="flex items-start justify-between gap-1.5">
-                        <span className="truncate text-[9px] font-bold uppercase tracking-wider text-ink-muted sm:text-[10px]">{item.label}</span>
-                        <span
-                          className="flex h-7 w-7 flex-none items-center justify-center rounded-lg"
-                          style={{ background: `color-mix(in srgb, ${item.accent} 12%, transparent)`, color: item.accent }}
-                        >
-                          <Icon size={15} />
-                        </span>
-                      </div>
-                      <p className="mt-2 truncate text-lg font-extrabold tracking-tight text-ink sm:text-xl" title={item.value}>{item.value}</p>
-                      <p className="mt-0.5 truncate text-[10px] font-medium text-ink-secondary">{item.detail}</p>
-                      {item.label === 'Occupancy' && (
-                        <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted-surface">
-                          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, Math.max(0, kpi.occupancyPct))}%` }} />
+                      <span className={`flex h-7 w-7 flex-none items-center justify-center rounded-lg transition-transform group-hover:scale-105 ${item.iconStyle}`}>
+                        <Icon size={14} strokeWidth={item.iconStrokeWidth} />
+                      </span>
+                      <div className="flex min-w-0 flex-col gap-0.5 leading-tight">
+                        <span className="truncate text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">{item.label}</span>
+                        <div className="flex min-w-0 items-center gap-1.5">
+                          <span className={`truncate text-[13.5px] font-bold tnum ${item.valueStyle}`} title={item.value}>{item.value}</span>
+                          <span className={`flex-none rounded-md px-1.5 py-0.5 text-[10px] leading-tight ${item.badgeStyle}`}>
+                            {item.badge}
+                          </span>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    </button>
                   );
                 })}
               </div>

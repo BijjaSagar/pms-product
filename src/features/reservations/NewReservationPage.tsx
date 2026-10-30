@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import * as Lucide from "lucide-react";
 import type { NavDraft, NavTarget } from "../../components/nav";
 import { toast } from "../../components/toastStore";
@@ -2172,7 +2173,7 @@ export function NewReservation({
       </div>
 
       {/* ================= PAYMENT COLLECT MODAL ================= */}
-      {collectModalOpen && (
+      {collectModalOpen && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-xs">
           <div className="bg-surface rounded-3xl border border-border max-w-md w-full p-6 shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-divider pb-3">
@@ -2270,11 +2271,12 @@ export function NewReservation({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       {/* ================= REPORT ISSUE MODAL ================= */}
-      {issueModalOpen && (
+      {issueModalOpen && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-xs">
           <div className="bg-surface rounded-3xl border border-border max-w-md w-full p-6 shadow-2xl flex flex-col gap-4">
             <div className="flex items-center justify-between border-b border-divider pb-3">
@@ -2331,7 +2333,8 @@ export function NewReservation({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
