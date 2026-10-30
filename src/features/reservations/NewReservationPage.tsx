@@ -203,8 +203,8 @@ export function NewReservation({
   const [guestSalutation, setGuestSalutation] = useState("Mr.");
   const [guestName, setGuestName] = useState(DEFAULT_GUEST_NAME);
   const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(null);
-  const [guestContact, setGuestContact] = useState(DEFAULT_GUEST.phone);
-  const [guestEmail, setGuestEmail] = useState(DEFAULT_GUEST.email);
+  const [guestContact, setGuestContact] = useState(DEFAULT_GUEST.phone ?? "");
+  const [guestEmail, setGuestEmail] = useState(DEFAULT_GUEST.email ?? "");
   const [guestIdType, setGuestIdType] = useState("Aadhaar Card");
   const [guestIdNumber, setGuestIdNumber] = useState("");
   const [specialRequests, setSpecialRequests] = useState(
