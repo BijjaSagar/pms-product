@@ -12,7 +12,7 @@ const BILLING_ROUTES = ['To Guest', 'To Company'] as const;
 export function BillingPreferencesSection({ preferences, totalsByRoute, onChange }: Props) {
   const needsCompany = preferences.billToCompany || preferences.roomBillTo === 'To Company' || preferences.extrasBillTo === 'To Company';
   return (
-    <section className="bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
+    <section className="min-w-0 bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
       <div className="flex items-center gap-2.5 border-b border-divider pb-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-xs shadow-xs shadow-primary/20">3</span>
         <h2 className="text-sm font-bold text-ink-secondary tracking-tight">Billing Preferences</h2>
@@ -58,7 +58,7 @@ export function BillingPreferencesSection({ preferences, totalsByRoute, onChange
       <div className="rounded-2xl border border-border/80 bg-page/60 p-3.5">
         <div className="mb-2 flex items-center gap-2 text-xs font-bold text-ink"><Lucide.ReceiptText size={14} className="text-[var(--color-primary)]" />Estimated billing split</div>
         <div className="flex flex-col gap-1.5 text-[11px]">
-          {Object.entries(totalsByRoute).map(([route, amount]) => <div key={route} className="flex items-center justify-between gap-3 text-ink-secondary"><span>{route}</span><span className="font-mono font-semibold text-ink">₹{amount.toLocaleString('en-IN')}.00</span></div>)}
+          {Object.entries(totalsByRoute).map(([route, amount]) => <div key={route} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-ink-secondary"><span className="min-w-0 flex-1">{route}</span><span className="shrink-0 text-right font-mono font-semibold text-ink">₹{amount.toLocaleString('en-IN')}.00</span></div>)}
         </div>
       </div>
     </section>

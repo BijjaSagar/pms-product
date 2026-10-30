@@ -37,16 +37,16 @@ export function RoomRequirementsSection({
   onOverrideRoomTotalChange,
 }: Props) {
   return (
-    <section className="bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
-      <div className="flex flex-col gap-3 border-b border-divider pb-3 sm:flex-row sm:items-center sm:justify-between">
+    <section className="min-w-0 bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
+      <div className="flex flex-col gap-3 border-b border-divider pb-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
         <div className="flex min-w-0 items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-xs shadow-xs shadow-primary/20">2</span>
           <div>
             <h2 className="text-sm font-bold text-ink-secondary tracking-tight">Room Requirements & Allocation</h2>
           </div>
         </div>
-        <div className="w-full sm:w-auto sm:flex-none">
-          <button type="button" onClick={() => onOverridePriceChange(!overridePrice)} className={`flex min-h-[34px] w-full min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all sm:w-auto ${overridePrice ? 'bg-warning-bg text-warning-text border-warning-border' : 'bg-surface text-ink border-border hover:bg-page'}`}><Lucide.Tag size={13} /> Override Price</button>
+        <div className="w-full 2xl:w-auto 2xl:flex-none">
+          <button type="button" onClick={() => onOverridePriceChange(!overridePrice)} className={`flex min-h-[34px] w-full min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all 2xl:w-auto ${overridePrice ? 'bg-warning-bg text-warning-text border-warning-border' : 'bg-surface text-ink border-border hover:bg-page'}`}><Lucide.Tag size={13} /> Override Price</button>
         </div>
       </div>
 
@@ -71,7 +71,7 @@ export function RoomRequirementsSection({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-4">
                   {([
                     { field: 'adults' as const, label: 'Adults', minimum: 1, maximum: 6 },
                     { field: 'children' as const, label: 'Children (6–12)', minimum: 0, maximum: undefined },
@@ -122,8 +122,8 @@ export function RoomRequirementsSection({
       </div>
 
       <div className="bg-page/80 rounded-2xl border border-border/70 p-4 text-xs">
-        <div className="flex items-center justify-between text-ink-secondary"><span>Total Rooms</span><span className="font-bold text-ink">{totalRooms} room(s) · {nights} night(s)</span></div>
-        <div className="mt-2 flex items-center justify-between gap-3 text-ink-secondary">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-ink-secondary"><span>Total Rooms</span><span className="font-bold text-ink">{totalRooms} room(s) · {nights} night(s)</span></div>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-ink-secondary">
           <label htmlFor="room-total" className="shrink-0">Room total</label>
           <label className={`flex min-w-0 items-center gap-1 rounded-lg border px-2.5 py-1.5 ${overridePrice ? 'border-warning-border bg-warning-bg/50' : 'border-border bg-surface'}`}>
             <span className="font-bold text-ink-secondary">₹</span>
@@ -140,8 +140,8 @@ export function RoomRequirementsSection({
             />
           </label>
         </div>
-        <div className="mt-2 flex items-center justify-between text-ink-secondary"><span>Meal plan supplements</span><span className="font-bold font-mono text-ink">₹{mealPlanCharges.toLocaleString('en-IN')}.00</span></div>
-        <div className="mt-2 flex items-center justify-between text-ink-secondary"><span>Tax on room charges</span><span className="font-bold font-mono text-ink">₹{roomTax.toLocaleString('en-IN')}.00</span></div>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-ink-secondary"><span className="min-w-0 flex-1">Meal plan supplements</span><span className="shrink-0 text-right font-bold font-mono text-ink">₹{mealPlanCharges.toLocaleString('en-IN')}.00</span></div>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-ink-secondary"><span className="min-w-0 flex-1">Tax on room charges</span><span className="shrink-0 text-right font-bold font-mono text-ink">₹{roomTax.toLocaleString('en-IN')}.00</span></div>
       </div>
     </section>
   );
