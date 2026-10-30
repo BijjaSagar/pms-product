@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
-import { NAV_SECTIONS, sectionOf, viewPermission } from '../nav';
-import type { ViewId } from '../nav';
+import { NAV_SECTIONS, sectionOf, viewPermission } from '../../config/navigation';
+import type { ViewId } from '../../config/navigation';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useTheme } from '../../theme/useTheme';
 import { THEME_PRESETS } from '../../theme/presets';
@@ -476,7 +476,7 @@ export function Sidebar({
       {tooltip &&
         createPortal(
           <div
-            className="pointer-events-none fixed z-[9999] flex items-center animate-in fade-in zoom-in-95 duration-100"
+            className="pointer-events-none fixed z-[9999] flex items-center duration-100"
             style={{
               left: `${tooltip.x}px`,
               top: `${tooltip.y}px`,
@@ -516,7 +516,7 @@ export function Sidebar({
           return createPortal(
             <div
               ref={flyoutRef}
-              className="fixed z-[9990] w-[310px] overflow-hidden rounded-2xl border border-border/90 bg-surface text-ink shadow-xl animate-in fade-in zoom-in-95 duration-150"
+              className="fixed z-[9990] w-[310px] overflow-hidden rounded-2xl border border-border/90 bg-surface text-ink shadow-xl duration-150"
               style={{
                 left: `${flyout.x}px`,
                 top: `${flyout.y}px`,

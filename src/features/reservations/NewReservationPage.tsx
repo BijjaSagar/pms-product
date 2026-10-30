@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import * as Lucide from "lucide-react";
-import type { NavDraft, NavTarget } from "../../components/nav";
-import { toast } from "../../components/toastStore";
+import type { NavDraft, NavTarget } from "../../config/navigation";
+import { toast } from "../../utils/toast";
 import { Modal } from "../../components/overlays";
 import { inventoryApi, guestApi, reservationApi } from "../../lib/api/pms";
 import type {

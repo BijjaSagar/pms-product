@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
-import { NAV_ITEMS, NAV_SECTIONS, viewPermission } from '../nav';
-import type { NavTarget, ViewId } from '../nav';
-import { NOTICES } from '../../constants/notices';
-import { toast } from '../toastStore';
+import { NAV_ITEMS, NAV_SECTIONS, viewPermission } from '../../config/navigation';
+import type { NavTarget, ViewId } from '../../config/navigation';
+import { NOTICES } from '../../config/notices';
+import { toast } from '../../utils/toast';
 import { useAuth } from '../../features/auth/AuthContext';
 import { displayApiError } from '../../lib/api/client';
 import { folioApi, frontDeskApi, reportsApi } from '../../lib/api/pms';

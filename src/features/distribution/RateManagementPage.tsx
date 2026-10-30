@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { toast } from '../../components/toastStore';
+import { toast } from '../../utils/toast';
 import {
   BUSINESS_DATE,
   CHANNELS,
@@ -28,7 +28,7 @@ import { RateCalendarPanel } from './rate-management/RateCalendarPanel';
 import { RatePerformancePanel } from './rate-management/RatePerformancePanel';
 import { RatePlanDialog } from './rate-management/RatePlanDialog';
 import { RatePlansPanel } from './rate-management/RatePlansPanel';
-import { RestrictionsPanel } from './rate-management/RestrictionsPanel';
+import { RateRestrictionsPanel } from './rate-management/RateRestrictionsPanel';
 import { SeasonDialog } from './rate-management/SeasonDialog';
 import { SeasonalityPanel } from './rate-management/SeasonalityPanel';
 import type { BulkUpdatePayload, EditableRateRow, RateHistoryEvent, RatePlan, RateTabId, Season } from './rate-management/types';
@@ -417,7 +417,7 @@ export function RateManagement() {
           )}
           {activeTab === 'plans' && <RatePlansPanel plans={ratePlans} onCreate={openCreatePlan} onEdit={openEditPlan} onToggleStatus={handleTogglePlanStatus} />}
           {activeTab === 'seasonality' && <SeasonalityPanel seasons={seasons} onAdd={() => setSeasonDialogOpen(true)} onToggleStatus={handleToggleSeason} />}
-          {activeTab === 'restrictions' && <RestrictionsPanel dates={dates} minStays={minStays} maxStays={maxStays} closedToArrival={closedToArrival} closedToDeparture={closedToDeparture} stopSell={stopSell} onOpenCalendar={() => setActiveTab('calendar')} />}
+          {activeTab === 'restrictions' && <RateRestrictionsPanel dates={dates} minStays={minStays} maxStays={maxStays} closedToArrival={closedToArrival} closedToDeparture={closedToDeparture} stopSell={stopSell} onOpenCalendar={() => setActiveTab('calendar')} />}
           {activeTab === 'mapping' && <ChannelMappingPanel channels={CHANNELS} connectedChannelIds={connectedChannelIds} plans={ratePlans} onToggle={handleToggleChannel} onSync={(channel) => { addHistory('Channel sync requested', channel.name, 'info'); toast(`${channel.name} sync completed`, { tone: 'success', detail: 'Demo action; no external channel was contacted.' }); }} />}
           {activeTab === 'bulk' && <BulkUpdatePanel startDate={rangeStart} endDate={endDate} onApply={handleBulkUpdate} />}
           {activeTab === 'history' && <HistoryPanel events={history} />}

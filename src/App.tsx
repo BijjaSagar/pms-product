@@ -1,7 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Header, Sidebar } from './components/layout';
-import type { NavTarget } from './components/nav';
-import { viewPermission } from './components/nav';
+import type { NavTarget } from './config/navigation';
+import { viewPermission } from './config/navigation';
 import { ThemeSwatcher } from './theme/ThemeSwatcher';
 import { AppCrashFallback, ErrorBoundary, PanelCrashFallback } from './components/ErrorBoundary';
 import { ForbiddenPage, NotFoundPage } from './components/ErrorPages';
@@ -12,7 +12,7 @@ import type { ThemePresetId } from './theme/presets';
 import { Toaster } from './components/overlays';
 import { Dashboard } from './features/dashboard/DashboardPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
-import { themeApi } from './lib/api/themeApi';
+import { themeApi } from './lib/api/pms';
 import type { ThemeKey } from './types';
 
 const THEME_KEY_TO_PRESET: Record<ThemeKey, ThemePresetId> = {

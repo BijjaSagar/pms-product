@@ -1,5 +1,4 @@
 import type {
-  Folio,
   Guest,
   HousekeepingTask,
   Invoice,
@@ -11,7 +10,6 @@ import type {
   RoomType,
 } from '../../types';
 import type {
-  FolioDetailRow,
   GuestRow,
   HousekeepingTaskRow,
   InvoiceRow,
@@ -197,39 +195,6 @@ export function maintenanceFromApi(row: MaintenanceTicketRow): MaintenanceReques
     status,
     notes: row.resolution ? [row.resolution] : [],
   };
-}
-
-export function folioFromApi(row: FolioDetailRow, stay: StayRow): Folio {
-  const charges = (row.items ?? []).filter((item) => !item.isVoided && item.type !== 'REVERSAL' && item.type !== 'TAX').map((item) => ({
-    backendId: item.id,
-    label: item.description,
-    detail: `${item.quantity} × ${item.unitAmount}`,
-    amount: Number(item.totalAmount ?? 0),
-  }));
-  return {
-    id: row.folioNo ?? row.id,
-    backendId: row.id,
-    currencyCode: row.currencyCode,
-    checkOutDate: stay?.checkOutDate,
-    reservationId: row.reservationId,
-    guest: row.guestName ?? stay?.guestName ?? 'Guest',
-    guestId: stay?.guestId ?? '',
-    room: stay?.roomSummary ?? stay?.roomNumber ?? '—',
-    status: row.status === 'CLOSED' ? 'Settled' : 'Open',
-    charges,
-    tax: Number(row.balance?.tax ?? 0),
-    discount: 0,
-    payments: (row.payments ?? []).filter((payment) => !['PENDING', 'FAILED'].includes(payment.status)).map((payment) => ({
-      ref: payment.id,
-      method: paymentMethodFromApi(payment.method),
-      amount: Number(payment.amount) - Number(payment.refundedAmount ?? 0),
-      date: shortDate(payment.recordedAt),
-    })),
-  };
-}
-
-export function paymentMethodToApi(value: string): string {
-  return ({ Card: 'CARD_TERMINAL', Cash: 'CASH', Transfer: 'BANK_TRANSFER', Invoice: 'CORPORATE_ACCOUNT' } as Record<string, string>)[value] ?? 'OTHER';
 }
 
 export function paymentMethodFromApi(value: string): string {

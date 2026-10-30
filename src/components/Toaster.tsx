@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { dismissToast, snapshotToasts, subscribeToasts } from './toastStore';
-import type { ToastItem } from './toastStore';
+import { dismissToast, snapshotToasts, subscribeToasts } from '../utils/toast';
+import type { ToastItem } from '../utils/toast';
 import { TONE_VARS } from '../theme/tone';
 import type { Tone } from '../theme/tone';
 

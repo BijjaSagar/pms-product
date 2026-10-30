@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import * as Lucide from 'lucide-react';
 import { Modal } from '../../components/overlays';
-import { toast } from '../../components/toastStore';
+import { toast } from '../../utils/toast';
 import { folioApi, frontDeskApi } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { formatINR, formatNumber } from '../../utils';
@@ -1425,7 +1425,7 @@ export function Billing() {
             {/* More filters drawer panel if toggled */}
             {moreFiltersOpen ? (
               <div
-                className="p-3.5 rounded-2xl border text-xs flex flex-wrap items-center gap-4 animate-in fade-in"
+                className="p-3.5 rounded-2xl border text-xs flex flex-wrap items-center gap-4"
                 style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
               >
                 <span className="font-bold text-ink">Active filters:</span>

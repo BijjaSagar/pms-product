@@ -4,7 +4,7 @@ import * as Lucide from 'lucide-react';
 import type { CalendarReservation, CalendarRoom, ProposedReservationChange } from './types';
 import { countNights, ROOM_TYPE_CONFIG } from './mockData';
 import { validateReservationMove } from './validation';
-import { toast } from '../../../components/toastStore';
+import { toast } from '../../../utils/toast';
 import { lockAppScroll } from '../../../lib/scrollLock';
 
 interface Props {

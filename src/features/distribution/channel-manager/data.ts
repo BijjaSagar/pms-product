@@ -1,6 +1,9 @@
+import { BUSINESS_DATE } from '../../../data/catalog';
+import { shiftDate } from '../../../utils/date';
+
+export { BUSINESS_DATE, shiftDate };
 import type { Channel, ChannelBooking, ChannelLog, ChannelPerformance, InventoryDate, InventoryRow, RateMapping, SyncSettings } from './types';
 
-export const BUSINESS_DATE = '2026-10-17';
 export const INITIAL_RANGE_START = '2026-10-14';
 
 export const ROOM_TYPES = ['Standard', 'Deluxe', 'Superior', 'Suite', 'Family', 'Executive'];
@@ -79,11 +82,6 @@ export const INITIAL_SYNC_SETTINGS: SyncSettings = {
   defaultMarkup: '0',
 };
 
-export function shiftDate(isoDate: string, days: number): string {
-  const date = new Date(`${isoDate}T12:00:00Z`);
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
-}
 
 export function buildInventoryDates(startDate: string, count = 15): InventoryDate[] {
   return Array.from({ length: count }, (_, index) => {

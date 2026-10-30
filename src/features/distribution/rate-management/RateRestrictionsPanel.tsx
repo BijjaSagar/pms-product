@@ -11,7 +11,7 @@ interface Props {
   onOpenCalendar: () => void;
 }
 
-export function RestrictionsPanel({ dates, minStays, maxStays, closedToArrival, closedToDeparture, stopSell, onOpenCalendar }: Props) {
+export function RateRestrictionsPanel({ dates, minStays, maxStays, closedToArrival, closedToDeparture, stopSell, onOpenCalendar }: Props) {
   const restrictions = dates.flatMap((date, index) => {
     const items = [];
     if (stopSell[index]) items.push({ id: `${date.iso}-stop`, label: 'Stop sell', detail: 'Room sales closed', tone: 'danger' as const, icon: Lucide.Ban });

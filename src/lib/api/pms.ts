@@ -1,4 +1,5 @@
 import { store } from '../../data/store';
+import type { ThemeKey } from '../../types';
 
 export interface PropertyMembership {
   id: string;
@@ -177,13 +178,6 @@ export interface HoldResult {
  * choosing — and then losing — the same room-night. The hold expires on its own
  * after ten minutes and is consumed by the reservation that uses it.
  */
-export const holdApi = {
-  acquire: async (roomId: string, checkIn: string, checkOut: string) =>
-    store.acquireHold(roomId, checkIn, checkOut),
-  refresh: async (holdId: string) => store.refreshHold(holdId) as HoldResult,
-  release: async (holdId: string) => store.releaseHold(holdId),
-};
-
 export const propertyApi = {
   list: async () => store.properties(),
   update: async (id: string, body: Record<string, unknown>) => store.updateProperty(id, body),
@@ -314,8 +308,10 @@ export const adminApi = {
 const THEME_STORAGE_KEY = 'pms.theme';
 
 export const themeApi = {
-  get: async () => ({ themeKey: localStorage.getItem(THEME_STORAGE_KEY) ?? 'CRIMSON_RED' }),
-  set: async (themeKey: string) => {
+  get: async (): Promise<{ themeKey: ThemeKey }> => ({
+    themeKey: (localStorage.getItem(THEME_STORAGE_KEY) ?? 'CRIMSON_RED') as ThemeKey,
+  }),
+  set: async (themeKey: ThemeKey) => {
     localStorage.setItem(THEME_STORAGE_KEY, themeKey);
     return { themeKey, applied: true };
   },

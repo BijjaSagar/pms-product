@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
-import { toast } from '../../components/toastStore';
+import { toast } from '../../utils/toast';
 import { TONE_VARS } from '../../theme/tone';
 import type { Tone } from '../../theme/tone';
 

@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import type { NavTarget } from '../../components/nav';
+import type { NavTarget } from '../../config/navigation';
 import { folioApi, frontDeskApi, operationsApi, reportsApi, reservationApi } from '../../lib/api/pms';
 import { paymentFromApi, reservationFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { useAuth } from '../../features/auth/AuthContext';
 import type { PaymentRow, ReservationRow, StayRow } from '../../lib/api/pms';
-import { toast } from '../../components/toastStore';
+import { toast } from '../../utils/toast';
 import { Avatar, Badge, TableActionBtn, TableContainer } from '../../components/ui';
 
 // ================= DEMO FALLBACK DATA MATCHING REFERENCE IMAGE =================

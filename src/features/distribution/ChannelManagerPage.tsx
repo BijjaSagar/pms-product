@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { toast } from '../../components/toastStore';
+import { toast } from '../../utils/toast';
 import { Modal } from '../../components/overlays';
 import { AddChannelDialog } from './channel-manager/AddChannelDialog';
 import { ChannelDirectoryPanel } from './channel-manager/ChannelDirectoryPanel';
@@ -9,7 +9,7 @@ import { InventoryPanel } from './channel-manager/InventoryPanel';
 import { MappingPanel } from './channel-manager/MappingPanel';
 import { PromotionsPanel } from './channel-manager/PromotionsPanel';
 import { RatesPanel } from './channel-manager/RatesPanel';
-import { RestrictionsPanel } from './channel-manager/RestrictionsPanel';
+import { ChannelRestrictionsPanel } from './channel-manager/ChannelRestrictionsPanel';
 import { SyncSettingsPanel } from './channel-manager/SyncSettingsPanel';
 import {
   ADDABLE_PROVIDERS,
@@ -386,7 +386,7 @@ export function ChannelManager() {
         <div id="channel-tab-panel" role="tabpanel" aria-labelledby={`channel-tab-${activeTab}`} className="min-w-0 p-3 sm:p-4">
           {activeTab === 'inventory' && <InventoryPanel dates={dates} rows={inventory} roomFilter={roomFilter} dateLabel={dateLabel} lastUpdatedLabel={lastGlobalSync} onRoomFilterChange={setRoomFilter} onPrevious={() => setRangeStart((current) => shiftDate(current, -15))} onNext={() => setRangeStart((current) => shiftDate(current, 15))} onToday={() => setRangeStart(shiftDate(BUSINESS_DATE, -3))} onSelectCell={handleInventoryCellSelect} />}
           {activeTab === 'rates' && <RatesPanel channels={channels} performance={performance} channelFilter={channelFilter} onChannelFilterChange={setChannelFilter} />}
-          {activeTab === 'restrictions' && <div className="flex flex-col gap-4"><RestrictionsPanel settings={settings} onChange={handleSettingsChange} /><SyncSettingsPanel settings={settings} expanded={settingsExpanded} onToggleExpanded={() => setSettingsExpanded((value) => !value)} onChange={handleSettingsChange} onSave={handleSaveSettings} /></div>}
+          {activeTab === 'restrictions' && <div className="flex flex-col gap-4"><ChannelRestrictionsPanel settings={settings} onChange={handleSettingsChange} /><SyncSettingsPanel settings={settings} expanded={settingsExpanded} onToggleExpanded={() => setSettingsExpanded((value) => !value)} onChange={handleSettingsChange} onSave={handleSaveSettings} /></div>}
           {activeTab === 'mapping' && <MappingPanel mappings={mappings} channels={channels} onChange={handleMappingChange} onAdd={handleAddMapping} onSave={handleSaveMappings} />}
           {activeTab === 'promotions' && <PromotionsPanel channels={channels} bookings={bookings} channelFilter={channelFilter} onChannelFilterChange={setChannelFilter} onViewAll={() => setShowAllBookings(true)} />}
         </div>

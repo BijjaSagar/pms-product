@@ -1,6 +1,6 @@
 import * as Lucide from 'lucide-react';
-import type { NavTarget } from './nav';
-import { toast } from './toastStore';
+import type { NavTarget } from '../config/navigation';
+import { toast } from '../utils/toast';
 
 /**
  * Premium 403 Forbidden / Restricted Access Page

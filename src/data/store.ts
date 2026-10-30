@@ -1,17 +1,4 @@
-import {
-  ALL_PERMISSIONS,
-  BUSINESS_DATE,
-  CURRENT_USER_ID,
-  GUESTS,
-  PERMISSION_CATALOG,
-  PROPERTY,
-  ROLE_DEFS,
-  ROOM_TYPES,
-  TAX_RATE,
-  TAX_RULES,
-  USERS,
-  type InternalUser,
-} from './catalog';
+import { ALL_PERMISSIONS, BUSINESS_DATE, CURRENT_USER_ID, GUESTS, PERMISSION_CATALOG, PROPERTY, ROLE_DEFS, ROOM_TYPES, TAX_RATE, TAX_RULES, USERS, type InternalUser } from './catalog';
 import { buildSeedState } from './fixtures';
 import {
   addDays,

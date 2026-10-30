@@ -3,7 +3,7 @@ import * as Lucide from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { propertyApi, adminApi, inventoryApi } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
-import { toast } from '../../components/toastStore';
+import { toast } from '../../utils/toast';
 import { displayApiError } from '../../lib/api/client';
 import { useTheme } from '../../theme/useTheme';
 import { PRESET_LIST } from '../../theme/presets';
@@ -11,7 +11,7 @@ import { loadRoomInventory } from '../../lib/api/loaders';
 import { formatCurrency } from '../../lib/api/format';
 import { Modal } from '../../components/overlays';
 import { Field } from '../../components/controls';
-import { inputClass } from '../../components/inputClass';
+import { inputClass } from '../../utils/styling';
 import type { RoomType } from '../../types';
 
 type SettingsTab =
