@@ -151,7 +151,7 @@ function Shell() {
 
   return (
     <div className="pms-app-shell flex h-dvh min-h-0" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
-      <a href="#pms-main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[70] focus:rounded-control focus:border focus:px-4 focus:py-2 focus:text-[13px] focus:font-semibold" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)', color: 'var(--color-ink)' }}>
+      <a href="#pms-main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[70] focus:rounded-control focus:border focus:px-4 focus:py-2 focus:text-body focus:font-semibold" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)', color: 'var(--color-ink)' }}>
         Skip to main content
       </a>
       <Sidebar
@@ -180,7 +180,7 @@ function Shell() {
             className="border-t px-4 py-3.5 lg:px-6"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
-            <p className="tnum mx-auto w-full max-w-[1600px] text-xs font-normal 2xl:max-w-[1760px]" style={{ color: 'var(--color-ink-secondary)' }}>
+            <p className="tnum mx-auto w-full max-w-[1600px] text-label font-normal 2xl:max-w-[1760px]" style={{ color: 'var(--color-ink-secondary)' }}>
               TriponX PMS · {THEME_PRESETS[preset]?.name ?? 'Theme'} · 9 colour themes ·
               status colours fixed across themes · unsupported modules remain demo-only
             </p>

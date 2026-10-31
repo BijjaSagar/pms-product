@@ -130,13 +130,13 @@ function ToastCard({ toast: t, onDismiss }: ToastCardProps) {
         <div className="min-w-0 flex-1 pt-0.5">
           <div className="flex items-center justify-between gap-2 pr-1">
             <h4
-              className="text-[13px] font-semibold tracking-tight leading-snug truncate"
+              className="text-body font-semibold tracking-tight leading-snug truncate"
               style={{ color: 'var(--color-ink)' }}
             >
               {t.title}
             </h4>
             <span
-              className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md flex-none"
+              className="inline-flex items-center text-micro font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md flex-none"
               style={{
                 background: cfg.tag.bg,
                 color: cfg.tag.color,
@@ -148,7 +148,7 @@ function ToastCard({ toast: t, onDismiss }: ToastCardProps) {
 
           {t.detail ? (
             <p
-              className="mt-1 text-[12px] leading-relaxed line-clamp-3"
+              className="mt-1 text-label leading-relaxed line-clamp-3"
               style={{ color: 'var(--color-ink-secondary)' }}
             >
               {t.detail}
@@ -164,7 +164,7 @@ function ToastCard({ toast: t, onDismiss }: ToastCardProps) {
                   void t.action?.onClick();
                   onDismiss(t.id);
                 }}
-                className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-lg border shadow-xs transition-all duration-150 active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-label font-semibold px-2.5 py-1 rounded-lg border shadow-xs transition-all duration-150 active:scale-95 cursor-pointer"
                 style={{
                   background: 'var(--color-surface)',
                   borderColor: 'var(--color-border)',

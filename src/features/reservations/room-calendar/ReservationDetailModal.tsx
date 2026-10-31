@@ -137,11 +137,11 @@ export function ReservationDetailModal({
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-sm font-extrabold text-ink">
+                <h3 className="text-body font-extrabold text-ink">
                   {reservation.guestName}
                 </h3>
                 <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  className={`text-micro font-bold px-2 py-0.5 rounded-full ${
                     reservation.status === 'Confirmed'
                       ? 'bg-success-bg text-success-text border border-success-border'
                       : reservation.status === 'Checked-in'
@@ -154,7 +154,7 @@ export function ReservationDetailModal({
                   {reservation.status}
                 </span>
               </div>
-              <p className="text-xs text-ink-secondary font-mono mt-0.5">
+              <p className="text-label text-ink-secondary font-mono mt-0.5">
                 {reservation.id} · Channel: {reservation.bookingSource}
               </p>
             </div>
@@ -171,26 +171,26 @@ export function ReservationDetailModal({
 
         {/* View Details Mode vs Tap-based Edit Mode */}
         {!isEditing ? (
-          <div className="flex flex-col gap-3.5 text-xs">
+          <div className="flex flex-col gap-3.5 text-label">
             {/* Info Cards Grid */}
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3.5 rounded-2xl bg-page border border-border/80">
-                <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">Assigned Room</span>
+                <span className="text-micro font-bold text-ink-muted uppercase tracking-wider block">Assigned Room</span>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm font-extrabold text-ink">Room {currentRoom.number}</span>
-                  <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded border ${typeConfig.badgeBg}`}>
+                  <span className="text-body font-extrabold text-ink">Room {currentRoom.number}</span>
+                  <span className={`text-micro font-bold px-1.5 py-0.2 rounded border ${typeConfig.badgeBg}`}>
                     {currentRoom.type}
                   </span>
                 </div>
-                <span className="text-[11px] text-ink-secondary mt-0.5 block">Floor {currentRoom.floor} · Max {currentRoom.maxOccupancy} Guests</span>
+                <span className="text-label text-ink-secondary mt-0.5 block">Floor {currentRoom.floor} · Max {currentRoom.maxOccupancy} Guests</span>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-page border border-border/80">
-                <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">Stay Duration</span>
-                <span className="text-sm font-extrabold text-ink mt-1 block">
+                <span className="text-micro font-bold text-ink-muted uppercase tracking-wider block">Stay Duration</span>
+                <span className="text-body font-extrabold text-ink mt-1 block">
                   {reservation.nights} {reservation.nights === 1 ? 'Night' : 'Nights'}
                 </span>
-                <span className="text-[11px] text-ink-secondary mt-0.5 block">
+                <span className="text-label text-ink-secondary mt-0.5 block">
                   {reservation.checkInDate} → {reservation.checkOutDate}
                 </span>
               </div>
@@ -199,15 +199,15 @@ export function ReservationDetailModal({
             {/* Financial Summary Strip */}
             <div className="p-3.5 rounded-2xl bg-page border border-border/80 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">Total Amount</span>
-                <span className="text-sm font-extrabold font-mono text-ink mt-0.5 block">
+                <span className="text-micro font-bold text-ink-muted uppercase tracking-wider block">Total Amount</span>
+                <span className="text-body font-extrabold font-mono text-ink mt-0.5 block">
                   ₹{reservation.totalAmount.toLocaleString('en-IN')}.00
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">Payment</span>
+                <span className="text-micro font-bold text-ink-muted uppercase tracking-wider block">Payment</span>
                 <span
-                  className={`text-xs font-bold px-2 py-0.5 rounded-full inline-block mt-0.5 ${
+                  className={`text-label font-bold px-2 py-0.5 rounded-full inline-block mt-0.5 ${
                     reservation.paymentStatus === 'Paid'
                       ? 'bg-success-bg text-success-text border border-success-border'
                       : reservation.paymentStatus === 'Partial'
@@ -236,7 +236,7 @@ export function ReservationDetailModal({
               </div>
               {reservation.specialRequests && (
                 <div className="pt-1 border-t border-border/60 text-ink-secondary">
-                  <span className="text-[10px] font-bold uppercase text-ink-muted block">Special Requests</span>
+                  <span className="text-micro font-bold uppercase text-ink-muted block">Special Requests</span>
                   <p className="italic text-ink mt-0.5">{reservation.specialRequests}</p>
                 </div>
               )}
@@ -253,7 +253,7 @@ export function ReservationDetailModal({
                       onClose();
                       toast.success('Guest Checked In', { detail: `${reservation.guestName} into Room ${reservation.roomNumber}` });
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-info-bg text-info-text border border-info-border font-bold text-xs hover:bg-info-bg cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl bg-info-bg text-info-text border border-info-border font-bold text-label hover:bg-info-bg cursor-pointer"
                   >
                     Check In
                   </button>
@@ -266,7 +266,7 @@ export function ReservationDetailModal({
                       onClose();
                       toast.success('Guest Checked Out', { detail: `${reservation.guestName} settled & departed` });
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-muted-surface text-ink border border-border font-bold text-xs hover:bg-border cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl bg-muted-surface text-ink border border-border font-bold text-label hover:bg-border cursor-pointer"
                   >
                     Check Out
                   </button>
@@ -277,7 +277,7 @@ export function ReservationDetailModal({
                 <button
                   type="button"
                   onClick={startEditMode}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white font-bold text-xs shadow-xs hover:opacity-95 cursor-pointer"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white font-bold text-label shadow-xs hover:opacity-95 cursor-pointer"
                   title="Reassign room or change dates directly without dragging"
                 >
                   <Lucide.Sliders size={13} />
@@ -288,22 +288,22 @@ export function ReservationDetailModal({
           </div>
         ) : (
           /* Tap / Form-Based Editing Alternative (Accessible / Mobile Friendly) */
-          <div className="flex flex-col gap-3.5 text-xs">
-            <div className="p-3 rounded-xl bg-primary/10 border border-primary/30 text-primary text-xs">
+          <div className="flex flex-col gap-3.5 text-label">
+            <div className="p-3 rounded-xl bg-primary/10 border border-primary/30 text-primary text-label">
               <span className="font-bold block">Accessible Reallocation</span>
-              <span className="text-[11px] text-primary">
+              <span className="text-label text-primary">
                 Select a different room or stay dates using form controls. Full conflict validation is applied automatically.
               </span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1">
+              <label className="block text-label font-bold text-ink-secondary uppercase tracking-wider mb-1">
                 Target Room
               </label>
               <select
                 value={editRoomId}
                 onChange={(e) => setEditRoomId(e.target.value)}
-                className="w-full rounded-xl border border-border bg-surface p-2.5 text-xs text-ink font-bold cursor-pointer focus:outline-none focus:border-[var(--color-primary)]"
+                className="w-full rounded-xl border border-border bg-surface p-2.5 text-label text-ink font-bold cursor-pointer focus:outline-none focus:border-[var(--color-primary)]"
               >
                 {rooms.map((r) => (
                   <option
@@ -319,26 +319,26 @@ export function ReservationDetailModal({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1">
+                <label className="block text-label font-bold text-ink-secondary uppercase tracking-wider mb-1">
                   Check-in Date
                 </label>
                 <input
                   type="date"
                   value={editCheckIn}
                   onChange={(e) => setEditCheckIn(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-surface p-2 text-xs text-ink font-semibold"
+                  className="w-full rounded-xl border border-border bg-surface p-2 text-label text-ink font-semibold"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-1">
+                <label className="block text-label font-bold text-ink-secondary uppercase tracking-wider mb-1">
                   Check-out Date
                 </label>
                 <input
                   type="date"
                   value={editCheckOut}
                   onChange={(e) => setEditCheckOut(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-surface p-2 text-xs text-ink font-semibold"
+                  className="w-full rounded-xl border border-border bg-surface p-2 text-label text-ink font-semibold"
                 />
               </div>
             </div>
@@ -347,14 +347,14 @@ export function ReservationDetailModal({
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="px-4 py-2 rounded-xl border border-border text-ink font-bold text-xs hover:bg-page cursor-pointer"
+                className="px-4 py-2 rounded-xl border border-border text-ink font-bold text-label hover:bg-page cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleApplyEdit}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white font-bold text-xs hover:opacity-95 shadow-xs cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white font-bold text-label hover:opacity-95 shadow-xs cursor-pointer"
               >
                 <Lucide.Check size={14} />
                 <span>Review & Confirm</span>

@@ -63,7 +63,7 @@ export function PanelCrashFallback({ reset, onClose }: { reset: () => void; onCl
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-warning-bg text-warning-text border border-warning-border">
               <Lucide.AlertTriangle size={18} />
             </span>
-            <h2 className="text-sm font-bold text-ink">Panel Failed to Render</h2>
+            <h2 className="text-body font-bold text-ink">Panel Failed to Render</h2>
           </div>
           <button
             type="button"
@@ -78,14 +78,14 @@ export function PanelCrashFallback({ reset, onClose }: { reset: () => void; onCl
           </button>
         </div>
 
-        <p className="text-xs text-ink-secondary leading-relaxed">
+        <p className="text-label text-ink-secondary leading-relaxed">
           This side panel encountered an unexpected rendering error. The primary PMS views and background sync continue operating normally.
         </p>
 
         <div className="mt-auto flex flex-col gap-2 pt-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
           <button
             type="button"
-            className="pms-btn-primary flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold shadow-sm"
+            className="pms-btn-primary flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-label font-semibold shadow-sm"
             onClick={reset}
           >
             <Lucide.RotateCcw size={14} />
@@ -93,7 +93,7 @@ export function PanelCrashFallback({ reset, onClose }: { reset: () => void; onCl
           </button>
           <button
             type="button"
-            className="rounded-xl border py-2.5 px-4 text-xs font-semibold text-ink hover:bg-hover-surface transition-colors"
+            className="rounded-xl border py-2.5 px-4 text-label font-semibold text-ink hover:bg-hover-surface transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             onClick={() => {
               reset();
@@ -147,7 +147,7 @@ export function AppCrashFallback({ reset }: { reset: () => void }) {
 
         {/* Status Chip */}
         <div
-          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold tracking-wide uppercase mb-3"
+          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-bold tracking-wide uppercase mb-3"
           style={{
             background: 'var(--color-danger-bg)',
             color: 'var(--color-danger-text)',
@@ -158,11 +158,11 @@ export function AppCrashFallback({ reset }: { reset: () => void }) {
           <span>System Exception Intercepted · 500 Error</span>
         </div>
 
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink">
+        <h1 className="text-disp2 sm:text-disp3 font-bold tracking-tight text-ink">
           Something went unexpectedly wrong
         </h1>
 
-        <p className="mt-2 text-[13px] leading-relaxed text-ink-secondary max-w-[420px] mx-auto">
+        <p className="mt-2 text-body leading-relaxed text-ink-secondary max-w-[420px] mx-auto">
           The property management interface encountered an unhandled exception. Your property databases, local theme, and user session remain completely intact.
         </p>
 
@@ -171,7 +171,7 @@ export function AppCrashFallback({ reset }: { reset: () => void }) {
           <button
             type="button"
             onClick={() => setShowDetails((p) => !p)}
-            className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-ink transition-colors"
+            className="inline-flex items-center gap-1.5 text-label text-ink-muted hover:text-ink transition-colors"
           >
             <span>{showDetails ? 'Hide technical diagnostics' : 'Show technical diagnostics'}</span>
             <Lucide.ChevronDown size={13} className={`transition-transform ${showDetails ? 'rotate-180' : ''}`} />
@@ -179,7 +179,7 @@ export function AppCrashFallback({ reset }: { reset: () => void }) {
 
           {showDetails && (
             <div
-              className="mt-2 text-left rounded-xl border p-3 font-mono text-[11px] text-ink-secondary overflow-x-auto max-h-36 bg-ink/5"
+              className="mt-2 text-left rounded-xl border p-3 font-mono text-label text-ink-secondary overflow-x-auto max-h-36 bg-ink/5"
               style={{ borderColor: 'var(--color-border)' }}
             >
               <p className="text-danger-text font-bold mb-1">ComponentStack Error:</p>
@@ -192,7 +192,7 @@ export function AppCrashFallback({ reset }: { reset: () => void }) {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
           <button
             type="button"
-            className="w-full sm:w-auto pms-btn-primary flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold shadow-sm"
+            className="w-full sm:w-auto pms-btn-primary flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-label font-semibold shadow-sm"
             onClick={reset}
           >
             <Lucide.RotateCcw size={15} />
@@ -201,7 +201,7 @@ export function AppCrashFallback({ reset }: { reset: () => void }) {
 
           <button
             type="button"
-            className="w-full sm:w-auto rounded-xl border px-4 py-2.5 text-xs font-semibold text-ink hover:bg-hover-surface transition-colors flex items-center justify-center gap-2"
+            className="w-full sm:w-auto rounded-xl border px-4 py-2.5 text-label font-semibold text-ink hover:bg-hover-surface transition-colors flex items-center justify-center gap-2"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             onClick={() => window.location.reload()}
           >

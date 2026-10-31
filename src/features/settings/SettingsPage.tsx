@@ -134,53 +134,53 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-ink-secondary">Room Categories</span>
+            <span className="text-label font-semibold text-ink-secondary">Room Categories</span>
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-info-bg text-info-text">
               <Lucide.Layers size={16} />
             </span>
           </div>
           <div className="mt-2">
-            <span className="text-2xl font-black text-ink tnum">{types.length}</span>
-            <p className="text-[11px] text-ink-secondary mt-0.5">{activeTypes} active for booking</p>
+            <span className="text-disp3 font-black text-ink tnum">{types.length}</span>
+            <p className="text-label text-ink-secondary mt-0.5">{activeTypes} active for booking</p>
           </div>
         </div>
 
         <div className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-ink-secondary">Rooms in Inventory</span>
+            <span className="text-label font-semibold text-ink-secondary">Rooms in Inventory</span>
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-success-bg text-success-text">
               <Lucide.BedDouble size={16} />
             </span>
           </div>
           <div className="mt-2">
-            <span className="text-2xl font-black text-ink tnum">{totalRooms}</span>
-            <p className="text-[11px] text-ink-secondary mt-0.5">Across all hotel wings</p>
+            <span className="text-disp3 font-black text-ink tnum">{totalRooms}</span>
+            <p className="text-label text-ink-secondary mt-0.5">Across all hotel wings</p>
           </div>
         </div>
 
         <div className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-ink-secondary">Starting Base Rate</span>
+            <span className="text-label font-semibold text-ink-secondary">Starting Base Rate</span>
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-warning-bg text-warning-text">
               <Lucide.Tag size={16} />
             </span>
           </div>
           <div className="mt-2">
-            <span className="text-2xl font-black text-ink tnum">{formatCurrency(minRate, currencyCode)}</span>
-            <p className="text-[11px] text-ink-secondary mt-0.5">Lowest base nightly rate</p>
+            <span className="text-disp3 font-black text-ink tnum">{formatCurrency(minRate, currencyCode)}</span>
+            <p className="text-label text-ink-secondary mt-0.5">Lowest base nightly rate</p>
           </div>
         </div>
 
         <div className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-ink-secondary">Catalog Health</span>
+            <span className="text-label font-semibold text-ink-secondary">Catalog Health</span>
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Lucide.ShieldCheck size={16} />
             </span>
           </div>
           <div className="mt-2">
-            <span className="text-2xl font-black text-success-text tnum">100%</span>
-            <p className="text-[11px] text-ink-secondary mt-0.5">Rates & amenities mapped</p>
+            <span className="text-disp3 font-black text-success-text tnum">100%</span>
+            <p className="text-label text-ink-secondary mt-0.5">Rates & amenities mapped</p>
           </div>
         </div>
       </div>
@@ -193,8 +193,8 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
               <Lucide.BedDouble size={17} strokeWidth={2.4} />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-ink tracking-tight">Room Types &amp; Categories</h2>
-              <p className="text-[11px] text-ink-muted mt-0.5">
+              <h2 className="text-body font-bold text-ink tracking-tight">Room Types &amp; Categories</h2>
+              <p className="text-label text-ink-muted mt-0.5">
                 Manage room categories, base rates, occupant limits, and luxury amenities
               </p>
             </div>
@@ -203,7 +203,7 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
             <button
               type="button"
               onClick={() => resource.refresh()}
-              className="pms-btn-ghost flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl border border-border"
+              className="pms-btn-ghost flex items-center gap-1.5 text-label font-medium px-3 py-2 rounded-xl border border-border"
               title="Refresh room types"
             >
               <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
@@ -212,7 +212,7 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
             <button
               type="button"
               onClick={openAdd}
-              className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl"
+              className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-label font-semibold rounded-xl"
             >
               <Lucide.Plus size={15} strokeWidth={2.4} />
               <span>Add Room Type</span>
@@ -221,7 +221,7 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
         </div>
 
         {resource.error && (
-          <div className="mb-4 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-3 text-xs text-danger-text">
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-3 text-label text-danger-text">
             <Lucide.AlertCircle size={16} />
             <span>Could not load room types: {resource.error}</span>
           </div>
@@ -244,43 +244,43 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
             <tbody>
               {types.map((t, idx) => (
                 <tr key={t.id} className="transition-colors hover:bg-page/70 border-b border-divider last:border-b-0">
-                  <td className="text-center font-medium text-ink-muted text-xs py-3">{idx + 1}</td>
+                  <td className="text-center font-medium text-ink-muted text-label py-3">{idx + 1}</td>
                   <td className="py-3">
-                    <span className="block font-bold text-ink text-xs">{t.name}</span>
-                    <span className="block max-w-[260px] truncate text-xs text-ink-muted mt-0.5">
+                    <span className="block font-bold text-ink text-label">{t.name}</span>
+                    <span className="block max-w-[260px] truncate text-label text-ink-muted mt-0.5">
                       {t.description || 'Standard room category'}
                     </span>
                   </td>
-                  <td className="tnum font-semibold text-ink text-xs py-3">{t.count}</td>
-                  <td className="tnum text-ink-secondary text-xs py-3">
+                  <td className="tnum font-semibold text-ink text-label py-3">{t.count}</td>
+                  <td className="tnum text-ink-secondary text-label py-3">
                     <span className="inline-flex items-center gap-1 bg-muted-surface px-2 py-0.5 rounded-md">
                       <Lucide.Users size={12} className="text-ink-secondary" />
                       <span>{t.maxOccupancy} guests max</span>
                     </span>
                   </td>
-                  <td className="tnum text-right font-bold text-ink text-xs py-3">
+                  <td className="tnum text-right font-bold text-ink text-label py-3">
                     {formatCurrency(t.baseRate, currencyCode)}
                   </td>
                   <td className="max-w-[220px] py-3">
                     <div className="flex flex-wrap gap-1 max-w-[220px]">
                       {t.amenities.length > 0 ? (
                         t.amenities.slice(0, 3).map((a, i) => (
-                          <span key={i} className="text-[10px] font-medium bg-muted-surface text-ink-secondary px-1.5 py-0.5 rounded">
+                          <span key={i} className="text-micro font-medium bg-muted-surface text-ink-secondary px-1.5 py-0.5 rounded">
                             {a}
                           </span>
                         ))
                       ) : (
-                        <span className="text-xs text-ink-muted">—</span>
+                        <span className="text-label text-ink-muted">—</span>
                       )}
                       {t.amenities.length > 3 && (
-                        <span className="text-[10px] font-bold text-ink-muted px-1 py-0.5">
+                        <span className="text-micro font-bold text-ink-muted px-1 py-0.5">
                           +{t.amenities.length - 3}
                         </span>
                       )}
                     </div>
                   </td>
                   <td className="py-3">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-label font-bold ${
                       t.active ? 'bg-success-bg text-success-text border border-success-border' : 'bg-muted-surface text-ink-secondary'
                     }`}>
                       <span className={`h-1.5 w-1.5 rounded-full ${t.active ? 'bg-success-text' : 'bg-ink-disabled'}`} />
@@ -302,7 +302,7 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
             </tbody>
           </table>
           {types.length === 0 && !resource.loading && (
-            <p className="py-8 text-center text-xs text-ink-muted">No room types configured yet.</p>
+            <p className="py-8 text-center text-label text-ink-muted">No room types configured yet.</p>
           )}
         </div>
       </div>
@@ -315,15 +315,15 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
               <Lucide.Clock size={17} strokeWidth={2.4} />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-ink tracking-tight">Room Operations &amp; Holding Rules</h2>
-              <p className="text-[11px] text-ink-muted mt-0.5">Default automated rules applied across room inventory</p>
+              <h2 className="text-body font-bold text-ink tracking-tight">Room Operations &amp; Holding Rules</h2>
+              <p className="text-label text-ink-muted mt-0.5">Default automated rules applied across room inventory</p>
             </div>
           </div>
           <button
             type="button"
             onClick={handleSavePreferences}
             disabled={savingPrefs}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all disabled:opacity-50"
           >
             Save Rules
           </button>
@@ -331,11 +331,11 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-medium text-ink mb-1.5">Cleaning Turnaround Window</label>
+            <label className="block text-label font-medium text-ink mb-1.5">Cleaning Turnaround Window</label>
             <select
               value={turnaroundMinutes}
               onChange={(e) => setTurnaroundMinutes(e.target.value)}
-              className="w-full rounded-md border px-3 py-2 text-sm text-ink focus:outline-none"
+              className="w-full rounded-md border px-3 py-2 text-body text-ink focus:outline-none"
               style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             >
               <option value="20">20 Minutes</option>
@@ -343,37 +343,37 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
               <option value="45">45 Minutes</option>
               <option value="60">60 Minutes</option>
             </select>
-            <span className="text-[11px] text-ink-secondary mt-1 block">Allocated housekeeping duration per room departure</span>
+            <span className="text-label text-ink-secondary mt-1 block">Allocated housekeeping duration per room departure</span>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-ink mb-1.5">Default Keycards Allotment</label>
+            <label className="block text-label font-medium text-ink mb-1.5">Default Keycards Allotment</label>
             <select
               value={keycardsPerRoom}
               onChange={(e) => setKeycardsPerRoom(e.target.value)}
-              className="w-full rounded-md border px-3 py-2 text-sm text-ink focus:outline-none"
+              className="w-full rounded-md border px-3 py-2 text-body text-ink focus:outline-none"
               style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             >
               <option value="1">1 Keycard</option>
               <option value="2">2 Keycards (Standard)</option>
               <option value="3">3 Keycards</option>
             </select>
-            <span className="text-[11px] text-ink-secondary mt-1 block">Initial issued RFID access cards on check-in</span>
+            <span className="text-label text-ink-secondary mt-1 block">Initial issued RFID access cards on check-in</span>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-ink mb-1.5">Auto-Release Hold Timeout</label>
+            <label className="block text-label font-medium text-ink mb-1.5">Auto-Release Hold Timeout</label>
             <select
               value={autoReleaseHoldMinutes}
               onChange={(e) => setAutoReleaseHoldMinutes(e.target.value)}
-              className="w-full rounded-md border px-3 py-2 text-sm text-ink focus:outline-none"
+              className="w-full rounded-md border px-3 py-2 text-body text-ink focus:outline-none"
               style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             >
               <option value="10">10 Minutes</option>
               <option value="15">15 Minutes (Recommended)</option>
               <option value="30">30 Minutes</option>
             </select>
-            <span className="text-[11px] text-ink-secondary mt-1 block">Release uncommitted room locks during reservation creation</span>
+            <span className="text-label text-ink-secondary mt-1 block">Release uncommitted room locks during reservation creation</span>
           </div>
         </div>
 
@@ -382,7 +382,7 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
             type="button"
             onClick={handleSavePreferences}
             disabled={savingPrefs}
-            className="pms-btn-primary px-4 py-2 text-xs font-semibold rounded-md shadow-xs disabled:opacity-50"
+            className="pms-btn-primary px-4 py-2 text-label font-semibold rounded-md shadow-xs disabled:opacity-50"
           >
             {savingPrefs ? 'Saving…' : 'Save Operational Rules'}
           </button>
@@ -684,10 +684,10 @@ export function Settings({
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">
+              <h1 className="text-disp3 font-bold tracking-tight text-ink leading-tight">
                 Property Settings
               </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
@@ -695,7 +695,7 @@ export function Settings({
                 Active Config
               </span>
             </div>
-            <p className="text-xs text-ink-secondary mt-1">
+            <p className="text-label text-ink-secondary mt-1">
               Manage your hotel information, policies, configurations and system preferences
             </p>
           </div>
@@ -712,7 +712,7 @@ export function Settings({
               key={t.id}
               type="button"
               onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
+              className={`flex items-center gap-2 rounded-md px-4 py-2 text-body font-semibold whitespace-nowrap transition-all ${
                 isActive
                   ? 'text-white shadow-sm'
                   : 'text-ink-secondary hover:text-ink hover:bg-ink/[0.03]'
@@ -748,15 +748,15 @@ export function Settings({
                       <Lucide.Building2 size={17} strokeWidth={2.4} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold text-ink tracking-tight">Basic Information</h2>
-                      <p className="text-[11px] text-ink-muted mt-0.5">Core details about your property</p>
+                      <h2 className="text-body font-bold text-ink tracking-tight">Basic Information</h2>
+                      <p className="text-label text-ink-muted mt-0.5">Core details about your property</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => void handleSaveBasic()}
                     disabled={saving}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all disabled:opacity-50"
                   >
                     Save Changes
                   </button>
@@ -765,41 +765,41 @@ export function Settings({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {/* Property Name */}
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-medium text-ink mb-1.5">
+                    <label className="block text-label font-medium text-ink mb-1.5">
                       Property Name <span className="text-danger-text">*</span>
                     </label>
                     <input
                       type="text"
                       value={propertyName}
                       onChange={(e) => setPropertyName(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   {/* Property Code */}
                   <div>
-                    <label className="block text-xs font-medium text-ink mb-1.5">
+                    <label className="block text-label font-medium text-ink mb-1.5">
                       Property Code <span className="text-danger-text">*</span>
                     </label>
                     <input
                       type="text"
                       value={propertyCode}
                       onChange={(e) => setPropertyCode(e.target.value.toUpperCase())}
-                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 uppercase"
+                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 uppercase"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   {/* Property Type */}
                   <div>
-                    <label className="block text-xs font-medium text-ink mb-1.5">
+                    <label className="block text-label font-medium text-ink mb-1.5">
                       Property Type
                     </label>
                     <select
                       value={propertyType}
                       onChange={(e) => setPropertyType(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>Hotel</option>
@@ -815,7 +815,7 @@ export function Settings({
                   <div className="sm:col-span-2 lg:col-span-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-medium text-ink mb-1.5">
+                        <label className="block text-label font-medium text-ink mb-1.5">
                           Star Rating
                         </label>
                         <div
@@ -837,21 +837,21 @@ export function Settings({
                               </button>
                             ))}
                           </div>
-                          <span className="text-xs font-medium text-ink-secondary">
+                          <span className="text-label font-medium text-ink-secondary">
                             {starRating} Star Luxury
                           </span>
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-xs font-medium text-ink mb-1.5">
+                        <label className="block text-label font-medium text-ink mb-1.5">
                           Address Line 1
                         </label>
                         <input
                           type="text"
                           value={addressLine1}
                           onChange={(e) => setAddressLine1(e.target.value)}
-                          className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
@@ -860,59 +860,59 @@ export function Settings({
 
                   {/* Address Line 2 */}
                   <div className="sm:col-span-2 lg:col-span-4">
-                    <label className="block text-xs font-medium text-ink mb-1.5">
+                    <label className="block text-label font-medium text-ink mb-1.5">
                       Address Line 2
                     </label>
                     <input
                       type="text"
                       value={addressLine2}
                       onChange={(e) => setAddressLine2(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   {/* City, State, Country, Postal Code */}
                   <div>
-                    <label className="block text-xs font-medium text-ink mb-1.5">City</label>
+                    <label className="block text-label font-medium text-ink mb-1.5">City</label>
                     <input
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-ink mb-1.5">State / Province</label>
+                    <label className="block text-label font-medium text-ink mb-1.5">State / Province</label>
                     <input
                       type="text"
                       value={stateProvince}
                       onChange={(e) => setStateProvince(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-ink mb-1.5">Country</label>
+                    <label className="block text-label font-medium text-ink mb-1.5">Country</label>
                     <input
                       type="text"
                       value={country}
                       onChange={(e) => setCountry(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-ink mb-1.5">Postal Code</label>
+                    <label className="block text-label font-medium text-ink mb-1.5">Postal Code</label>
                     <input
                       type="text"
                       value={postalCode}
                       onChange={(e) => setPostalCode(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -920,42 +920,42 @@ export function Settings({
                   {/* Phone, Email, Website */}
                   <div className="sm:col-span-2 lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                     <div>
-                      <label className="block text-xs font-medium text-ink mb-1.5">Phone Number</label>
+                      <label className="block text-label font-medium text-ink mb-1.5">Phone Number</label>
                       <div className="relative">
                         <Lucide.Phone size={15} className="absolute left-3.5 top-3 text-ink-muted" />
                         <input
                           type="text"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-ink mb-1.5">Email Address</label>
+                      <label className="block text-label font-medium text-ink mb-1.5">Email Address</label>
                       <div className="relative">
                         <Lucide.Mail size={15} className="absolute left-3.5 top-3 text-ink-muted" />
                         <input
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-ink mb-1.5">Website</label>
+                      <label className="block text-label font-medium text-ink mb-1.5">Website</label>
                       <div className="relative">
                         <Lucide.Globe size={15} className="absolute left-3.5 top-3 text-ink-muted" />
                         <input
                           type="text"
                           value={website}
                           onChange={(e) => setWebsite(e.target.value)}
-                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
@@ -977,8 +977,8 @@ export function Settings({
                       <Lucide.Image size={17} strokeWidth={2.4} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold text-ink tracking-tight">Property Logo &amp; Images</h2>
-                      <p className="text-[11px] text-ink-muted mt-0.5">Logo, cover image and gallery photos</p>
+                      <h2 className="text-body font-bold text-ink tracking-tight">Property Logo &amp; Images</h2>
+                      <p className="text-label text-ink-muted mt-0.5">Logo, cover image and gallery photos</p>
                     </div>
                   </div>
                 </div>
@@ -994,7 +994,7 @@ export function Settings({
                   <button
                     type="button"
                     onClick={() => toast('Change cover image dialog', { tone: 'info' })}
-                    className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 rounded-lg bg-surface/90 backdrop-blur-md px-2.5 py-1 text-xs font-medium text-ink shadow-sm hover:bg-surface transition-colors"
+                    className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 rounded-lg bg-surface/90 backdrop-blur-md px-2.5 py-1 text-label font-medium text-ink shadow-sm hover:bg-surface transition-colors"
                   >
                     <Lucide.Camera size={13} />
                     <span>Change cover image</span>
@@ -1009,7 +1009,7 @@ export function Settings({
                   >
                     <div className="flex flex-col items-center justify-center">
                       <Lucide.Building2 size={20} className="text-warning-text mb-0.5" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-ink-secondary leading-tight">
+                      <span className="text-micro font-bold uppercase tracking-wider text-ink-secondary leading-tight">
                         Grand Horizon
                       </span>
                     </div>
@@ -1018,13 +1018,13 @@ export function Settings({
                     <button
                       type="button"
                       onClick={() => toast('Change logo dialog', { tone: 'info' })}
-                      className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium text-ink hover:bg-ink/[0.04] transition-colors"
+                      className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-label font-medium text-ink hover:bg-ink/[0.04] transition-colors"
                       style={{ borderColor: 'var(--color-border)' }}
                     >
                       <Lucide.Image size={13} />
                       <span>Change logo</span>
                     </button>
-                    <p className="text-xs text-ink-secondary mt-1 leading-snug">
+                    <p className="text-label text-ink-secondary mt-1 leading-snug">
                       Recommended size: 400 × 400 px<br />PNG, JPG (max 2MB)
                     </p>
                   </div>
@@ -1032,7 +1032,7 @@ export function Settings({
 
                 {/* Gallery Images */}
                 <div>
-                  <p className="text-xs font-medium text-ink mb-2">Gallery Images</p>
+                  <p className="text-label font-medium text-ink mb-2">Gallery Images</p>
                   <div className="grid grid-cols-5 gap-2">
                     {[
                       'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=300&q=80',
@@ -1051,7 +1051,7 @@ export function Settings({
                       style={{ borderColor: 'var(--color-border)', color: 'var(--color-ink-muted)' }}
                     >
                       <Lucide.Plus size={16} strokeWidth={2.4} />
-                      <span className="text-xs font-medium mt-1 text-center leading-tight">Add photos</span>
+                      <span className="text-label font-medium mt-1 text-center leading-tight">Add photos</span>
                     </button>
                   </div>
                 </div>
@@ -1073,14 +1073,14 @@ export function Settings({
                       <Lucide.Phone size={17} strokeWidth={2.4} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold text-ink tracking-tight">Contact Information</h2>
-                      <p className="text-[11px] text-ink-muted mt-0.5">Public contact details for guests</p>
+                      <h2 className="text-body font-bold text-ink tracking-tight">Contact Information</h2>
+                      <p className="text-label text-ink-muted mt-0.5">Public contact details for guests</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={handleSaveContact}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
                   >
                     Save Changes
                   </button>
@@ -1088,56 +1088,56 @@ export function Settings({
 
                 <div className="flex flex-col gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-ink mb-1.5">Front Desk Phone</label>
+                    <label className="block text-label font-medium text-ink mb-1.5">Front Desk Phone</label>
                     <div className="relative">
                       <Lucide.Phone size={15} className="absolute left-3.5 top-3 text-ink-muted" />
                       <input
                         type="text"
                         value={frontDeskPhone}
                         onChange={(e) => setFrontDeskPhone(e.target.value)}
-                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-ink mb-1.5">Reservations Email</label>
+                    <label className="block text-label font-medium text-ink mb-1.5">Reservations Email</label>
                     <div className="relative">
                       <Lucide.Mail size={15} className="absolute left-3.5 top-3 text-ink-muted" />
                       <input
                         type="email"
                         value={reservationsEmail}
                         onChange={(e) => setReservationsEmail(e.target.value)}
-                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-ink mb-1.5">General Email</label>
+                    <label className="block text-label font-medium text-ink mb-1.5">General Email</label>
                     <div className="relative">
                       <Lucide.Mail size={15} className="absolute left-3.5 top-3 text-ink-muted" />
                       <input
                         type="email"
                         value={generalEmail}
                         onChange={(e) => setGeneralEmail(e.target.value)}
-                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-ink mb-1.5">Emergency Contact</label>
+                    <label className="block text-label font-medium text-ink mb-1.5">Emergency Contact</label>
                     <div className="relative">
                       <Lucide.PhoneCall size={15} className="absolute left-3.5 top-3 text-ink-muted" />
                       <input
                         type="text"
                         value={emergencyPhone}
                         onChange={(e) => setEmergencyPhone(e.target.value)}
-                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
@@ -1158,15 +1158,15 @@ export function Settings({
                       <Lucide.Clock size={17} strokeWidth={2.4} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold text-ink tracking-tight">Operational Settings</h2>
-                      <p className="text-[11px] text-ink-muted mt-0.5">Configure key operational details</p>
+                      <h2 className="text-body font-bold text-ink tracking-tight">Operational Settings</h2>
+                      <p className="text-label text-ink-muted mt-0.5">Configure key operational details</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => void handleSaveOperations()}
                     disabled={saving}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all disabled:opacity-50"
                   >
                     Save Changes
                   </button>
@@ -1174,11 +1174,11 @@ export function Settings({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-xs font-medium text-ink mb-1.5">Time Zone</label>
+                    <label className="block text-label font-medium text-ink mb-1.5">Time Zone</label>
                     <select
                       value={timeZone}
                       onChange={(e) => setTimeZone(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>(GMT+05:30) India Standard Time</option>
@@ -1190,11 +1190,11 @@ export function Settings({
                   </div>
 
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-xs font-medium text-ink mb-1.5">Date Format</label>
+                    <label className="block text-label font-medium text-ink mb-1.5">Date Format</label>
                     <select
                       value={dateFormat}
                       onChange={(e) => setDateFormat(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>DD/MM/YYYY</option>
@@ -1204,39 +1204,39 @@ export function Settings({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-ink mb-1.5">Check-in Time</label>
+                    <label className="block text-label font-medium text-ink mb-1.5">Check-in Time</label>
                     <div className="relative">
                       <Lucide.Clock size={15} className="absolute left-3 top-3 text-ink-muted" />
                       <input
                         type="text"
                         value={checkInTime}
                         onChange={(e) => setCheckInTime(e.target.value)}
-                        className="w-full rounded-md border pl-8 pr-2.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-8 pr-2.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-ink mb-1.5">Check-out Time</label>
+                    <label className="block text-label font-medium text-ink mb-1.5">Check-out Time</label>
                     <div className="relative">
                       <Lucide.Clock size={15} className="absolute left-3 top-3 text-ink-muted" />
                       <input
                         type="text"
                         value={checkOutTime}
                         onChange={(e) => setCheckOutTime(e.target.value)}
-                        className="w-full rounded-md border pl-8 pr-2.5 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-md border pl-8 pr-2.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
                   </div>
 
                   <div className="col-span-2">
-                    <label className="block text-xs font-medium text-ink mb-1.5">Default Currency</label>
+                    <label className="block text-label font-medium text-ink mb-1.5">Default Currency</label>
                     <select
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>INR - Indian Rupee (₹)</option>
@@ -1248,23 +1248,23 @@ export function Settings({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-ink mb-1.5">Number of Floors</label>
+                    <label className="block text-label font-medium text-ink mb-1.5">Number of Floors</label>
                     <input
                       type="number"
                       value={floors}
                       onChange={(e) => setFloors(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-ink mb-1.5">Total Rooms</label>
+                    <label className="block text-label font-medium text-ink mb-1.5">Total Rooms</label>
                     <input
                       type="number"
                       value={totalRooms}
                       onChange={(e) => setTotalRooms(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-md border px-3 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -1279,8 +1279,8 @@ export function Settings({
             >
               <div>
                 <div className="pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <h2 className="text-sm font-semibold text-ink">Quick Actions</h2>
-                  <p className="text-xs text-ink-secondary mt-0.5">Common property actions</p>
+                  <h2 className="text-body font-semibold text-ink">Quick Actions</h2>
+                  <p className="text-label text-ink-secondary mt-0.5">Common property actions</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -1294,8 +1294,8 @@ export function Settings({
                     <div className="flex h-9 w-9 items-center justify-center rounded-md bg-info-bg text-info-text mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.Building2 size={18} strokeWidth={2.2} />
                     </div>
-                    <span className="text-sm font-semibold text-ink leading-tight">Business Details</span>
-                    <span className="text-xs text-ink-secondary mt-1 leading-tight">Update legal and tax information</span>
+                    <span className="text-body font-semibold text-ink leading-tight">Business Details</span>
+                    <span className="text-label text-ink-secondary mt-1 leading-tight">Update legal and tax information</span>
                   </button>
 
                   {/* Action 2: Upload Documents */}
@@ -1308,8 +1308,8 @@ export function Settings({
                     <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.FileText size={18} strokeWidth={2.2} />
                     </div>
-                    <span className="text-sm font-semibold text-ink leading-tight">Upload Documents</span>
-                    <span className="text-xs text-ink-secondary mt-1 leading-tight">License, permits, certificates</span>
+                    <span className="text-body font-semibold text-ink leading-tight">Upload Documents</span>
+                    <span className="text-label text-ink-secondary mt-1 leading-tight">License, permits, certificates</span>
                   </button>
 
                   {/* Action 3: Set Policies */}
@@ -1322,8 +1322,8 @@ export function Settings({
                     <div className="flex h-9 w-9 items-center justify-center rounded-md bg-success-bg text-success-text mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.ShieldCheck size={18} strokeWidth={2.2} />
                     </div>
-                    <span className="text-sm font-semibold text-ink leading-tight">Set Policies</span>
-                    <span className="text-xs text-ink-secondary mt-1 leading-tight">Cancellation, payment, guest</span>
+                    <span className="text-body font-semibold text-ink leading-tight">Set Policies</span>
+                    <span className="text-label text-ink-secondary mt-1 leading-tight">Cancellation, payment, guest</span>
                   </button>
 
                   {/* Action 4: Manage Amenities */}
@@ -1339,8 +1339,8 @@ export function Settings({
                     <div className="flex h-9 w-9 items-center justify-center rounded-md bg-warning-bg text-warning-text mb-2 group-hover:scale-105 transition-transform">
                       <Lucide.Star size={18} strokeWidth={2.2} />
                     </div>
-                    <span className="text-sm font-semibold text-ink leading-tight">Manage Amenities</span>
-                    <span className="text-xs text-ink-secondary mt-1 leading-tight">Property facilities and services</span>
+                    <span className="text-body font-semibold text-ink leading-tight">Manage Amenities</span>
+                    <span className="text-label text-ink-secondary mt-1 leading-tight">Property facilities and services</span>
                   </button>
                 </div>
               </div>
@@ -1357,13 +1357,13 @@ export function Settings({
               <div>
                 <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
                   <div>
-                    <h2 className="text-sm font-semibold text-ink">Property Description</h2>
-                    <p className="text-xs text-ink-secondary mt-0.5">This description is shown to guests on booking channels</p>
+                    <h2 className="text-body font-semibold text-ink">Property Description</h2>
+                    <p className="text-label text-ink-secondary mt-0.5">This description is shown to guests on booking channels</p>
                   </div>
                   <button
                     type="button"
                     onClick={handleSaveDescription}
-                    className="pms-btn-primary px-3.5 py-1.5 text-sm font-semibold rounded-md shadow-xs"
+                    className="pms-btn-primary px-3.5 py-1.5 text-body font-semibold rounded-md shadow-xs"
                   >
                     Save Changes
                   </button>
@@ -1371,9 +1371,9 @@ export function Settings({
 
                 {/* Rich text formatting bar */}
                 <div className="flex items-center gap-1 border-b pb-2 mb-2 text-ink-secondary" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05] text-xs font-bold">B</button>
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05] text-xs italic font-serif">I</button>
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05] text-xs underline">U</button>
+                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05] text-label font-bold">B</button>
+                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05] text-label italic font-serif">I</button>
+                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05] text-label underline">U</button>
                   <span className="h-4 w-px bg-border mx-1" />
                   <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05]"><Lucide.List size={15} /></button>
                   <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05]"><Lucide.Link2 size={15} /></button>
@@ -1383,12 +1383,12 @@ export function Settings({
                   rows={5}
                   value={description}
                   onChange={(e) => setDescription(e.target.value.slice(0, 500))}
-                  className="w-full rounded-md border p-3 text-sm leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none font-normal"
+                  className="w-full rounded-md border p-3 text-body leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none font-normal"
                   style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                 />
 
                 <div className="flex justify-end mt-2">
-                  <span className="text-xs text-ink-secondary">
+                  <span className="text-label text-ink-secondary">
                     Characters: {description.length} / 500
                   </span>
                 </div>
@@ -1404,13 +1404,13 @@ export function Settings({
               <div>
                 <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
                   <div>
-                    <h2 className="text-sm font-semibold text-ink">Amenities & Facilities</h2>
-                    <p className="text-xs text-ink-secondary mt-0.5">Select amenities available at your property</p>
+                    <h2 className="text-body font-semibold text-ink">Amenities & Facilities</h2>
+                    <p className="text-label text-ink-secondary mt-0.5">Select amenities available at your property</p>
                   </div>
                   <button
                     type="button"
                     onClick={handleSaveAmenities}
-                    className="pms-btn-primary px-3.5 py-1.5 text-sm font-semibold rounded-md shadow-xs"
+                    className="pms-btn-primary px-3.5 py-1.5 text-body font-semibold rounded-md shadow-xs"
                   >
                     Save Changes
                   </button>
@@ -1421,7 +1421,7 @@ export function Settings({
                     <label
                       key={item.id}
                       onClick={() => toggleAmenity(item.id)}
-                      className={`flex items-center gap-2 p-2 rounded-md border text-xs font-medium cursor-pointer transition-all ${
+                      className={`flex items-center gap-2 p-2 rounded-md border text-label font-medium cursor-pointer transition-all ${
                         item.checked ? 'border-primary/40 bg-primary/[0.04]' : 'border-border hover:bg-muted-surface/40'
                       }`}
                       style={{ borderColor: item.checked ? 'var(--color-primary)' : 'var(--color-border)' }}
@@ -1440,7 +1440,7 @@ export function Settings({
                 <button
                   type="button"
                   onClick={addCustomAmenity}
-                  className="flex items-center gap-1.5 mt-4 text-xs font-semibold text-primary hover:underline"
+                  className="flex items-center gap-1.5 mt-4 text-label font-semibold text-primary hover:underline"
                 >
                   <Lucide.Plus size={14} strokeWidth={2.4} />
                   <span>Add custom amenity</span>
@@ -1455,8 +1455,8 @@ export function Settings({
             >
               <div>
                 <div className="pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <h2 className="text-sm font-semibold text-ink">Property Status</h2>
-                  <p className="text-xs text-ink-secondary mt-0.5">Current configuration status</p>
+                  <h2 className="text-body font-semibold text-ink">Property Status</h2>
+                  <p className="text-label text-ink-secondary mt-0.5">Current configuration status</p>
                 </div>
 
                 {/* Status Box */}
@@ -1471,15 +1471,15 @@ export function Settings({
                     <Lucide.CheckCircle2 size={18} strokeWidth={2.4} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-success-text leading-snug">Property is Active</p>
-                    <p className="text-xs text-success-text/80 leading-relaxed mt-0.5">
+                    <p className="text-body font-semibold text-success-text leading-snug">Property is Active</p>
+                    <p className="text-label text-success-text/80 leading-relaxed mt-0.5">
                       Your property is configured and ready to accept reservations.
                     </p>
                   </div>
                 </div>
 
                 {/* Metadata Details */}
-                <div className="flex flex-col gap-2 text-xs">
+                <div className="flex flex-col gap-2 text-label">
                   <div className="flex items-center justify-between border-b pb-2" style={{ borderColor: 'var(--color-border-subtle)' }}>
                     <span className="text-ink-secondary">Last updated</span>
                     <span className="font-semibold text-ink">Oct 14, 2026, 10:30 AM</span>
@@ -1508,37 +1508,37 @@ export function Settings({
       {activeTab === 'policies' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-sm font-semibold text-ink mb-1">Booking & Cancellation Policies</h2>
-            <p className="text-xs text-ink-secondary mb-4">Guest-facing terms applied on confirmed bookings</p>
+            <h2 className="text-body font-semibold text-ink mb-1">Booking & Cancellation Policies</h2>
+            <p className="text-label text-ink-secondary mb-4">Guest-facing terms applied on confirmed bookings</p>
             <div className="flex flex-col gap-3">
               <div>
-                <label className="block text-xs font-medium text-ink mb-1.5">Cancellation Policy</label>
+                <label className="block text-label font-medium text-ink mb-1.5">Cancellation Policy</label>
                 <input
                   defaultValue="Free cancellation until 48h before arrival; first night charged thereafter."
-                  className="w-full rounded-md border p-2.5 text-sm font-normal text-ink"
+                  className="w-full rounded-md border p-2.5 text-body font-normal text-ink"
                   style={{ borderColor: 'var(--color-border)' }}
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink mb-1.5">No-show Policy</label>
+                <label className="block text-label font-medium text-ink mb-1.5">No-show Policy</label>
                 <input
                   defaultValue="First night charged to the primary payment method on file."
-                  className="w-full rounded-md border p-2.5 text-sm font-normal text-ink"
+                  className="w-full rounded-md border p-2.5 text-body font-normal text-ink"
                   style={{ borderColor: 'var(--color-border)' }}
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink mb-1.5">Child & Extra Bed Policy</label>
+                <label className="block text-label font-medium text-ink mb-1.5">Child & Extra Bed Policy</label>
                 <input
                   defaultValue="Children under 6 stay complimentary using existing bedding."
-                  className="w-full rounded-md border p-2.5 text-sm font-normal text-ink"
+                  className="w-full rounded-md border p-2.5 text-body font-normal text-ink"
                   style={{ borderColor: 'var(--color-border)' }}
                 />
               </div>
               <button
                 type="button"
                 onClick={() => toast('Policies saved', { tone: 'success' })}
-                className="pms-btn-primary px-4 py-2 text-sm font-semibold rounded-md mt-2 w-fit"
+                className="pms-btn-primary px-4 py-2 text-body font-semibold rounded-md mt-2 w-fit"
               >
                 Save Policies
               </button>
@@ -1546,27 +1546,27 @@ export function Settings({
           </div>
 
           <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-sm font-semibold text-ink mb-1">Stay Rules & Check-in Requirements</h2>
-            <p className="text-xs text-ink-secondary mb-4">Standard hospitality verification procedures</p>
+            <h2 className="text-body font-semibold text-ink mb-1">Stay Rules & Check-in Requirements</h2>
+            <p className="text-label text-ink-secondary mb-4">Standard hospitality verification procedures</p>
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--color-border-subtle)' }}>
                 <div>
-                  <p className="text-sm font-semibold text-ink">Mandatory Government ID on Check-in</p>
-                  <p className="text-xs text-ink-secondary">Passport, driving license, or national identity card</p>
+                  <p className="text-body font-semibold text-ink">Mandatory Government ID on Check-in</p>
+                  <p className="text-label text-ink-secondary">Passport, driving license, or national identity card</p>
                 </div>
                 <input type="checkbox" defaultChecked className="h-5 w-5 rounded accent-primary cursor-pointer" />
               </div>
               <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--color-border-subtle)' }}>
                 <div>
-                  <p className="text-sm font-semibold text-ink">Security Deposit Guarantee</p>
-                  <p className="text-xs text-ink-secondary">Pre-authorization hold of 20% on incidentals</p>
+                  <p className="text-body font-semibold text-ink">Security Deposit Guarantee</p>
+                  <p className="text-label text-ink-secondary">Pre-authorization hold of 20% on incidentals</p>
                 </div>
                 <input type="checkbox" defaultChecked className="h-5 w-5 rounded accent-primary cursor-pointer" />
               </div>
               <div className="flex items-center justify-between" style={{ borderColor: 'var(--color-border-subtle)' }}>
                 <div>
-                  <p className="text-sm font-semibold text-ink">Minimum Check-in Age (18+)</p>
-                  <p className="text-xs text-ink-secondary">Primary guest must be 18 years or older</p>
+                  <p className="text-body font-semibold text-ink">Minimum Check-in Age (18+)</p>
+                  <p className="text-label text-ink-secondary">Primary guest must be 18 years or older</p>
                 </div>
                 <input type="checkbox" defaultChecked className="h-5 w-5 rounded accent-primary cursor-pointer" />
               </div>
@@ -1579,11 +1579,11 @@ export function Settings({
       {activeTab === 'taxes' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-sm font-semibold text-ink mb-1">Active Tax Rules</h2>
-            <p className="text-xs text-ink-secondary mb-4">Taxes applied dynamically to folios and invoices</p>
+            <h2 className="text-body font-semibold text-ink mb-1">Active Tax Rules</h2>
+            <p className="text-label text-ink-secondary mb-4">Taxes applied dynamically to folios and invoices</p>
             <div className="flex flex-col gap-3">
               <div>
-                <label className="block text-xs font-medium text-ink mb-1.5">Tax Rate (%)</label>
+                <label className="block text-label font-medium text-ink mb-1.5">Tax Rate (%)</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -1591,10 +1591,10 @@ export function Settings({
                     max={40}
                     value={taxRate}
                     onChange={(e) => setTaxRate(Number(e.target.value))}
-                    className="w-32 rounded-md border p-2 text-sm font-bold text-ink"
+                    className="w-32 rounded-md border p-2 text-body font-bold text-ink"
                     style={{ borderColor: 'var(--color-border)' }}
                   />
-                  <span className="text-xs font-semibold text-ink-secondary">% GST / VAT</span>
+                  <span className="text-label font-semibold text-ink-secondary">% GST / VAT</span>
                 </div>
               </div>
               <button
@@ -1613,7 +1613,7 @@ export function Settings({
                     setSaving(false);
                   }
                 }}
-                className="pms-btn-primary px-4 py-2 text-sm font-semibold rounded-md w-fit disabled:opacity-50"
+                className="pms-btn-primary px-4 py-2 text-body font-semibold rounded-md w-fit disabled:opacity-50"
               >
                 Save Tax Rule
               </button>
@@ -1621,21 +1621,21 @@ export function Settings({
           </div>
 
           <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-sm font-semibold text-ink mb-1">Invoice Details & Legal Header</h2>
-            <p className="text-xs text-ink-secondary mb-4">Printed information on guest folios & receipts</p>
+            <h2 className="text-body font-semibold text-ink mb-1">Invoice Details & Legal Header</h2>
+            <p className="text-label text-ink-secondary mb-4">Printed information on guest folios & receipts</p>
             <div className="flex flex-col gap-3">
               <div>
-                <label className="block text-xs font-medium text-ink mb-1.5">Invoice Prefix</label>
-                <input defaultValue="INV-2026-" className="w-full rounded-md border p-2.5 font-mono text-sm text-ink" style={{ borderColor: 'var(--color-border)' }} />
+                <label className="block text-label font-medium text-ink mb-1.5">Invoice Prefix</label>
+                <input defaultValue="INV-2026-" className="w-full rounded-md border p-2.5 font-mono text-body text-ink" style={{ borderColor: 'var(--color-border)' }} />
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink mb-1.5">Tax Registration / GSTIN</label>
-                <input defaultValue="27AAAAA0000A1Z5" className="w-full rounded-md border p-2.5 font-mono text-sm text-ink" style={{ borderColor: 'var(--color-border)' }} />
+                <label className="block text-label font-medium text-ink mb-1.5">Tax Registration / GSTIN</label>
+                <input defaultValue="27AAAAA0000A1Z5" className="w-full rounded-md border p-2.5 font-mono text-body text-ink" style={{ borderColor: 'var(--color-border)' }} />
               </div>
               <button
                 type="button"
                 onClick={() => toast('Invoice details saved', { tone: 'success' })}
-                className="pms-btn-primary px-4 py-2 text-sm font-semibold rounded-md w-fit"
+                className="pms-btn-primary px-4 py-2 text-body font-semibold rounded-md w-fit"
               >
                 Save Invoice Details
               </button>
@@ -1649,13 +1649,13 @@ export function Settings({
         <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
             <div>
-              <h2 className="text-sm font-semibold text-ink">Appearance & House Themes</h2>
-              <p className="text-xs text-ink-secondary mt-0.5">Select from 9 luxury curated hotel house color palettes</p>
+              <h2 className="text-body font-semibold text-ink">Appearance & House Themes</h2>
+              <p className="text-label text-ink-secondary mt-0.5">Select from 9 luxury curated hotel house color palettes</p>
             </div>
             <button
               type="button"
               onClick={onOpenThemes}
-              className="pms-btn-primary flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-md"
+              className="pms-btn-primary flex items-center gap-2 px-4 py-2 text-body font-semibold rounded-md"
             >
               <Lucide.Palette size={16} />
               <span>Open Theme Swatcher</span>
@@ -1683,7 +1683,7 @@ export function Settings({
                     ))}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-ink truncate">{p.name}</span>
+                    <span className="text-body font-semibold text-ink truncate">{p.name}</span>
                     {isActive ? <Lucide.Check size={14} className="text-primary flex-none" /> : null}
                   </div>
                 </button>
@@ -1704,14 +1704,14 @@ export function Settings({
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-3">
             <Lucide.Sliders size={26} />
           </div>
-          <h2 className="text-sm font-semibold text-ink capitalize">{activeTab.replace('-', ' ')} Settings</h2>
-          <p className="text-sm text-ink-secondary max-w-md mx-auto mt-1 mb-5">
+          <h2 className="text-body font-semibold text-ink capitalize">{activeTab.replace('-', ' ')} Settings</h2>
+          <p className="text-body text-ink-secondary max-w-md mx-auto mt-1 mb-5">
             Manage your hotel's {activeTab.replace('-', ' ')} preferences, configurations, and channel integrations.
           </p>
           <button
             type="button"
             onClick={() => setActiveTab('general')}
-            className="pms-btn-primary px-4 py-2 text-sm font-semibold rounded-md"
+            className="pms-btn-primary px-4 py-2 text-body font-semibold rounded-md"
           >
             Back to General Settings
           </button>

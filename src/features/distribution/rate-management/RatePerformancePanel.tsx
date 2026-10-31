@@ -28,14 +28,14 @@ export function RatePerformancePanel() {
             <Lucide.LineChart size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="rate-performance-title" className="text-sm font-bold text-ink tracking-tight">Rate Performance</h2>
-            <p className="text-[11px] text-ink-muted mt-0.5">Rate and occupancy outlook · next 14 days</p>
+            <h2 id="rate-performance-title" className="text-body font-bold text-ink tracking-tight">Rate Performance</h2>
+            <p className="text-label text-ink-muted mt-0.5">Rate and occupancy outlook · next 14 days</p>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-4 text-right">
-          <div><p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">ADR</p><p className="mt-1 text-sm font-bold text-ink tnum">₹8,450</p><p className="text-[10px] font-semibold text-success-text">+12%</p></div>
-          <div><p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Occupancy</p><p className="mt-1 text-sm font-bold text-ink tnum">78%</p><p className="text-[10px] font-semibold text-success-text">+6%</p></div>
-          <div><p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Revenue</p><p className="mt-1 text-sm font-bold text-ink tnum">₹4.2L</p><p className="text-[10px] font-semibold text-success-text">+18%</p></div>
+          <div><p className="text-micro font-semibold uppercase tracking-wider text-ink-muted">ADR</p><p className="mt-1 text-body font-bold text-ink tnum">₹8,450</p><p className="text-micro font-semibold text-success-text">+12%</p></div>
+          <div><p className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Occupancy</p><p className="mt-1 text-body font-bold text-ink tnum">78%</p><p className="text-micro font-semibold text-success-text">+6%</p></div>
+          <div><p className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Revenue</p><p className="mt-1 text-body font-bold text-ink tnum">₹4.2L</p><p className="text-micro font-semibold text-success-text">+18%</p></div>
         </div>
       </div>
       <div className="mt-4 overflow-hidden rounded-control border p-2 sm:p-3" style={{ borderColor: 'var(--color-divider)', background: 'var(--color-muted-surface)' }}>
@@ -55,13 +55,13 @@ export function RatePerformancePanel() {
         </svg>
       </div>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-4 text-[11px] text-ink-secondary">
+        <div className="flex items-center gap-4 text-label text-ink-secondary">
           <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary" />ADR</span>
           <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-warning-text" />Occupancy</span>
         </div>
-        <p className="inline-flex items-center gap-1 text-[11px] text-ink-muted"><Lucide.TrendingUp size={13} />Demand peaks Oct 24</p>
+        <p className="inline-flex items-center gap-1 text-label text-ink-muted"><Lucide.TrendingUp size={13} />Demand peaks Oct 24</p>
       </div>
-      <div className="mt-3 flex justify-between border-t pt-2 text-[10px] text-ink-muted" style={{ borderColor: 'var(--color-divider)' }}>
+      <div className="mt-3 flex justify-between border-t pt-2 text-micro text-ink-muted" style={{ borderColor: 'var(--color-divider)' }}>
         {trend.filter((_, index) => index % 2 === 0).map((item) => <span key={item.day}>{item.day}</span>)}
       </div>
     </section>

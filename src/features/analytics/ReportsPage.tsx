@@ -159,10 +159,10 @@ export function Reports({
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">
+              <h1 className="text-disp3 font-bold tracking-tight text-ink leading-tight">
                 Analytics & Reports
               </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
@@ -170,7 +170,7 @@ export function Reports({
                 Live Intelligence
               </span>
             </div>
-            <p className="text-xs text-ink-secondary mt-1">
+            <p className="text-label text-ink-secondary mt-1">
               Comprehensive hotel operations, occupancy projections, revenue intelligence, and daily manifests
             </p>
           </div>
@@ -181,7 +181,7 @@ export function Reports({
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl cursor-pointer"
+            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-label font-semibold rounded-xl cursor-pointer"
             title="Refresh analytics data"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : 'text-ink-secondary'} />
@@ -200,7 +200,7 @@ export function Reports({
               key={t.id}
               type="button"
               onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              className={`flex items-center gap-2 rounded-md px-4 py-2 text-body font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 isActive
                   ? 'text-white shadow-sm'
                   : 'text-ink-secondary hover:text-ink hover:bg-ink/[0.03]'
@@ -220,7 +220,7 @@ export function Reports({
       </div>
 
       {resource.error && (
-        <div className="flex items-center gap-2 rounded-2xl border border-danger-border bg-danger-bg p-4 text-xs text-danger-text">
+        <div className="flex items-center gap-2 rounded-2xl border border-danger-border bg-danger-bg p-4 text-label text-danger-text">
           <Lucide.AlertCircle size={16} />
           <span>Could not load analytics: {resource.error}</span>
         </div>
@@ -239,16 +239,16 @@ export function Reports({
               className="bg-surface rounded-2xl border border-border/80 p-4 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-ink-secondary">Current Occupancy</span>
+                <span className="text-label font-semibold text-ink-secondary">Current Occupancy</span>
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-info-bg text-info-text">
                   <Lucide.BedDouble size={16} />
                 </span>
               </div>
               <div className="mt-2">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-black text-ink tnum">{occupancy?.occupancyPct ?? 0}%</span>
+                  <span className="text-disp3 font-black text-ink tnum">{occupancy?.occupancyPct ?? 0}%</span>
                 </div>
-                <p className="text-[11px] text-ink-muted mt-0.5">
+                <p className="text-label text-ink-muted mt-0.5">
                   {data?.flash.rooms.ready ?? 10} rooms available tonight
                 </p>
               </div>
@@ -260,18 +260,18 @@ export function Reports({
               className="bg-surface rounded-2xl border border-border/80 p-4 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-ink-secondary">Revenue (Period)</span>
+                <span className="text-label font-semibold text-ink-secondary">Revenue (Period)</span>
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-success-bg text-success-text">
                   <Lucide.TrendingUp size={16} />
                 </span>
               </div>
               <div className="mt-2">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-black text-ink tnum">
+                  <span className="text-disp3 font-black text-ink tnum">
                     {revenue ? formatCurrency(Number(revenue.grossRevenue), currencyCode) : '₹1,48,200'}
                   </span>
                 </div>
-                <p className="text-[11px] text-ink-muted mt-0.5">
+                <p className="text-label text-ink-muted mt-0.5">
                   Net collected: {revenue ? formatCurrency(Number(revenue.paymentsNetCollected), currencyCode) : '₹1,24,000'}
                 </p>
               </div>
@@ -283,21 +283,21 @@ export function Reports({
               className="bg-surface rounded-2xl border border-border/80 p-4 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-ink-secondary">Average Daily Rate (ADR)</span>
+                <span className="text-label font-semibold text-ink-secondary">Average Daily Rate (ADR)</span>
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <Lucide.BarChart3 size={16} />
                 </span>
               </div>
               <div className="mt-2">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-black text-ink tnum">
+                  <span className="text-disp3 font-black text-ink tnum">
                     {revenue ? formatCurrency(Number(revenue.adr), currencyCode) : '₹4,850'}
                   </span>
-                  <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md">
+                  <span className="text-micro font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md">
                     Target: ₹4,500
                   </span>
                 </div>
-                <p className="text-[11px] text-ink-muted mt-0.5">
+                <p className="text-label text-ink-muted mt-0.5">
                   RevPAR: {revenue ? formatCurrency(Number(revenue.revpar), currencyCode) : '₹3,298'}
                 </p>
               </div>
@@ -309,7 +309,7 @@ export function Reports({
               className="bg-surface rounded-2xl border border-border/80 p-4 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-ink-secondary">Today's Guest Turn</span>
+                <span className="text-label font-semibold text-ink-secondary">Today's Guest Turn</span>
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-warning-bg text-warning-text">
                   <Lucide.ArrowLeftRight size={16} />
                 </span>
@@ -317,16 +317,16 @@ export function Reports({
               <div className="mt-2">
                 <div className="flex items-center gap-3">
                   <div>
-                    <span className="text-lg font-black text-ink tnum">{data?.flash.arrivals.length ?? 8}</span>
-                    <span className="text-[10px] font-bold text-ink-muted ml-1">Arrivals</span>
+                    <span className="text-disp2 font-black text-ink tnum">{data?.flash.arrivals.length ?? 8}</span>
+                    <span className="text-micro font-bold text-ink-muted ml-1">Arrivals</span>
                   </div>
                   <span className="text-ink-disabled">/</span>
                   <div>
-                    <span className="text-lg font-black text-ink tnum">{data?.flash.departures.length ?? 7}</span>
-                    <span className="text-[10px] font-bold text-ink-muted ml-1">Departures</span>
+                    <span className="text-disp2 font-black text-ink tnum">{data?.flash.departures.length ?? 7}</span>
+                    <span className="text-micro font-bold text-ink-muted ml-1">Departures</span>
                   </div>
                 </div>
-                <p className="text-[11px] text-ink-muted mt-0.5">
+                <p className="text-label text-ink-muted mt-0.5">
                   {data?.flash.inHouseCount ?? 34} currently in-house
                 </p>
               </div>
@@ -344,14 +344,14 @@ export function Reports({
                       <Lucide.BarChart3 size={18} strokeWidth={2.4} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold text-ink tracking-tight">Occupancy & ADR Demand Forecast (14 Days)</h2>
-                      <p className="text-[11px] text-ink-muted">Demand forecast and projected Average Daily Rate</p>
+                      <h2 className="text-body font-bold text-ink tracking-tight">Occupancy & ADR Demand Forecast (14 Days)</h2>
+                      <p className="text-label text-ink-muted">Demand forecast and projected Average Daily Rate</p>
                     </div>
                   </div>
 
                   {/* Legend & Tab Trigger */}
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-3 text-xs text-ink-secondary bg-page px-3 py-1 rounded-xl border border-border/60 shadow-2xs">
+                    <div className="flex items-center gap-3 text-label text-ink-secondary bg-page px-3 py-1 rounded-xl border border-border/60 shadow-2xs">
                       <span className="flex items-center gap-1.5 font-medium">
                         <span className="h-2.5 w-2.5 rounded-xs bg-[var(--color-primary)]" />
                         <span>Occupancy %</span>
@@ -365,7 +365,7 @@ export function Reports({
                     <button
                       type="button"
                       onClick={() => setActiveTab('occupancy')}
-                      className="rounded-xl border border-border bg-surface hover:bg-page px-2.5 py-1 text-xs font-semibold text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                      className="rounded-xl border border-border bg-surface hover:bg-page px-2.5 py-1 text-label font-semibold text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
                     >
                       <span>Deep Dive</span>
                       <Lucide.ArrowRight size={12} className="text-ink-muted" />
@@ -376,7 +376,7 @@ export function Reports({
                 {/* Bar + Line Combo Chart */}
                 <div className="relative h-48 w-full flex items-end pt-3">
                   {/* Y-axis left lines */}
-                  <div className="absolute inset-0 flex flex-col justify-between text-[10px] text-ink-muted pointer-events-none select-none">
+                  <div className="absolute inset-0 flex flex-col justify-between text-micro text-ink-muted pointer-events-none select-none">
                     <div className="border-b border-dashed border-divider pb-0.5">100%</div>
                     <div className="border-b border-dashed border-divider pb-0.5">80%</div>
                     <div className="border-b border-dashed border-divider pb-0.5">60%</div>
@@ -386,7 +386,7 @@ export function Reports({
                   </div>
 
                   {/* Y-axis right labels */}
-                  <div className="absolute right-0 inset-y-0 flex flex-col justify-between text-[10px] text-ink-muted pointer-events-none select-none text-right">
+                  <div className="absolute right-0 inset-y-0 flex flex-col justify-between text-micro text-ink-muted pointer-events-none select-none text-right">
                     <div>₹7K</div>
                     <div>₹6K</div>
                     <div>₹5K</div>
@@ -400,7 +400,7 @@ export function Reports({
                     {OCCUPANCY_CHART_DATA.map((item, idx) => (
                       <div key={idx} className="flex flex-col items-center flex-1 h-full justify-end group relative">
                         {/* Tooltip on hover */}
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5 text-[10px] font-bold bg-ink text-white rounded-md px-1.5 py-0.5 pointer-events-none z-30 whitespace-nowrap shadow-md">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5 text-micro font-bold bg-ink text-white rounded-md px-1.5 py-0.5 pointer-events-none z-30 whitespace-nowrap shadow-md">
                           {item.day}: {item.occ}% · ₹{item.adr}
                         </div>
                         {/* The bar */}
@@ -408,9 +408,9 @@ export function Reports({
                           className="w-3.5 sm:w-5 md:w-6 rounded-t bg-[var(--color-primary)] group-hover:bg-[var(--color-primary-hover)] transition-all cursor-pointer shadow-2xs"
                           style={{ height: `${item.occ}%` }}
                         />
-                        <span className="text-[10px] text-ink-secondary mt-2 leading-tight text-center font-medium">
+                        <span className="text-micro text-ink-secondary mt-2 leading-tight text-center font-medium">
                           {item.day.split(' ')[0]}<br />
-                          <span className="text-ink-muted text-[10px]">{item.day.split(' ')[1]}</span>
+                          <span className="text-ink-muted text-micro">{item.day.split(' ')[1]}</span>
                         </span>
                       </div>
                     ))}
@@ -433,8 +433,8 @@ export function Reports({
                 </div>
               </div>
 
-              <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-xs text-ink-secondary">
-                <span className="text-[11px] text-ink-muted">Peak demand: 24 Oct (95% Occupancy · ₹6,500 ADR)</span>
+              <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-label text-ink-secondary">
+                <span className="text-label text-ink-muted">Peak demand: 24 Oct (95% Occupancy · ₹6,500 ADR)</span>
                 <button
                   type="button"
                   onClick={() => setActiveTab('occupancy')}
@@ -455,11 +455,11 @@ export function Reports({
                       <Lucide.BedDouble size={18} strokeWidth={2.4} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold text-ink tracking-tight">Room Status Breakdown</h2>
-                      <p className="text-[11px] text-ink-muted">Live operational room allocation</p>
+                      <h2 className="text-body font-bold text-ink tracking-tight">Room Status Breakdown</h2>
+                      <p className="text-label text-ink-muted">Live operational room allocation</p>
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-ink bg-muted-surface px-2.5 py-1 rounded-xl border border-border/60">
+                  <span className="text-label font-bold text-ink bg-muted-surface px-2.5 py-1 rounded-xl border border-border/60">
                     50 Rooms
                   </span>
                 </div>
@@ -477,42 +477,42 @@ export function Reports({
 
                     {/* Center Label */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <span className="text-2xl font-bold text-ink leading-none">50</span>
-                      <span className="text-[10px] text-ink-muted font-medium mt-0.5">Total Rooms</span>
+                      <span className="text-disp3 font-bold text-ink leading-none">50</span>
+                      <span className="text-micro text-ink-muted font-medium mt-0.5">Total Rooms</span>
                     </div>
                   </div>
 
                   {/* Legend List */}
                   <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                    <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between text-label">
                       <span className="flex items-center gap-1.5 text-ink truncate">
                         <span className="h-2 w-2 rounded-full bg-[var(--color-primary)] flex-none" />
                         <span className="font-medium">34 Occupied</span>
                       </span>
                       <span className="font-bold text-ink">68%</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between text-label">
                       <span className="flex items-center gap-1.5 text-ink truncate">
                         <span className="h-2 w-2 rounded-full bg-success-text flex-none" />
                         <span className="font-medium">10 Available</span>
                       </span>
                       <span className="font-bold text-ink">20%</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between text-label">
                       <span className="flex items-center gap-1.5 text-ink truncate">
                         <span className="h-2 w-2 rounded-full bg-warning-text flex-none" />
                         <span className="font-medium">4 Dirty</span>
                       </span>
                       <span className="font-bold text-ink">8%</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between text-label">
                       <span className="flex items-center gap-1.5 text-ink truncate">
                         <span className="h-2 w-2 rounded-full bg-info-text flex-none" />
                         <span className="font-medium">1 Cleaning</span>
                       </span>
                       <span className="font-bold text-ink">2%</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between text-label">
                       <span className="flex items-center gap-1.5 text-ink truncate">
                         <span className="h-2 w-2 rounded-full bg-danger-text flex-none" />
                         <span className="font-medium">1 Out of order</span>
@@ -523,8 +523,8 @@ export function Reports({
                 </div>
               </div>
 
-              <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-xs">
-                <span className="text-[11px] text-ink-muted">Available to sell: 10 units</span>
+              <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-label">
+                <span className="text-label text-ink-muted">Available to sell: 10 units</span>
                 <button
                   type="button"
                   onClick={() => go({ view: 'room-overview' })}
@@ -550,7 +550,7 @@ export function Reports({
                   data && can('report.export') ? (
                     <button
                       type="button"
-                      className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl"
+                      className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-xl"
                       onClick={() =>
                         void downloadApiFile(
                           reportsApi.exportDailyFlash(data.flash.businessDate),
@@ -579,7 +579,7 @@ export function Reports({
                       key={label}
                       className="flex items-center justify-between rounded-xl border border-divider px-3.5 py-2.5 bg-page/50"
                     >
-                      <span className="flex items-center gap-2 text-xs font-medium text-ink">
+                      <span className="flex items-center gap-2 text-label font-medium text-ink">
                         <Icon size={14} className="text-ink-muted" />
                         <span>{label}</span>
                       </span>
@@ -605,7 +605,7 @@ export function Reports({
                   <button
                     type="button"
                     onClick={() => setActiveTab('revenue')}
-                    className="pms-btn-ghost flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-xl"
+                    className="pms-btn-ghost flex items-center gap-1 text-label font-semibold px-2.5 py-1 rounded-xl"
                   >
                     <span>Full Ledger</span>
                     <Lucide.ChevronRight size={13} />
@@ -623,7 +623,7 @@ export function Reports({
                   ].map(([label, value]) => (
                     <li
                       key={label}
-                      className="flex items-center justify-between border-b border-divider py-2.5 last:border-0 text-xs"
+                      className="flex items-center justify-between border-b border-divider py-2.5 last:border-0 text-label"
                     >
                       <span className="text-ink-secondary font-medium">{label}</span>
                       <span className="tnum font-bold text-ink">{value}</span>
@@ -631,7 +631,7 @@ export function Reports({
                   ))}
                 </ul>
               ) : (
-                <p className="pms-helper py-8 text-center text-xs text-ink-muted">
+                <p className="pms-helper py-8 text-center text-label text-ink-muted">
                   This role cannot read financial reports or no revenue data is available.
                 </p>
               )}
@@ -648,11 +648,11 @@ export function Reports({
           {/* Top Controls Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface rounded-2xl border border-border/90 p-4 shadow-2xs">
             <div>
-              <h2 className="text-sm font-bold text-ink tracking-tight flex items-center gap-2">
+              <h2 className="text-body font-bold text-ink tracking-tight flex items-center gap-2">
                 <Lucide.BedDouble className="text-[var(--color-primary)]" size={18} />
                 <span>Occupancy Trends & Utilization</span>
               </h2>
-              <p className="text-xs text-ink-muted mt-0.5">
+              <p className="text-label text-ink-muted mt-0.5">
                 Sold room nights, availability forecast, and inventory reconciliation
               </p>
             </div>
@@ -668,7 +668,7 @@ export function Reports({
                 <button
                   type="button"
                   disabled={!occupancy}
-                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-border"
+                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-xl border border-border"
                   onClick={() =>
                     occupancy &&
                     void downloadApiFile(reportsApi.exportOccupancy(occupancy.from, occupancy.to), 'occupancy.csv').catch(
@@ -693,12 +693,12 @@ export function Reports({
             ].map((item) => (
               <div key={item.label} className="bg-surface rounded-2xl border border-border/80 p-4 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-ink-secondary">{item.label}</span>
+                  <span className="text-label font-semibold text-ink-secondary">{item.label}</span>
                   <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${item.bg} ${item.color}`}>
                     <item.icon size={16} />
                   </span>
                 </div>
-                <p className="text-2xl font-black text-ink tnum mt-2">{item.value}</p>
+                <p className="text-disp3 font-black text-ink tnum mt-2">{item.value}</p>
               </div>
             ))}
           </div>
@@ -751,7 +751,7 @@ export function Reports({
                 subtitle="Reservation counts compared against allocated room-nights"
               />
               {occupancy ? (
-                <div className="flex flex-col gap-2.5 text-xs pt-1">
+                <div className="flex flex-col gap-2.5 text-label pt-1">
                   {[
                     { label: 'Total rooms in property', value: occupancy.rooms },
                     { label: 'Overlapping active reservations', value: occupancy.reconciliation.overlappingReservations },
@@ -766,12 +766,12 @@ export function Reports({
                   <div className="flex items-center justify-between border-t border-border pt-3 mt-1">
                     <span className="font-semibold text-ink">Reconciliation Audit</span>
                     {occupancy.reconciliation.matches ? (
-                      <span className="flex items-center gap-1.5 text-success-text font-bold text-xs bg-success-bg px-2.5 py-1 rounded-lg">
+                      <span className="flex items-center gap-1.5 text-success-text font-bold text-label bg-success-bg px-2.5 py-1 rounded-lg">
                         <Lucide.CheckCircle2 size={14} />
                         <span>Balanced & Verified</span>
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1.5 text-warning-text font-bold text-xs bg-warning-bg px-2.5 py-1 rounded-lg">
+                      <span className="flex items-center gap-1.5 text-warning-text font-bold text-label bg-warning-bg px-2.5 py-1 rounded-lg">
                         <Lucide.AlertTriangle size={14} />
                         <span>Discrepancy Found</span>
                       </span>
@@ -792,11 +792,11 @@ export function Reports({
           {/* Top Controls Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface rounded-2xl border border-border/90 p-4 shadow-2xs">
             <div>
-              <h2 className="text-sm font-bold text-ink tracking-tight flex items-center gap-2">
+              <h2 className="text-body font-bold text-ink tracking-tight flex items-center gap-2">
                 <Lucide.TrendingUp className="text-success-text" size={18} />
                 <span>Revenue & Financial Analytics</span>
               </h2>
-              <p className="text-xs text-ink-muted mt-0.5">
+              <p className="text-label text-ink-muted mt-0.5">
                 Average Daily Rate (ADR), RevPAR, gross lodging revenues, and tax collections
               </p>
             </div>
@@ -812,7 +812,7 @@ export function Reports({
                 <button
                   type="button"
                   disabled={!revenue}
-                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-border"
+                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-xl border border-border"
                   onClick={() =>
                     revenue &&
                     void downloadApiFile(reportsApi.exportRevenue(revenue.from, revenue.to), 'revenue.csv').catch(
@@ -861,8 +861,8 @@ export function Reports({
             ].map(({ label, val, Icon, color, bg }) => (
               <div key={label} className="bg-surface rounded-2xl border border-border/80 p-4 shadow-2xs flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-ink-secondary">{label}</p>
-                  <p className="text-2xl font-black text-ink tnum mt-2">{val}</p>
+                  <p className="text-label font-semibold text-ink-secondary">{label}</p>
+                  <p className="text-disp3 font-black text-ink tnum mt-2">{val}</p>
                 </div>
                 <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${bg} ${color}`}>
                   <Icon size={18} />
@@ -924,8 +924,8 @@ export function Reports({
                       ['Available Room Nights', String(revenue.availableRoomNights)],
                     ].map(([label, value]) => (
                       <tr key={label} className="transition-colors hover:bg-page/60">
-                        <td className="font-semibold text-ink text-xs">{label}</td>
-                        <td className="tnum text-right font-bold text-ink text-xs">{value}</td>
+                        <td className="font-semibold text-ink text-label">{label}</td>
+                        <td className="tnum text-right font-bold text-ink text-label">{value}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -944,11 +944,11 @@ export function Reports({
           {/* Top Controls Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface rounded-2xl border border-border/90 p-4 shadow-2xs">
             <div>
-              <h2 className="text-sm font-bold text-ink tracking-tight flex items-center gap-2">
+              <h2 className="text-body font-bold text-ink tracking-tight flex items-center gap-2">
                 <Lucide.ArrowLeftRight className="text-[var(--color-primary)]" size={18} />
                 <span>Daily Guest Movements Manifest</span>
               </h2>
-              <p className="text-xs text-ink-muted mt-0.5">
+              <p className="text-label text-ink-muted mt-0.5">
                 Check-in manifests, scheduled departures, and net inventory changes
               </p>
             </div>
@@ -968,7 +968,7 @@ export function Reports({
                   type="date"
                   value={movementDay}
                   onChange={(e) => e.target.value && setMovementDay(e.target.value)}
-                  className={inputClass('border-0 bg-transparent py-1 px-2.5 tnum text-xs font-bold')}
+                  className={inputClass('border-0 bg-transparent py-1 px-2.5 tnum text-label font-bold')}
                   aria-label="Manifest business date"
                 />
                 <button
@@ -984,7 +984,7 @@ export function Reports({
               {can('report.export') && (
                 <button
                   type="button"
-                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-border"
+                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-xl border border-border"
                   onClick={() =>
                     void downloadApiFile(reportsApi.exportMovement(movementDay, movementDay), `movement-${movementDay}.csv`).catch(
                       (error: unknown) => toast('Export failed', { detail: displayApiError(error), tone: 'danger' }),
@@ -1008,12 +1008,12 @@ export function Reports({
             ].map((item) => (
               <div key={item.label} className="bg-surface rounded-2xl border border-border/80 p-4 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-ink-secondary">{item.label}</span>
+                  <span className="text-label font-semibold text-ink-secondary">{item.label}</span>
                   <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${item.bg} ${item.color}`}>
                     <item.icon size={16} />
                   </span>
                 </div>
-                <p className="text-2xl font-black text-ink tnum mt-2">{item.value}</p>
+                <p className="text-disp3 font-black text-ink tnum mt-2">{item.value}</p>
               </div>
             ))}
           </div>
@@ -1023,18 +1023,18 @@ export function Reports({
             {/* Arrivals Column */}
             <div className="bg-surface rounded-3xl border border-border/90 p-4 sm:p-5 shadow-xs">
               <div className="flex items-center justify-between mb-3.5 pb-2.5 border-b border-divider">
-                <span className="flex items-center gap-2 font-bold text-ink text-sm">
+                <span className="flex items-center gap-2 font-bold text-ink text-body">
                   <Lucide.ArrowDownLeft size={16} className="text-[var(--color-primary)]" />
                   <span>Arrivals Manifest</span>
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-[var(--color-primary)]">
+                <span className="px-2.5 py-0.5 rounded-full text-label font-bold bg-primary/10 text-[var(--color-primary)]">
                   {arrivals.length} expected
                 </span>
               </div>
 
               <ul className="flex flex-col gap-2.5">
                 {arrivals.length === 0 ? (
-                  <p className="py-8 text-center text-xs text-ink-muted">No arrivals scheduled for {movementDay}.</p>
+                  <p className="py-8 text-center text-label text-ink-muted">No arrivals scheduled for {movementDay}.</p>
                 ) : (
                   arrivals.map((row) => (
                     <li
@@ -1043,8 +1043,8 @@ export function Reports({
                     >
                       <Avatar name={row.guestName ?? 'Guest'} size={34} />
                       <div className="min-w-0 flex-1">
-                        <span className="block truncate text-xs font-bold text-ink">{row.guestName ?? 'Guest'}</span>
-                        <span className="tnum block text-[11px] text-ink-muted mt-0.5">
+                        <span className="block truncate text-label font-bold text-ink">{row.guestName ?? 'Guest'}</span>
+                        <span className="tnum block text-label text-ink-muted mt-0.5">
                           {row.bookingCode} · Rm {row.roomNumber ?? 'Unassigned'} · {row.nights} night{row.nights > 1 ? 's' : ''}
                         </span>
                       </div>
@@ -1060,18 +1060,18 @@ export function Reports({
             {/* Departures Column */}
             <div className="bg-surface rounded-3xl border border-border/90 p-4 sm:p-5 shadow-xs">
               <div className="flex items-center justify-between mb-3.5 pb-2.5 border-b border-divider">
-                <span className="flex items-center gap-2 font-bold text-ink text-sm">
+                <span className="flex items-center gap-2 font-bold text-ink text-body">
                   <Lucide.ArrowUpRight size={16} className="text-warning-text" />
                   <span>Departures Manifest</span>
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-warning-bg text-warning-text">
+                <span className="px-2.5 py-0.5 rounded-full text-label font-bold bg-warning-bg text-warning-text">
                   {departures.length} scheduled
                 </span>
               </div>
 
               <ul className="flex flex-col gap-2.5">
                 {departures.length === 0 ? (
-                  <p className="py-8 text-center text-xs text-ink-muted">No departures scheduled for {movementDay}.</p>
+                  <p className="py-8 text-center text-label text-ink-muted">No departures scheduled for {movementDay}.</p>
                 ) : (
                   departures.map((row) => (
                     <li
@@ -1080,8 +1080,8 @@ export function Reports({
                     >
                       <Avatar name={row.guestName ?? 'Guest'} size={34} />
                       <div className="min-w-0 flex-1">
-                        <span className="block truncate text-xs font-bold text-ink">{row.guestName ?? 'Guest'}</span>
-                        <span className="tnum block text-[11px] text-ink-muted mt-0.5">
+                        <span className="block truncate text-label font-bold text-ink">{row.guestName ?? 'Guest'}</span>
+                        <span className="tnum block text-label text-ink-muted mt-0.5">
                           {row.bookingCode} · Rm {row.roomNumber ?? 'Unassigned'}
                         </span>
                       </div>
@@ -1122,8 +1122,8 @@ export function Reports({
                     key={label}
                     className="rounded-2xl border border-border p-3 shadow-2xs bg-page/50"
                   >
-                    <p className="text-xs text-ink-muted font-medium">{label}</p>
-                    <p className="tnum text-xl font-bold text-ink mt-1">{value}</p>
+                    <p className="text-label text-ink-muted font-medium">{label}</p>
+                    <p className="tnum text-disp2 font-bold text-ink mt-1">{value}</p>
                   </div>
                 ))}
               </div>
@@ -1140,10 +1140,10 @@ export function Reports({
                   <tbody>
                     {data.housekeeping.byType.map((row) => (
                       <tr key={row.type}>
-                        <td className="font-semibold text-ink text-xs">{row.type.replace(/_/g, ' ')}</td>
-                        <td className="tnum text-right text-xs">{row.total}</td>
-                        <td className="tnum text-right font-semibold text-success-text text-xs">{row.completed}</td>
-                        <td className="tnum text-right text-danger-text text-xs">{row.blocked}</td>
+                        <td className="font-semibold text-ink text-label">{row.type.replace(/_/g, ' ')}</td>
+                        <td className="tnum text-right text-label">{row.total}</td>
+                        <td className="tnum text-right font-semibold text-success-text text-label">{row.completed}</td>
+                        <td className="tnum text-right text-danger-text text-label">{row.blocked}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1162,7 +1162,7 @@ export function Reports({
                 subtitle={`Business date ${auditDate} · Advisory and day-close workflow`}
               />
               {nightAuditResource.error ? (
-                <p role="alert" className="pms-helper mb-2 text-danger text-xs">
+                <p role="alert" className="pms-helper mb-2 text-danger text-label">
                   {nightAuditResource.error}
                 </p>
               ) : null}
@@ -1171,14 +1171,14 @@ export function Reports({
                   {nightAuditResource.data?.status ?? 'Not previewed'}
                 </Badge>
                 {nightAuditResource.data?.previewSummary?.exceptionCount !== undefined ? (
-                  <span className="pms-helper text-xs">
+                  <span className="pms-helper text-label">
                     {nightAuditResource.data.previewSummary.exceptionCount} preview exceptions
                   </span>
                 ) : null}
                 {can('night-audit.run') ? (
                   <button
                     type="button"
-                    className="pms-btn-ghost px-3.5 py-2 text-xs font-semibold rounded-xl border border-border"
+                    className="pms-btn-ghost px-3.5 py-2 text-label font-semibold rounded-xl border border-border"
                     onClick={() => void runNightAudit('preview')}
                   >
                     Run Preview
@@ -1187,7 +1187,7 @@ export function Reports({
                 {can('night-audit.approve') && nightAuditResource.data?.status !== 'COMPLETED' ? (
                   <button
                     type="button"
-                    className="pms-btn-primary px-3.5 py-2 text-xs font-semibold rounded-xl"
+                    className="pms-btn-primary px-3.5 py-2 text-label font-semibold rounded-xl"
                     onClick={() => void runNightAudit('close')}
                   >
                     Close Business Date
@@ -1196,7 +1196,7 @@ export function Reports({
                 {can('night-audit.approve') && nightAuditResource.data?.status === 'COMPLETED' ? (
                   <button
                     type="button"
-                    className="pms-btn-ghost px-3.5 py-2 text-xs text-warning-text font-semibold rounded-xl border border-warning-border bg-warning-bg"
+                    className="pms-btn-ghost px-3.5 py-2 text-label text-warning-text font-semibold rounded-xl border border-warning-border bg-warning-bg"
                     onClick={() => setReopenModal(true)}
                   >
                     Reopen Business Date
@@ -1218,7 +1218,7 @@ export function Reports({
                   can('audit-log.export') ? (
                     <button
                       type="button"
-                      className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-border"
+                      className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-xl border border-border"
                       onClick={() =>
                         void downloadApiFile(auditApi.export(), 'audit-log.csv').catch((error: unknown) =>
                           toast('Audit export failed', { detail: displayApiError(error), tone: 'danger' }),
@@ -1245,10 +1245,10 @@ export function Reports({
                   <tbody>
                     {data.audit.rows.map((event) => (
                       <tr key={event.id} className="transition-colors hover:bg-page/60">
-                        <td className="tnum text-xs text-ink-secondary">{event.createdAt}</td>
-                        <td className="font-semibold text-ink text-xs">{event.action}</td>
-                        <td className="text-xs text-ink">{event.actorName ?? 'System'}</td>
-                        <td className="font-mono text-xs text-ink-secondary">
+                        <td className="tnum text-label text-ink-secondary">{event.createdAt}</td>
+                        <td className="font-semibold text-ink text-label">{event.action}</td>
+                        <td className="text-label text-ink">{event.actorName ?? 'System'}</td>
+                        <td className="font-mono text-label text-ink-secondary">
                           {event.resourceType}
                           {event.resourceId ? ` · ${event.resourceId}` : ''}
                         </td>

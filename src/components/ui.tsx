@@ -12,7 +12,7 @@ export function Badge({
   dot?: boolean;
 }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${TONE_CLASSES[tone].badge}`}>
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-label font-semibold border ${TONE_CLASSES[tone].badge}`}>
       {dot ? <span className="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true" /> : null}
       {children}
     </span>
@@ -64,10 +64,10 @@ export function CardTitle({
         ) : null}
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-sm font-bold text-ink tracking-tight">{title}</h2>
+            <h2 className="text-body font-bold text-ink tracking-tight">{title}</h2>
             {badge}
           </div>
-          {subtitle ? <p className="text-[11px] text-ink-muted mt-0.5">{subtitle}</p> : null}
+          {subtitle ? <p className="text-label text-ink-muted mt-0.5">{subtitle}</p> : null}
         </div>
       </div>
       {action ? <div className="flex flex-none items-center gap-2">{action}</div> : null}
@@ -182,7 +182,7 @@ export function Avatar({ name, size = 36 }: { name: string; size?: number }) {
 
   return (
     <span
-      className="inline-flex flex-none items-center justify-center rounded-full text-xs font-bold transition-transform hover:scale-105"
+      className="inline-flex flex-none items-center justify-center rounded-full text-label font-bold transition-transform hover:scale-105"
       style={{
         width: size,
         height: size,

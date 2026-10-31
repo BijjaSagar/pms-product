@@ -62,11 +62,11 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                   }}
                 >
                   <span className="flex items-center justify-between gap-2">
-                    <span className="text-[13px] font-semibold" style={{ color: 'var(--color-ink)' }}>
+                    <span className="text-body font-semibold" style={{ color: 'var(--color-ink)' }}>
                       {p.name}
                     </span>
                     <span
-                      className="flex h-5 w-5 flex-none items-center justify-center rounded-full border text-[11px] font-bold"
+                      className="flex h-5 w-5 flex-none items-center justify-center rounded-full border text-label font-bold"
                       style={{
                         borderColor: 'var(--color-primary)',
                         background: checked ? 'var(--color-primary)' : 'transparent',
@@ -87,7 +87,7 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                       />
                     ))}
                   </span>
-                  <span className="pms-helper mt-2 block text-[11px]">{p.description}</span>
+                  <span className="pms-helper mt-2 block text-label">{p.description}</span>
                 </button>
               );
             })}
@@ -97,7 +97,7 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
           <div className="mt-6 border-t pt-5" style={{ borderColor: 'var(--color-border)' }}>
             <div className="flex items-center justify-between mb-1">
               <h3 className="pms-label">Preview Toast Notifications</h3>
-              <span className="text-[11px] font-medium" style={{ color: 'var(--color-ink-muted)' }}>
+              <span className="text-label font-medium" style={{ color: 'var(--color-ink-muted)' }}>
                 Live Demo
               </span>
             </div>
@@ -112,7 +112,7 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                     detail: 'Room 304 · Alex Morgan checked in successfully.',
                   })
                 }
-                className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-xs font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
+                className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-label font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
                 style={{
                   background: 'var(--color-surface)',
                   borderColor: 'color-mix(in srgb, var(--color-success-text) 35%, var(--color-border))',
@@ -130,7 +130,7 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                     detail: '3 departure rooms queued for immediate inspection.',
                   })
                 }
-                className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-xs font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
+                className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-label font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
                 style={{
                   background: 'var(--color-surface)',
                   borderColor: 'color-mix(in srgb, var(--color-info-text) 35%, var(--color-border))',
@@ -148,7 +148,7 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                     detail: 'Room 108 requested late checkout until 1:30 PM.',
                   })
                 }
-                className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-xs font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
+                className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-label font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
                 style={{
                   background: 'var(--color-surface)',
                   borderColor: 'color-mix(in srgb, var(--color-warning-text) 35%, var(--color-border))',
@@ -174,7 +174,7 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                     },
                   })
                 }
-                className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-xs font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
+                className="flex items-center gap-2 rounded-xl border p-2.5 text-left text-label font-semibold transition-all hover:bg-hover-surface active:scale-95 cursor-pointer"
                 style={{
                   background: 'var(--color-surface)',
                   borderColor: 'color-mix(in srgb, var(--color-danger-text) 35%, var(--color-border))',

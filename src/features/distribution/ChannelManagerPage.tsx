@@ -56,7 +56,7 @@ function MetricCard({
   return (
     <article className="pms-card pms-card-hover flex min-w-0 items-center gap-3 p-3.5 sm:p-4">
       <span className="flex h-10 w-10 flex-none items-center justify-center rounded-control" style={style}><Icon size={18} /></span>
-      <div className="min-w-0"><p className="truncate text-[11px] font-medium text-ink-secondary">{label}</p><p className="mt-0.5 truncate text-lg font-bold leading-tight text-ink tnum">{value}</p><p className="mt-0.5 truncate text-[10px] text-ink-muted">{hint}</p></div>
+      <div className="min-w-0"><p className="truncate text-label font-medium text-ink-secondary">{label}</p><p className="mt-0.5 truncate text-disp2 font-bold leading-tight text-ink tnum">{value}</p><p className="mt-0.5 truncate text-micro text-ink-muted">{hint}</p></div>
     </article>
   );
 }
@@ -308,8 +308,8 @@ export function ChannelManager() {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">Channel Manager</h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
+              <h1 className="text-disp3 font-bold tracking-tight text-ink leading-tight">Channel Manager</h1>
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
@@ -317,25 +317,25 @@ export function ChannelManager() {
                 Live Feed
               </span>
             </div>
-            <p className="text-xs text-ink-secondary mt-1">Monitor OTA connections, inventory distribution and booking performance.</p>
+            <p className="text-label text-ink-secondary mt-1">Monitor OTA connections, inventory distribution and booking performance.</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" aria-pressed={settings.autoSync} onClick={() => handleSettingsChange('autoSync', !settings.autoSync)} className={`inline-flex min-h-[38px] items-center gap-2 rounded-full border px-3 text-xs font-semibold transition-colors ${settings.autoSync ? 'bg-success-bg text-success-text' : 'bg-muted-surface text-ink-secondary'}`} style={{ borderColor: settings.autoSync ? 'var(--color-success-border)' : 'var(--color-border)' }}>
+          <button type="button" aria-pressed={settings.autoSync} onClick={() => handleSettingsChange('autoSync', !settings.autoSync)} className={`inline-flex min-h-[38px] items-center gap-2 rounded-full border px-3 text-label font-semibold transition-colors ${settings.autoSync ? 'bg-success-bg text-success-text' : 'bg-muted-surface text-ink-secondary'}`} style={{ borderColor: settings.autoSync ? 'var(--color-success-border)' : 'var(--color-border)' }}>
             <span className={`h-1.5 w-1.5 rounded-full ${settings.autoSync ? 'bg-success-text' : 'bg-ink-disabled'}`} /> Auto-sync {settings.autoSync ? 'on' : 'paused'}
           </button>
-          <button type="button" onClick={() => { handleTabChange('restrictions'); setSettingsExpanded(true); }} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-xs"><Lucide.Settings2 size={14} /> Sync settings</button>
-          <button type="button" onClick={() => setShowLogs(true)} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-xs"><Lucide.ScrollText size={14} /> Logs</button>
-          <button type="button" onClick={handleGlobalSync} disabled={isSyncing || connectedCount === 0} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-xs disabled:opacity-50"><Lucide.RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />{isSyncing ? 'Syncing' : 'Sync now'}</button>
-          <button type="button" onClick={handlePublishChanges} disabled={!hasUnpublishedChanges} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-xs disabled:opacity-50"><Lucide.Upload size={14} /> Publish changes</button>
-          <button type="button" onClick={() => setShowAddChannel(true)} className="pms-btn-primary min-h-[38px] px-3.5 py-1.5 text-xs"><Lucide.Plus size={15} /> Add channel</button>
+          <button type="button" onClick={() => { handleTabChange('restrictions'); setSettingsExpanded(true); }} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-label"><Lucide.Settings2 size={14} /> Sync settings</button>
+          <button type="button" onClick={() => setShowLogs(true)} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-label"><Lucide.ScrollText size={14} /> Logs</button>
+          <button type="button" onClick={handleGlobalSync} disabled={isSyncing || connectedCount === 0} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-label disabled:opacity-50"><Lucide.RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />{isSyncing ? 'Syncing' : 'Sync now'}</button>
+          <button type="button" onClick={handlePublishChanges} disabled={!hasUnpublishedChanges} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-label disabled:opacity-50"><Lucide.Upload size={14} /> Publish changes</button>
+          <button type="button" onClick={() => setShowAddChannel(true)} className="pms-btn-primary min-h-[38px] px-3.5 py-1.5 text-label"><Lucide.Plus size={15} /> Add channel</button>
         </div>
       </header>
 
       {issueCount > 0 && (
         <div role="status" className="flex flex-col gap-2 rounded-card border p-3.5 sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)' }}>
-          <div className="flex items-start gap-2.5"><Lucide.AlertCircle size={17} className="mt-0.5 flex-none text-danger-text" /><div><p className="text-xs font-bold text-danger-text">{issueCount} channel connection{issueCount === 1 ? '' : 's'} need attention</p><p className="mt-0.5 text-[11px] text-danger-text">{channelsWithErrors.map((channel) => `${channel.name}: ${channel.errorDetail ?? 'Reconnect to resume synchronization.'}`).join(' · ')}</p></div></div>
-          <button type="button" onClick={() => channelsWithErrors.forEach(handleReconnect)} className="rounded-control px-3 py-1.5 text-xs font-bold text-danger-text transition-colors hover:bg-surface/50">Reconnect {issueCount === 1 ? 'channel' : 'all'}</button>
+          <div className="flex items-start gap-2.5"><Lucide.AlertCircle size={17} className="mt-0.5 flex-none text-danger-text" /><div><p className="text-label font-bold text-danger-text">{issueCount} channel connection{issueCount === 1 ? '' : 's'} need attention</p><p className="mt-0.5 text-label text-danger-text">{channelsWithErrors.map((channel) => `${channel.name}: ${channel.errorDetail ?? 'Reconnect to resume synchronization.'}`).join(' · ')}</p></div></div>
+          <button type="button" onClick={() => channelsWithErrors.forEach(handleReconnect)} className="rounded-control px-3 py-1.5 text-label font-bold text-danger-text transition-colors hover:bg-surface/50">Reconnect {issueCount === 1 ? 'channel' : 'all'}</button>
         </div>
       )}
 
@@ -348,22 +348,22 @@ export function ChannelManager() {
         {selectedChannel ? (
           <section className="pms-card flex min-w-0 flex-col p-4 sm:p-5" aria-labelledby="channel-detail-title">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3"><ChannelLogo channel={selectedChannel} size="lg" /><div className="min-w-0"><h2 id="channel-detail-title" className="truncate text-sm font-bold text-ink">{selectedChannel.name}</h2><span className="mt-1 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold" style={{ color: statusAppearance(selectedChannel.status).color, background: statusAppearance(selectedChannel.status).background, borderColor: statusAppearance(selectedChannel.status).border }}><span className={`h-1.5 w-1.5 rounded-full ${selectedChannel.status === 'connected' ? 'bg-success-text' : selectedChannel.status === 'error' ? 'bg-danger-text' : 'bg-ink-disabled'}`} />{statusAppearance(selectedChannel.status).label}</span></div></div>
+              <div className="flex min-w-0 items-center gap-3"><ChannelLogo channel={selectedChannel} size="lg" /><div className="min-w-0"><h2 id="channel-detail-title" className="truncate text-body font-bold text-ink">{selectedChannel.name}</h2><span className="mt-1 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-micro font-semibold" style={{ color: statusAppearance(selectedChannel.status).color, background: statusAppearance(selectedChannel.status).background, borderColor: statusAppearance(selectedChannel.status).border }}><span className={`h-1.5 w-1.5 rounded-full ${selectedChannel.status === 'connected' ? 'bg-success-text' : selectedChannel.status === 'error' ? 'bg-danger-text' : 'bg-ink-disabled'}`} />{statusAppearance(selectedChannel.status).label}</span></div></div>
               <button type="button" aria-label="Open channel logs" onClick={() => setShowLogs(true)} className="flex h-8 w-8 flex-none items-center justify-center rounded-control text-ink-muted hover:bg-hover-surface hover:text-ink"><Lucide.Ellipsis size={17} /></button>
             </div>
-            {selectedChannel.status === 'error' && <div className="mt-4 rounded-control border p-3 text-[11px] leading-relaxed text-danger-text" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)' }}><span className="font-bold">Connection error</span><br />{selectedChannel.errorDetail}</div>}
+            {selectedChannel.status === 'error' && <div className="mt-4 rounded-control border p-3 text-label leading-relaxed text-danger-text" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)' }}><span className="font-bold">Connection error</span><br />{selectedChannel.errorDetail}</div>}
             <div className="mt-4 grid grid-cols-3 divide-x rounded-control border py-3" style={{ borderColor: 'var(--color-divider)' }}>
-              <div className="px-2 text-center"><p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Rooms</p><p className="mt-1 text-sm font-bold text-ink tnum">{selectedChannel.activeRooms}</p></div>
-              <div className="px-2 text-center"><p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Bookings MTD</p><p className="mt-1 text-sm font-bold text-ink tnum">{selectedChannel.bookingsMtd}</p></div>
-              <div className="px-2 text-center"><p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Sync health</p><p className="mt-1 text-sm font-bold text-ink tnum">{selectedChannel.syncSuccess}%</p></div>
+              <div className="px-2 text-center"><p className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Rooms</p><p className="mt-1 text-body font-bold text-ink tnum">{selectedChannel.activeRooms}</p></div>
+              <div className="px-2 text-center"><p className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Bookings MTD</p><p className="mt-1 text-body font-bold text-ink tnum">{selectedChannel.bookingsMtd}</p></div>
+              <div className="px-2 text-center"><p className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Sync health</p><p className="mt-1 text-body font-bold text-ink tnum">{selectedChannel.syncSuccess}%</p></div>
             </div>
-            <div className="mt-4 flex items-center justify-between gap-2 text-xs"><span className="text-ink-muted">Last sync</span><span className={`font-semibold ${selectedChannel.status === 'error' ? 'text-danger-text' : 'text-ink-secondary'}`}>{selectedChannel.lastSync}</span></div>
-            <div className="mt-2 flex items-center justify-between gap-2 text-xs"><span className="text-ink-muted">Rate mappings</span><button type="button" onClick={() => handleTabChange('mapping')} className="font-semibold text-primary hover:underline">{mappedCount} mapped · Review</button></div>
+            <div className="mt-4 flex items-center justify-between gap-2 text-label"><span className="text-ink-muted">Last sync</span><span className={`font-semibold ${selectedChannel.status === 'error' ? 'text-danger-text' : 'text-ink-secondary'}`}>{selectedChannel.lastSync}</span></div>
+            <div className="mt-2 flex items-center justify-between gap-2 text-label"><span className="text-ink-muted">Rate mappings</span><button type="button" onClick={() => handleTabChange('mapping')} className="font-semibold text-primary hover:underline">{mappedCount} mapped · Review</button></div>
             <div className="mt-auto flex gap-2 pt-5">
               {selectedChannel.status === 'error'
-                ? <button type="button" onClick={() => handleReconnect(selectedChannel)} className="pms-btn-primary min-h-[38px] flex-1 px-3 py-1.5 text-xs"><Lucide.Link2 size={14} /> Reconnect</button>
-                : <button type="button" onClick={() => handleChannelSync(selectedChannel)} disabled={selectedChannel.status === 'paused'} className="pms-btn-primary min-h-[38px] flex-1 px-3 py-1.5 text-xs disabled:opacity-50"><Lucide.RefreshCw size={14} /> Sync channel</button>}
-              <button type="button" onClick={() => handlePauseChannel(selectedChannel)} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-xs">{selectedChannel.status === 'paused' ? 'Resume' : 'Pause'}</button>
+                ? <button type="button" onClick={() => handleReconnect(selectedChannel)} className="pms-btn-primary min-h-[38px] flex-1 px-3 py-1.5 text-label"><Lucide.Link2 size={14} /> Reconnect</button>
+                : <button type="button" onClick={() => handleChannelSync(selectedChannel)} disabled={selectedChannel.status === 'paused'} className="pms-btn-primary min-h-[38px] flex-1 px-3 py-1.5 text-label disabled:opacity-50"><Lucide.RefreshCw size={14} /> Sync channel</button>}
+              <button type="button" onClick={() => handlePauseChannel(selectedChannel)} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-label">{selectedChannel.status === 'paused' ? 'Resume' : 'Pause'}</button>
             </div>
           </section>
         ) : null}
@@ -380,7 +380,7 @@ export function ChannelManager() {
         }}>
           {TABS.map(({ id, label, icon: Icon }) => {
             const selected = activeTab === id;
-            return <button key={id} id={`channel-tab-${id}`} type="button" role="tab" tabIndex={selected ? 0 : -1} aria-selected={selected} aria-controls="channel-tab-panel" onClick={() => handleTabChange(id)} className={`relative flex min-h-[48px] flex-none items-center gap-2 px-3 text-xs font-semibold transition-colors sm:px-4 ${selected ? 'text-primary' : 'text-ink-muted hover:text-ink'}`}><Icon size={15} />{label}{selected && <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-primary sm:inset-x-4" />}</button>;
+            return <button key={id} id={`channel-tab-${id}`} type="button" role="tab" tabIndex={selected ? 0 : -1} aria-selected={selected} aria-controls="channel-tab-panel" onClick={() => handleTabChange(id)} className={`relative flex min-h-[48px] flex-none items-center gap-2 px-3 text-label font-semibold transition-colors sm:px-4 ${selected ? 'text-primary' : 'text-ink-muted hover:text-ink'}`}><Icon size={15} />{label}{selected && <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-primary sm:inset-x-4" />}</button>;
           })}
         </div>
         <div id="channel-tab-panel" role="tabpanel" aria-labelledby={`channel-tab-${activeTab}`} className="min-w-0 p-3 sm:p-4">
@@ -395,27 +395,27 @@ export function ChannelManager() {
       {showAddChannel && <AddChannelDialog key={channels.length} open providers={availableProviders} onClose={() => setShowAddChannel(false)} onConnect={handleConnectChannel} />}
 
       {showLogs && (
-        <Modal open onClose={() => setShowLogs(false)} title="Channel synchronization logs" subtitle={`Most recent activity · last global sync ${lastGlobalSync}`} wide footer={<button type="button" onClick={() => setShowLogs(false)} className="pms-btn-primary px-4 py-2 text-xs">Done</button>}>
+        <Modal open onClose={() => setShowLogs(false)} title="Channel synchronization logs" subtitle={`Most recent activity · last global sync ${lastGlobalSync}`} wide footer={<button type="button" onClick={() => setShowLogs(false)} className="pms-btn-primary px-4 py-2 text-label">Done</button>}>
           <div className="flex flex-col gap-2.5">
             {logs.map((log) => {
               const failed = log.status === 'Failed';
               const running = log.status === 'Running';
-              return <article key={log.id} className="flex flex-col gap-2 rounded-control border p-3 sm:flex-row sm:items-start sm:justify-between" style={{ background: failed ? 'var(--color-danger-bg)' : 'var(--color-muted-surface)', borderColor: failed ? 'var(--color-danger-border)' : 'var(--color-border)' }}><div className="flex min-w-0 items-start gap-2.5"><span className={`mt-1.5 h-2 w-2 flex-none rounded-full ${failed ? 'bg-danger-text' : running ? 'animate-pulse bg-warning-text' : 'bg-success-text'}`} /><div className="min-w-0"><div className="flex flex-wrap items-center gap-x-2 gap-y-1"><span className="text-xs font-bold text-ink">{channelNames.get(log.channelId) ?? (log.channelId === 'system' ? 'Channel Manager' : log.channelId)}</span><span className="text-[10px] font-mono text-ink-muted">{log.time}</span><span className="rounded px-1.5 py-0.5 text-[10px] font-semibold text-primary" style={{ background: 'color-mix(in srgb, var(--color-primary) 10%, transparent)' }}>{log.event}</span></div><p className="mt-1 text-[11px] leading-relaxed text-ink-secondary">{log.detail}</p></div></div><span className={`flex-none rounded-full px-2 py-1 text-[10px] font-bold ${failed ? 'bg-danger-bg text-danger-text' : running ? 'bg-warning-bg text-warning-text' : 'bg-success-bg text-success-text'}`}>{log.status}</span></article>;
+              return <article key={log.id} className="flex flex-col gap-2 rounded-control border p-3 sm:flex-row sm:items-start sm:justify-between" style={{ background: failed ? 'var(--color-danger-bg)' : 'var(--color-muted-surface)', borderColor: failed ? 'var(--color-danger-border)' : 'var(--color-border)' }}><div className="flex min-w-0 items-start gap-2.5"><span className={`mt-1.5 h-2 w-2 flex-none rounded-full ${failed ? 'bg-danger-text' : running ? 'animate-pulse bg-warning-text' : 'bg-success-text'}`} /><div className="min-w-0"><div className="flex flex-wrap items-center gap-x-2 gap-y-1"><span className="text-label font-bold text-ink">{channelNames.get(log.channelId) ?? (log.channelId === 'system' ? 'Channel Manager' : log.channelId)}</span><span className="text-micro font-mono text-ink-muted">{log.time}</span><span className="rounded px-1.5 py-0.5 text-micro font-semibold text-primary" style={{ background: 'color-mix(in srgb, var(--color-primary) 10%, transparent)' }}>{log.event}</span></div><p className="mt-1 text-label leading-relaxed text-ink-secondary">{log.detail}</p></div></div><span className={`flex-none rounded-full px-2 py-1 text-micro font-bold ${failed ? 'bg-danger-bg text-danger-text' : running ? 'bg-warning-bg text-warning-text' : 'bg-success-bg text-success-text'}`}>{log.status}</span></article>;
             })}
           </div>
         </Modal>
       )}
 
       {showAllBookings && (
-        <Modal open onClose={() => setShowAllBookings(false)} title="Recent channel bookings" subtitle="Incoming reservations from connected distribution channels." wide footer={<button type="button" onClick={() => setShowAllBookings(false)} className="pms-btn-primary px-4 py-2 text-xs">Close</button>}>
-          <div className="pms-table-scroll overflow-x-auto"><table className="pms-table min-w-[620px]"><thead><tr><th>Channel</th><th>Booking ID</th><th>Guest</th><th>Room type</th><th>Stay dates</th><th>Status</th></tr></thead><tbody>{bookings.map((booking) => <tr key={booking.id}><td>{channelNames.get(booking.channelId) ?? booking.channelId}</td><td className="font-mono text-[11px]">{booking.id}</td><td className="font-semibold">{booking.guestName}</td><td>{booking.roomType}</td><td>{booking.checkIn} – {booking.checkOut}</td><td>{booking.status}</td></tr>)}</tbody></table></div>
+        <Modal open onClose={() => setShowAllBookings(false)} title="Recent channel bookings" subtitle="Incoming reservations from connected distribution channels." wide footer={<button type="button" onClick={() => setShowAllBookings(false)} className="pms-btn-primary px-4 py-2 text-label">Close</button>}>
+          <div className="pms-table-scroll overflow-x-auto"><table className="pms-table min-w-[620px]"><thead><tr><th>Channel</th><th>Booking ID</th><th>Guest</th><th>Room type</th><th>Stay dates</th><th>Status</th></tr></thead><tbody>{bookings.map((booking) => <tr key={booking.id}><td>{channelNames.get(booking.channelId) ?? booking.channelId}</td><td className="font-mono text-label">{booking.id}</td><td className="font-semibold">{booking.guestName}</td><td>{booking.roomType}</td><td>{booking.checkIn} – {booking.checkOut}</td><td>{booking.status}</td></tr>)}</tbody></table></div>
         </Modal>
       )}
 
       {selectedCell && (
-        <Modal open onClose={() => setSelectedCell(null)} title={`Inventory override · ${selectedCell.roomType}`} subtitle={`${selectedCell.date.weekday}, ${selectedCell.date.month} ${selectedCell.date.day} · capacity ${selectedCell.total} rooms`} footer={<><button type="button" onClick={() => setSelectedCell(null)} className="pms-btn-ghost px-4 py-2 text-xs">Cancel</button><button type="button" onClick={handleSaveInventoryCell} className="pms-btn-primary px-4 py-2 text-xs">Save availability</button></>}>
-          <label className="flex flex-col gap-1.5 text-xs font-semibold text-ink-secondary">Rooms available to channels<input autoFocus type="number" min={0} max={selectedCell.total} value={cellDraft} onChange={(event) => setCellDraft(event.target.value)} className="pms-input w-full text-sm" /></label>
-          <p className="mt-2 text-[11px] text-ink-muted">The override applies to this room type and date in the local demo inventory.</p>
+        <Modal open onClose={() => setSelectedCell(null)} title={`Inventory override · ${selectedCell.roomType}`} subtitle={`${selectedCell.date.weekday}, ${selectedCell.date.month} ${selectedCell.date.day} · capacity ${selectedCell.total} rooms`} footer={<><button type="button" onClick={() => setSelectedCell(null)} className="pms-btn-ghost px-4 py-2 text-label">Cancel</button><button type="button" onClick={handleSaveInventoryCell} className="pms-btn-primary px-4 py-2 text-label">Save availability</button></>}>
+          <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">Rooms available to channels<input autoFocus type="number" min={0} max={selectedCell.total} value={cellDraft} onChange={(event) => setCellDraft(event.target.value)} className="pms-input w-full text-body" /></label>
+          <p className="mt-2 text-label text-ink-muted">The override applies to this room type and date in the local demo inventory.</p>
         </Modal>
       )}
     </div>

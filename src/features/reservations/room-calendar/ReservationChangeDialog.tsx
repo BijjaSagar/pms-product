@@ -83,14 +83,14 @@ export function ReservationChangeDialog({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-ink tracking-tight">
+                <h3 className="text-body font-bold text-ink tracking-tight">
                   Confirm Reservation Adjustment
                 </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted-surface text-ink">
+                <span className="text-micro font-bold px-2 py-0.5 rounded-full bg-muted-surface text-ink">
                   {type === 'move-room' ? 'Room Transfer' : type === 'move-date' ? 'Date Reschedule' : 'Room & Date Change'}
                 </span>
               </div>
-              <p className="text-xs text-ink-secondary mt-0.5">
+              <p className="text-label text-ink-secondary mt-0.5">
                 Review proposed alterations for <strong className="text-ink">{reservation.guestName}</strong> ({reservation.id})
               </p>
             </div>
@@ -110,17 +110,17 @@ export function ReservationChangeDialog({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           
           {/* Current Booking State */}
-          <div className="p-4 rounded-2xl border border-border bg-page/60 flex flex-col gap-2.5 text-xs">
-            <div className="flex items-center justify-between text-ink-muted font-bold text-[10px] uppercase tracking-wider">
+          <div className="p-4 rounded-2xl border border-border bg-page/60 flex flex-col gap-2.5 text-label">
+            <div className="flex items-center justify-between text-ink-muted font-bold text-micro uppercase tracking-wider">
               <span>Original Allocation</span>
               <Lucide.History size={13} />
             </div>
 
             <div>
-              <span className="text-[11px] text-ink-secondary">Assigned Room</span>
+              <span className="text-label text-ink-secondary">Assigned Room</span>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-sm font-extrabold text-ink">Room {originalRoom.number}</span>
-                <span className={`text-[10px] font-bold px-2 py-0.2 rounded border ${origTypeConfig.badgeBg}`}>
+                <span className="text-body font-extrabold text-ink">Room {originalRoom.number}</span>
+                <span className={`text-micro font-bold px-2 py-0.2 rounded border ${origTypeConfig.badgeBg}`}>
                   {originalRoom.type}
                 </span>
               </div>
@@ -129,37 +129,37 @@ export function ReservationChangeDialog({
             <div className="h-[1px] bg-border/70" />
 
             <div>
-              <span className="text-[11px] text-ink-secondary">Stay Duration</span>
+              <span className="text-label text-ink-secondary">Stay Duration</span>
               <p className="font-bold text-ink mt-0.5">
                 {originalCheckIn} → {originalCheckOut}
               </p>
-              <span className="text-[10px] text-ink-secondary">({originalNights} {originalNights === 1 ? 'night' : 'nights'})</span>
+              <span className="text-micro text-ink-secondary">({originalNights} {originalNights === 1 ? 'night' : 'nights'})</span>
             </div>
 
             <div className="h-[1px] bg-border/70" />
 
             <div>
-              <span className="text-[11px] text-ink-secondary">Total Billed</span>
-              <p className="text-sm font-bold font-mono text-ink mt-0.5">
+              <span className="text-label text-ink-secondary">Total Billed</span>
+              <p className="text-body font-bold font-mono text-ink mt-0.5">
                 ₹{originalTotal.toLocaleString('en-IN')}.00
               </p>
             </div>
           </div>
 
           {/* Proposed Booking State */}
-          <div className="p-4 rounded-2xl border-2 border-primary/80 bg-primary/10 flex flex-col gap-2.5 text-xs shadow-xs relative">
-            <div className="flex items-center justify-between text-[var(--color-primary)] font-bold text-[10px] uppercase tracking-wider">
+          <div className="p-4 rounded-2xl border-2 border-primary/80 bg-primary/10 flex flex-col gap-2.5 text-label shadow-xs relative">
+            <div className="flex items-center justify-between text-[var(--color-primary)] font-bold text-micro uppercase tracking-wider">
               <span>Proposed Allocation</span>
               <Lucide.Sparkles size={13} />
             </div>
 
             <div>
-              <span className="text-[11px] text-ink-secondary">New Room</span>
+              <span className="text-label text-ink-secondary">New Room</span>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className={`text-sm font-black ${isRoomChanged ? 'text-[var(--color-primary)]' : 'text-ink'}`}>
+                <span className={`text-body font-black ${isRoomChanged ? 'text-[var(--color-primary)]' : 'text-ink'}`}>
                   Room {proposedRoom.number}
                 </span>
-                <span className={`text-[10px] font-bold px-2 py-0.2 rounded border ${propTypeConfig.badgeBg}`}>
+                <span className={`text-micro font-bold px-2 py-0.2 rounded border ${propTypeConfig.badgeBg}`}>
                   {proposedRoom.type}
                 </span>
               </div>
@@ -168,11 +168,11 @@ export function ReservationChangeDialog({
             <div className="h-[1px] bg-primary/10" />
 
             <div>
-              <span className="text-[11px] text-ink-secondary">New Stay Dates</span>
+              <span className="text-label text-ink-secondary">New Stay Dates</span>
               <p className={`font-bold mt-0.5 ${isDatesChanged ? 'text-[var(--color-primary)]' : 'text-ink'}`}>
                 {proposedCheckIn} → {proposedCheckOut}
               </p>
-              <span className="text-[10px] text-ink-secondary font-semibold">
+              <span className="text-micro text-ink-secondary font-semibold">
                 ({proposedNights} {proposedNights === 1 ? 'night' : 'nights'})
               </span>
             </div>
@@ -181,10 +181,10 @@ export function ReservationChangeDialog({
 
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-ink-secondary">New Total</span>
+                <span className="text-label text-ink-secondary">New Total</span>
                 {priceDifference !== 0 && (
                   <span
-                    className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                    className={`text-micro font-bold px-1.5 py-0.2 rounded ${
                       priceDifference > 0
                         ? 'bg-warning-bg text-warning-text'
                         : 'bg-success-bg text-success-text'
@@ -194,7 +194,7 @@ export function ReservationChangeDialog({
                   </span>
                 )}
               </div>
-              <p className="text-sm font-black font-mono text-ink mt-0.5">
+              <p className="text-body font-black font-mono text-ink mt-0.5">
                 ₹{proposedTotal.toLocaleString('en-IN')}.00
               </p>
             </div>
@@ -203,7 +203,7 @@ export function ReservationChangeDialog({
         </div>
 
         {/* Pricing Delta Summary Pill */}
-        <div className="p-3.5 rounded-2xl bg-page border border-border/80 flex items-center justify-between text-xs">
+        <div className="p-3.5 rounded-2xl bg-page border border-border/80 flex items-center justify-between text-label">
           <div className="flex items-center gap-2">
             <Lucide.Receipt size={16} className="text-ink-muted" />
             <span className="text-ink-secondary font-medium">Estimated Folio Adjustment:</span>
@@ -218,7 +218,7 @@ export function ReservationChangeDialog({
         </div>
 
         {/* Simulated Notification Toggle */}
-        <label className="flex items-start gap-2.5 text-xs text-ink cursor-pointer select-none">
+        <label className="flex items-start gap-2.5 text-label text-ink cursor-pointer select-none">
           <input
             type="checkbox"
             checked={notifyGuest}
@@ -227,7 +227,7 @@ export function ReservationChangeDialog({
           />
           <div>
             <span className="font-bold text-ink block">Queue simulated guest notification</span>
-            <span className="text-[11px] text-ink-secondary">
+            <span className="text-label text-ink-secondary">
               Mock notification email & SMS with updated confirmation slip dispatched to {reservation.guestPhone}
             </span>
           </div>
@@ -239,7 +239,7 @@ export function ReservationChangeDialog({
             type="button"
             onClick={onCancel}
             disabled={isSaving}
-            className="px-4 py-2.5 rounded-xl border border-border bg-surface hover:bg-page text-ink font-bold text-xs shadow-xs transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-xl border border-border bg-surface hover:bg-page text-ink font-bold text-label shadow-xs transition-colors cursor-pointer"
           >
             Cancel & Revert
           </button>
@@ -248,7 +248,7 @@ export function ReservationChangeDialog({
             type="button"
             onClick={() => onConfirm(notifyGuest)}
             disabled={isSaving}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--color-primary)] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-[var(--color-primary)]/20 transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--color-primary)] hover:opacity-95 text-white font-bold text-label shadow-md shadow-[var(--color-primary)]/20 transition-all cursor-pointer disabled:opacity-50"
           >
             {isSaving ? (
               <>

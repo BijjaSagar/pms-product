@@ -456,9 +456,9 @@ export function Header({
                 <Lucide.BedDouble size={14} strokeWidth={2.2} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">Occupancy</span>
+                <span className="text-label font-bold uppercase tracking-wider text-ink-muted">Occupancy</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[13px] font-bold tnum text-ink">{kpi.occupancyPct}%</span>
+                  <span className="text-body font-bold tnum text-ink">{kpi.occupancyPct}%</span>
                 </div>
               </div>
             </button>
@@ -476,9 +476,9 @@ export function Header({
                 <Lucide.ArrowUpRight size={14} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">Arrivals</span>
+                <span className="text-label font-bold uppercase tracking-wider text-ink-muted">Arrivals</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[13px] font-bold tnum text-ink">{kpi.arrivalsCount}</span>
+                  <span className="text-body font-bold tnum text-ink">{kpi.arrivalsCount}</span>
                 </div>
               </div>
             </button>
@@ -496,9 +496,9 @@ export function Header({
                 <Lucide.ArrowDownRight size={14} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">Departures</span>
+                <span className="text-label font-bold uppercase tracking-wider text-ink-muted">Departures</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[13px] font-bold tnum text-ink">{kpi.departuresCount}</span>
+                  <span className="text-body font-bold tnum text-ink">{kpi.departuresCount}</span>
                 </div>
               </div>
             </button>
@@ -516,10 +516,10 @@ export function Header({
                 <Lucide.Users size={14} strokeWidth={2.2} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">In-House</span>
+                <span className="text-label font-bold uppercase tracking-wider text-ink-muted">In-House</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[13px] font-bold tnum text-ink">{kpi.inHouseCount}</span>
-                  <span className="text-[10px] font-semibold text-primary bg-primary/15 px-1.5 py-0.5 rounded-md leading-tight">
+                  <span className="text-body font-bold tnum text-ink">{kpi.inHouseCount}</span>
+                  <span className="text-micro font-semibold text-primary bg-primary/15 px-1.5 py-0.5 rounded-md leading-tight">
                     Active
                   </span>
                 </div>
@@ -539,10 +539,10 @@ export function Header({
                 <Lucide.CreditCard size={14} strokeWidth={2.2} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">Revenue</span>
+                <span className="text-label font-bold uppercase tracking-wider text-ink-muted">Revenue</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[13px] font-bold tnum text-success-text">₹{kpi.totalRevenue.toLocaleString('en-IN')}</span>
-                  <span className="text-[10px] font-bold text-success-text bg-success-text/15 px-1.5 py-0.5 rounded-md leading-tight">
+                  <span className="text-body font-bold tnum text-success-text">₹{kpi.totalRevenue.toLocaleString('en-IN')}</span>
+                  <span className="text-micro font-bold text-success-text bg-success-text/15 px-1.5 py-0.5 rounded-md leading-tight">
                     Today
                   </span>
                 </div>
@@ -562,10 +562,10 @@ export function Header({
                 <Lucide.AlertCircle size={14} strokeWidth={2.3} />
               </div>
               <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">Pending</span>
+                <span className="text-label font-bold uppercase tracking-wider text-ink-muted">Pending</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[13px] font-bold tnum text-danger-text">{kpi.pendingPaymentsCount}</span>
-                  <span className="text-[10px] font-bold text-danger-text bg-danger-text/15 px-1.5 py-0.5 rounded-md leading-tight">
+                  <span className="text-body font-bold tnum text-danger-text">{kpi.pendingPaymentsCount}</span>
+                  <span className="text-micro font-bold text-danger-text bg-danger-text/15 px-1.5 py-0.5 rounded-md leading-tight">
                     Due
                   </span>
                 </div>
@@ -580,7 +580,7 @@ export function Header({
                 onClick={() => setKpiDrawerOpen((open) => !open)}
                 aria-label={kpiDrawerOpen ? 'Close dashboard KPIs' : 'Show dashboard KPIs'}
                 aria-expanded={kpiDrawerOpen}
-                className="flex h-10 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-xs font-semibold text-ink shadow-xs transition-colors hover:bg-page"
+                className="flex h-10 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-label font-semibold text-ink shadow-xs transition-colors hover:bg-page"
                 title="Dashboard KPIs"
               >
                 <span className="hidden sm:inline">KPIs</span>
@@ -596,7 +596,7 @@ export function Header({
               <button
                 type="button"
                 onClick={() => onGo({ view: 'new-reservation' })}
-                className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-xl shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer flex-none"
+                className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-body font-semibold rounded-xl shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer flex-none"
                 title="Create a new reservation"
               >
                 <Lucide.Plus size={15} strokeWidth={2.6} />
@@ -621,7 +621,7 @@ export function Header({
                 <Lucide.Bell size={18} strokeWidth={1.9} className="group-hover:rotate-6 transition-transform" />
                 {unreadCount > 0 ? (
                   <span
-                    className="tnum absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-white shadow-md ring-2 ring-[var(--color-surface)] animate-pulse"
+                    className="tnum absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1.5 text-label font-bold text-white shadow-md ring-2 ring-[var(--color-surface)] animate-pulse"
                     style={{ background: 'var(--color-danger-text)' }}
                   >
                     {unreadCount}
@@ -660,8 +660,8 @@ export function Header({
                           <Lucide.BellRing size={17} />
                         </div>
                         <div>
-                          <h2 className="text-[14px] font-bold text-ink leading-tight">Notifications Hub</h2>
-                          <p className="text-[11px] text-ink-muted">
+                          <h2 className="text-body font-bold text-ink leading-tight">Notifications Hub</h2>
+                          <p className="text-label text-ink-muted">
                             {unreadCount > 0 ? `${unreadCount} unread operational alerts` : 'All operational alerts are cleared'}
                           </p>
                         </div>
@@ -672,7 +672,7 @@ export function Header({
                           <button
                             type="button"
                             onClick={markAllAsRead}
-                            className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-bold transition-all hover:bg-ink/[0.04]"
+                            className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-label font-bold transition-all hover:bg-ink/[0.04]"
                             style={{
                               borderColor: 'var(--color-border)',
                               color: 'var(--color-primary)',
@@ -688,7 +688,7 @@ export function Header({
                           <button
                             type="button"
                             onClick={clearAllRead}
-                            className="flex items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-semibold text-ink-muted hover:text-danger-text transition-colors"
+                            className="flex items-center gap-1 rounded-lg border px-2 py-1 text-label font-semibold text-ink-muted hover:text-danger-text transition-colors"
                             style={{ borderColor: 'var(--color-border)' }}
                             title="Clear read notifications"
                           >
@@ -710,7 +710,7 @@ export function Header({
                       <button
                         type="button"
                         onClick={() => setNoticeTab('all')}
-                        className={`flex-1 rounded-lg py-1.5 text-center text-[12px] font-bold transition-all ${noticeTab === 'all'
+                        className={`flex-1 rounded-lg py-1.5 text-center text-label font-bold transition-all ${noticeTab === 'all'
                           ? 'bg-surface shadow-xs text-ink'
                           : 'text-ink-secondary hover:text-ink'
                           }`}
@@ -721,7 +721,7 @@ export function Header({
                       <button
                         type="button"
                         onClick={() => setNoticeTab('unread')}
-                        className={`flex-1 rounded-lg py-1.5 text-center text-[12px] font-bold transition-all ${noticeTab === 'unread'
+                        className={`flex-1 rounded-lg py-1.5 text-center text-label font-bold transition-all ${noticeTab === 'unread'
                           ? 'bg-surface shadow-xs text-ink'
                           : 'text-ink-secondary hover:text-ink'
                           }`}
@@ -732,7 +732,7 @@ export function Header({
                       <button
                         type="button"
                         onClick={() => setNoticeTab('urgent')}
-                        className={`flex-1 rounded-lg py-1.5 text-center text-[12px] font-bold transition-all ${noticeTab === 'urgent'
+                        className={`flex-1 rounded-lg py-1.5 text-center text-label font-bold transition-all ${noticeTab === 'urgent'
                           ? 'bg-surface shadow-xs text-ink'
                           : 'text-ink-secondary hover:text-ink'
                           }`}
@@ -787,22 +787,22 @@ export function Header({
                             {/* Content Body */}
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center justify-between gap-2">
-                                <span className="text-[13px] font-bold text-ink group-hover:text-primary transition-colors">
+                                <span className="text-body font-bold text-ink group-hover:text-primary transition-colors">
                                   {n.title}
                                 </span>
-                                <span className="tnum flex-none text-[11px] font-semibold text-ink-muted">
+                                <span className="tnum flex-none text-label font-semibold text-ink-muted">
                                   {n.time}
                                 </span>
                               </div>
 
-                              <p className="mt-1 text-[12px] leading-relaxed text-ink-secondary">
+                              <p className="mt-1 text-label leading-relaxed text-ink-secondary">
                                 {n.detail}
                               </p>
 
                               <div className="mt-2.5 flex items-center justify-between gap-2 flex-wrap">
                                 <div className="flex items-center gap-1.5">
                                   <span
-                                    className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider"
+                                    className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-label font-bold uppercase tracking-wider"
                                     style={{
                                       background: cfg.badgeBg,
                                       color: cfg.badgeText,
@@ -811,19 +811,19 @@ export function Header({
                                     {cfg.label}
                                   </span>
 
-                                  <span className="text-[11px] text-ink-muted">·</span>
+                                  <span className="text-label text-ink-muted">·</span>
 
                                   <button
                                     type="button"
                                     onClick={(e) => toggleSingleRead(n.id, e)}
-                                    className="text-[11px] font-semibold text-ink-muted hover:text-ink transition-colors"
+                                    className="text-label font-semibold text-ink-muted hover:text-ink transition-colors"
                                   >
                                     {isRead ? 'Mark as unread' : 'Mark as read'}
                                   </button>
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                  <span className="flex items-center gap-1 text-[12px] font-bold text-primary group-hover:translate-x-0.5 transition-transform">
+                                  <span className="flex items-center gap-1 text-label font-bold text-primary group-hover:translate-x-0.5 transition-transform">
                                     <span>Go to screen</span>
                                     <Lucide.ArrowRight size={13} strokeWidth={2.4} />
                                   </span>
@@ -855,8 +855,8 @@ export function Header({
                         >
                           <Lucide.CheckCircle2 size={28} />
                         </div>
-                        <p className="text-[15px] font-bold text-ink">You are all caught up!</p>
-                        <p className="mt-1 text-[12px] text-ink-muted max-w-[240px]">
+                        <p className="text-title font-bold text-ink">You are all caught up!</p>
+                        <p className="mt-1 text-label text-ink-muted max-w-[240px]">
                           No alerts matching the {noticeTab} filter at this moment.
                         </p>
                       </div>
@@ -871,14 +871,14 @@ export function Header({
                       borderColor: 'var(--color-border)',
                     }}
                   >
-                    <span className="text-[11px] text-ink-muted">TriponX Notification Hub · Operational Alerts</span>
+                    <span className="text-label text-ink-muted">TriponX Notification Hub · Operational Alerts</span>
                     <button
                       type="button"
                       onClick={() => {
                         onGo({ view: 'settings' });
                         closePanels();
                       }}
-                      className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1"
+                      className="text-label font-bold text-primary hover:underline flex items-center gap-1"
                     >
                       <Lucide.SlidersHorizontal size={13} />
                       <span>Preferences</span>
@@ -902,7 +902,7 @@ export function Header({
                 }}
               >
                 <div
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-bold shadow-xs transition-transform group-hover:scale-105"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-label font-bold shadow-xs transition-transform group-hover:scale-105"
                   style={{ background: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
                   aria-hidden="true"
                 >
@@ -924,16 +924,16 @@ export function Header({
                   <div className="border-b p-4" style={{ borderColor: 'var(--color-border)' }}>
                     <div className="flex items-center gap-3">
                       <div
-                        className="flex h-10 w-10 flex-none items-center justify-center rounded-full text-[14px] font-bold shadow-sm"
+                        className="flex h-10 w-10 flex-none items-center justify-center rounded-full text-body font-bold shadow-sm"
                         style={{ background: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
                       >
                         {initials}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[13px] font-bold text-ink">{fullName}</p>
-                        <p className="truncate text-[11px] text-ink-muted">{me?.user.email ?? roleName}</p>
+                        <p className="truncate text-body font-bold text-ink">{fullName}</p>
+                        <p className="truncate text-label text-ink-muted">{me?.user.email ?? roleName}</p>
                         <span
-                          className="mt-1 inline-block rounded-md px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider"
+                          className="mt-1 inline-block rounded-md px-1.5 py-0.5 text-label font-bold uppercase tracking-wider"
                           style={{
                             background: 'color-mix(in srgb, var(--color-primary) 14%, transparent)',
                             color: 'var(--color-primary)',
@@ -953,7 +953,7 @@ export function Header({
                         onGo({ view: 'settings' });
                         closePanels();
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-colors hover:bg-ink/[0.03]"
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-body font-medium transition-colors hover:bg-ink/[0.03]"
                       style={{ color: 'var(--color-ink)' }}
                     >
                       <Lucide.Settings size={16} className="text-ink-muted" />
@@ -968,7 +968,7 @@ export function Header({
                           onGo({ view: 'staff-roles' });
                           closePanels();
                         }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-colors hover:bg-ink/[0.03]"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-body font-medium transition-colors hover:bg-ink/[0.03]"
                         style={{ color: 'var(--color-ink)' }}
                       >
                         <Lucide.ShieldCheck size={16} className="text-ink-muted" />
@@ -983,7 +983,7 @@ export function Header({
                         onOpenThemes();
                         closePanels();
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-colors hover:bg-ink/[0.03] cursor-pointer"
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-body font-medium transition-colors hover:bg-ink/[0.03] cursor-pointer"
                       style={{ color: 'var(--color-ink)' }}
                     >
                       <Lucide.Palette size={16} className="text-primary" />
@@ -993,7 +993,7 @@ export function Header({
 
                   {otherMemberships.length > 0 ? (
                     <div className="border-t p-1.5" style={{ borderColor: 'var(--color-border)' }}>
-                      <p className="px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                      <p className="px-3 py-1 text-label font-bold uppercase tracking-wider text-ink-muted">
                         Switch Property
                       </p>
                       {otherMemberships.map((membership) => (
@@ -1007,7 +1007,7 @@ export function Header({
                               toast('Property switch failed', { detail: displayApiError(error), tone: 'danger' })
                             );
                           }}
-                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-colors hover:bg-ink/[0.03]"
+                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-body font-medium transition-colors hover:bg-ink/[0.03]"
                           style={{ color: 'var(--color-ink)' }}
                         >
                           <Lucide.Building2 size={16} className="text-ink-muted" />
@@ -1027,7 +1027,7 @@ export function Header({
                           toast('Sign out failed', { detail: displayApiError(error), tone: 'danger' })
                         );
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-bold transition-colors hover:bg-danger-bg text-danger-text"
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-body font-bold transition-colors hover:bg-danger-bg text-danger-text"
                     >
                       <Lucide.LogOut size={16} />
                       <span>Sign out</span>
@@ -1066,10 +1066,10 @@ export function Header({
                         <Icon size={14} strokeWidth={item.iconStrokeWidth} />
                       </span>
                       <div className="flex min-w-0 flex-col gap-0.5 leading-tight">
-                        <span className="truncate text-[11px] font-bold uppercase tracking-wider text-ink-muted">{item.label}</span>
+                        <span className="truncate text-label font-bold uppercase tracking-wider text-ink-muted">{item.label}</span>
                         <div className="flex min-w-0 items-center gap-1.5">
-                          <span className={`truncate text-[13px] font-bold tnum ${item.valueStyle}`} title={item.value}>{item.value}</span>
-                          <span className={`flex-none rounded-md px-1.5 py-0.5 text-[10px] leading-tight ${item.badgeStyle}`}>
+                          <span className={`truncate text-body font-bold tnum ${item.valueStyle}`} title={item.value}>{item.value}</span>
+                          <span className={`flex-none rounded-md px-1.5 py-0.5 text-micro leading-tight ${item.badgeStyle}`}>
                             {item.badge}
                           </span>
                         </div>
@@ -1123,7 +1123,7 @@ export function Header({
                     setSelectedIndex(0);
                   }}
                   placeholder="Type anything to search (e.g., 'reservations', 'check in', 'cleaning', 'rooms', 'bills')..."
-                  className="w-full bg-transparent text-[16px] font-semibold text-ink placeholder:text-ink-muted focus:outline-none"
+                  className="w-full bg-transparent text-title font-semibold text-ink placeholder:text-ink-muted focus:outline-none"
                 />
                 {searchQuery ? (
                   <button
@@ -1140,7 +1140,7 @@ export function Header({
                 ) : null}
                 <kbd
                   onClick={() => setSearchOpen(false)}
-                  className="rounded-lg border px-2 py-1 text-[11px] font-bold text-ink-muted cursor-pointer hover:bg-ink/[0.04]"
+                  className="rounded-lg border px-2 py-1 text-label font-bold text-ink-muted cursor-pointer hover:bg-ink/[0.04]"
                   style={{ borderColor: 'var(--color-border)' }}
                 >
                   ESC
@@ -1155,10 +1155,10 @@ export function Header({
                     {matchedNavItems.length > 0 ? (
                       <div>
                         <div className="flex items-center justify-between px-2 py-1 mb-1">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                          <span className="text-label font-bold uppercase tracking-wider text-ink-muted">
                             Matching Screens & Views ({matchedNavItems.length})
                           </span>
-                          <span className="text-[11px] text-ink-muted">Click or press Enter to navigate</span>
+                          <span className="text-label text-ink-muted">Click or press Enter to navigate</span>
                         </div>
                         <div className="flex flex-col gap-1">
                           {matchedNavItems.map((item, index) => {
@@ -1200,12 +1200,12 @@ export function Header({
                                   </div>
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-[14px] font-bold truncate">
+                                      <span className="text-body font-bold truncate">
                                         {item.label}
                                       </span>
                                       {section ? (
                                         <span
-                                          className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${isSelected
+                                          className={`rounded px-1.5 py-0.5 text-micro font-bold uppercase tracking-wider ${isSelected
                                             ? 'bg-surface/25 text-white'
                                             : 'bg-ink/[0.05] text-ink-muted'
                                             }`}
@@ -1215,7 +1215,7 @@ export function Header({
                                       ) : null}
                                     </div>
                                     <p
-                                      className={`text-[12px] truncate mt-0.5 ${isSelected ? 'text-white/80' : 'text-ink-secondary'
+                                      className={`text-label truncate mt-0.5 ${isSelected ? 'text-white/80' : 'text-ink-secondary'
                                         }`}
                                     >
                                       {item.hint}
@@ -1225,7 +1225,7 @@ export function Header({
 
                                 <div className="flex items-center gap-1.5 flex-none ml-2">
                                   <span
-                                    className={`text-[12px] font-bold ${isSelected ? 'text-white' : 'text-primary group-hover:translate-x-0.5 transition-transform'
+                                    className={`text-label font-bold ${isSelected ? 'text-white' : 'text-primary group-hover:translate-x-0.5 transition-transform'
                                       }`}
                                   >
                                     Go to page
@@ -1241,7 +1241,7 @@ export function Header({
 
                     {/* 2. DEEP SEARCH ACTIONS (Search query inside specific database modules) */}
                     <div className="mt-2">
-                      <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                      <p className="px-2 py-1 text-label font-bold uppercase tracking-wider text-ink-muted">
                         Search "{searchQuery}" inside Modules
                       </p>
                       <div className="flex flex-col gap-1 mt-1">
@@ -1302,9 +1302,9 @@ export function Header({
                                   <act.icon size={18} strokeWidth={2.2} />
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="text-[13px] font-bold truncate">{act.label}</p>
+                                  <p className="text-body font-bold truncate">{act.label}</p>
                                   <p
-                                    className={`text-[11px] truncate mt-0.5 ${isSelected ? 'text-white/80' : 'text-ink-secondary'
+                                    className={`text-label truncate mt-0.5 ${isSelected ? 'text-white/80' : 'text-ink-secondary'
                                       }`}
                                   >
                                     {act.sub}
@@ -1322,7 +1322,7 @@ export function Header({
                   /* QUICK CATEGORIZED SHORTCUTS WHEN SEARCH INPUT IS EMPTY */
                   <div className="flex flex-col gap-4 p-1">
                     <div>
-                      <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                      <p className="px-2 py-1 text-label font-bold uppercase tracking-wider text-ink-muted">
                         Front Office & Operations
                       </p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1">
@@ -1339,7 +1339,7 @@ export function Header({
                               setSearchOpen(false);
                               onGo({ view: item.id });
                             }}
-                            className="flex items-center gap-2.5 rounded-xl border p-2.5 text-left text-[13px] font-bold transition-all hover:bg-primary/[0.05] hover:border-primary"
+                            className="flex items-center gap-2.5 rounded-xl border p-2.5 text-left text-body font-bold transition-all hover:bg-primary/[0.05] hover:border-primary"
                             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                           >
                             <item.icon size={17} className="text-primary flex-none" />
@@ -1350,7 +1350,7 @@ export function Header({
                     </div>
 
                     <div>
-                      <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                      <p className="px-2 py-1 text-label font-bold uppercase tracking-wider text-ink-muted">
                         Rooms, Maintenance & Billing
                       </p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1">
@@ -1368,7 +1368,7 @@ export function Header({
                               setSearchOpen(false);
                               onGo({ view: item.id });
                             }}
-                            className="flex items-center gap-2.5 rounded-xl border p-2.5 text-left text-[13px] font-bold transition-all hover:bg-primary/[0.05] hover:border-primary"
+                            className="flex items-center gap-2.5 rounded-xl border p-2.5 text-left text-body font-bold transition-all hover:bg-primary/[0.05] hover:border-primary"
                             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                           >
                             <item.icon size={17} className="text-primary flex-none" />
@@ -1383,7 +1383,7 @@ export function Header({
 
               {/* Modal Footer */}
               <div
-                className="flex items-center justify-between border-t px-4 py-3 text-xs text-ink-muted"
+                className="flex items-center justify-between border-t px-4 py-3 text-label text-ink-muted"
                 style={{
                   background: 'color-mix(in srgb, var(--color-muted-surface) 40%, var(--color-surface))',
                   borderColor: 'var(--color-border)',

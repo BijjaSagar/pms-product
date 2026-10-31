@@ -209,7 +209,7 @@ export function ConfirmDialog({
         </>
       }
     >
-      <p className="text-[13px]" style={{ color: 'var(--color-ink-secondary)' }}>
+      <p className="text-body" style={{ color: 'var(--color-ink-secondary)' }}>
         {body}
       </p>
       {note ? <p className="pms-helper mt-2">{note}</p> : null}

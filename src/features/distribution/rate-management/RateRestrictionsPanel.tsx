@@ -35,11 +35,11 @@ export function RateRestrictionsPanel({ dates, minStays, maxStays, closedToArriv
             <Lucide.ShieldAlert size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="restrictions-title" className="text-sm font-bold text-ink tracking-tight">Restrictions & Availability</h2>
-            <p className="text-[11px] text-ink-muted mt-0.5">Review arrival, departure, stop-sell and stay-length rules in the selected date window</p>
+            <h2 id="restrictions-title" className="text-body font-bold text-ink tracking-tight">Restrictions & Availability</h2>
+            <p className="text-label text-ink-muted mt-0.5">Review arrival, departure, stop-sell and stay-length rules in the selected date window</p>
           </div>
         </div>
-        <button type="button" onClick={onOpenCalendar} className="pms-btn-ghost min-h-[38px] px-3.5 py-1.5 text-xs">
+        <button type="button" onClick={onOpenCalendar} className="pms-btn-ghost min-h-[38px] px-3.5 py-1.5 text-label">
           <Lucide.CalendarDays size={14} /> Edit calendar
         </button>
       </div>
@@ -48,15 +48,15 @@ export function RateRestrictionsPanel({ dates, minStays, maxStays, closedToArriv
         {counts.map(({ label, count, icon: Icon, tone }) => (
           <div key={label} className="flex items-center gap-3 rounded-card border p-3.5" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
             <span className="flex h-9 w-9 items-center justify-center rounded-control" style={{ color: `var(--color-${tone}-text)`, background: `var(--color-${tone}-bg)` }}><Icon size={16} /></span>
-            <div><div className="tnum text-xl font-bold text-ink">{count}</div><div className="text-[11px] text-ink-secondary">{label} dates</div></div>
+            <div><div className="tnum text-disp2 font-bold text-ink">{count}</div><div className="text-label text-ink-secondary">{label} dates</div></div>
           </div>
         ))}
       </div>
 
       <div className="border-t" style={{ borderColor: 'var(--color-divider)' }}>
         <div className="flex items-center justify-between px-4 py-3 sm:px-5">
-          <h3 className="text-sm font-semibold text-ink">Active rules in this window</h3>
-          <span className="text-[11px] text-ink-muted">{restrictions.length} rules</span>
+          <h3 className="text-body font-semibold text-ink">Active rules in this window</h3>
+          <span className="text-label text-ink-muted">{restrictions.length} rules</span>
         </div>
         {restrictions.length ? (
           <ul className="divide-y" style={{ borderColor: 'var(--color-divider)' }}>
@@ -64,17 +64,17 @@ export function RateRestrictionsPanel({ dates, minStays, maxStays, closedToArriv
               <li key={id} className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
                 <div className="flex min-w-0 items-center gap-3">
                   <span className="flex h-8 w-8 flex-none items-center justify-center rounded-control" style={{ color: `var(--color-${tone}-text)`, background: `var(--color-${tone}-bg)` }}><Icon size={15} /></span>
-                  <div className="min-w-0"><p className="truncate text-xs font-semibold text-ink">{label}</p><p className="mt-0.5 truncate text-[11px] text-ink-muted">{detail}</p></div>
+                  <div className="min-w-0"><p className="truncate text-label font-semibold text-ink">{label}</p><p className="mt-0.5 truncate text-label text-ink-muted">{detail}</p></div>
                 </div>
-                <time dateTime={date.iso} className="flex-none text-xs font-medium text-ink-secondary">{date.weekday}, {date.month} {date.day}</time>
+                <time dateTime={date.iso} className="flex-none text-label font-medium text-ink-secondary">{date.weekday}, {date.month} {date.day}</time>
               </li>
             ))}
           </ul>
         ) : (
           <div className="flex flex-col items-center px-4 py-10 text-center">
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-success-bg text-success-text"><Lucide.Check size={20} /></span>
-            <p className="mt-3 text-sm font-semibold text-ink">No restrictions scheduled</p>
-            <p className="mt-1 text-xs text-ink-muted">All dates in the current window are open for standard stays.</p>
+            <p className="mt-3 text-body font-semibold text-ink">No restrictions scheduled</p>
+            <p className="mt-1 text-label text-ink-muted">All dates in the current window are open for standard stays.</p>
           </div>
         )}
       </div>

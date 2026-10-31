@@ -16,7 +16,7 @@ export function BarChart({
         {data.map((d) => (
           <div key={d.label} className="group flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5">
             <span
-              className="tnum rounded-full px-1.5 py-0.5 text-[11px] font-bold transition-all"
+              className="tnum rounded-full px-1.5 py-0.5 text-label font-bold transition-all"
               style={{
                 color: d.highlight ? 'var(--color-primary-foreground)' : 'var(--color-ink-secondary)',
                 background: d.highlight ? 'var(--color-primary)' : 'transparent',
@@ -40,7 +40,7 @@ export function BarChart({
                 borderBottom: 'none',
               }}
             />
-            <span className="w-full truncate text-center text-[11px] font-semibold" style={{ color: 'var(--color-ink-muted)' }}>
+            <span className="w-full truncate text-center text-label font-semibold" style={{ color: 'var(--color-ink-muted)' }}>
               {d.label}
             </span>
           </div>
@@ -103,7 +103,7 @@ export function DonutChart({
         {slices.map((s) => (
           <li
             key={s.label}
-            className="flex items-center justify-between gap-2 rounded-control border px-2.5 py-2 text-[12px]"
+            className="flex items-center justify-between gap-2 rounded-control border px-2.5 py-2 text-label"
             style={{ borderColor: 'var(--color-divider)', background: 'color-mix(in srgb, var(--color-muted-surface) 42%, transparent)', boxShadow: 'var(--shadow-xs)' }}
           >
             <span className="flex min-w-0 items-center gap-2" style={{ color: 'var(--color-ink-secondary)' }}>

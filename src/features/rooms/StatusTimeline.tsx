@@ -452,7 +452,7 @@ export function StatusTimeline() {
                 key={pill.id}
                 type="button"
                 onClick={() => setSelectedStatus(isFilterActive ? null : pill.id)}
-                className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-bold whitespace-nowrap transition-all shadow-2xs ${isFilterActive ? 'ring-2 ring-primary ring-offset-1 scale-105' : 'hover:opacity-90'
+                className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-label font-bold whitespace-nowrap transition-all shadow-2xs ${isFilterActive ? 'ring-2 ring-primary ring-offset-1 scale-105' : 'hover:opacity-90'
                   }`}
                 style={{
                   background: pill.bg,
@@ -476,7 +476,7 @@ export function StatusTimeline() {
           <button
             type="button"
             onClick={() => toast('Date picker dialog', { tone: 'info' })}
-            className="flex items-center gap-2 rounded-md border px-3 py-1.5 text-[12px] font-medium text-ink shadow-2xs hover:bg-ink/[0.03] transition-colors"
+            className="flex items-center gap-2 rounded-md border px-3 py-1.5 text-label font-medium text-ink shadow-2xs hover:bg-ink/[0.03] transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
             <Lucide.Calendar size={15} className="text-ink-secondary" />
@@ -490,7 +490,7 @@ export function StatusTimeline() {
               setCurrentDate('Oct 16, 2026');
               toast('Jumped to Today', { tone: 'success' });
             }}
-            className="rounded-md border px-3 py-1.5 text-[12px] font-medium text-primary shadow-2xs hover:bg-ink/[0.03] transition-colors"
+            className="rounded-md border px-3 py-1.5 text-label font-medium text-primary shadow-2xs hover:bg-ink/[0.03] transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
             Today
@@ -510,7 +510,7 @@ export function StatusTimeline() {
           <div className="min-w-[880px]">
             {/* TIMELINE TIME HEADER */}
             <div
-              className="grid grid-cols-[160px_repeat(8,1fr)] items-center border-b text-[12px] font-bold"
+              className="grid grid-cols-[160px_repeat(8,1fr)] items-center border-b text-label font-bold"
               style={{
                 background: 'color-mix(in srgb, var(--color-muted-surface) 60%, var(--color-surface))',
                 borderColor: 'var(--color-border)',
@@ -542,7 +542,7 @@ export function StatusTimeline() {
                   <button
                     type="button"
                     onClick={() => toggleFloor(floorNum)}
-                    className="flex w-full items-center gap-2 px-4 py-2.5 text-left font-bold text-[12px] transition-colors hover:bg-ink/[0.02]"
+                    className="flex w-full items-center gap-2 px-4 py-2.5 text-left font-bold text-label transition-colors hover:bg-ink/[0.02]"
                     style={{
                       background: 'color-mix(in srgb, var(--color-primary) 6%, var(--color-surface))',
                       color: 'var(--color-primary)',
@@ -555,7 +555,7 @@ export function StatusTimeline() {
                       <Lucide.ChevronRight size={17} strokeWidth={2.4} />
                     )}
                     <span>Floor {floorNum}</span>
-                    <span className="text-[11px] font-medium text-ink-muted ml-1">
+                    <span className="text-label font-medium text-ink-muted ml-1">
                       ({floorRooms.length} rooms)
                     </span>
                   </button>
@@ -589,11 +589,11 @@ export function StatusTimeline() {
                             style={{ borderColor: 'var(--color-border)' }}
                             title={`Click to manage Room ${room.number}`}
                           >
-                            <span className="text-[12px] font-bold text-ink group-hover:text-primary transition-colors">
+                            <span className="text-label font-bold text-ink group-hover:text-primary transition-colors">
                               {room.number}
                             </span>
                             <span
-                              className="rounded px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider"
+                              className="rounded px-2 py-0.5 text-label font-bold uppercase tracking-wider"
                               style={{
                                 background: 'color-mix(in srgb, var(--color-muted-surface) 90%, var(--color-surface))',
                                 color: 'var(--color-ink-secondary)',
@@ -667,11 +667,11 @@ export function StatusTimeline() {
                                       </div>
                                     ) : null}
                                     <div className="min-w-0 flex items-center gap-1.5 truncate">
-                                      <span className="text-[12px] font-bold truncate">
+                                      <span className="text-label font-bold truncate">
                                         {ev.label}
                                       </span>
                                       {ev.subLabel ? (
-                                        <span className="text-[11px] opacity-80 font-medium truncate">
+                                        <span className="text-label opacity-80 font-medium truncate">
                                           {ev.subLabel}
                                         </span>
                                       ) : null}
@@ -720,23 +720,23 @@ export function StatusTimeline() {
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className="flex h-11 w-11 items-center justify-center rounded-2xl text-[16px] font-bold text-white shadow-md"
+                    className="flex h-11 w-11 items-center justify-center rounded-2xl text-title font-bold text-white shadow-md"
                     style={{ background: 'var(--color-primary)' }}
                   >
                     {selectedRoomModal.number}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-sm font-bold text-ink tracking-tight">
+                      <h2 className="text-body font-bold text-ink tracking-tight">
                         Room {selectedRoomModal.number}
                       </h2>
                       <span
-                        className="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-muted-surface text-primary border border-primary/20"
+                        className="rounded-full px-2.5 py-0.5 text-micro font-bold uppercase tracking-wider bg-muted-surface text-primary border border-primary/20"
                       >
                         {selectedRoomModal.type} Category
                       </span>
                     </div>
-                    <p className="text-[11px] text-ink-muted mt-0.5">
+                    <p className="text-label text-ink-muted mt-0.5">
                       Floor {selectedRoomModal.floor} · Main Wing · High Speed WiFi
                     </p>
                   </div>
@@ -756,7 +756,7 @@ export function StatusTimeline() {
               <div className="p-5 flex flex-col gap-4 max-h-[calc(85vh-130px)] overflow-y-auto">
                 {/* 1. Quick Change Status Chips */}
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-2">
+                  <p className="text-label font-bold uppercase tracking-wider text-ink-muted mb-2">
                     Quick Change Room Status
                   </p>
                   <div className="grid grid-cols-3 gap-2">
@@ -774,7 +774,7 @@ export function StatusTimeline() {
                           key={opt.type}
                           type="button"
                           onClick={() => updateRoomStatus(selectedRoomModal.number, opt.type)}
-                          className={`flex items-center gap-1.5 p-2 rounded-md border text-[12px] font-bold transition-all ${isCurrent ? 'ring-2 ring-primary ring-offset-1 shadow-xs' : 'hover:scale-[1.02]'
+                          className={`flex items-center gap-1.5 p-2 rounded-md border text-label font-bold transition-all ${isCurrent ? 'ring-2 ring-primary ring-offset-1 shadow-xs' : 'hover:scale-[1.02]'
                             }`}
                           style={{
                             background: opt.bg,
@@ -792,7 +792,7 @@ export function StatusTimeline() {
 
                 {/* 2. Room Timeline & Movement Summary */}
                 <div
-                  className="rounded-2xl border p-4 flex flex-col gap-2.5 text-[12px]"
+                  className="rounded-2xl border p-4 flex flex-col gap-2.5 text-label"
                   style={{
                     background: 'color-mix(in srgb, var(--color-muted-surface) 40%, var(--color-surface))',
                     borderColor: 'var(--color-border)',
@@ -840,12 +840,12 @@ export function StatusTimeline() {
                   style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[13px] font-bold text-ink">Housekeeping & Amenities</span>
-                    <span className="text-[11px] font-semibold text-success-text bg-success-bg px-2 py-0.5 rounded-full">
+                    <span className="text-body font-bold text-ink">Housekeeping & Amenities</span>
+                    <span className="text-label font-semibold text-success-text bg-success-bg px-2 py-0.5 rounded-full">
                       Linen Fresh
                     </span>
                   </div>
-                  <p className="text-[12px] text-ink-muted leading-relaxed">
+                  <p className="text-label text-ink-muted leading-relaxed">
                     Minibar replenished, air conditioning tested at 22°C, electronic lock synchronized.
                   </p>
                 </div>
@@ -862,7 +862,7 @@ export function StatusTimeline() {
                 <button
                   type="button"
                   onClick={() => setSelectedRoomModal(null)}
-                  className="rounded-md border px-4 py-2 text-[12px] font-bold text-ink hover:bg-ink/[0.04] transition-colors"
+                  className="rounded-md border px-4 py-2 text-label font-bold text-ink hover:bg-ink/[0.04] transition-colors"
                   style={{ borderColor: 'var(--color-border)' }}
                 >
                   Close
@@ -873,7 +873,7 @@ export function StatusTimeline() {
                     updateRoomStatus(selectedRoomModal.number, 'Inspected');
                     setSelectedRoomModal(null);
                   }}
-                  className="pms-btn-primary px-4 py-2 text-[12px] font-bold rounded-md shadow-xs"
+                  className="pms-btn-primary px-4 py-2 text-label font-bold rounded-md shadow-xs"
                 >
                   Mark Inspected & Ready
                 </button>
