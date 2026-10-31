@@ -450,7 +450,7 @@ export function Header({
             <ListItem
               type="button"
               onClick={() => onGo({ view: 'occupancy-report' })}
-              className="group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="!w-auto !px-2.5 !py-1 xl:!px-3 !rounded-xl group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title={`Occupancy: ${kpi.occupancyPct}% (${kpi.occupiedRooms} of ${kpi.totalRooms} rooms)`}
             >
               <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/25 group-hover:scale-105 transition-transform">
@@ -470,7 +470,7 @@ export function Header({
             <ListItem
               type="button"
               onClick={() => onGo({ view: 'reservations' })}
-              className="group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="!w-auto !px-2.5 !py-1 xl:!px-3 !rounded-xl group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title={`Today's Arrivals: ${kpi.arrivalsCount}`}
             >
               <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-success-text to-success-border text-success-foreground shadow-xs shadow-success-text/25 group-hover:scale-105 transition-transform">
@@ -490,7 +490,7 @@ export function Header({
             <ListItem
               type="button"
               onClick={() => onGo({ view: 'folios' })}
-              className="group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="!w-auto !px-2.5 !py-1 xl:!px-3 !rounded-xl group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title={`Today's Departures: ${kpi.departuresCount}`}
             >
               <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-warning-text to-warning-border text-warning-foreground shadow-xs shadow-warning-text/25 group-hover:scale-105 transition-transform">
@@ -510,7 +510,7 @@ export function Header({
             <ListItem
               type="button"
               onClick={() => onGo({ view: 'reservations' })}
-              className="group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="!w-auto !px-2.5 !py-1 xl:!px-3 !rounded-xl group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="In-house Guests: 8 (28 rooms • 4 extra guests)"
             >
               <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-primary to-primary-hover text-primary-foreground shadow-xs shadow-primary/25 group-hover:scale-105 transition-transform">
@@ -533,7 +533,7 @@ export function Header({
             <ListItem
               type="button"
               onClick={() => onGo({ view: 'revenue-report' })}
-              className="group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="!w-auto !px-2.5 !py-1 xl:!px-3 !rounded-xl group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Total Revenue (Today)"
             >
               <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-success-text to-success-border text-success-foreground shadow-xs shadow-success-text/25 group-hover:scale-105 transition-transform">
@@ -556,7 +556,7 @@ export function Header({
             <ListItem
               type="button"
               onClick={() => onGo({ view: 'payments' })}
-              className="group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="!w-auto !px-2.5 !py-1 xl:!px-3 !rounded-xl group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Pending Payments: 3 (₹28,160 outstanding)"
             >
               <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-danger-text to-danger-border text-danger-foreground shadow-xs shadow-danger-text/25 group-hover:scale-105 transition-transform">
