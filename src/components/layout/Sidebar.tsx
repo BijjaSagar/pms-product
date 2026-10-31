@@ -390,7 +390,7 @@ export function Sidebar({
                 onMouseLeave={handleMouseLeave}
                 aria-label={section.title}
                 aria-expanded={isFlyoutOpen}
-                className={`relative flex items-center justify-center transition-all duration-150 cursor-pointer ${isFlyoutOpen ? 'ring-2 ring-ink-muted scale-105' : 'hover:bg-muted-surface hover:scale-105 active:scale-95' }`}
+                className={`!h-11 !w-11 relative flex items-center justify-center transition-all duration-150 cursor-pointer ${isFlyoutOpen ? 'ring-2 ring-ink-muted scale-105' : 'hover:bg-muted-surface hover:scale-105 active:scale-95' }`}
                 style={
                   isSectionActive
                     ? {
@@ -437,7 +437,7 @@ export function Sidebar({
             onClick={onOpenThemes}
             onMouseEnter={(e) => handleMouseEnter(e, 'Hotel Theme', 'Switch between 9 color palettes', 'Theme')}
             onMouseLeave={handleMouseLeave}
-            className="flex items-center justify-center transition-all hover:bg-muted-surface hover:scale-110 active:scale-95 cursor-pointer text-ink-secondary hover:text-ink"
+            className="!h-9 !w-9 flex items-center justify-center transition-all hover:bg-muted-surface hover:scale-110 active:scale-95 cursor-pointer text-ink-secondary hover:text-ink"
             aria-label="Change Theme"
           >
             <Lucide.Palette size={18} />
@@ -450,7 +450,7 @@ export function Sidebar({
           onClick={toggleCollapsed}
           onMouseEnter={(e) => handleMouseEnter(e, 'Expand Sidebar', 'Show full navigation (Ctrl+\\)', 'Shortcut')}
           onMouseLeave={handleMouseLeave}
-          className="flex items-center justify-center transition-all hover:bg-muted-surface hover:scale-110 active:scale-95 cursor-pointer text-ink-muted hover:text-ink"
+          className="!h-8 !w-8 flex items-center justify-center transition-all hover:bg-muted-surface hover:scale-110 active:scale-95 cursor-pointer text-ink-muted hover:text-ink"
           aria-label="Expand sidebar"
         >
           <Lucide.ChevronsRight size={17} />
@@ -544,7 +544,7 @@ export function Sidebar({
                 <IconButton variant="plain"
                   type="button"
                   onClick={() => setFlyout(null)}
-                  className="flex items-center justify-center text-ink-muted hover:bg-border/60 hover:text-ink-secondary transition-colors cursor-pointer"
+                  className="!h-6 !w-6 flex items-center justify-center text-ink-muted hover:bg-border/60 hover:text-ink-secondary transition-colors cursor-pointer"
                   aria-label="Close menu"
                 >
                   <Lucide.X size={14} />
