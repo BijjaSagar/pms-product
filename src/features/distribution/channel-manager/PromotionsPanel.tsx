@@ -1,3 +1,4 @@
+import { Button, SelectField } from '../../../components/primitives';
 import * as Lucide from 'lucide-react';
 import { formatStayDates } from './data';
 import { ChannelLogo } from './ChannelLogo';
@@ -32,7 +33,7 @@ export function PromotionsPanel({ channels, bookings, channelFilter, onChannelFi
               <p className="text-label text-ink-muted mt-0.5">Latest reservations received from connected OTAs</p>
             </div>
           </div>
-          <div className="flex gap-2"><label><span className="sr-only">Filter bookings by channel</span><select value={channelFilter} onChange={(event) => onChannelFilterChange(event.target.value)} className="pms-input min-h-[36px] text-label"><option value="all">All channels</option>{channels.map((channel) => <option key={channel.id} value={channel.id}>{channel.name}</option>)}</select></label><button type="button" onClick={onViewAll} className="pms-btn-ghost min-h-[36px] px-3 py-1 text-label">View all</button></div>
+          <div className="flex gap-2"><label><span className="sr-only">Filter bookings by channel</span><SelectField value={channelFilter} onChange={(event) => onChannelFilterChange(event.target.value)} ><option value="all">All channels</option>{channels.map((channel) => <option key={channel.id} value={channel.id}>{channel.name}</option>)}</SelectField></label><Button variant="secondary" type="button" onClick={onViewAll} >View all</Button></div>
         </div>
         <div className="pms-table-scroll overflow-x-auto">
           <table className="pms-table min-w-[620px]">

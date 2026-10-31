@@ -283,14 +283,14 @@ textarea {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    min-height: 40px;
-    padding: 0.5rem 1.125rem;
+    min-height: 34px;
+    padding: 0.25rem 0.75rem;
     background: var(--color-primary);
     color: var(--color-primary-foreground);
-    border: 1px solid color-mix(in srgb, var(--color-primary-active) 55%, transparent);
-    border-radius: var(--radius-control) !important;
-    font-weight: 600;
-    font-size: var(--fs-body);
+    border: 0;
+    border-radius: var(--radius-xl) !important;
+    font-weight: 700;
+    font-size: var(--fs-label);
     letter-spacing: 0.01em;
     box-shadow: var(--shadow-xs);
     cursor: pointer;
@@ -328,14 +328,14 @@ textarea {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    min-height: 40px;
-    padding: 0.5rem 1.125rem;
+    min-height: 34px;
+    padding: 0.25rem 0.75rem;
     background: var(--color-danger-text);
     color: var(--color-danger-foreground);
     border: 1px solid color-mix(in srgb, var(--color-danger-text) 72%, transparent);
-    border-radius: var(--radius-control) !important;
-    font-weight: 600;
-    font-size: var(--fs-body);
+    border-radius: var(--radius-xl) !important;
+    font-weight: 700;
+    font-size: var(--fs-label);
     letter-spacing: 0.01em;
     box-shadow: var(--shadow-xs);
     cursor: pointer;
@@ -367,14 +367,14 @@ textarea {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    min-height: 40px;
-    padding: 0.5rem 0.875rem;
+    min-height: 34px;
+    padding: 0.25rem 0.625rem;
     background: var(--color-surface);
     color: var(--color-ink-secondary);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-control) !important;
-    font-weight: 600;
-    font-size: var(--fs-body);
+    border-radius: var(--radius-xl) !important;
+    font-weight: 700;
+    font-size: var(--fs-label);
     box-shadow: var(--shadow-xs);
     cursor: pointer;
     transition:
@@ -399,19 +399,36 @@ textarea {
   }
 
   .pms-input {
-    min-height: 40px;
-    padding: 0.5rem 0.875rem;
+    min-height: 34px;
+    padding: 0.25rem 0.625rem;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-control) !important;
     color: var(--color-ink);
     font-size: var(--fs-body);
-    font-weight: 400;
+    font-weight: 600;
     box-shadow: var(--shadow-xs);
     transition:
       border-color var(--transition-fast),
       box-shadow var(--transition-fast),
       background-color var(--transition-fast);
+  }
+
+  @media (min-width: 768px) {
+    .pms-btn-primary,
+    .pms-btn-danger,
+    .pms-btn-ghost,
+    .pms-input {
+      min-height: 32px;
+    }
+    .pms-btn-primary {
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+    }
+    .pms-btn-ghost {
+      padding-left: 0.875rem;
+      padding-right: 0.875rem;
+    }
   }
 
   .pms-input:hover {
@@ -682,10 +699,6 @@ textarea {
 /* Touch targets + small-screen density */
 @media (max-width: 640px) {
 
-  .pms-btn-primary,
-  .pms-btn-ghost {
-    min-height: 42px;
-  }
 
   .pms-table tbody td,
   .pms-table thead th {

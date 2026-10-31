@@ -10,6 +10,7 @@ import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { useAuth } from '../../features/auth/AuthContext';
 import type { RoleRow } from '../../lib/api/pms';
+import { Button, TextField } from '../../components/primitives';
 
 type StaffRow = {
   userId: string;
@@ -143,19 +144,19 @@ export function Staff() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 text-label font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 cursor-pointer transition-colors"
             title="Refresh staff"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
             <span>Refresh</span>
-          </button>
+          </Button>
           {can('user.invite') ? (
-            <button
+            <Button variant="primary"
               type="button"
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
+              className="flex items-center gap-1.5 cursor-pointer transition-all"
               onClick={() => {
                 setIsNew(true);
                 setEmail('');
@@ -165,7 +166,7 @@ export function Staff() {
             >
               <Lucide.UserPlus size={15} strokeWidth={2.4} />
               <span>Invite Staff</span>
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>
@@ -196,7 +197,7 @@ export function Staff() {
           }
           action={
             can('user.invite') ? (
-              <button
+              <Button variant="primary"
                 type="button"
                 onClick={() => {
                   setIsNew(true);
@@ -204,11 +205,11 @@ export function Staff() {
                   setEmail('');
                   setRoleKey(roles[0]?.key ?? 'FRONT_DESK');
                 }}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
+                className="flex items-center gap-1.5 cursor-pointer transition-all"
               >
                 <Lucide.Plus size={14} />
                 <span>Add User</span>
-              </button>
+              </Button>
             ) : undefined
           }
         />
@@ -217,7 +218,7 @@ export function Staff() {
         <div className="mb-4 flex flex-col sm:flex-row items-center gap-2">
           <div className="relative flex-1 w-full">
             <Lucide.Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
-            <input
+            <TextField
               value={q}
               onChange={(event) => {
                 setQ(event.target.value);
@@ -225,20 +226,19 @@ export function Staff() {
               }}
               placeholder="Search by name, email or role…"
               aria-label="Search users"
-              className={`${inputClass('text-body')} pl-9.5 w-full`}
+              className={`${inputClass('')} w-full`}
             />
           </div>
           {q ? (
-            <button
+            <Button variant="secondary"
               type="button"
-              className="pms-btn-ghost px-3.5 py-2 text-body font-medium"
               onClick={() => {
                 setQ('');
                 setPage(0);
               }}
             >
               Clear
-            </button>
+            </Button>
           ) : null}
         </div>
 
@@ -365,13 +365,13 @@ export function Staff() {
           <Field label="Full name"><input value={fullName} onChange={(event) => setFullName(event.target.value)} className={inputClass('text-body')} /></Field>
           <Field label="Email"><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass('text-body')} /></Field>
           <Field label="Role"><select value={roleKey} onChange={(event) => setRoleKey(event.target.value)} className={inputClass('text-body')}>{roles.map((role: RoleRow) => <option key={role.key} value={role.key}>{role.name}</option>)}</select></Field>
-          <div className="flex items-end"><button type="button" className="pms-btn-primary w-full px-4 py-2.5 text-body font-semibold" onClick={() => void save()}>Create invitation</button></div>
+          <div className="flex items-end"><Button variant="primary" type="button" className="w-full" onClick={() => void save()}>Create invitation</Button></div>
         </div> : editing ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Full name"><input disabled={!can('user.update')} value={editing.fullName} onChange={(event) => setEditing({ ...editing, fullName: event.target.value })} className={inputClass('text-body')} /></Field>
           <Field label="Role"><select disabled={!can('role.assign')} value={editing.roleKey} onChange={(event) => setEditing({ ...editing, roleKey: event.target.value })} className={inputClass('text-body')}>{roles.map((role: RoleRow) => <option key={role.key} value={role.key}>{role.name}</option>)}</select></Field>
           <Field label="Status"><select disabled={!can('user.deactivate')} value={editing.status === 'ACTIVE' ? 'ACTIVE' : 'DISABLED'} onChange={(event) => setEditing({ ...editing, status: event.target.value as StaffRow['status'] })} className={inputClass('text-body')}><option value="ACTIVE">Active</option><option value="DISABLED">Disabled</option></select></Field>
-          <div className="flex items-end"><button type="button" className="pms-btn-primary w-full px-4 py-2.5 text-body font-semibold" onClick={() => void save()}>Save changes</button></div>
-          {editing.status === 'INVITED' && can('user.invite') ? <div className="flex gap-2 sm:col-span-2"><button type="button" className="pms-btn-ghost flex-1 px-4 py-2.5 text-body font-medium" onClick={() => void updateInvite('reissue')}>Reissue invitation</button><button type="button" className="pms-btn-ghost flex-1 px-4 py-2.5 text-body font-medium" onClick={() => void updateInvite('cancel')}>Cancel invitation</button></div> : null}
+          <div className="flex items-end"><Button variant="primary" type="button" className="w-full" onClick={() => void save()}>Save changes</Button></div>
+          {editing.status === 'INVITED' && can('user.invite') ? <div className="flex gap-2 sm:col-span-2"><Button variant="secondary" type="button" className="flex-1" onClick={() => void updateInvite('reissue')}>Reissue invitation</Button><Button variant="secondary" type="button" className="flex-1" onClick={() => void updateInvite('cancel')}>Cancel invitation</Button></div> : null}
         </div> : null}
       </Modal>
     </div>

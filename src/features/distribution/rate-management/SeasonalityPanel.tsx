@@ -1,3 +1,4 @@
+import { Button } from '../../../components/primitives';
 import * as Lucide from 'lucide-react';
 import { formatSeasonPeriod } from './data';
 import type { Season } from './types';
@@ -21,9 +22,9 @@ export function SeasonalityPanel({ seasons, onAdd, onToggleStatus }: Props) {
             <p className="text-label text-ink-muted mt-0.5">Set date-based adjustments for holidays, demand peaks and low seasons</p>
           </div>
         </div>
-        <button type="button" onClick={onAdd} className="pms-btn-primary min-h-[38px] px-3.5 py-1.5 text-label">
+        <Button variant="primary" type="button" onClick={onAdd} >
           <Lucide.Plus size={15} /> Add season
-        </button>
+        </Button>
       </div>
 
       <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3 sm:p-5">
@@ -55,9 +56,9 @@ export function SeasonalityPanel({ seasons, onAdd, onToggleStatus }: Props) {
                 <span className={`inline-flex items-center gap-1.5 text-label font-semibold ${active ? 'text-success-text' : 'text-ink-muted'}`}>
                   <span className={`h-1.5 w-1.5 rounded-full ${active ? 'bg-success-text' : 'bg-ink-disabled'}`} />{season.status}
                 </span>
-                <button type="button" onClick={() => onToggleStatus(season)} className="text-label font-semibold text-primary hover:underline">
+                <Button variant="link" type="button" onClick={() => onToggleStatus(season)} className="hover:underline">
                   {active ? 'Pause season' : 'Activate'}
-                </button>
+                </Button>
               </div>
             </article>
           );

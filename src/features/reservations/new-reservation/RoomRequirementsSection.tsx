@@ -38,15 +38,15 @@ export function RoomRequirementsSection({
 }: Props) {
   return (
     <section className="min-w-0 bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
-      <div className="flex flex-col gap-3 border-b border-divider pb-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider pb-3">
         <div className="flex min-w-0 items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] shadow-xs shadow-primary/20">2</span>
           <div>
             <h2 className="text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-bold text-ink-secondary tracking-tight">Room Requirements & Allocation</h2>
           </div>
         </div>
-        <div className="w-full 2xl:w-auto 2xl:flex-none">
-          <button type="button" onClick={() => onOverridePriceChange(!overridePrice)} className={`flex min-h-[34px] w-full min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-semibold transition-all 2xl:w-auto ${overridePrice ? 'bg-warning-bg text-warning-text border-warning-border' : 'bg-surface text-ink border-border hover:bg-page'}`}><Lucide.Tag size={13} /> Override Price</button>
+        <div className="flex-none">
+          <button type="button" onClick={() => onOverridePriceChange(!overridePrice)} className={`flex min-h-[34px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-semibold transition-all ${overridePrice ? 'bg-warning-bg text-warning-text border-warning-border' : 'bg-surface text-ink border-border hover:bg-page'}`}><Lucide.Tag size={13} /> Override Price</button>
         </div>
       </div>
 

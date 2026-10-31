@@ -1,3 +1,4 @@
+import { SelectField } from '../../../components/primitives';
 import { useMemo } from 'react';
 import * as Lucide from 'lucide-react';
 import { ChannelLogo } from './ChannelLogo';
@@ -32,7 +33,7 @@ export function RatesPanel({ channels, performance, channelFilter, onChannelFilt
             <p className="text-label text-ink-muted mt-0.5">Booking contribution and channel revenue · last 30 days</p>
           </div>
         </div>
-        <label className="flex items-center gap-2 text-label font-medium text-ink-secondary"><span>Channel</span><select value={channelFilter} onChange={(event) => onChannelFilterChange(event.target.value)} className="pms-input min-h-[36px] text-label"><option value="all">All channels</option>{channels.map((channel) => <option key={channel.id} value={channel.id}>{channel.name}</option>)}</select></label>
+        <label className="flex items-center gap-2 text-label font-medium text-ink-secondary"><span>Channel</span><SelectField value={channelFilter} onChange={(event) => onChannelFilterChange(event.target.value)} ><option value="all">All channels</option>{channels.map((channel) => <option key={channel.id} value={channel.id}>{channel.name}</option>)}</SelectField></label>
       </div>
 
       <div className="grid grid-cols-3 gap-2 border-b p-3 sm:gap-3 sm:p-4" style={{ borderColor: 'var(--color-divider)' }}>

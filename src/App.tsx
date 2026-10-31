@@ -14,6 +14,7 @@ import { Dashboard } from './features/dashboard/DashboardPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { themeApi } from './lib/api/pms';
 import type { ThemeKey } from './types';
+import { Button } from './components/primitives';
 
 const THEME_KEY_TO_PRESET: Record<ThemeKey, ThemePresetId> = {
   MIDNIGHT_NAVY: 'midnight',
@@ -253,9 +254,9 @@ function AuthenticatedApp() {
           <p className="pms-helper mt-1">Select an active property to continue.</p>
           <div className="mt-4 flex flex-col gap-2">
             {memberships.map((membership) => (
-              <button key={membership.propertyId} type="button" className="pms-btn-ghost px-4 py-3 text-left" onClick={() => void switchProperty(membership.propertyId)}>
+              <Button variant="secondary" key={membership.propertyId} type="button" className="text-left" onClick={() => void switchProperty(membership.propertyId)}>
                 {membership.property.name} · {membership.role.name}
-              </button>
+              </Button>
             ))}
           </div>
         </section>

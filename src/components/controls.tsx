@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Button, IconButton } from './primitives';
 
 
 export function Field({
@@ -48,13 +49,13 @@ export function Tabs<T extends string>({
       {tabs.map((t) => {
         const selected = t.id === active;
         return (
-          <button
+          <Button variant="secondary"
             key={t.id}
             type="button"
             role="tab"
             aria-selected={selected}
             onClick={() => onChange(t.id)}
-            className="min-h-[38px] flex-none whitespace-nowrap rounded-[9px] px-3.5 py-2 text-body font-semibold snap-start"
+            className="flex-none whitespace-nowrap rounded-[9px] snap-start"
             style={{
               background: selected ? 'var(--color-surface)' : 'transparent',
               color: selected ? 'var(--color-ink)' : 'var(--color-ink-secondary)',
@@ -63,7 +64,7 @@ export function Tabs<T extends string>({
             }}
           >
             {t.label}
-          </button>
+          </Button>
         );
       })}
     </div>
@@ -89,30 +90,27 @@ export function Pagination({
     <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-body text-ink-secondary">
       <p className="text-body text-ink-secondary font-normal">{summary}</p>
       <div className="flex max-w-full items-center gap-1.5 overflow-x-auto pb-0.5" role="navigation" aria-label="Pagination">
-        <button
+        <IconButton variant="ghost"
           type="button"
           disabled={page === 0}
           onClick={() => onChange(page - 1)}
-          className="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-border text-ink-secondary hover:bg-hover-surface disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="flex flex-none items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           aria-label="Previous page"
         >
           ‹
-        </button>
+        </IconButton>
         {windowPages.map((i, idx) => {
           const showEllipsis = idx > 0 && i - windowPages[idx - 1] > 1;
           const isCurrent = i === page;
           return (
             <span key={i} className="flex flex-none items-center gap-1.5">
               {showEllipsis ? <span className="px-1 text-ink-muted">…</span> : null}
-              <button
+              <IconButton variant="ghost"
                 type="button"
                 onClick={() => onChange(i)}
                 aria-current={isCurrent ? 'page' : undefined}
                 aria-label={`Page ${i + 1}`}
-                className={`flex h-8 w-8 flex-none items-center justify-center rounded-lg text-label font-semibold transition-all cursor-pointer ${isCurrent
-                  ? 'bg-primary text-primary-foreground shadow-xs'
-                  : 'border border-border bg-surface text-ink hover:bg-hover-surface'
-                  }`}
+                className={`flex flex-none items-center justify-center transition-all cursor-pointer ${isCurrent ? 'bg-primary text-primary-foreground shadow-xs' : 'border border-border bg-surface text-ink hover:bg-hover-surface' }`}
                 style={{
                   background: isCurrent ? 'var(--color-primary)' : 'var(--color-surface)',
                   borderColor: isCurrent ? 'var(--color-primary)' : 'var(--color-border)',
@@ -120,19 +118,19 @@ export function Pagination({
                 }}
               >
                 {i + 1}
-              </button>
+              </IconButton>
             </span>
           );
         })}
-        <button
+        <IconButton variant="ghost"
           type="button"
           disabled={page === totalPages - 1}
           onClick={() => onChange(page + 1)}
-          className="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-border text-ink-secondary hover:bg-hover-surface disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="flex flex-none items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           aria-label="Next page"
         >
           ›
-        </button>
+        </IconButton>
       </div>
     </div>
   );
@@ -150,12 +148,12 @@ export function FilterChip({
   pressedLabel?: string;
 }) {
   return (
-    <button
+    <Button variant="secondary"
       type="button"
       onClick={onClick}
       aria-pressed={active}
       aria-label={pressedLabel}
-      className="min-h-[30px] flex-none whitespace-nowrap rounded-full border px-3 py-1.5 text-label font-semibold snap-start"
+      className="flex-none whitespace-nowrap"
       style={{
         borderColor: active ? 'var(--color-primary)' : 'var(--color-border)',
         background: active ? 'var(--color-primary)' : 'var(--color-surface)',
@@ -164,6 +162,6 @@ export function FilterChip({
       }}
     >
       {children}
-    </button>
+    </Button>
   );
 }

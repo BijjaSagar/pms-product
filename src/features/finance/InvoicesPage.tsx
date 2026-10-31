@@ -12,6 +12,7 @@ import { folioApi } from '../../lib/api/pms';
 import { invoiceFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
+import { Button, TextField } from '../../components/primitives';
 
 export function Invoices() {
   const loadInvoices = useCallback(async () => (await folioApi.listInvoices()).map(invoiceFromApi), []);
@@ -78,15 +79,15 @@ export function Invoices() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button variant="primary"
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-label font-semibold rounded-xl cursor-pointer"
+            className="flex items-center gap-1.5 cursor-pointer"
             title="Refresh invoices"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
             <span>Refresh</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -132,12 +133,12 @@ export function Invoices() {
         <div className="mb-4 grid grid-cols-1 gap-2.5 md:grid-cols-3">
           <div className="relative">
             <Lucide.Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
-            <input
+            <TextField
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Guest name or invoice ID…"
               aria-label="Search invoices"
-              className={`${inputClass()} pl-9 w-full`}
+              className={`${inputClass()} w-full`}
             />
           </div>
           <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by status">
@@ -147,13 +148,12 @@ export function Invoices() {
               </FilterChip>
             ))}
           </div>
-          <button
+          <Button variant="secondary"
             type="button"
-            className="pms-btn-ghost px-3 py-2 text-label font-semibold"
             onClick={() => { setQ(''); setStatus('All'); }}
           >
             Reset
-          </button>
+          </Button>
         </div>
 
         <TableContainer>
@@ -292,23 +292,23 @@ export function Invoices() {
             </div>
 
             <div className="no-print flex gap-2.5">
-              <button
+              <Button variant="secondary"
                 type="button"
-                className="pms-btn-ghost flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5"
+                className="flex-1 flex items-center justify-center gap-1.5"
                 onClick={() => window.print()}
               >
                 <Lucide.Printer size={16} />
                 <span>Print</span>
-              </button>
+              </Button>
               {open.status === 'Issued' ? (
-                <button
+                <Button variant="danger"
                   type="button"
-                  className="pms-btn-danger flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5"
+                  className="flex-1 flex items-center justify-center gap-1.5"
                   onClick={() => setVoidOpen(true)}
                 >
                   <Lucide.FileX size={16} />
                   <span>Void invoice</span>
-                </button>
+                </Button>
               ) : null}
             </div>
           </div>

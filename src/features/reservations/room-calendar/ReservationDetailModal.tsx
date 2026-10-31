@@ -6,6 +6,7 @@ import { countNights, ROOM_TYPE_CONFIG } from './calendarData';
 import { validateReservationMove } from './validation';
 import { toast } from '../../../utils/toast';
 import { lockAppScroll } from '../../../lib/scrollLock';
+import { Button, IconButton, SelectField, TextField } from '../../../components/primitives';
 
 interface Props {
   reservation: CalendarReservation | null;
@@ -160,13 +161,13 @@ export function ReservationDetailModal({
             </div>
           </div>
 
-          <button
+          <IconButton variant="ghost"
             type="button"
             onClick={onClose}
-            className="text-ink-muted hover:text-ink-secondary p-1.5 rounded-xl hover:bg-muted-surface transition-colors cursor-pointer"
+            className="transition-colors cursor-pointer"
           >
             <Lucide.X size={18} />
-          </button>
+          </IconButton>
         </div>
 
         {/* View Details Mode vs Tap-based Edit Mode */}
@@ -246,43 +247,43 @@ export function ReservationDetailModal({
             <div className="flex items-center justify-between gap-2 pt-2 border-t border-divider flex-wrap">
               <div className="flex items-center gap-1.5">
                 {reservation.status === 'Confirmed' && (
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={() => {
                       onStatusUpdate(reservation.id, 'Checked-in');
                       onClose();
                       toast.success('Guest Checked In', { detail: `${reservation.guestName} into Room ${reservation.roomNumber}` });
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-info-bg text-info-text border border-info-border font-bold text-label hover:bg-info-bg cursor-pointer"
+                    className="cursor-pointer bg-info-bg text-info-text border-info-border hover:bg-info-bg"
                   >
                     Check In
-                  </button>
+                  </Button>
                 )}
                 {reservation.status === 'Checked-in' && (
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={() => {
                       onStatusUpdate(reservation.id, 'Checked-out');
                       onClose();
                       toast.success('Guest Checked Out', { detail: `${reservation.guestName} settled & departed` });
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-muted-surface text-ink border border-border font-bold text-label hover:bg-border cursor-pointer"
+                    className="cursor-pointer"
                   >
                     Check Out
-                  </button>
+                  </Button>
                 )}
               </div>
 
               <div className="flex items-center gap-2">
-                <button
+                <Button variant="primary"
                   type="button"
                   onClick={startEditMode}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white font-bold text-label shadow-xs hover:opacity-95 cursor-pointer"
+                  className="flex items-center gap-1.5 cursor-pointer"
                   title="Reassign room or change dates directly without dragging"
                 >
                   <Lucide.Sliders size={13} />
                   <span>Edit Room & Dates</span>
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -300,10 +301,10 @@ export function ReservationDetailModal({
               <label className="block text-label font-bold text-ink-secondary uppercase tracking-wider mb-1">
                 Target Room
               </label>
-              <select
+              <SelectField
                 value={editRoomId}
                 onChange={(e) => setEditRoomId(e.target.value)}
-                className="w-full rounded-xl border border-border bg-surface p-2.5 text-label text-ink font-bold cursor-pointer focus:outline-none focus:border-[var(--color-primary)]"
+                className="w-full cursor-pointer focus:outline-none"
               >
                 {rooms.map((r) => (
                   <option
@@ -314,7 +315,7 @@ export function ReservationDetailModal({
                     Room {r.number} ({r.type} · Flr {r.floor} · ₹{r.baseRate}/nt) {r.status === 'Out-of-Order' ? '— [Out-of-Order]' : ''}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -322,11 +323,11 @@ export function ReservationDetailModal({
                 <label className="block text-label font-bold text-ink-secondary uppercase tracking-wider mb-1">
                   Check-in Date
                 </label>
-                <input
+                <TextField
                   type="date"
                   value={editCheckIn}
                   onChange={(e) => setEditCheckIn(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-surface p-2 text-label text-ink font-semibold"
+                  className="w-full"
                 />
               </div>
 
@@ -334,31 +335,31 @@ export function ReservationDetailModal({
                 <label className="block text-label font-bold text-ink-secondary uppercase tracking-wider mb-1">
                   Check-out Date
                 </label>
-                <input
+                <TextField
                   type="date"
                   value={editCheckOut}
                   onChange={(e) => setEditCheckOut(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-surface p-2 text-label text-ink font-semibold"
+                  className="w-full"
                 />
               </div>
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-divider">
-              <button
+              <Button variant="secondary"
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="px-4 py-2 rounded-xl border border-border text-ink font-bold text-label hover:bg-page cursor-pointer"
+                className="cursor-pointer"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button variant="primary"
                 type="button"
                 onClick={handleApplyEdit}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white font-bold text-label hover:opacity-95 shadow-xs cursor-pointer"
+                className="flex items-center gap-1.5 cursor-pointer"
               >
                 <Lucide.Check size={14} />
                 <span>Review & Confirm</span>
-              </button>
+              </Button>
             </div>
           </div>
         )}

@@ -14,6 +14,7 @@ import { guestFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { formatCurrency } from '../../lib/api/format';
+import { Button } from '../../components/primitives';
 
 const PAGE_SIZE = 6;
 
@@ -84,16 +85,16 @@ function GuestProfile({ g, onClose, go, onSave }: { g: Guest; onClose: () => voi
         )}
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        <button type="button" className="pms-btn-ghost flex-1 px-3 py-2.5 text-body font-medium" onClick={() => {
+        <Button variant="secondary" type="button" className="flex-1" onClick={() => {
           if (!editing) { setEditing(true); return; }
           void onSave({ phone, preferences: prefs }).then(() => setEditing(false)).catch(() => undefined);
         }}>
           {editing ? 'Save guest' : 'Edit guest'}
-        </button>
-        <button type="button" className="pms-btn-ghost flex-1 px-3 py-2.5 text-body font-medium" onClick={() => go({ view: 'new-reservation' })}>New reservation</button>
-        <button type="button" className="pms-btn-primary flex-1 px-3 py-2.5 text-body font-semibold" onClick={() => go({ view: 'folios' })}>View folio</button>
+        </Button>
+        <Button variant="secondary" type="button" className="flex-1" onClick={() => go({ view: 'new-reservation' })}>New reservation</Button>
+        <Button variant="primary" type="button" className="flex-1" onClick={() => go({ view: 'folios' })}>View folio</Button>
       </div>
-      <button type="button" className="pms-btn-ghost mt-2 w-full px-3 py-2 text-body font-medium" onClick={onClose}>Back to directory</button>
+      <Button variant="secondary" type="button" className="mt-2 w-full" onClick={onClose}>Back to directory</Button>
     </div>
   );
 }
@@ -177,23 +178,23 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
 
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 text-label font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 cursor-pointer transition-colors"
             title="Refresh directory"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
             <span>Refresh</span>
-          </button>
-          <button
+          </Button>
+          <Button variant="primary"
             type="button"
             onClick={() => setAdding(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
+            className="flex items-center gap-1.5 cursor-pointer transition-all"
           >
             <Lucide.Plus size={15} strokeWidth={2.4} />
             <span>Add Guest</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -222,7 +223,7 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
               <FilterChip key={t} active={tier === t} onClick={() => { setTier(t); setPage(0); }}>{t}</FilterChip>
             ))}
           </div>
-          <button type="button" className="pms-btn-ghost px-3 py-2 text-label font-medium" onClick={() => { setQ(''); setTier('All'); setSort('name'); setPage(0); }}>Clear</button>
+          <Button variant="secondary" type="button"  onClick={() => { setQ(''); setTier('All'); setSort('name'); setPage(0); }}>Clear</Button>
         </div>
         <TableContainer>
           <table className="pms-table min-w-[760px]">
@@ -301,7 +302,7 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
             <Field label="Full name"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Jordan Miles" className={inputClass('text-body')} /></Field>
             <Field label="Email"><input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jordan@mail.com" inputMode="email" className={inputClass('text-body')} /></Field>
             <Field label="Phone"><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 010 2030" inputMode="tel" className={inputClass('text-body')} /></Field>
-            <button type="button" className="pms-btn-primary px-4 py-2.5 text-body font-semibold" onClick={addGuest}>Add guest</button>
+            <Button variant="primary" type="button"  onClick={addGuest}>Add guest</Button>
           </div>
         </Modal>
       </Card>

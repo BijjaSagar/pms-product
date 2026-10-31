@@ -1,3 +1,4 @@
+import { Button } from '../../components/primitives';
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import type { NavTarget } from '../../config/navigation';
@@ -78,10 +79,10 @@ export function NightAudit({ go }: NightAuditProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => setLogsModalOpen(true)}
-            className="pms-btn-ghost px-3.5 py-2 text-body font-medium flex items-center gap-2 border shadow-2xs"
+            className="flex items-center gap-2"
             style={{
               borderColor: 'var(--color-border)',
               background: 'var(--color-surface)',
@@ -90,12 +91,12 @@ export function NightAudit({ go }: NightAuditProps) {
           >
             <Lucide.ScrollText size={15} className="text-ink-muted" />
             <span>Audit Logs</span>
-          </button>
+          </Button>
 
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => go?.({ view: 'reports' })}
-            className="pms-btn-ghost px-3.5 py-2 text-body font-medium flex items-center gap-2 border shadow-2xs"
+            className="flex items-center gap-2"
             style={{
               borderColor: 'var(--color-border)',
               background: 'var(--color-surface)',
@@ -103,7 +104,7 @@ export function NightAudit({ go }: NightAuditProps) {
             }}
           >
             <span>View Reports</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -263,14 +264,14 @@ export function NightAudit({ go }: NightAuditProps) {
           <div>
             <p className="text-disp3 font-black text-danger-text leading-tight">3</p>
             <p className="text-label font-bold text-danger-text">Pending Issues</p>
-            <button
+            <Button variant="link"
               type="button"
               onClick={() => setOpenFoliosModalOpen(true)}
-              className="text-label font-bold hover:underline cursor-pointer"
+              className="hover:underline cursor-pointer"
               style={{ color: 'var(--color-primary)' }}
             >
               View details →
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -323,15 +324,15 @@ export function NightAudit({ go }: NightAuditProps) {
 
                 <div className="flex items-center gap-3 flex-none">
                   <span className="text-body font-bold text-danger-text">3</span>
-                  <button
+                  <Button variant="link"
                     type="button"
                     onClick={() => setOpenFoliosModalOpen(true)}
-                    className="text-label font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                    className="hover:underline flex items-center gap-1 cursor-pointer"
                     style={{ color: 'var(--color-primary)' }}
                   >
                     <span>View guests</span>
                     <Lucide.ArrowRight size={13} />
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -351,15 +352,15 @@ export function NightAudit({ go }: NightAuditProps) {
 
                 <div className="flex items-center gap-3 flex-none">
                   <span className="text-body font-bold text-danger-text">2</span>
-                  <button
+                  <Button variant="link"
                     type="button"
                     onClick={() => setPendingPaymentsModalOpen(true)}
-                    className="text-label font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                    className="hover:underline flex items-center gap-1 cursor-pointer"
                     style={{ color: 'var(--color-primary)' }}
                   >
                     <span>View bookings</span>
                     <Lucide.ArrowRight size={13} />
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -379,15 +380,15 @@ export function NightAudit({ go }: NightAuditProps) {
 
                 <div className="flex items-center gap-3 flex-none">
                   <span className="text-body font-bold text-warning-text">5</span>
-                  <button
+                  <Button variant="link"
                     type="button"
                     onClick={() => setUnpostedChargesModalOpen(true)}
-                    className="text-label font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                    className="hover:underline flex items-center gap-1 cursor-pointer"
                     style={{ color: 'var(--color-primary)' }}
                   >
                     <span>Review charges</span>
                     <Lucide.ArrowRight size={13} />
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -545,14 +546,14 @@ export function NightAudit({ go }: NightAuditProps) {
             </div>
 
             {/* Big Action CTA */}
-            <button
+            <Button variant="primary"
               type="button"
               onClick={handleStartAudit}
-              className="pms-btn-primary w-full py-3 rounded-xl font-bold text-body flex items-center justify-center gap-2 shadow-sm transition-all"
+              className="w-full flex items-center justify-center gap-2 transition-all"
             >
               <span>Start Night Audit</span>
               <Lucide.ArrowRight size={16} />
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -569,14 +570,14 @@ export function NightAudit({ go }: NightAuditProps) {
               <h3 className="font-bold text-label sm:text-body text-ink">
                 In-House Guests with Balance
               </h3>
-              <button
+              <Button variant="link"
                 type="button"
                 onClick={() => setOpenFoliosModalOpen(true)}
-                className="text-label font-bold hover:underline cursor-pointer"
+                className="hover:underline cursor-pointer"
                 style={{ color: 'var(--color-primary)' }}
               >
                 View all (3)
-              </button>
+              </Button>
             </div>
 
             <div className="pms-table-scroll overflow-x-auto">
@@ -639,14 +640,14 @@ export function NightAudit({ go }: NightAuditProps) {
               <h3 className="font-bold text-label sm:text-body text-ink">
                 Pending Payments
               </h3>
-              <button
+              <Button variant="link"
                 type="button"
                 onClick={() => setPendingPaymentsModalOpen(true)}
-                className="text-label font-bold hover:underline cursor-pointer"
+                className="hover:underline cursor-pointer"
                 style={{ color: 'var(--color-primary)' }}
               >
                 View all (2)
-              </button>
+              </Button>
             </div>
 
             <div className="pms-table-scroll overflow-x-auto">
@@ -688,14 +689,14 @@ export function NightAudit({ go }: NightAuditProps) {
               <h3 className="font-bold text-label sm:text-body text-ink">
                 Recent Audit History
               </h3>
-              <button
+              <Button variant="link"
                 type="button"
                 onClick={() => setLogsModalOpen(true)}
-                className="text-label font-bold hover:underline cursor-pointer"
+                className="hover:underline cursor-pointer"
                 style={{ color: 'var(--color-primary)' }}
               >
                 View all
-              </button>
+              </Button>
             </div>
 
             <div className="pms-table-scroll overflow-x-auto">
@@ -779,20 +780,19 @@ export function NightAudit({ go }: NightAuditProps) {
         subtitle={`Audit date: ${currentBusinessDate}`}
         footer={
           <div className="flex items-center justify-between w-full">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => setWizardOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
             >
               {auditCompleted ? 'Close' : 'Cancel'}
-            </button>
+            </Button>
 
             {!auditCompleted ? (
-              <button
+              <Button variant="primary"
                 type="button"
                 onClick={handleNextStep}
                 disabled={isProcessing}
-                className="pms-btn-primary px-5 py-2.5 text-label font-bold flex items-center gap-2"
+                className="flex items-center gap-2"
               >
                 {isProcessing ? (
                   <>
@@ -820,15 +820,14 @@ export function NightAudit({ go }: NightAuditProps) {
                     <Lucide.CheckCircle2 size={14} />
                   </>
                 )}
-              </button>
+              </Button>
             ) : (
-              <button
+              <Button variant="primary"
                 type="button"
                 onClick={() => setWizardOpen(false)}
-                className="pms-btn-primary px-5 py-2 text-label font-bold"
               >
                 Done
-              </button>
+              </Button>
             )}
           </div>
         }
@@ -954,13 +953,12 @@ export function NightAudit({ go }: NightAuditProps) {
         title="Night Audit Execution Logs"
         subtitle="Historical run logs, automated charges & system rollover timestamps"
         footer={
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => setLogsModalOpen(false)}
-            className="pms-btn-ghost px-4 py-2 text-label font-semibold"
           >
             Close
-          </button>
+          </Button>
         }
       >
         <div className="flex flex-col gap-2 py-2 text-label max-h-[380px] overflow-y-auto">
@@ -993,24 +991,23 @@ export function NightAudit({ go }: NightAuditProps) {
         subtitle="In-house guests with outstanding balances prior to night audit"
         footer={
           <div className="flex justify-between items-center w-full">
-            <button
+            <Button variant="link"
               type="button"
               onClick={() => {
                 setOpenFoliosModalOpen(false);
                 go?.({ view: 'folios' });
               }}
-              className="text-label font-bold hover:underline cursor-pointer"
+              className="hover:underline cursor-pointer"
               style={{ color: 'var(--color-primary)' }}
             >
               Open Folios &amp; Billing module →
-            </button>
-            <button
+            </Button>
+            <Button variant="primary"
               type="button"
               onClick={() => setOpenFoliosModalOpen(false)}
-              className="pms-btn-primary px-4 py-2 text-label font-bold"
             >
               Done
-            </button>
+            </Button>
           </div>
         }
       >
@@ -1038,13 +1035,12 @@ export function NightAudit({ go }: NightAuditProps) {
         title="Pending Payments Checklist"
         subtitle="Unsettled pre-authorizations and pending transactions"
         footer={
-          <button
+          <Button variant="primary"
             type="button"
             onClick={() => setPendingPaymentsModalOpen(false)}
-            className="pms-btn-primary px-4 py-2 text-label font-bold"
           >
             Close
-          </button>
+          </Button>
         }
       >
         <div className="flex flex-col gap-2 py-2 text-label">
@@ -1071,23 +1067,21 @@ export function NightAudit({ go }: NightAuditProps) {
         subtitle="5 incidentals and restaurant tickets pending posting"
         footer={
           <div className="flex justify-between items-center w-full">
-            <button
+            <Button variant="primary"
               type="button"
               onClick={() => {
                 setUnpostedChargesModalOpen(false);
                 toast('All 5 manual charges auto-posted', { tone: 'success' });
               }}
-              className="pms-btn-primary px-4 py-2 text-label font-bold"
             >
               Post All 5 Charges
-            </button>
-            <button
+            </Button>
+            <Button variant="secondary"
               type="button"
               onClick={() => setUnpostedChargesModalOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
             >
               Close
-            </button>
+            </Button>
           </div>
         }
       >

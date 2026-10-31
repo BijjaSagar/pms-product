@@ -1,3 +1,4 @@
+import { Button } from '../../../components/primitives';
 import * as Lucide from 'lucide-react';
 import type { DistributionChannel, RatePlan } from './types';
 
@@ -50,9 +51,9 @@ export function ChannelMappingPanel({ channels, connectedChannelIds, plans, onTo
                   <input type="checkbox" role="switch" checked={connected} onChange={() => onToggle(channel.id)} aria-label={`${connected ? 'Disconnect' : 'Connect'} ${channel.name}`} className="h-4 w-4 accent-primary" />
                   {connected ? 'Connected' : 'Paused'}
                 </label>
-                <button type="button" onClick={() => onSync(channel)} disabled={!connected} className="pms-btn-ghost min-h-[34px] px-2.5 py-1 text-label disabled:opacity-50">
+                <Button variant="secondary" type="button" onClick={() => onSync(channel)} disabled={!connected} className="disabled:opacity-50">
                   <Lucide.RefreshCw size={13} /> Sync
-                </button>
+                </Button>
               </div>
             </article>
           );

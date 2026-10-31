@@ -14,6 +14,7 @@ import { paymentFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { useAuth } from '../../features/auth/AuthContext';
+import { Button, TextField } from '../../components/primitives';
 
 const PAGE_SIZE = 8;
 
@@ -102,15 +103,15 @@ export function Payments() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 text-label font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 cursor-pointer transition-colors"
             title="Refresh payments"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
             <span>Refresh</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -164,12 +165,12 @@ export function Payments() {
         <div className="mb-4 grid grid-cols-1 gap-2.5 md:grid-cols-3">
           <div className="relative">
             <Lucide.Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
-            <input
+            <TextField
               value={q}
               onChange={(e) => { setQ(e.target.value); setPage(0); }}
               placeholder="Guest, ref number or folio ID…"
               aria-label="Search payments"
-              className={`${inputClass()} pl-9 w-full`}
+              className={`${inputClass()} w-full`}
             />
           </div>
           <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by status">
@@ -179,13 +180,12 @@ export function Payments() {
               </FilterChip>
             ))}
           </div>
-          <button
+          <Button variant="secondary"
             type="button"
-            className="pms-btn-ghost px-3 py-2 text-label font-semibold"
             onClick={() => { setQ(''); setStatus('All'); setPage(0); }}
           >
             Reset
-          </button>
+          </Button>
         </div>
 
         {/* Table */}
@@ -238,9 +238,9 @@ export function Payments() {
                   {can('payment.refund') ? (
                     <td className="text-right">
                       {['Paid', 'Partially refunded'].includes(p.status) ? (
-                        <button
+                        <Button variant="secondary"
                           type="button"
-                          className="pms-btn-ghost px-3 py-1 text-label text-danger-text hover:bg-danger-bg border border-danger-border/60 rounded-lg font-semibold"
+                          className="text-danger-text hover:bg-danger-bg border-danger-border/60"
                           onClick={() =>
                             setRefundModal({
                               payment: p,
@@ -250,7 +250,7 @@ export function Payments() {
                           }
                         >
                           Refund
-                        </button>
+                        </Button>
                       ) : (
                         <span className="text-ink-muted text-label">—</span>
                       )}
@@ -281,22 +281,20 @@ export function Payments() {
         subtitle={refundModal ? `Refund for ${refundModal.payment.guest} (${refundModal.payment.ref})` : ''}
         footer={
           <>
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => setRefundModal(null)}
-              className="pms-btn-ghost px-4 py-2.5"
               disabled={isSubmitting}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button variant="danger"
               type="button"
               onClick={() => void handleRefundSubmit()}
-              className="pms-btn-danger px-4 py-2.5"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Processing…' : 'Process Refund'}
-            </button>
+            </Button>
           </>
         }
       >

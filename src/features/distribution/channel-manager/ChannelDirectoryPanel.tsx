@@ -1,3 +1,4 @@
+import { Button, ListItem, SelectField, TextField } from '../../../components/primitives';
 import { useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { ChannelLogo } from './ChannelLogo';
@@ -52,13 +53,13 @@ export function ChannelDirectoryPanel({ channels, selectedChannelId, syncingChan
           <label className="relative min-w-0 flex-1 sm:w-40 sm:flex-none">
             <span className="sr-only">Search channels</span>
             <Lucide.Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search channels" className="pms-input min-h-[36px] w-full pl-8 pr-2 text-label" />
+            <TextField value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search channels" className="w-full pl-8 pr-2" />
           </label>
           <label>
             <span className="sr-only">Filter channels by status</span>
-            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} className="pms-input min-h-[36px] max-w-[130px] px-2 text-label">
+            <SelectField value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} className="max-w-[130px]">
               <option value="all">All statuses</option><option value="connected">Connected</option><option value="error">Needs attention</option><option value="paused">Paused</option>
-            </select>
+            </SelectField>
           </label>
         </div>
       </div>
@@ -78,10 +79,10 @@ export function ChannelDirectoryPanel({ channels, selectedChannelId, syncingChan
               return (
                 <tr key={channel.id} className={selected ? 'bg-primary/[0.04]' : undefined}>
                   <td>
-                    <button type="button" onClick={() => onSelect(channel.id)} className="flex items-center gap-2.5 text-left" aria-pressed={selected}>
+                    <ListItem type="button" onClick={() => onSelect(channel.id)} className="flex items-center gap-2.5 text-left" aria-pressed={selected}>
                       <ChannelLogo channel={channel} />
                       <span className="min-w-0"><span className="block truncate font-semibold text-ink">{channel.name}</span><span className="mt-0.5 block text-micro uppercase tracking-wider text-ink-muted">{channel.code}</span></span>
-                    </button>
+                    </ListItem>
                   </td>
                   <td><span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-micro font-semibold" style={statusStyle}><span className={`h-1.5 w-1.5 rounded-full ${channel.status === 'connected' ? 'bg-success-text' : channel.status === 'error' ? 'bg-danger-text' : 'bg-ink-disabled'}`} />{STATUS_LABEL[channel.status]}</span></td>
                   <td className="tnum font-medium">{channel.activeRooms}</td>
@@ -93,9 +94,9 @@ export function ChannelDirectoryPanel({ channels, selectedChannelId, syncingChan
                   <td>
                     <div className="flex justify-end">
                       {channel.status === 'error' ? (
-                        <button type="button" onClick={() => onReconnect(channel)} className="pms-btn-primary min-h-[32px] px-2.5 py-1 text-label">Reconnect</button>
+                        <Button variant="primary" type="button" onClick={() => onReconnect(channel)} >Reconnect</Button>
                       ) : (
-                        <button type="button" onClick={() => onSync(channel)} disabled={channel.status === 'paused' || syncing} className="pms-btn-ghost min-h-[32px] px-2.5 py-1 text-label disabled:opacity-50"><Lucide.RefreshCw size={12} className={syncing ? 'animate-spin' : ''} />{syncing ? 'Syncing' : 'Sync'}</button>
+                        <Button variant="secondary" type="button" onClick={() => onSync(channel)} disabled={channel.status === 'paused' || syncing} className="disabled:opacity-50"><Lucide.RefreshCw size={12} className={syncing ? 'animate-spin' : ''} />{syncing ? 'Syncing' : 'Sync'}</Button>
                       )}
                     </div>
                   </td>

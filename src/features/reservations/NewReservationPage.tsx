@@ -2118,7 +2118,7 @@ export function NewReservation({
             type="button"
             onClick={() => setIssueModalOpen(true)}
             aria-label="Report issue"
-            className="flex items-center gap-1.5 px-3 min-h-[40px] py-2 rounded-xl border border-danger-border bg-danger-bg/70 hover:bg-danger-bg/80 text-danger-text text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 min-h-[34px] md:min-h-[32px] py-1 rounded-xl border border-danger-border bg-danger-bg/70 hover:bg-danger-bg/80 text-danger-text text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold transition-colors cursor-pointer"
           >
             <Lucide.AlertCircle size={14} />
             <span className="hidden md:inline">Report Issue</span>
@@ -2140,7 +2140,7 @@ export function NewReservation({
             <button
               type="button"
               onClick={() => go({ view: "reservations" })}
-              className="rounded-xl border border-border bg-surface px-2.5 min-h-[40px] py-2 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink transition-colors hover:bg-page cursor-pointer md:px-3.5"
+              className="rounded-xl border border-border bg-surface px-2.5 min-h-[34px] md:min-h-[32px] py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink transition-colors hover:bg-page cursor-pointer md:px-3.5"
             >
               Cancel
             </button>
@@ -2150,7 +2150,7 @@ export function NewReservation({
                 setCollectAmount(String(outstanding));
                 setCollectModalOpen(true);
               }}
-              className="flex items-center gap-1.5 rounded-xl bg-warning-text px-3 min-h-[40px] py-2 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-white shadow-xs transition-all hover:bg-warning-text active:bg-warning-text cursor-pointer md:px-4"
+              className="flex items-center gap-1.5 rounded-xl bg-warning-text px-3 min-h-[34px] md:min-h-[32px] py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-white shadow-xs transition-all hover:bg-warning-text active:bg-warning-text cursor-pointer md:px-4"
             >
               <Lucide.Banknote size={14} />
               <span>Save & Pay</span>
@@ -2159,7 +2159,7 @@ export function NewReservation({
               type="button"
               disabled={savingReservation}
               onClick={() => void handleConfirmReservation(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-[var(--color-primary)] px-3 min-h-[40px] py-2 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-white shadow-md shadow-[var(--color-primary)]/20 transition-all hover:opacity-95 cursor-pointer md:px-5"
+              className="flex items-center gap-1.5 rounded-xl bg-[var(--color-primary)] px-3 min-h-[34px] md:min-h-[32px] py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-white shadow-md shadow-[var(--color-primary)]/20 transition-all hover:opacity-95 cursor-pointer md:px-5"
             >
               {savingReservation ? (
                 <Lucide.LoaderCircle size={14} className="animate-spin" />

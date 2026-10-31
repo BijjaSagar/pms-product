@@ -1,18 +1,23 @@
 import type { ReactNode } from 'react';
 import type { BadgeTone } from '../utils/status';
 import { TONE_CLASSES, TONE_VARS } from '../theme/tone';
+import { Button } from './primitives';
 
 export function Badge({
   tone,
   children,
   dot = false,
+  size = 'md',
 }: {
   tone: BadgeTone;
   children: ReactNode;
   dot?: boolean;
+  /** md = status pills (reference "Official Records"); sm = room and tag chips. */
+  size?: 'md' | 'sm';
 }) {
+  const sizing = size === 'sm' ? 'px-2 py-0.5 text-micro' : 'px-3 py-1 text-label';
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-label font-semibold border ${TONE_CLASSES[tone].badge}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full border font-bold whitespace-nowrap ${sizing} ${TONE_CLASSES[tone].badge}`}>
       {dot ? <span className="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true" /> : null}
       {children}
     </span>
@@ -108,15 +113,15 @@ export function TableActionBtn({
       : 'text-ink-secondary hover:text-ink bg-muted-surface hover:bg-hover-surface';
 
   return (
-    <button
+    <Button variant="secondary"
       type="button"
       onClick={onClick}
       title={title}
       aria-label={title}
-      className={`w-8 h-8 rounded-lg inline-flex items-center justify-center transition-colors cursor-pointer ${variantClass}`}
+      className={`w-8 inline-flex items-center justify-center transition-colors cursor-pointer ${variantClass}`}
     >
       <Icon size={15} />
-    </button>
+    </Button>
   );
 }
 

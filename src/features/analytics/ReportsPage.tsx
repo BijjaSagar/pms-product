@@ -15,6 +15,7 @@ import { newIdempotencyKey, displayApiError, downloadApiFile } from '../../lib/a
 import { toast } from '../../utils/toast';
 import { PromptDialog } from '../../components/overlays';
 import { CHART_COLORS } from '../../theme/tone';
+import { Button } from '../../components/primitives';
 
 const RANGES = ['7 days', '14 days', '30 days'] as const;
 const daysFor = (range: (typeof RANGES)[number]) => Number.parseInt(range, 10);
@@ -178,15 +179,15 @@ export function Reports({
 
         <div className="flex items-center gap-2">
           {/* Refresh Data Button */}
-          <button
+          <Button variant="primary"
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-label font-semibold rounded-xl cursor-pointer"
+            className="flex items-center gap-1.5 cursor-pointer"
             title="Refresh analytics data"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : 'text-ink-secondary'} />
             <span>Refresh</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -196,15 +197,15 @@ export function Reports({
           const isActive = activeTab === t.id;
           const Icon = t.icon;
           return (
-            <button
+            <Button variant="secondary"
               key={t.id}
               type="button"
               onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 rounded-md px-4 py-2 text-body font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                isActive
-                  ? 'text-white shadow-sm'
-                  : 'text-ink-secondary hover:text-ink hover:bg-ink/[0.03]'
-              }`}
+              className={`flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
+ isActive
+ ? 'text-white shadow-sm'
+ : 'text-ink-secondary hover:text-ink hover:bg-ink/[0.03]'
+ }`}
               style={{
                 background: isActive ? 'var(--color-primary)' : 'transparent',
                 border: isActive
@@ -214,7 +215,7 @@ export function Reports({
             >
               <Icon size={16} strokeWidth={isActive ? 2.4 : 1.9} />
               <span>{t.label}</span>
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -362,14 +363,14 @@ export function Reports({
                       </span>
                     </div>
 
-                    <button
+                    <Button variant="secondary"
                       type="button"
                       onClick={() => setActiveTab('occupancy')}
-                      className="rounded-xl border border-border bg-surface hover:bg-page px-2.5 py-1 text-label font-semibold text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                      className="cursor-pointer transition-colors flex items-center gap-1"
                     >
                       <span>Deep Dive</span>
                       <Lucide.ArrowRight size={12} className="text-ink-muted" />
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -435,14 +436,14 @@ export function Reports({
 
               <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-label text-ink-secondary">
                 <span className="text-label text-ink-muted">Peak demand: 24 Oct (95% Occupancy · ₹6,500 ADR)</span>
-                <button
+                <Button variant="link"
                   type="button"
                   onClick={() => setActiveTab('occupancy')}
-                  className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                  className="hover:underline inline-flex items-center gap-1 cursor-pointer"
                 >
                   <span>View occupancy ledger</span>
                   <Lucide.ArrowRight size={12} />
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -525,14 +526,14 @@ export function Reports({
 
               <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-label">
                 <span className="text-label text-ink-muted">Available to sell: 10 units</span>
-                <button
+                <Button variant="link"
                   type="button"
                   onClick={() => go({ view: 'room-overview' })}
-                  className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                  className="hover:underline inline-flex items-center gap-1 cursor-pointer"
                 >
                   <span>Room overview</span>
                   <Lucide.ArrowRight size={12} />
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -548,9 +549,9 @@ export function Reports({
                 subtitle="Front-desk movements and facility tasks"
                 action={
                   data && can('report.export') ? (
-                    <button
+                    <Button variant="secondary"
                       type="button"
-                      className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-xl"
+                      className="flex items-center gap-1.5"
                       onClick={() =>
                         void downloadApiFile(
                           reportsApi.exportDailyFlash(data.flash.businessDate),
@@ -562,7 +563,7 @@ export function Reports({
                     >
                       <Lucide.Download size={13} />
                       <span>Export CSV</span>
-                    </button>
+                    </Button>
                   ) : undefined
                 }
               />
@@ -602,14 +603,14 @@ export function Reports({
                     : 'Financial permission required for revenue data'
                 }
                 action={
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={() => setActiveTab('revenue')}
-                    className="pms-btn-ghost flex items-center gap-1 text-label font-semibold px-2.5 py-1 rounded-xl"
+                    className="flex items-center gap-1"
                   >
                     <span>Full Ledger</span>
                     <Lucide.ChevronRight size={13} />
-                  </button>
+                  </Button>
                 }
               />
               {revenue ? (
@@ -665,10 +666,10 @@ export function Reports({
                 onChange={setOccRange}
               />
               {can('report.export') && (
-                <button
+                <Button variant="secondary"
                   type="button"
                   disabled={!occupancy}
-                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-xl border border-border"
+                  className="flex items-center gap-1.5"
                   onClick={() =>
                     occupancy &&
                     void downloadApiFile(reportsApi.exportOccupancy(occupancy.from, occupancy.to), 'occupancy.csv').catch(
@@ -678,7 +679,7 @@ export function Reports({
                 >
                   <Lucide.Download size={13} />
                   <span>Export CSV</span>
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -809,10 +810,10 @@ export function Reports({
                 onChange={setRevRange}
               />
               {can('report.export') && (
-                <button
+                <Button variant="secondary"
                   type="button"
                   disabled={!revenue}
-                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-xl border border-border"
+                  className="flex items-center gap-1.5"
                   onClick={() =>
                     revenue &&
                     void downloadApiFile(reportsApi.exportRevenue(revenue.from, revenue.to), 'revenue.csv').catch(
@@ -822,7 +823,7 @@ export function Reports({
                 >
                   <Lucide.Download size={13} />
                   <span>Export CSV</span>
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -956,14 +957,14 @@ export function Reports({
             <div className="flex items-center gap-2">
               {/* Date Stepper */}
               <div className="flex items-center rounded-xl border border-border bg-page p-0.5">
-                <button
+                <Button variant="secondary"
                   type="button"
                   title="Previous day"
-                  className="pms-btn-ghost h-8 w-8 p-0 flex items-center justify-center rounded-lg"
+                  className="w-8 flex items-center justify-center"
                   onClick={() => setMovementDay((d) => shiftDate(d, -1))}
                 >
                   <Lucide.ChevronLeft size={16} />
-                </button>
+                </Button>
                 <input
                   type="date"
                   value={movementDay}
@@ -971,20 +972,20 @@ export function Reports({
                   className={inputClass('border-0 bg-transparent py-1 px-2.5 tnum text-label font-bold')}
                   aria-label="Manifest business date"
                 />
-                <button
+                <Button variant="secondary"
                   type="button"
                   title="Next day"
-                  className="pms-btn-ghost h-8 w-8 p-0 flex items-center justify-center rounded-lg"
+                  className="w-8 flex items-center justify-center"
                   onClick={() => setMovementDay((d) => shiftDate(d, 1))}
                 >
                   <Lucide.ChevronRight size={16} />
-                </button>
+                </Button>
               </div>
 
               {can('report.export') && (
-                <button
+                <Button variant="secondary"
                   type="button"
-                  className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-xl border border-border"
+                  className="flex items-center gap-1.5"
                   onClick={() =>
                     void downloadApiFile(reportsApi.exportMovement(movementDay, movementDay), `movement-${movementDay}.csv`).catch(
                       (error: unknown) => toast('Export failed', { detail: displayApiError(error), tone: 'danger' }),
@@ -993,7 +994,7 @@ export function Reports({
                 >
                   <Lucide.Download size={13} />
                   <span>Export CSV</span>
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -1176,31 +1177,29 @@ export function Reports({
                   </span>
                 ) : null}
                 {can('night-audit.run') ? (
-                  <button
+                  <Button variant="secondary"
                     type="button"
-                    className="pms-btn-ghost px-3.5 py-2 text-label font-semibold rounded-xl border border-border"
                     onClick={() => void runNightAudit('preview')}
                   >
                     Run Preview
-                  </button>
+                  </Button>
                 ) : null}
                 {can('night-audit.approve') && nightAuditResource.data?.status !== 'COMPLETED' ? (
-                  <button
+                  <Button variant="primary"
                     type="button"
-                    className="pms-btn-primary px-3.5 py-2 text-label font-semibold rounded-xl"
                     onClick={() => void runNightAudit('close')}
                   >
                     Close Business Date
-                  </button>
+                  </Button>
                 ) : null}
                 {can('night-audit.approve') && nightAuditResource.data?.status === 'COMPLETED' ? (
-                  <button
+                  <Button variant="secondary"
                     type="button"
-                    className="pms-btn-ghost px-3.5 py-2 text-label text-warning-text font-semibold rounded-xl border border-warning-border bg-warning-bg"
+                    className="text-warning-text border-warning-border bg-warning-bg"
                     onClick={() => setReopenModal(true)}
                   >
                     Reopen Business Date
-                  </button>
+                  </Button>
                 ) : null}
               </div>
             </Card>
@@ -1216,9 +1215,9 @@ export function Reports({
                 subtitle={`${data.audit.total} events recorded · latest ${data.audit.returned} shown`}
                 action={
                   can('audit-log.export') ? (
-                    <button
+                    <Button variant="secondary"
                       type="button"
-                      className="pms-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-xl border border-border"
+                      className="flex items-center gap-1.5"
                       onClick={() =>
                         void downloadApiFile(auditApi.export(), 'audit-log.csv').catch((error: unknown) =>
                           toast('Audit export failed', { detail: displayApiError(error), tone: 'danger' }),
@@ -1227,7 +1226,7 @@ export function Reports({
                     >
                       <Lucide.Download size={13} />
                       <span>Export CSV</span>
-                    </button>
+                    </Button>
                   ) : undefined
                 }
               />

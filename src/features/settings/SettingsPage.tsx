@@ -13,6 +13,7 @@ import { Modal } from '../../components/overlays';
 import { Field } from '../../components/controls';
 import { inputClass } from '../../utils/styling';
 import type { RoomType } from '../../types';
+import { Button, Checkbox, IconButton, SelectField, TextArea, TextField } from '../../components/primitives';
 
 type SettingsTab =
   | 'general'
@@ -200,23 +201,23 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => resource.refresh()}
-              className="pms-btn-ghost flex items-center gap-1.5 text-label font-medium px-3 py-2 rounded-xl border border-border"
+              className="flex items-center gap-1.5"
               title="Refresh room types"
             >
               <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
               <span>Refresh</span>
-            </button>
-            <button
+            </Button>
+            <Button variant="primary"
               type="button"
               onClick={openAdd}
-              className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-label font-semibold rounded-xl"
+              className="flex items-center gap-1.5"
             >
               <Lucide.Plus size={15} strokeWidth={2.4} />
               <span>Add Room Type</span>
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -288,14 +289,14 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
                     </span>
                   </td>
                   <td className="text-right py-3">
-                    <button
+                    <Button variant="secondary"
                       type="button"
                       onClick={() => openEdit(t)}
-                      className="p-1.5 rounded-lg border border-border hover:bg-muted-surface text-ink-secondary hover:text-ink transition-colors cursor-pointer"
+                      className="transition-colors cursor-pointer"
                       title={`Edit ${t.name}`}
                     >
                       <Lucide.Pencil size={14} />
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -319,73 +320,73 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
               <p className="text-label text-ink-muted mt-0.5">Default automated rules applied across room inventory</p>
             </div>
           </div>
-          <button
+          <Button variant="primary"
             type="button"
             onClick={handleSavePreferences}
             disabled={savingPrefs}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 cursor-pointer transition-all disabled:opacity-50"
           >
             Save Rules
-          </button>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-label font-medium text-ink mb-1.5">Cleaning Turnaround Window</label>
-            <select
+            <SelectField
               value={turnaroundMinutes}
               onChange={(e) => setTurnaroundMinutes(e.target.value)}
-              className="w-full rounded-md border px-3 py-2 text-body text-ink focus:outline-none"
+              className="w-full focus:outline-none"
               style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             >
               <option value="20">20 Minutes</option>
               <option value="30">30 Minutes (Standard)</option>
               <option value="45">45 Minutes</option>
               <option value="60">60 Minutes</option>
-            </select>
+            </SelectField>
             <span className="text-label text-ink-secondary mt-1 block">Allocated housekeeping duration per room departure</span>
           </div>
 
           <div>
             <label className="block text-label font-medium text-ink mb-1.5">Default Keycards Allotment</label>
-            <select
+            <SelectField
               value={keycardsPerRoom}
               onChange={(e) => setKeycardsPerRoom(e.target.value)}
-              className="w-full rounded-md border px-3 py-2 text-body text-ink focus:outline-none"
+              className="w-full focus:outline-none"
               style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             >
               <option value="1">1 Keycard</option>
               <option value="2">2 Keycards (Standard)</option>
               <option value="3">3 Keycards</option>
-            </select>
+            </SelectField>
             <span className="text-label text-ink-secondary mt-1 block">Initial issued RFID access cards on check-in</span>
           </div>
 
           <div>
             <label className="block text-label font-medium text-ink mb-1.5">Auto-Release Hold Timeout</label>
-            <select
+            <SelectField
               value={autoReleaseHoldMinutes}
               onChange={(e) => setAutoReleaseHoldMinutes(e.target.value)}
-              className="w-full rounded-md border px-3 py-2 text-body text-ink focus:outline-none"
+              className="w-full focus:outline-none"
               style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             >
               <option value="10">10 Minutes</option>
               <option value="15">15 Minutes (Recommended)</option>
               <option value="30">30 Minutes</option>
-            </select>
+            </SelectField>
             <span className="text-label text-ink-secondary mt-1 block">Release uncommitted room locks during reservation creation</span>
           </div>
         </div>
 
         <div className="mt-4 pt-3 border-t flex justify-end" style={{ borderColor: 'var(--color-border-subtle)' }}>
-          <button
+          <Button variant="primary"
             type="button"
             onClick={handleSavePreferences}
             disabled={savingPrefs}
-            className="pms-btn-primary px-4 py-2 text-label font-semibold rounded-md shadow-xs disabled:opacity-50"
+            className="disabled:opacity-50"
           >
             {savingPrefs ? 'Saving…' : 'Save Operational Rules'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -468,22 +469,21 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
               </Field>
             </div>
             <div className="flex gap-2 sm:col-span-2 pt-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
-              <button
+              <Button variant="secondary"
                 type="button"
-                className="pms-btn-ghost flex-1 px-4 py-2.5"
+                className="flex-1"
                 onClick={() => setEditing(null)}
                 disabled={isSaving}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button variant="primary"
                 type="button"
-                className="pms-btn-primary flex-[2] px-4 py-2.5 font-semibold"
                 onClick={save}
                 disabled={isSaving}
               >
                 {isSaving ? 'Saving…' : 'Save Room Type'}
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -708,15 +708,15 @@ export function Settings({
           const isActive = activeTab === t.id;
           const Icon = t.icon;
           return (
-            <button
+            <Button variant="secondary"
               key={t.id}
               type="button"
               onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 rounded-md px-4 py-2 text-body font-semibold whitespace-nowrap transition-all ${
-                isActive
-                  ? 'text-white shadow-sm'
-                  : 'text-ink-secondary hover:text-ink hover:bg-ink/[0.03]'
-              }`}
+              className={`flex items-center gap-2 whitespace-nowrap transition-all ${
+ isActive
+ ? 'text-white shadow-sm'
+ : 'text-ink-secondary hover:text-ink hover:bg-ink/[0.03]'
+ }`}
               style={{
                 background: isActive ? 'var(--color-primary)' : 'transparent',
                 border: isActive
@@ -726,7 +726,7 @@ export function Settings({
             >
               <Icon size={16} strokeWidth={isActive ? 2.4 : 1.9} />
               <span>{t.label}</span>
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -752,14 +752,14 @@ export function Settings({
                       <p className="text-label text-ink-muted mt-0.5">Core details about your property</p>
                     </div>
                   </div>
-                  <button
+                  <Button variant="primary"
                     type="button"
                     onClick={() => void handleSaveBasic()}
                     disabled={saving}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all disabled:opacity-50"
+                    className="flex items-center gap-1.5 cursor-pointer transition-all disabled:opacity-50"
                   >
                     Save Changes
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -768,11 +768,11 @@ export function Settings({
                     <label className="block text-label font-medium text-ink mb-1.5">
                       Property Name <span className="text-danger-text">*</span>
                     </label>
-                    <input
+                    <TextField
                       type="text"
                       value={propertyName}
                       onChange={(e) => setPropertyName(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full focus:outline-none focus:ring-2"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -782,11 +782,11 @@ export function Settings({
                     <label className="block text-label font-medium text-ink mb-1.5">
                       Property Code <span className="text-danger-text">*</span>
                     </label>
-                    <input
+                    <TextField
                       type="text"
                       value={propertyCode}
                       onChange={(e) => setPropertyCode(e.target.value.toUpperCase())}
-                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 uppercase"
+                      className="w-full focus:outline-none focus:ring-2 uppercase"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -796,10 +796,10 @@ export function Settings({
                     <label className="block text-label font-medium text-ink mb-1.5">
                       Property Type
                     </label>
-                    <select
+                    <SelectField
                       value={propertyType}
                       onChange={(e) => setPropertyType(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full focus:outline-none focus:ring-2"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>Hotel</option>
@@ -808,7 +808,7 @@ export function Settings({
                       <option>Motel</option>
                       <option>Villa</option>
                       <option>Apartment</option>
-                    </select>
+                    </SelectField>
                   </div>
 
                   {/* Star Rating */}
@@ -824,7 +824,7 @@ export function Settings({
                         >
                           <div className="flex items-center gap-1 text-warning-text">
                             {[1, 2, 3, 4, 5].map((star) => (
-                              <button
+                              <IconButton variant="plain"
                                 key={star}
                                 type="button"
                                 onClick={() => setStarRating(String(star))}
@@ -834,7 +834,7 @@ export function Settings({
                                   size={18}
                                   className={star <= Number(starRating) ? 'fill-warning-text text-warning-text' : 'text-ink-muted/30'}
                                 />
-                              </button>
+                              </IconButton>
                             ))}
                           </div>
                           <span className="text-label font-medium text-ink-secondary">
@@ -847,11 +847,11 @@ export function Settings({
                         <label className="block text-label font-medium text-ink mb-1.5">
                           Address Line 1
                         </label>
-                        <input
+                        <TextField
                           type="text"
                           value={addressLine1}
                           onChange={(e) => setAddressLine1(e.target.value)}
-                          className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full focus:outline-none focus:ring-2"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
@@ -863,11 +863,11 @@ export function Settings({
                     <label className="block text-label font-medium text-ink mb-1.5">
                       Address Line 2
                     </label>
-                    <input
+                    <TextField
                       type="text"
                       value={addressLine2}
                       onChange={(e) => setAddressLine2(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full focus:outline-none focus:ring-2"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -875,44 +875,44 @@ export function Settings({
                   {/* City, State, Country, Postal Code */}
                   <div>
                     <label className="block text-label font-medium text-ink mb-1.5">City</label>
-                    <input
+                    <TextField
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full focus:outline-none focus:ring-2"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   <div>
                     <label className="block text-label font-medium text-ink mb-1.5">State / Province</label>
-                    <input
+                    <TextField
                       type="text"
                       value={stateProvince}
                       onChange={(e) => setStateProvince(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full focus:outline-none focus:ring-2"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   <div>
                     <label className="block text-label font-medium text-ink mb-1.5">Country</label>
-                    <input
+                    <TextField
                       type="text"
                       value={country}
                       onChange={(e) => setCountry(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full focus:outline-none focus:ring-2"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   <div>
                     <label className="block text-label font-medium text-ink mb-1.5">Postal Code</label>
-                    <input
+                    <TextField
                       type="text"
                       value={postalCode}
                       onChange={(e) => setPostalCode(e.target.value)}
-                      className="w-full rounded-md border px-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full focus:outline-none focus:ring-2"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -923,11 +923,11 @@ export function Settings({
                       <label className="block text-label font-medium text-ink mb-1.5">Phone Number</label>
                       <div className="relative">
                         <Lucide.Phone size={15} className="absolute left-3.5 top-3 text-ink-muted" />
-                        <input
+                        <TextField
                           type="text"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full focus:outline-none focus:ring-2 pl-9 pr-3.5"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
@@ -937,11 +937,11 @@ export function Settings({
                       <label className="block text-label font-medium text-ink mb-1.5">Email Address</label>
                       <div className="relative">
                         <Lucide.Mail size={15} className="absolute left-3.5 top-3 text-ink-muted" />
-                        <input
+                        <TextField
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full focus:outline-none focus:ring-2 pl-9 pr-3.5"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
@@ -951,11 +951,11 @@ export function Settings({
                       <label className="block text-label font-medium text-ink mb-1.5">Website</label>
                       <div className="relative">
                         <Lucide.Globe size={15} className="absolute left-3.5 top-3 text-ink-muted" />
-                        <input
+                        <TextField
                           type="text"
                           value={website}
                           onChange={(e) => setWebsite(e.target.value)}
-                          className="w-full rounded-md border pl-9 pr-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full focus:outline-none focus:ring-2 pl-9 pr-3.5"
                           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                         />
                       </div>
@@ -991,14 +991,14 @@ export function Settings({
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink/50 via-transparent to-transparent" />
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={() => toast('Change cover image dialog', { tone: 'info' })}
-                    className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 rounded-lg bg-surface/90 backdrop-blur-md px-2.5 py-1 text-label font-medium text-ink shadow-sm hover:bg-surface transition-colors"
+                    className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 transition-colors"
                   >
                     <Lucide.Camera size={13} />
                     <span>Change cover image</span>
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Logo Section */}
@@ -1015,15 +1015,15 @@ export function Settings({
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <button
+                    <Button variant="secondary"
                       type="button"
                       onClick={() => toast('Change logo dialog', { tone: 'info' })}
-                      className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-label font-medium text-ink hover:bg-ink/[0.04] transition-colors"
+                      className="flex items-center gap-1.5 transition-colors"
                       style={{ borderColor: 'var(--color-border)' }}
                     >
                       <Lucide.Image size={13} />
                       <span>Change logo</span>
-                    </button>
+                    </Button>
                     <p className="text-label text-ink-secondary mt-1 leading-snug">
                       Recommended size: 400 × 400 px<br />PNG, JPG (max 2MB)
                     </p>
@@ -1044,15 +1044,15 @@ export function Settings({
                         <img src={src} alt="Gallery thumb" className="h-full w-full object-cover transition-transform group-hover:scale-110" />
                       </div>
                     ))}
-                    <button
+                    <Button variant="secondary"
                       type="button"
                       onClick={() => toast('Add gallery photos dialog', { tone: 'info' })}
-                      className="flex flex-col items-center justify-center rounded-md border-2 border-dashed aspect-square transition-colors hover:border-primary hover:text-primary"
+                      className="flex flex-col items-center justify-center transition-colors"
                       style={{ borderColor: 'var(--color-border)', color: 'var(--color-ink-muted)' }}
                     >
                       <Lucide.Plus size={16} strokeWidth={2.4} />
                       <span className="text-label font-medium mt-1 text-center leading-tight">Add photos</span>
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -1077,13 +1077,13 @@ export function Settings({
                       <p className="text-label text-ink-muted mt-0.5">Public contact details for guests</p>
                     </div>
                   </div>
-                  <button
+                  <Button variant="primary"
                     type="button"
                     onClick={handleSaveContact}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
+                    className="flex items-center gap-1.5 cursor-pointer transition-all"
                   >
                     Save Changes
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="flex flex-col gap-3">
@@ -1091,11 +1091,11 @@ export function Settings({
                     <label className="block text-label font-medium text-ink mb-1.5">Front Desk Phone</label>
                     <div className="relative">
                       <Lucide.Phone size={15} className="absolute left-3.5 top-3 text-ink-muted" />
-                      <input
+                      <TextField
                         type="text"
                         value={frontDeskPhone}
                         onChange={(e) => setFrontDeskPhone(e.target.value)}
-                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full focus:outline-none focus:ring-2 pl-9 pr-3.5"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
@@ -1105,11 +1105,11 @@ export function Settings({
                     <label className="block text-label font-medium text-ink mb-1.5">Reservations Email</label>
                     <div className="relative">
                       <Lucide.Mail size={15} className="absolute left-3.5 top-3 text-ink-muted" />
-                      <input
+                      <TextField
                         type="email"
                         value={reservationsEmail}
                         onChange={(e) => setReservationsEmail(e.target.value)}
-                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full focus:outline-none focus:ring-2 pl-9 pr-3.5"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
@@ -1119,11 +1119,11 @@ export function Settings({
                     <label className="block text-label font-medium text-ink mb-1.5">General Email</label>
                     <div className="relative">
                       <Lucide.Mail size={15} className="absolute left-3.5 top-3 text-ink-muted" />
-                      <input
+                      <TextField
                         type="email"
                         value={generalEmail}
                         onChange={(e) => setGeneralEmail(e.target.value)}
-                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full focus:outline-none focus:ring-2 pl-9 pr-3.5"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
@@ -1133,11 +1133,11 @@ export function Settings({
                     <label className="block text-label font-medium text-ink mb-1.5">Emergency Contact</label>
                     <div className="relative">
                       <Lucide.PhoneCall size={15} className="absolute left-3.5 top-3 text-ink-muted" />
-                      <input
+                      <TextField
                         type="text"
                         value={emergencyPhone}
                         onChange={(e) => setEmergencyPhone(e.target.value)}
-                        className="w-full rounded-md border pl-9 pr-3.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full focus:outline-none focus:ring-2 pl-9 pr-3.5"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
@@ -1162,23 +1162,23 @@ export function Settings({
                       <p className="text-label text-ink-muted mt-0.5">Configure key operational details</p>
                     </div>
                   </div>
-                  <button
+                  <Button variant="primary"
                     type="button"
                     onClick={() => void handleSaveOperations()}
                     disabled={saving}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all disabled:opacity-50"
+                    className="flex items-center gap-1.5 cursor-pointer transition-all disabled:opacity-50"
                   >
                     Save Changes
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="col-span-2 sm:col-span-1">
                     <label className="block text-label font-medium text-ink mb-1.5">Time Zone</label>
-                    <select
+                    <SelectField
                       value={timeZone}
                       onChange={(e) => setTimeZone(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full focus:outline-none focus:ring-2"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>(GMT+05:30) India Standard Time</option>
@@ -1186,32 +1186,32 @@ export function Settings({
                       <option>(GMT-05:00) Eastern Time</option>
                       <option>(GMT+01:00) Central European Time</option>
                       <option>(GMT+08:00) Singapore Time</option>
-                    </select>
+                    </SelectField>
                   </div>
 
                   <div className="col-span-2 sm:col-span-1">
                     <label className="block text-label font-medium text-ink mb-1.5">Date Format</label>
-                    <select
+                    <SelectField
                       value={dateFormat}
                       onChange={(e) => setDateFormat(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full focus:outline-none focus:ring-2"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>DD/MM/YYYY</option>
                       <option>MM/DD/YYYY</option>
                       <option>YYYY-MM-DD</option>
-                    </select>
+                    </SelectField>
                   </div>
 
                   <div>
                     <label className="block text-label font-medium text-ink mb-1.5">Check-in Time</label>
                     <div className="relative">
                       <Lucide.Clock size={15} className="absolute left-3 top-3 text-ink-muted" />
-                      <input
+                      <TextField
                         type="text"
                         value={checkInTime}
                         onChange={(e) => setCheckInTime(e.target.value)}
-                        className="w-full rounded-md border pl-8 pr-2.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full focus:outline-none focus:ring-2 pl-8 pr-2.5"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
@@ -1221,11 +1221,11 @@ export function Settings({
                     <label className="block text-label font-medium text-ink mb-1.5">Check-out Time</label>
                     <div className="relative">
                       <Lucide.Clock size={15} className="absolute left-3 top-3 text-ink-muted" />
-                      <input
+                      <TextField
                         type="text"
                         value={checkOutTime}
                         onChange={(e) => setCheckOutTime(e.target.value)}
-                        className="w-full rounded-md border pl-8 pr-2.5 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full focus:outline-none focus:ring-2 pl-8 pr-2.5"
                         style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                       />
                     </div>
@@ -1233,10 +1233,10 @@ export function Settings({
 
                   <div className="col-span-2">
                     <label className="block text-label font-medium text-ink mb-1.5">Default Currency</label>
-                    <select
+                    <SelectField
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full focus:outline-none focus:ring-2"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     >
                       <option>INR - Indian Rupee (₹)</option>
@@ -1244,27 +1244,27 @@ export function Settings({
                       <option>EUR - Euro (€)</option>
                       <option>GBP - British Pound (£)</option>
                       <option>AED - UAE Dirham (AED)</option>
-                    </select>
+                    </SelectField>
                   </div>
 
                   <div>
                     <label className="block text-label font-medium text-ink mb-1.5">Number of Floors</label>
-                    <input
+                    <TextField
                       type="number"
                       value={floors}
                       onChange={(e) => setFloors(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full focus:outline-none focus:ring-2"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
 
                   <div>
                     <label className="block text-label font-medium text-ink mb-1.5">Total Rooms</label>
-                    <input
+                    <TextField
                       type="number"
                       value={totalRooms}
                       onChange={(e) => setTotalRooms(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-body font-normal text-ink focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full focus:outline-none focus:ring-2"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
                   </div>
@@ -1285,10 +1285,10 @@ export function Settings({
 
                 <div className="grid grid-cols-2 gap-2">
                   {/* Action 1: Business Details */}
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={() => setActiveTab('taxes')}
-                    className="flex flex-col items-start p-3 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
+                    className="flex flex-col items-start text-left transition-all"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
                     <div className="flex h-9 w-9 items-center justify-center rounded-md bg-info-bg text-info-text mb-2 group-hover:scale-105 transition-transform">
@@ -1296,13 +1296,13 @@ export function Settings({
                     </div>
                     <span className="text-body font-semibold text-ink leading-tight">Business Details</span>
                     <span className="text-label text-ink-secondary mt-1 leading-tight">Update legal and tax information</span>
-                  </button>
+                  </Button>
 
                   {/* Action 2: Upload Documents */}
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={() => toast('Document upload center', { tone: 'info' })}
-                    className="flex flex-col items-start p-3 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
+                    className="flex flex-col items-start text-left transition-all"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
                     <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary mb-2 group-hover:scale-105 transition-transform">
@@ -1310,13 +1310,13 @@ export function Settings({
                     </div>
                     <span className="text-body font-semibold text-ink leading-tight">Upload Documents</span>
                     <span className="text-label text-ink-secondary mt-1 leading-tight">License, permits, certificates</span>
-                  </button>
+                  </Button>
 
                   {/* Action 3: Set Policies */}
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={() => setActiveTab('policies')}
-                    className="flex flex-col items-start p-3 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
+                    className="flex flex-col items-start text-left transition-all"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
                     <div className="flex h-9 w-9 items-center justify-center rounded-md bg-success-bg text-success-text mb-2 group-hover:scale-105 transition-transform">
@@ -1324,16 +1324,16 @@ export function Settings({
                     </div>
                     <span className="text-body font-semibold text-ink leading-tight">Set Policies</span>
                     <span className="text-label text-ink-secondary mt-1 leading-tight">Cancellation, payment, guest</span>
-                  </button>
+                  </Button>
 
                   {/* Action 4: Manage Amenities */}
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={() => {
                       const el = document.getElementById('amenities-section');
                       el?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="flex flex-col items-start p-3 rounded-md border text-left transition-all hover:shadow-xs hover:border-primary group"
+                    className="flex flex-col items-start text-left transition-all"
                     style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   >
                     <div className="flex h-9 w-9 items-center justify-center rounded-md bg-warning-bg text-warning-text mb-2 group-hover:scale-105 transition-transform">
@@ -1341,7 +1341,7 @@ export function Settings({
                     </div>
                     <span className="text-body font-semibold text-ink leading-tight">Manage Amenities</span>
                     <span className="text-label text-ink-secondary mt-1 leading-tight">Property facilities and services</span>
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1360,30 +1360,29 @@ export function Settings({
                     <h2 className="text-body font-semibold text-ink">Property Description</h2>
                     <p className="text-label text-ink-secondary mt-0.5">This description is shown to guests on booking channels</p>
                   </div>
-                  <button
+                  <Button variant="primary"
                     type="button"
                     onClick={handleSaveDescription}
-                    className="pms-btn-primary px-3.5 py-1.5 text-body font-semibold rounded-md shadow-xs"
                   >
                     Save Changes
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Rich text formatting bar */}
                 <div className="flex items-center gap-1 border-b pb-2 mb-2 text-ink-secondary" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05] text-label font-bold">B</button>
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05] text-label italic font-serif">I</button>
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05] text-label underline">U</button>
+                  <IconButton variant="ghost" type="button" className="font-bold">B</IconButton>
+                  <IconButton variant="ghost" type="button" className="italic font-serif">I</IconButton>
+                  <IconButton variant="ghost" type="button" className="underline">U</IconButton>
                   <span className="h-4 w-px bg-border mx-1" />
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05]"><Lucide.List size={15} /></button>
-                  <button type="button" className="p-1.5 rounded-lg hover:bg-ink/[0.05]"><Lucide.Link2 size={15} /></button>
+                  <IconButton variant="ghost" type="button" ><Lucide.List size={15} /></IconButton>
+                  <IconButton variant="ghost" type="button" ><Lucide.Link2 size={15} /></IconButton>
                 </div>
 
-                <textarea
+                <TextArea
                   rows={5}
                   value={description}
                   onChange={(e) => setDescription(e.target.value.slice(0, 500))}
-                  className="w-full rounded-md border p-3 text-body leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none font-normal"
+                  className="w-full focus:outline-none focus:ring-2"
                   style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                 />
 
@@ -1407,13 +1406,12 @@ export function Settings({
                     <h2 className="text-body font-semibold text-ink">Amenities & Facilities</h2>
                     <p className="text-label text-ink-secondary mt-0.5">Select amenities available at your property</p>
                   </div>
-                  <button
+                  <Button variant="primary"
                     type="button"
                     onClick={handleSaveAmenities}
-                    className="pms-btn-primary px-3.5 py-1.5 text-body font-semibold rounded-md shadow-xs"
                   >
                     Save Changes
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -1426,25 +1424,24 @@ export function Settings({
                       }`}
                       style={{ borderColor: item.checked ? 'var(--color-primary)' : 'var(--color-border)' }}
                     >
-                      <input
+                      <Checkbox
                         type="checkbox"
                         checked={item.checked}
                         onChange={() => {}} // handled by label click
-                        className="h-4 w-4 rounded accent-primary cursor-pointer"
                       />
                       <span className="truncate text-ink">{item.label}</span>
                     </label>
                   ))}
                 </div>
 
-                <button
+                <Button variant="link"
                   type="button"
                   onClick={addCustomAmenity}
-                  className="flex items-center gap-1.5 mt-4 text-label font-semibold text-primary hover:underline"
+                  className="flex items-center gap-1.5 mt-4 hover:underline"
                 >
                   <Lucide.Plus size={14} strokeWidth={2.4} />
                   <span>Add custom amenity</span>
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -1513,35 +1510,35 @@ export function Settings({
             <div className="flex flex-col gap-3">
               <div>
                 <label className="block text-label font-medium text-ink mb-1.5">Cancellation Policy</label>
-                <input
+                <TextField
                   defaultValue="Free cancellation until 48h before arrival; first night charged thereafter."
-                  className="w-full rounded-md border p-2.5 text-body font-normal text-ink"
+                  className="w-full"
                   style={{ borderColor: 'var(--color-border)' }}
                 />
               </div>
               <div>
                 <label className="block text-label font-medium text-ink mb-1.5">No-show Policy</label>
-                <input
+                <TextField
                   defaultValue="First night charged to the primary payment method on file."
-                  className="w-full rounded-md border p-2.5 text-body font-normal text-ink"
+                  className="w-full"
                   style={{ borderColor: 'var(--color-border)' }}
                 />
               </div>
               <div>
                 <label className="block text-label font-medium text-ink mb-1.5">Child & Extra Bed Policy</label>
-                <input
+                <TextField
                   defaultValue="Children under 6 stay complimentary using existing bedding."
-                  className="w-full rounded-md border p-2.5 text-body font-normal text-ink"
+                  className="w-full"
                   style={{ borderColor: 'var(--color-border)' }}
                 />
               </div>
-              <button
+              <Button variant="primary"
                 type="button"
                 onClick={() => toast('Policies saved', { tone: 'success' })}
-                className="pms-btn-primary px-4 py-2 text-body font-semibold rounded-md mt-2 w-fit"
+                className="mt-2 w-fit"
               >
                 Save Policies
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -1554,21 +1551,21 @@ export function Settings({
                   <p className="text-body font-semibold text-ink">Mandatory Government ID on Check-in</p>
                   <p className="text-label text-ink-secondary">Passport, driving license, or national identity card</p>
                 </div>
-                <input type="checkbox" defaultChecked className="h-5 w-5 rounded accent-primary cursor-pointer" />
+                <Checkbox type="checkbox" defaultChecked />
               </div>
               <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--color-border-subtle)' }}>
                 <div>
                   <p className="text-body font-semibold text-ink">Security Deposit Guarantee</p>
                   <p className="text-label text-ink-secondary">Pre-authorization hold of 20% on incidentals</p>
                 </div>
-                <input type="checkbox" defaultChecked className="h-5 w-5 rounded accent-primary cursor-pointer" />
+                <Checkbox type="checkbox" defaultChecked />
               </div>
               <div className="flex items-center justify-between" style={{ borderColor: 'var(--color-border-subtle)' }}>
                 <div>
                   <p className="text-body font-semibold text-ink">Minimum Check-in Age (18+)</p>
                   <p className="text-label text-ink-secondary">Primary guest must be 18 years or older</p>
                 </div>
-                <input type="checkbox" defaultChecked className="h-5 w-5 rounded accent-primary cursor-pointer" />
+                <Checkbox type="checkbox" defaultChecked />
               </div>
             </div>
           </div>
@@ -1585,19 +1582,19 @@ export function Settings({
               <div>
                 <label className="block text-label font-medium text-ink mb-1.5">Tax Rate (%)</label>
                 <div className="flex items-center gap-2">
-                  <input
+                  <TextField
                     type="number"
                     min={0}
                     max={40}
                     value={taxRate}
                     onChange={(e) => setTaxRate(Number(e.target.value))}
-                    className="w-32 rounded-md border p-2 text-body font-bold text-ink"
+                    className="w-32"
                     style={{ borderColor: 'var(--color-border)' }}
                   />
                   <span className="text-label font-semibold text-ink-secondary">% GST / VAT</span>
                 </div>
               </div>
-              <button
+              <Button variant="primary"
                 type="button"
                 disabled={saving || !can('role.manage')}
                 onClick={async () => {
@@ -1613,10 +1610,10 @@ export function Settings({
                     setSaving(false);
                   }
                 }}
-                className="pms-btn-primary px-4 py-2 text-body font-semibold rounded-md w-fit disabled:opacity-50"
+                className="w-fit disabled:opacity-50"
               >
                 Save Tax Rule
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -1626,19 +1623,19 @@ export function Settings({
             <div className="flex flex-col gap-3">
               <div>
                 <label className="block text-label font-medium text-ink mb-1.5">Invoice Prefix</label>
-                <input defaultValue="INV-2026-" className="w-full rounded-md border p-2.5 font-mono text-body text-ink" style={{ borderColor: 'var(--color-border)' }} />
+                <TextField defaultValue="INV-2026-" className="w-full font-mono" style={{ borderColor: 'var(--color-border)' }} />
               </div>
               <div>
                 <label className="block text-label font-medium text-ink mb-1.5">Tax Registration / GSTIN</label>
-                <input defaultValue="27AAAAA0000A1Z5" className="w-full rounded-md border p-2.5 font-mono text-body text-ink" style={{ borderColor: 'var(--color-border)' }} />
+                <TextField defaultValue="27AAAAA0000A1Z5" className="w-full font-mono" style={{ borderColor: 'var(--color-border)' }} />
               </div>
-              <button
+              <Button variant="primary"
                 type="button"
                 onClick={() => toast('Invoice details saved', { tone: 'success' })}
-                className="pms-btn-primary px-4 py-2 text-body font-semibold rounded-md w-fit"
+                className="w-fit"
               >
                 Save Invoice Details
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -1652,25 +1649,25 @@ export function Settings({
               <h2 className="text-body font-semibold text-ink">Appearance & House Themes</h2>
               <p className="text-label text-ink-secondary mt-0.5">Select from 9 luxury curated hotel house color palettes</p>
             </div>
-            <button
+            <Button variant="primary"
               type="button"
               onClick={onOpenThemes}
-              className="pms-btn-primary flex items-center gap-2 px-4 py-2 text-body font-semibold rounded-md"
+              className="flex items-center gap-2"
             >
               <Lucide.Palette size={16} />
               <span>Open Theme Swatcher</span>
-            </button>
+            </Button>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-2.5">
             {PRESET_LIST.map((p) => {
               const isActive = preset === p.id;
               return (
-                <button
+                <Button variant="secondary"
                   key={p.id}
                   type="button"
                   onClick={() => setPreset(p.id)}
-                  className="rounded-md border p-3 text-left transition-all hover:border-primary group"
+                  className="text-left transition-all"
                   style={{
                     borderColor: isActive ? 'var(--color-primary)' : 'var(--color-border)',
                     background: isActive ? 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))' : 'var(--color-surface)',
@@ -1686,7 +1683,7 @@ export function Settings({
                     <span className="text-body font-semibold text-ink truncate">{p.name}</span>
                     {isActive ? <Lucide.Check size={14} className="text-primary flex-none" /> : null}
                   </div>
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -1708,13 +1705,12 @@ export function Settings({
           <p className="text-body text-ink-secondary max-w-md mx-auto mt-1 mb-5">
             Manage your hotel's {activeTab.replace('-', ' ')} preferences, configurations, and channel integrations.
           </p>
-          <button
+          <Button variant="primary"
             type="button"
             onClick={() => setActiveTab('general')}
-            className="pms-btn-primary px-4 py-2 text-body font-semibold rounded-md"
           >
             Back to General Settings
-          </button>
+          </Button>
         </div>
       )}
     </div>

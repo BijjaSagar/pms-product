@@ -1,3 +1,4 @@
+import { Button, IconButton } from './primitives';
 import { Component, useState } from 'react';
 import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
@@ -65,17 +66,17 @@ export function PanelCrashFallback({ reset, onClose }: { reset: () => void; onCl
             </span>
             <h2 className="text-body font-bold text-ink">Panel Failed to Render</h2>
           </div>
-          <button
+          <IconButton variant="ghost"
             type="button"
             onClick={() => {
               reset();
               onClose();
             }}
-            className="flex h-7 w-7 items-center justify-center rounded-lg border text-ink-muted hover:text-ink"
+            className="flex items-center justify-center"
             style={{ borderColor: 'var(--color-border)' }}
           >
             <Lucide.X size={14} />
-          </button>
+          </IconButton>
         </div>
 
         <p className="text-label text-ink-secondary leading-relaxed">
@@ -83,17 +84,17 @@ export function PanelCrashFallback({ reset, onClose }: { reset: () => void; onCl
         </p>
 
         <div className="mt-auto flex flex-col gap-2 pt-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
-          <button
+          <Button variant="primary"
             type="button"
-            className="pms-btn-primary flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-label font-semibold shadow-sm"
+            className="flex items-center justify-center gap-2"
             onClick={reset}
           >
             <Lucide.RotateCcw size={14} />
             <span>Retry Loading Panel</span>
-          </button>
-          <button
+          </Button>
+          <Button variant="secondary"
             type="button"
-            className="rounded-xl border py-2.5 px-4 text-label font-semibold text-ink hover:bg-hover-surface transition-colors"
+            className="transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             onClick={() => {
               reset();
@@ -101,7 +102,7 @@ export function PanelCrashFallback({ reset, onClose }: { reset: () => void; onCl
             }}
           >
             Close Side Panel
-          </button>
+          </Button>
         </div>
       </aside>
     </div>
@@ -168,14 +169,14 @@ export function AppCrashFallback({ reset }: { reset: () => void }) {
 
         {/* Diagnostic Accordion Trigger */}
         <div className="mt-4 mb-5">
-          <button
+          <Button variant="text"
             type="button"
             onClick={() => setShowDetails((p) => !p)}
-            className="inline-flex items-center gap-1.5 text-label text-ink-muted hover:text-ink transition-colors"
+            className="inline-flex items-center gap-1.5 text-ink-muted hover:text-ink transition-colors"
           >
             <span>{showDetails ? 'Hide technical diagnostics' : 'Show technical diagnostics'}</span>
             <Lucide.ChevronDown size={13} className={`transition-transform ${showDetails ? 'rotate-180' : ''}`} />
-          </button>
+          </Button>
 
           {showDetails && (
             <div
@@ -190,24 +191,24 @@ export function AppCrashFallback({ reset }: { reset: () => void }) {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
-          <button
+          <Button variant="primary"
             type="button"
-            className="w-full sm:w-auto pms-btn-primary flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-label font-semibold shadow-sm"
+            className="w-full sm:w-auto flex items-center justify-center gap-2"
             onClick={reset}
           >
             <Lucide.RotateCcw size={15} />
             <span>Try Again</span>
-          </button>
+          </Button>
 
-          <button
+          <Button variant="secondary"
             type="button"
-            className="w-full sm:w-auto rounded-xl border px-4 py-2.5 text-label font-semibold text-ink hover:bg-hover-surface transition-colors flex items-center justify-center gap-2"
+            className="w-full sm:w-auto transition-colors flex items-center justify-center gap-2"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             onClick={() => window.location.reload()}
           >
             <Lucide.RefreshCw size={15} />
             <span>Reload PMS</span>
-          </button>
+          </Button>
         </div>
       </div>
     </div>
