@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { ConfirmDialog, Drawer, Modal } from '../../components/overlays';
+import { Drawer } from '../../components/overlays';
 import { Avatar } from '../../components/ui';
 import { toast } from '../../utils/toast';
 import type { NavTarget } from '../../config/navigation';
@@ -8,1230 +8,13 @@ import { frontDeskApi, reservationApi } from '../../lib/api/pms';
 import { reservationFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
-import { store } from '../../data/store';
-import type { Reservation, ReservationStatus } from '../../types';
-import type {
-  CalendarReservation,
-  CalendarRoom,
-  DragState,
-  ProposedReservationChange,
-  ReservationStatus as CalendarReservationStatus,
-} from './room-calendar/types';
-import {
-  BUSINESS_DATE,
-  addDaysToIso,
-  countNights,
-  formatCalendarDate,
-  loadCalendarRooms,
-  loadSyncedReservations,
-} from './room-calendar/calendarData';
-import { validateReservationMove } from './room-calendar/validation';
-import { ReservationChangeDialog } from './room-calendar/ReservationChangeDialog';
-import { ReservationDetailModal } from './room-calendar/ReservationDetailModal';
-import { Button, Checkbox, IconButton, SelectField, TextField } from '../../components/primitives';
+import type { ReservationStatus } from '../../types';
+import { Button, Checkbox, IconButton, SelectField } from '../../components/primitives';
 import { ReservationFilterBar, EMPTY_RESERVATION_FILTERS, type ReservationFilters } from './ReservationFilterBar';
-
+import { RoomCalendar } from './RoomCalendar';
+import { ReservationDrawer, StatusPill } from './ReservationDrawer';
 
 type SortKey = 'checkIn' | 'guest' | 'amount';
-
-// Status Pill Badge matching screenshot
-function StatusPill({ status }: { status: ReservationStatus }) {
-  switch (status) {
-    case 'Confirmed':
-      return (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-semibold bg-success-bg text-success-text border border-success-border">
-          <span className="h-1.5 w-1.5 rounded-full bg-success-text" />
-          Confirmed
-        </span>
-      );
-    case 'Checked-in':
-      return (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-semibold bg-[var(--color-muted-surface)] text-[var(--color-primary)] border border-[color-mix(in_srgb,var(--color-primary)_25%,transparent)]">
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-primary)]" />
-          Checked-in
-        </span>
-      );
-    case 'Checked-out':
-      return (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-semibold bg-muted-surface text-ink border border-border">
-          <span className="h-1.5 w-1.5 rounded-full bg-ink-disabled" />
-          Checked-out
-        </span>
-      );
-    case 'Pending':
-      return (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-semibold bg-warning-bg text-warning-text border border-warning-border">
-          <span className="h-1.5 w-1.5 rounded-full bg-warning-text" />
-          Pending
-        </span>
-      );
-    case 'Cancelled':
-      return (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-semibold bg-danger-bg text-danger-text border border-danger-border">
-          <span className="h-1.5 w-1.5 rounded-full bg-danger-text" />
-          Cancelled
-        </span>
-      );
-    case 'No-show':
-      return (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-semibold bg-danger-bg text-danger-text border border-danger-border">
-          <span className="h-1.5 w-1.5 rounded-full bg-danger-text" />
-          No-show
-        </span>
-      );
-    default:
-      return (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-semibold bg-page text-ink border border-border">
-          {status}
-        </span>
-      );
-  }
-}
-
-// Drawer Detail Content
-function ReservationDrawer({
-  r,
-  onClose,
-  onStatus,
-  onEdit,
-  go,
-}: {
-  r: Reservation;
-  onClose: () => void;
-  onStatus: (id: string, s: ReservationStatus) => Promise<boolean>;
-  onEdit: (id: string, patch: Record<string, unknown>) => Promise<boolean>;
-  go: (target: NavTarget) => void;
-}) {
-  const [confirm, setConfirm] = useState<'cancel' | null>(null);
-  const [editOpen, setEditOpen] = useState(false);
-  const [editCheckIn, setEditCheckIn] = useState(r.checkInIso?.slice(0, 10) ?? '');
-  const [editCheckOut, setEditCheckOut] = useState(r.checkOutIso?.slice(0, 10) ?? '');
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  const roomCharges = r.nightlyRate * r.nights;
-  const balance = r.total - r.paid;
-
-  const handleSaveDates = async () => {
-    if (!editCheckIn || !editCheckOut) {
-      toast('Please enter both dates', { tone: 'warning' });
-      return;
-    }
-    if (editCheckIn >= editCheckOut) {
-      toast('Check-out date must be after check-in date', { tone: 'warning' });
-      return;
-    }
-    setIsUpdating(true);
-    const ok = await onEdit(r.backendId ?? r.id, { checkInDate: editCheckIn, checkOutDate: editCheckOut });
-    setIsUpdating(false);
-    if (ok) {
-      toast('Stay dates updated', { detail: `${editCheckIn} to ${editCheckOut}`, tone: 'success' });
-      setEditOpen(false);
-    }
-  };
-
-  return (
-    <>
-      <div className="flex flex-col gap-4 text-label text-ink">
-        <div className="flex items-center justify-between border-b pb-3 border-border">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-body text-ink">{r.guest}</span>
-            <StatusPill status={r.status} />
-          </div>
-          <span className="font-bold text-body text-ink">₹{r.total.toLocaleString('en-IN')}.00</span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 rounded-md border border-border bg-page p-3">
-          <div>
-            <span className="text-label text-ink-muted">Room</span>
-            <p className="font-semibold text-ink">{r.roomSummary ?? (r.roomNumber ? `Room ${r.roomNumber} (${r.roomType})` : `Unassigned (${r.roomType})`)}</p>
-          </div>
-          <div>
-            <span className="text-label text-ink-muted">Rate Plan</span>
-            <p className="font-semibold text-ink">{r.ratePlan}</p>
-          </div>
-          <div>
-            <span className="text-label text-ink-muted">Stay Dates</span>
-            <p className="font-semibold text-ink">{r.checkIn} → {r.checkOut} ({r.nights}n)</p>
-          </div>
-          <div>
-            <span className="text-label text-ink-muted">Guests</span>
-            <p className="font-semibold text-ink">{r.adults + r.children} Guests</p>
-          </div>
-        </div>
-
-        <div className="rounded-md border border-border p-3 flex flex-col gap-1.5">
-          <div className="flex justify-between">
-            <span className="text-ink-secondary">Room Charges:</span>
-            <span className="font-medium text-ink">₹{roomCharges.toLocaleString('en-IN')}.00</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-ink-secondary">Amount Paid:</span>
-            <span className="font-medium text-success-text">₹{r.paid.toLocaleString('en-IN')}.00</span>
-          </div>
-          <div className="flex justify-between font-bold border-t border-divider pt-1">
-            <span>Balance Due:</span>
-            <span className={balance > 0 ? 'text-warning-text' : 'text-ink'}>
-              ₹{Math.max(0, balance).toLocaleString('en-IN')}.00
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-6 flex flex-wrap gap-2.5">
-        {r.status === 'Checked-in' && (
-          <Button variant="primary"
-            type="button"
-            className="flex-1 flex items-center justify-center gap-1.5 cursor-pointer"
-            onClick={() => { go({ view: 'folios' }); onClose(); }}
-          >
-            <Lucide.Receipt size={15} />
-            <span>Open Folio</span>
-          </Button>
-        )}
-        {(r.status === 'Confirmed' || r.status === 'Pending') && (
-          <Button variant="secondary"
-            type="button"
-            className="flex-1 flex items-center justify-center gap-1.5 cursor-pointer"
-            onClick={() => setEditOpen(true)}
-          >
-            <Lucide.CalendarClock size={15} />
-            <span>Modify Dates</span>
-          </Button>
-        )}
-        {(r.status === 'Confirmed' || r.status === 'Pending') && (
-          <Button variant="danger"
-            type="button"
-            className="flex items-center justify-center gap-1.5 cursor-pointer"
-            onClick={() => setConfirm('cancel')}
-          >
-            <Lucide.XCircle size={15} />
-            <span>Cancel</span>
-          </Button>
-        )}
-      </div>
-
-      {/* Date amendment modal */}
-      <Modal
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        title="Modify Stay Dates"
-        subtitle={`Update check-in and check-out dates for ${r.guest}`}
-        footer={
-          <>
-            <Button variant="secondary"
-              type="button"
-              onClick={() => setEditOpen(false)}
-              disabled={isUpdating}
-            >
-              Cancel
-            </Button>
-            <Button variant="primary"
-              type="button"
-              onClick={() => void handleSaveDates()}
-              disabled={isUpdating}
-            >
-              {isUpdating ? 'Saving…' : 'Save Dates'}
-            </Button>
-          </>
-        }
-      >
-        <div className="flex flex-col gap-4 py-2">
-          <div>
-            <label className="block text-label font-semibold text-ink mb-1">Check-in Date</label>
-            <TextField
-              type="date"
-              value={editCheckIn}
-              onChange={(e) => setEditCheckIn(e.target.value)}
-              className="w-full"
-            />
-          </div>
-          <div>
-            <label className="block text-label font-semibold text-ink mb-1">Check-out Date</label>
-            <TextField
-              type="date"
-              value={editCheckOut}
-              onChange={(e) => setEditCheckOut(e.target.value)}
-              className="w-full"
-            />
-          </div>
-        </div>
-      </Modal>
-
-      <ConfirmDialog
-        open={confirm === 'cancel'}
-        onClose={() => setConfirm(null)}
-        onConfirm={() => {
-          void onStatus(r.id, 'Cancelled').then((ok) => {
-            if (ok) {
-              toast('Reservation cancelled', { detail: r.id, tone: 'warning' });
-              onClose();
-            }
-          });
-        }}
-        title="Cancel reservation?"
-        body={`${r.id} · ${r.guest} will be marked Cancelled.`}
-        confirmLabel="Yes, cancel"
-        danger
-      />
-    </>
-  );
-}
-
-// ================= ROOM CALENDAR TAPE CHART COMPONENT =================
-const COL_WIDTH = 114; // keep in sync with the rendered date cells and drag calculations
-const ROW_HEIGHT = 54; // keep in sync with the rendered room rows and drag calculations
-const ROOM_COL_WIDTH = 110; // width of the sticky room allotment column in pixels
-
-const RESERVATION_BAR_TONES: Record<
-  CalendarReservationStatus,
-  { background: string; color: string; border: string; accent: string }
-> = {
-  Confirmed: {
-    background: 'var(--color-success-bg)',
-    color: 'var(--color-success-text)',
-    border: 'var(--color-success-border)',
-    accent: 'var(--color-success-text)',
-  },
-  'Checked-in': {
-    background: 'var(--color-info-bg)',
-    color: 'var(--color-info-text)',
-    border: 'var(--color-info-border)',
-    accent: 'var(--color-info-text)',
-  },
-  Pending: {
-    background: 'var(--color-warning-bg)',
-    color: 'var(--color-warning-text)',
-    border: 'var(--color-warning-border)',
-    accent: 'var(--color-warning-text)',
-  },
-  Tentative: {
-    background: 'var(--color-warning-bg)',
-    color: 'var(--color-warning-text)',
-    border: 'var(--color-warning-border)',
-    accent: 'var(--color-warning-text)',
-  },
-  'Checked-out': {
-    background: 'var(--color-neutral-bg)',
-    color: 'var(--color-neutral-text)',
-    border: 'var(--color-neutral-border)',
-    accent: 'var(--color-neutral-text)',
-  },
-  Cancelled: {
-    background: 'var(--color-danger-bg)',
-    color: 'var(--color-danger-text)',
-    border: 'var(--color-danger-border)',
-    accent: 'var(--color-danger-text)',
-  },
-  'No-show': {
-    background: 'var(--color-danger-bg)',
-    color: 'var(--color-danger-text)',
-    border: 'var(--color-danger-border)',
-    accent: 'var(--color-danger-text)',
-  },
-};
-
-export function RoomCalendar({
-  go,
-  onReservationUpdated,
-  filters,
-}: {
-  go?: (t: NavTarget) => void;
-  onReservationUpdated?: () => void;
-  filters: ReservationFilters;
-}) {
-  // Calendar base anchor date synced with the canonical PMS BUSINESS_DATE
-  const [baseDate, setBaseDate] = useState(BUSINESS_DATE);
-  const [viewHorizonDays, setViewHorizonDays] = useState<7 | 14 | 30>(14);
-
-  // Master Data synchronized with central PMS store
-  const [rooms] = useState<CalendarRoom[]>(loadCalendarRooms);
-  const [reservations, setReservations] = useState<CalendarReservation[]>(() =>
-    loadSyncedReservations()
-  );
-
-  // Detail Modal & Change Confirmation Modal
-  const [activeReservation, setActiveReservation] = useState<CalendarReservation | null>(null);
-  const [pendingChange, setPendingChange] = useState<ProposedReservationChange | null>(null);
-  const [isSavingChange, setIsSavingChange] = useState(false);
-
-  // Drag & Resize State
-  const [dragState, setDragState] = useState<DragState | null>(null);
-  const gridContainerRef = useRef<HTMLDivElement>(null);
-  const isPointerDownRef = useRef(false);
-
-  // Generate Date Headers
-  const calendarDates = useMemo(() => {
-    const list: string[] = [];
-    // Start from baseDate - 2 days to give immediate past context
-    const startOffset = -2;
-    for (let i = 0; i < viewHorizonDays; i++) {
-      list.push(addDaysToIso(baseDate, startOffset + i));
-    }
-    return list;
-  }, [baseDate, viewHorizonDays]);
-
-  // Filtered Rooms
-  const filteredRooms = useMemo(() => {
-    return rooms.filter((r) => {
-      const matchType = filters.roomType === 'All' || r.type === filters.roomType;
-      const matchSearch =
-        !filters.q.trim() ||
-        r.number.includes(filters.q.trim()) ||
-        reservations.some(
-          (res) =>
-            res.roomId === r.id &&
-            (res.guestName.toLowerCase().includes(filters.q.toLowerCase()) ||
-              res.id.toLowerCase().includes(filters.q.toLowerCase()))
-        );
-      return matchType && matchSearch;
-    });
-  }, [rooms, filters.roomType, filters.q, reservations]);
-
-  // Date Navigation
-  const stepDate = (days: number) => {
-    setBaseDate((prev) => addDaysToIso(prev, days));
-  };
-
-  const jumpToToday = () => {
-    setBaseDate(BUSINESS_DATE);
-    toast.info('Jumped to Today', { detail: `Calendar anchored on ${BUSINESS_DATE}` });
-  };
-
-  /**
-   * Clicking a free cell on the room rack starts a new reservation pre-filled
-   * with that room and that night (check-out defaults to the next day).
-   */
-  const handleNewReservation = (room: CalendarRoom, checkIn: string) => {
-    const covered = reservations.some(
-      (res) =>
-        (res.roomId === room.id || res.roomNumber === room.number) &&
-        res.status !== 'Cancelled' &&
-        res.status !== 'No-show' &&
-        res.checkInDate <= checkIn &&
-        checkIn < res.checkOutDate
-    );
-    if (covered) return;
-
-    if (room.status === 'Out-of-Order') {
-      toast.info('Room unavailable', {
-        detail: `Room ${room.number} is out of order and cannot be booked.`,
-      });
-      return;
-    }
-
-    if (!go) {
-      toast.info('New reservation', {
-        detail: 'Open Reservations to create this booking.',
-      });
-      return;
-    }
-
-    const checkOut = addDaysToIso(checkIn, 1);
-    go({
-      view: 'new-reservation',
-      draft: {
-        roomId: room.id,
-        roomNumber: room.number,
-        roomType: room.type,
-        checkIn,
-        checkOut,
-      },
-    });
-    toast.success('New reservation started', {
-      detail: `Room ${room.number} · ${checkIn} → ${checkOut}`,
-    });
-  };
-
-  // Occupancy metrics for the current visible horizon
-  const stats = useMemo(() => {
-    const totalRoomsCount = rooms.length;
-    const todayIso = baseDate;
-    const occupiedToday = reservations.filter(
-      (r) =>
-        r.status !== 'Cancelled' &&
-        r.checkInDate <= todayIso &&
-        todayIso < r.checkOutDate
-    ).length;
-    const oooCount = rooms.filter((r) => r.status === 'Out-of-Order').length;
-    const availableToday = Math.max(0, totalRoomsCount - occupiedToday - oooCount);
-    const occupancyRate = Math.round((occupiedToday / (totalRoomsCount - oooCount)) * 100) || 0;
-
-    return { totalRoomsCount, occupiedToday, availableToday, oooCount, occupancyRate };
-  }, [rooms, reservations, baseDate]);
-
-  // ================= DRAG & DROP LOGIC =================
-
-  const handlePointerDown = (
-    e: React.PointerEvent,
-    res: CalendarReservation,
-    dragType: 'move' | 'resize-start' | 'resize-end'
-  ) => {
-    // Only left click or primary touch
-    if (e.button !== 0) return;
-    if (res.status === 'Cancelled') {
-      toast.info('Cancelled Reservation', { detail: 'Cancelled bookings cannot be adjusted on calendar.' });
-      return;
-    }
-
-    e.preventDefault();
-    e.stopPropagation();
-    isPointerDownRef.current = true;
-
-    setDragState({
-      isDragging: false,
-      reservationId: res.id,
-      dragType,
-      startX: e.clientX,
-      startY: e.clientY,
-      currentX: e.clientX,
-      currentY: e.clientY,
-      originRoomId: res.roomId,
-      originCheckIn: res.checkInDate,
-      originCheckOut: res.checkOutDate,
-      proposedRoomId: res.roomId,
-      proposedCheckIn: res.checkInDate,
-      proposedCheckOut: res.checkOutDate,
-      isValid: true,
-    });
-  };
-
-  useEffect(() => {
-    const onPointerMove = (e: PointerEvent) => {
-      if (!isPointerDownRef.current || !dragState) return;
-
-      const deltaX = e.clientX - dragState.startX;
-      const deltaY = e.clientY - dragState.startY;
-      const isDragging = Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4;
-
-      if (!isDragging) return;
-
-      const res = reservations.find((r) => r.id === dragState.reservationId);
-      if (!res) return;
-
-      // Calculate days shifted horizontally
-      const daysShift = Math.round(deltaX / COL_WIDTH);
-
-      let proposedCheckIn = dragState.originCheckIn;
-      let proposedCheckOut = dragState.originCheckOut;
-
-      if (dragState.dragType === 'move') {
-        proposedCheckIn = addDaysToIso(dragState.originCheckIn, daysShift);
-        proposedCheckOut = addDaysToIso(dragState.originCheckOut, daysShift);
-      } else if (dragState.dragType === 'resize-start') {
-        proposedCheckIn = addDaysToIso(dragState.originCheckIn, daysShift);
-        if (proposedCheckIn >= dragState.originCheckOut) {
-          proposedCheckIn = addDaysToIso(dragState.originCheckOut, -1);
-        }
-      } else if (dragState.dragType === 'resize-end') {
-        proposedCheckOut = addDaysToIso(dragState.originCheckOut, daysShift);
-        if (proposedCheckOut <= dragState.originCheckIn) {
-          proposedCheckOut = addDaysToIso(dragState.originCheckIn, 1);
-        }
-      }
-
-      // Calculate target room vertically (only for 'move' type)
-      let proposedRoomId = dragState.originRoomId;
-      if (dragState.dragType === 'move' && gridContainerRef.current) {
-        const rowsShift = Math.round(deltaY / ROW_HEIGHT);
-        const currentIdx = filteredRooms.findIndex((r) => r.id === dragState.originRoomId);
-        if (currentIdx !== -1) {
-          const targetIdx = Math.max(0, Math.min(filteredRooms.length - 1, currentIdx + rowsShift));
-          proposedRoomId = filteredRooms[targetIdx].id;
-        }
-      }
-
-      const targetRoom = rooms.find((r) => r.id === proposedRoomId) || rooms[0];
-
-      // Run real-time validation
-      const valResult = validateReservationMove({
-        reservation: res,
-        targetRoom,
-        proposedCheckIn,
-        proposedCheckOut,
-        allReservations: reservations,
-      });
-
-      setDragState((prev) =>
-        prev
-          ? {
-            ...prev,
-            isDragging: true,
-            currentX: e.clientX,
-            currentY: e.clientY,
-            proposedRoomId,
-            proposedCheckIn,
-            proposedCheckOut,
-            isValid: valResult.isValid,
-            invalidReason: valResult.reason,
-          }
-          : null
-      );
-    };
-
-    const onPointerUp = () => {
-      if (!isPointerDownRef.current || !dragState) return;
-      isPointerDownRef.current = false;
-
-      const res = reservations.find((r) => r.id === dragState.reservationId);
-
-      // If clicked without significant drag, open detail modal
-      if (!dragState.isDragging && res) {
-        setActiveReservation(res);
-        setDragState(null);
-        return;
-      }
-
-      if (dragState.isDragging && res) {
-        const hasDatesChanged =
-          dragState.proposedCheckIn !== dragState.originCheckIn ||
-          dragState.proposedCheckOut !== dragState.originCheckOut;
-        const hasRoomChanged = dragState.proposedRoomId !== dragState.originRoomId;
-
-        if (!hasDatesChanged && !hasRoomChanged) {
-          setDragState(null);
-          return;
-        }
-
-        const originalRoom = rooms.find((r) => r.id === dragState.originRoomId) || rooms[0];
-        const proposedRoom = rooms.find((r) => r.id === dragState.proposedRoomId) || rooms[0];
-
-        // Final validation check
-        const valResult = validateReservationMove({
-          reservation: res,
-          targetRoom: proposedRoom,
-          proposedCheckIn: dragState.proposedCheckIn,
-          proposedCheckOut: dragState.proposedCheckOut,
-          allReservations: reservations,
-        });
-
-        if (!valResult.isValid) {
-          toast.error('Cannot Reallocate', { detail: valResult.reason });
-          setDragState(null);
-          return;
-        }
-
-        const proposedNights = countNights(dragState.proposedCheckIn, dragState.proposedCheckOut);
-
-        const change: ProposedReservationChange = {
-          reservation: res,
-          originalRoom,
-          proposedRoom,
-          originalCheckIn: dragState.originCheckIn,
-          proposedCheckIn: dragState.proposedCheckIn,
-          originalCheckOut: dragState.originCheckOut,
-          proposedCheckOut: dragState.proposedCheckOut,
-          originalNights: res.nights,
-          proposedNights,
-          originalTotal: res.totalAmount,
-          proposedTotal: valResult.proposedTotal,
-          priceDifference: valResult.priceDifference,
-          type:
-            hasRoomChanged && hasDatesChanged
-              ? 'combined'
-              : hasRoomChanged
-                ? 'move-room'
-                : dragState.dragType === 'resize-start'
-                  ? 'resize-start'
-                  : dragState.dragType === 'resize-end'
-                    ? 'resize-end'
-                    : 'move-date',
-        };
-
-        setPendingChange(change);
-      }
-
-      setDragState(null);
-    };
-
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerup', onPointerUp);
-
-    return () => {
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerup', onPointerUp);
-    };
-  }, [dragState, reservations, filteredRooms, rooms]);
-
-  // Apply Confirmed Change and sync back to PMS store
-  const handleConfirmChange = async (notifyGuest: boolean) => {
-    if (!pendingChange) return;
-
-    setIsSavingChange(true);
-    await new Promise((resolve) => setTimeout(resolve, 350));
-
-    const { reservation, proposedRoom, proposedCheckIn, proposedCheckOut, proposedNights, proposedTotal } =
-      pendingChange;
-    const backendId = reservation.backendId ?? reservation.id;
-
-    // 1. Update central PMS store for unified multi-page synchronization
-    try {
-      store.updateReservation(backendId, {
-        roomId: proposedRoom.id,
-        roomNumber: proposedRoom.number,
-        checkInDate: proposedCheckIn,
-        checkOutDate: proposedCheckOut,
-        nights: proposedNights,
-        totalAmount: String(proposedTotal),
-      });
-      store.assignRoom(backendId, proposedRoom.id, reservation.roomLineId);
-    } catch {
-      // In-memory fallback
-    }
-
-    // 2. Update local state
-    setReservations((prev) =>
-      prev.map((r) =>
-        r.backendId === backendId
-          ? {
-            ...r,
-            ...(r.id === reservation.id ? {
-              roomId: proposedRoom.id,
-              roomNumber: proposedRoom.number,
-              roomType: proposedRoom.type,
-            } : {}),
-            checkInDate: proposedCheckIn,
-            checkOutDate: proposedCheckOut,
-            nights: proposedNights,
-            totalAmount: proposedNights * r.nightlyRate,
-          }
-          : r
-      )
-    );
-
-    setIsSavingChange(false);
-    setPendingChange(null);
-
-    // Notify parent to refresh List View
-    onReservationUpdated?.();
-
-    toast.success('Reservation Updated & Synced', {
-      detail: `${reservation.guestName} reassigned to Room ${proposedRoom.number} (${proposedCheckIn} → ${proposedCheckOut}). ${notifyGuest ? 'Simulated guest email & SMS queued.' : ''
-        }`,
-    });
-  };
-
-  // Status update from Detail modal
-  const handleStatusUpdate = (resId: string, newStatus: CalendarReservationStatus) => {
-    const selected = reservations.find((reservation) => reservation.id === resId);
-    const backendId = selected?.backendId ?? resId;
-    setReservations((prev) =>
-      prev.map((r) => (r.backendId === backendId ? { ...r, status: newStatus } : r))
-    );
-    try {
-      if (newStatus === 'Checked-in') store.checkIn(backendId);
-      else if (newStatus === 'Checked-out') store.checkOut(backendId);
-      else if (newStatus === 'Cancelled') store.cancelReservation(backendId, 'Cancelled via calendar');
-    } catch {
-      // ignore
-    }
-    onReservationUpdated?.();
-  };
-
-  return (
-    <div className="w-full flex flex-col gap-4 text-ink font-sans select-none">
-      {/* ================= 1. ROOM CALENDAR TOOLBAR ================= */}
-      <section className="pms-card flex flex-col gap-4 p-3.5 sm:p-4" aria-label="Room calendar controls">
-
-        {/* Top Row: Date Step & View Horizon & Master Actions */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
-
-          {/* Left: Date Stepper & Today */}
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <div className="flex items-center rounded-xl border border-border bg-page p-1 shadow-2xs">
-              <IconButton variant="ghost"
-                type="button"
-                onClick={() => stepDate(-7)}
-                title="Previous Week (-7 days)"
-                aria-label="Previous week"
-              >
-                <Lucide.ChevronsLeft size={16} />
-              </IconButton>
-              <IconButton variant="ghost"
-                type="button"
-                onClick={() => stepDate(-1)}
-                title="Previous Day (-1 day)"
-                aria-label="Previous day"
-              >
-                <Lucide.ChevronLeft size={16} />
-              </IconButton>
-
-              <label className="relative flex min-h-9 cursor-pointer items-center gap-2 rounded-xl border border-border/80 bg-surface px-3 text-label font-semibold text-ink shadow-2xs focus-within:ring-2 focus-within:ring-[var(--color-primary)]/25">
-                <Lucide.Calendar size={14} className="text-[var(--color-primary)]" />
-                <span>
-                  {formatCalendarDate(baseDate).month} {formatCalendarDate(baseDate).dayNum}, {formatCalendarDate(baseDate).year}
-                </span>
-                <TextField
-                  type="date"
-                  value={baseDate}
-                  onChange={(e) => e.target.value && setBaseDate(e.target.value)}
-                  aria-label="Choose calendar date"
-                  className="absolute inset-0 w-full cursor-pointer opacity-0"
-                />
-              </label>
-
-              <IconButton variant="ghost"
-                type="button"
-                onClick={() => stepDate(1)}
-                title="Next Day (+1 day)"
-                aria-label="Next day"
-              >
-                <Lucide.ChevronRight size={16} />
-              </IconButton>
-              <IconButton variant="ghost"
-                type="button"
-                onClick={() => stepDate(7)}
-                title="Next Week (+7 days)"
-                aria-label="Next week"
-              >
-                <Lucide.ChevronsRight size={16} />
-              </IconButton>
-            </div>
-
-            <Button variant="secondary"
-              type="button"
-              onClick={jumpToToday}
-              className="transition-colors cursor-pointer"
-            >
-              Today
-            </Button>
-
-            {/* Horizon Switcher (7 / 14 / 30 Days) */}
-            <div className="flex items-center rounded-xl border border-border bg-page p-1 text-label font-semibold shadow-2xs" role="group" aria-label="Calendar range">
-              {([7, 14, 30] as const).map((days) => (
-                <Button variant="secondary"
-                  key={days}
-                  type="button"
-                  onClick={() => setViewHorizonDays(days)}
-                  aria-pressed={viewHorizonDays === days}
-                  className={`transition-all cursor-pointer ${viewHorizonDays === days
- ? 'bg-surface text-ink shadow-2xs border border-border/60'
- : 'text-ink-secondary hover:text-ink'
- }`}
-                >
-                  {days} Days
-                </Button>
-              ))}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-
-              <div className="flex items-center gap-2 rounded-xl ml-4 border border-border bg-page px-2 py-1.5 text-label">
-                <span className="text-ink-secondary">Rooms</span>
-                <span className="font-bold tabular-nums text-ink">{stats.totalRoomsCount}</span>
-              </div>
-              <div className="flex items-center gap-2 rounded-xl border border-[var(--color-success-border)] bg-[var(--color-success-bg)] px-2 py-1.5 text-label text-[var(--color-success-text)]">
-                <span>Available</span>
-                <span className="font-bold tabular-nums">{stats.availableToday}</span>
-              </div>
-              <div className="flex items-center gap-2 rounded-xl border border-[var(--color-info-border)] bg-[var(--color-info-bg)] px-2 py-1.5 text-label text-[var(--color-info-text)]">
-                <span>Occupied</span>
-                <span className="font-bold tabular-nums">{stats.occupiedToday} · {stats.occupancyRate}%</span>
-              </div>
-              {stats.oooCount > 0 && (
-                <div className="flex items-center gap-2 rounded-xl border border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] px-2 py-1.5 text-label text-[var(--color-danger-text)]">
-                  <span>Out of order</span>
-                  <span className="font-bold tabular-nums">{stats.oooCount}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-        </div>
-
-      </section>
-
-
-      {/* ================= 3. MASTER INTERACTIVE ROOM RACK GRID ================= */}
-      <section className="pms-card overflow-hidden" aria-label="Room reservation timeline">
-
-        {/* Header Row: Room Label Column + Date Columns */}
-        <div className="sticky top-0 z-20 flex border-b border-border bg-surface">
-          {/* Sticky Top-Left Corner */}
-          <div
-            style={{ width: `${ROOM_COL_WIDTH}px` }}
-            className="sticky left-0 z-30 flex shrink-0 items-center justify-between border-r border-border bg-page px-3 py-3 text-label font-bold uppercase tracking-wider text-ink-secondary shadow-xs"
-          >
-            <span>Room no</span>
-          </div>
-
-          {/* Date Columns Header */}
-          <div className="flex" style={{ width: `${calendarDates.length * COL_WIDTH}px` }}>
-            {calendarDates.map((dateStr) => {
-              const isToday = dateStr === baseDate;
-              const dateInfo = formatCalendarDate(dateStr);
-              return (
-                <div
-                  key={dateStr}
-                  style={{
-                    width: `${COL_WIDTH}px`,
-                    background: isToday
-                      ? 'color-mix(in srgb, var(--color-primary) 9%, var(--color-surface))'
-                      : dateInfo.isWeekend
-                        ? 'color-mix(in srgb, var(--color-muted-surface) 60%, var(--color-surface))'
-                        : 'var(--color-surface)',
-                    borderColor: 'var(--color-border)',
-                    borderBottom: isToday ? '2px solid var(--color-primary)' : undefined,
-                  }}
-                  className="flex shrink-0 flex-col items-center justify-center border-r px-1 py-2 text-center transition-colors"
-                >
-                  <span
-                    className={`text-micro font-bold uppercase tracking-wider ${isToday ? 'font-bold text-[var(--color-primary)]' : 'text-ink-secondary'
-                      }`}
-                  >
-                    {dateInfo.weekday}
-                  </span>
-                  <span
-                    className={`text-body leading-none mt-0.5 ${isToday
-                      ? 'flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary)] font-bold text-white shadow-xs'
-                      : 'font-bold text-ink'
-                      }`}
-                  >
-                    {dateInfo.dayNum}
-                  </span>
-                  <span className="mt-0.5 text-micro font-medium text-ink-secondary">
-                    {dateInfo.month}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-
-        {/* Scrollable Container */}
-        <div className="relative max-h-[72vh] overflow-auto py-2.5" ref={gridContainerRef}>
-          <div
-            className="flex flex-col min-w-max relative"
-            style={{ width: `${ROOM_COL_WIDTH + calendarDates.length * COL_WIDTH}px` }}
-          >
-
-
-            {/* Room Rows (15 Rooms total across 3 floors) */}
-            {filteredRooms.length === 0 ? (
-              <div
-                className="flex min-h-52 flex-col items-center justify-center gap-2 px-6 text-center"
-                style={{ width: `${ROOM_COL_WIDTH + calendarDates.length * COL_WIDTH}px` }}
-                role="status"
-              >
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-muted-surface)] text-[var(--color-ink-secondary)]">
-                  <Lucide.SearchX size={18} />
-                </span>
-                <span className="text-body font-semibold text-ink">No rooms match these filters</span>
-                <span className="text-label text-ink-secondary">Try a different room type, floor, or search.</span>
-              </div>
-            ) : filteredRooms.map((room) => {
-              const isOOO = room.status === 'Out-of-Order';
-              const isTargetRow = dragState?.isDragging && dragState?.proposedRoomId === room.id;
-
-              // Find reservations assigned to this room
-              const roomReservations = reservations.filter(
-                (res) =>
-                  (res.roomId === room.id || res.roomNumber === room.number) &&
-                  (filters.status === 'All' || res.status === filters.status) &&
-                  (filters.source === 'All' || res.bookingSource === filters.source)
-              );
-
-              return (
-                <div
-                  key={room.id}
-                  className={`flex border-b border-border/80 relative transition-colors ${isTargetRow
-                    ? dragState?.isValid
-                      ? 'bg-[var(--color-muted-surface)] ring-1 ring-inset ring-[var(--color-primary)]/40'
-                      : 'bg-[var(--color-danger-bg)] ring-1 ring-inset ring-[var(--color-danger-border)]'
-                    : isOOO
-                      ? 'bg-page/50'
-                      : 'hover:bg-page/60'
-                    }`}
-                  style={{ height: `${ROW_HEIGHT}px`, borderColor: 'var(--color-border)' }}
-                >
-                  {/* Sticky Left Room Card (Z-20, solid background, never overlapped) */}
-                  <div
-                    className="sticky left-0 z-10 flex shrink-0 select-none items-center justify-between border-r border-border px-3 py-2 shadow-xs"
-                    style={{
-                      width: `${ROOM_COL_WIDTH}px`,
-                      background: isTargetRow
-                        ? 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))'
-                        : isOOO
-                          ? 'var(--color-muted-surface)'
-                          : 'var(--color-surface)',
-                    }}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-label font-black text-ink tracking-tight">
-                            Rm {room.number}
-                          </span>
-
-                        </div>
-
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Timeline Canvas (Starts strictly after sticky room column) */}
-                  <div
-                    className="relative flex items-center h-full"
-                    style={{ width: `${calendarDates.length * COL_WIDTH}px` }}
-                  >
-                    {/* Day background cells */}
-                    {calendarDates.map((dateStr) => {
-                      const isToday = dateStr === baseDate;
-                      const dateInfo = formatCalendarDate(dateStr);
-                      const isBooked = reservations.some(
-                        (res) =>
-                          (res.roomId === room.id || res.roomNumber === room.number) &&
-                          res.status !== 'Cancelled' &&
-                          res.status !== 'No-show' &&
-                          res.checkInDate <= dateStr &&
-                          dateStr < res.checkOutDate
-                      );
-                      const canCreate = !isBooked && !isOOO;
-                      return (
-                        <div
-                          key={dateStr}
-                          role={canCreate ? 'button' : undefined}
-                          tabIndex={canCreate ? 0 : undefined}
-                          aria-label={
-                            canCreate
-                              ? `New reservation for room ${room.number} on ${dateStr}`
-                              : undefined
-                          }
-                          title={
-                            canCreate
-                              ? `New reservation · Room ${room.number} · ${dateStr}`
-                              : undefined
-                          }
-                          onClick={() => handleNewReservation(room, dateStr)}
-                          onKeyDown={(e) => {
-                            if ((e.key === 'Enter' || e.key === ' ') && canCreate) {
-                              e.preventDefault();
-                              handleNewReservation(room, dateStr);
-                            }
-                          }}
-                          style={{
-                            width: `${COL_WIDTH}px`,
-                            borderColor: 'var(--color-border)',
-                            background: isOOO
-                              ? 'repeating-linear-gradient(45deg, var(--color-muted-surface), var(--color-muted-surface) 8px, var(--color-surface) 8px, var(--color-surface) 16px)'
-                              : isToday
-                                ? 'color-mix(in srgb, var(--color-primary) 5%, var(--color-surface))'
-                                : dateInfo.isWeekend
-                                  ? 'color-mix(in srgb, var(--color-muted-surface) 45%, var(--color-surface))'
-                                  : 'var(--color-surface)',
-                          }}
-                          className={`group relative flex h-full shrink-0 items-center justify-center border-r ${canCreate ? 'cursor-pointer' : ''}`}
-                        >
-                          {canCreate ? (
-                            <span className="pointer-events-none flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-[var(--color-primary)]/40 bg-[var(--color-primary)]/5 text-[var(--color-primary)] opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-                              <Lucide.Plus size={12} />
-                            </span>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-
-                    {/* Reservation Bars: Clamped to timeline horizon */}
-                    {roomReservations.map((res) => {
-                      const firstDate = calendarDates[0];
-                      const lastDate = calendarDates[calendarDates.length - 1];
-                      const visibleHorizonEnd = addDaysToIso(lastDate, 1);
-
-                      // Skip if completely out of visible calendar view
-                      if (res.checkOutDate <= firstDate || res.checkInDate >= visibleHorizonEnd) {
-                        return null;
-                      }
-
-                      const startedBefore = res.checkInDate < firstDate;
-                      const endsAfter = res.checkOutDate > visibleHorizonEnd;
-
-                      const visibleStart = startedBefore ? firstDate : res.checkInDate;
-                      const visibleEnd = endsAfter ? visibleHorizonEnd : res.checkOutDate;
-
-                      const offsetDays = countNights(firstDate, visibleStart);
-                      const visibleNights = countNights(visibleStart, visibleEnd);
-
-                      const barLeft = offsetDays * COL_WIDTH + 2;
-                      const barWidth = Math.max(32, visibleNights * COL_WIDTH - 4);
-
-                      const isBeingDragged =
-                        dragState?.isDragging && dragState?.reservationId === res.id;
-
-                      const barTone = RESERVATION_BAR_TONES[res.status];
-                      const isInactive = res.status === 'Cancelled' || res.status === 'No-show';
-
-                      return (
-                        <div
-                          key={res.id}
-                          onPointerDown={(e) => handlePointerDown(e, res, 'move')}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              setActiveReservation(res);
-                            }
-                          }}
-                          role="button"
-                          tabIndex={0}
-                          aria-label={`${res.guestName}, ${res.status}, Room ${room.number}, ${res.checkInDate} to ${res.checkOutDate}. Select for details.`}
-                          style={{
-                            left: `${barLeft}px`,
-                            width: `${barWidth}px`,
-                            top: '8px',
-                            bottom: '8px',
-                            background: barTone.background,
-                            color: barTone.color,
-                            borderColor: barTone.border,
-                            borderLeft: `3px solid ${barTone.accent}`,
-                          }}
-                          className={`absolute ${startedBefore ? 'rounded-l-none' : 'rounded-l-xl'
-                            } ${endsAfter ? 'rounded-r-none' : 'rounded-r-xl'
-                            } z-10 group flex select-none items-center justify-between overflow-hidden border px-2 py-0.5 text-label font-semibold shadow-xs transition-all cursor-grab active:cursor-grabbing focus-visible:z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-1 ${isBeingDragged ? 'opacity-30' : 'hover:brightness-[0.98] hover:shadow-sm'
-                            } ${isInactive ? 'opacity-75' : ''} ${res.status === 'Cancelled' ? 'cursor-not-allowed' : ''
-                            }`}
-                          title={`${res.guestName} (${res.id}) · ${res.checkInDate} to ${res.checkOutDate} (${res.nights}n) · ₹${res.totalAmount.toLocaleString('en-IN')}`}
-                        >
-                          {/* Left Resize Handle (only if check-in is within visible range) */}
-                          {!startedBefore && res.status !== 'Cancelled' && (
-                            <div
-                              onPointerDown={(e) => handlePointerDown(e, res, 'resize-start')}
-                              className="absolute bottom-0 left-0 top-0 z-10 flex w-3 cursor-ew-resize items-center justify-center bg-ink/10 opacity-40 transition-opacity group-hover:opacity-100"
-                              title="Drag to adjust arrival date"
-                            >
-                              <span className="h-4 w-0.5 rounded-full bg-current/50" />
-                            </div>
-                          )}
-
-                          {/* Bar Content */}
-                          <div className="flex min-w-0 items-center gap-1 truncate pl-1 pr-1">
-                            {startedBefore && (
-                              <span className="text-micro opacity-75 font-mono">‹</span>
-                            )}
-                            <span className={`truncate text-label font-bold leading-tight ${isInactive ? 'line-through' : ''}`}>
-                              {res.guestName}
-                            </span>
-                            <span
-                              className="shrink-0 rounded border px-1 py-0.2 text-micro font-semibold"
-                              style={{
-                                background: `color-mix(in srgb, ${barTone.color} 9%, var(--color-surface))`,
-                                borderColor: barTone.border,
-                              }}
-                            >
-                              {res.nights}n
-                            </span>
-                            <span className="hidden truncate text-micro opacity-80 2xl:inline">
-                              ₹{res.totalAmount.toLocaleString('en-IN')}
-                            </span>
-                            {endsAfter && (
-                              <span className="text-micro opacity-75 font-mono">›</span>
-                            )}
-                          </div>
-
-                          {/* Status Icon */}
-                          <div className="flex shrink-0 items-center pl-1" aria-hidden="true">
-                            {res.status === 'Checked-in' && <Lucide.Key size={12} />}
-                            {res.status === 'Confirmed' && <Lucide.Check size={12} />}
-                            {(res.status === 'Tentative' || res.status === 'Pending') && <Lucide.Clock size={12} />}
-                            {(res.status === 'Cancelled' || res.status === 'No-show') && <Lucide.CircleX size={12} />}
-                          </div>
-
-                          {/* Right Resize Handle (only if check-out is within visible range) */}
-                          {!endsAfter && res.status !== 'Cancelled' && (
-                            <div
-                              onPointerDown={(e) => handlePointerDown(e, res, 'resize-end')}
-                              className="absolute bottom-0 right-0 top-0 z-10 flex w-3 cursor-ew-resize items-center justify-center bg-ink/10 opacity-40 transition-opacity group-hover:opacity-100"
-                              title="Drag to adjust departure date"
-                            >
-                              <span className="h-4 w-0.5 rounded-full bg-current/50" />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-
-                    {/* Ghost Bar Preview during Drag / Resize */}
-                    {isTargetRow && (() => {
-                      const firstDate = calendarDates[0];
-                      const lastDate = calendarDates[calendarDates.length - 1];
-                      const visibleHorizonEnd = addDaysToIso(lastDate, 1);
-
-                      const startedBefore = dragState.proposedCheckIn < firstDate;
-                      const endsAfter = dragState.proposedCheckOut > visibleHorizonEnd;
-
-                      const visibleStart = startedBefore ? firstDate : dragState.proposedCheckIn;
-                      const visibleEnd = endsAfter ? visibleHorizonEnd : dragState.proposedCheckOut;
-
-                      const dStart = countNights(firstDate, visibleStart);
-                      const nights = countNights(visibleStart, visibleEnd);
-
-                      const ghostLeft = dStart * COL_WIDTH + 2;
-                      const ghostWidth = Math.max(32, nights * COL_WIDTH - 4);
-                      const totalNights = countNights(dragState.proposedCheckIn, dragState.proposedCheckOut);
-
-                      return (
-                        <div
-                          style={{
-                            left: `${ghostLeft}px`,
-                            width: `${ghostWidth}px`,
-                            top: '8px',
-                            bottom: '8px',
-                          }}
-                          className={`absolute rounded-xl px-2.5 py-0.5 flex items-center justify-between text-label font-bold shadow-xl pointer-events-none z-30 transition-all border-2 border-dashed ${dragState.isValid
-                            ? 'bg-[var(--color-primary)]/90 border-surface text-white ring-2 ring-[var(--color-primary)]'
-                            : 'bg-danger-text/90 border-surface text-white ring-2 ring-danger-text'
-                            }`}
-                        >
-                          <div className="flex items-center gap-1.5 truncate">
-                            <span>
-                              {dragState.isValid ? 'Move:' : 'Conflict:'} {dragState.proposedCheckIn} → {dragState.proposedCheckOut} ({totalNights}n)
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-1 shrink-0 text-micro">
-                            {dragState.isValid ? (
-                              <span className="bg-surface/25 px-1.5 py-0.5 rounded">Drop to Confirm</span>
-                            ) : (
-                              <span className="bg-ink/30 px-1.5 py-0.5 rounded text-warning-foreground">
-                                {dragState.invalidReason?.substring(0, 24)}...
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-      </section>
-
-      {/* ================= 4. CONFIRMATION & DETAIL OVERLAYS ================= */}
-
-      {/* Move Confirmation Dialog (Portaled to body) */}
-      <ReservationChangeDialog
-        change={pendingChange}
-        onConfirm={handleConfirmChange}
-        onCancel={() => setPendingChange(null)}
-        isSaving={isSavingChange}
-      />
-
-      {/* Reservation Details & Tap Reallocation Modal (Portaled to body) */}
-      <ReservationDetailModal
-        reservation={activeReservation}
-        rooms={rooms}
-        allReservations={reservations}
-        onClose={() => setActiveReservation(null)}
-        onInitiateChange={(change) => {
-          setActiveReservation(null);
-          setPendingChange(change);
-        }}
-        onStatusUpdate={handleStatusUpdate}
-      />
-
-    </div>
-  );
-}
 
 export function Reservations({
   initialQuery = '',
@@ -1372,36 +155,33 @@ export function Reservations({
       )}
 
       {/* ================= 1. PAGE HEADER ================= */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-start gap-3">
-        </div>
-        {/* Action Buttons & View Switcher */}
+      <header className="flex flex-wrap items-center justify-end gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          {/* View Switcher: List View vs Calendar View */}
-          <div className="flex items-center p-1 rounded-xl border border-border bg-surface shadow-2xs">
-            <Button variant="secondary"
-              type="button"
-              onClick={() => setViewMode('calendar')}
-              className={`flex items-center gap-1.5 transition-all cursor-pointer ${viewMode === 'calendar'
- ? 'bg-[var(--color-primary)] text-white shadow-xs'
- : 'text-ink-secondary hover:text-ink'
- }`}
-            >
-              <Lucide.CalendarRange size={14} />
-            </Button>
-            <Button variant="secondary"
-              type="button"
-              onClick={() => setViewMode('list')}
-              className={`flex items-center gap-1.5 transition-all cursor-pointer ${viewMode === 'list'
- ? 'bg-[var(--color-primary)] text-white shadow-xs'
- : 'text-ink-secondary hover:text-ink'
- }`}
-            >
-              <Lucide.List size={14} />
-            </Button>
+          <div className="inline-flex items-center gap-1 rounded-xl border border-border bg-surface p-1 shadow-2xs" role="group" aria-label="View">
+            {(
+              [
+                { id: 'calendar', label: 'Calendar', Icon: Lucide.CalendarRange },
+                { id: 'list', label: 'List', Icon: Lucide.List },
+              ] as const
+            ).map(({ id, label, Icon }) => {
+              const active = viewMode === id;
+              return (
+                <Button
+                  key={id}
+                  variant="text"
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setViewMode(id)}
+                  icon={<Icon size={14} />}
+                  className={`rounded-lg px-3 py-1 cursor-pointer ${active ? '!bg-[var(--color-primary)] !text-white shadow-xs' : 'text-ink-secondary hover:text-ink'}`}
+                >
+                  {label}
+                </Button>
+              );
+            })}
           </div>
         </div>
-      </div>
+      </header>
 
       <ReservationFilterBar filters={filters} onChange={updateFilters} onClear={clearAllFilters} />
 
@@ -1411,15 +191,8 @@ export function Reservations({
         <>
           {/* ================= 5. RESERVATIONS TABLE CARD ================= */}
           <section className="pms-card overflow-hidden" aria-label="Reservation list">
-            <div className="flex flex-col gap-3 border-b border-border/80 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-              <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--color-muted-surface)] text-[var(--color-primary)]">
-                  <Lucide.ClipboardList size={17} />
-                </span>
-                <div>
-                  <h2 className="text-body font-bold tracking-tight text-ink">Reservation list</h2>
-                </div>
-              </div>
+            <div className="flex flex-col gap-2 border-b border-divider px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <h2 className="text-body font-semibold text-ink">Reservations</h2>
               <div className="flex items-center gap-2 text-label text-ink-secondary">
                 {selectedRowIds.length > 0 && (
                   <span className="rounded-full border border-[var(--color-primary)]/20 bg-[var(--color-muted-surface)] px-2.5 py-1 font-semibold text-[var(--color-primary)]">
@@ -1431,7 +204,7 @@ export function Reservations({
             </div>
 
             <div className="pms-table-scroll overflow-x-auto">
-              <table className="pms-table min-w-[1020px] w-full border-collapse text-left text-label">
+              <table aria-label="Reservations" className="pms-table min-w-[1020px] w-full border-collapse text-left text-label">
                 {/* Table Header */}
                 <thead>
                   <tr className="border-b border-border bg-page/80 text-label font-semibold uppercase tracking-wider text-ink-secondary">
@@ -1445,7 +218,7 @@ export function Reservations({
                     </th>
                     <th className="py-3 px-3 font-semibold">
                       <span className="flex items-center gap-1">
-                        REFERENCE <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
+                        REFERENCE
                       </span>
                     </th>
                     <th className="py-3 px-3 font-semibold">
@@ -1455,7 +228,7 @@ export function Reservations({
                     </th>
                     <th className="py-3 px-3 font-semibold">
                       <span className="flex items-center gap-1">
-                        ROOM <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
+                        ROOM
                       </span>
                     </th>
                     <th className="py-3 px-3 font-semibold">
@@ -1465,13 +238,13 @@ export function Reservations({
                     </th>
                     <th className="py-3 px-3 font-semibold">
                       <span className="flex items-center gap-1">
-                        GUESTS <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
+                        GUESTS
                       </span>
                     </th>
 
                     <th className="py-3 px-3 font-semibold">
                       <span className="flex items-center gap-1">
-                        STATUS <Lucide.ArrowUpDown size={11} className="text-ink-muted" />
+                        STATUS
                       </span>
                     </th>
                     <th className="py-3 px-3 font-semibold text-right">
@@ -1520,15 +293,7 @@ export function Reservations({
                             <div>
                               <p className="font-semibold text-ink text-label leading-tight">{r.guest}</p>
                               <p className="text-label text-ink-muted mt-0.5">
-                                {r.guest === 'Rahul Sharma'
-                                  ? '+91 91234 56789'
-                                  : r.guest === 'Priya Mehta'
-                                    ? '+91 90000 11122'
-                                    : r.guest === 'Vikram Rao'
-                                      ? '+91 88990 77881'
-                                      : r.guest === 'Neha Kapoor'
-                                        ? '+91 99887 66554'
-                                        : '+91 98765 43210'}
+                                Booked via {r.channel}
                               </p>
                             </div>
                           </div>
@@ -1538,15 +303,7 @@ export function Reservations({
                         <td className="px-3 py-3">
                           {r.roomNumber ? (
                             <div className="flex items-center gap-2">
-                              <img
-                                src="/images/room-deluxe.jpg"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src =
-                                    'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=120&q=80';
-                                }}
-                                alt="Room"
-                                className="h-9 w-9 rounded-md object-cover shrink-0 border border-border"
-                              />
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-page text-ink-muted"><Lucide.BedDouble size={16} /></div>
                               <div>
                                 <p className="font-bold text-ink text-label leading-tight">{r.roomSummary ?? r.roomNumber}</p>
                               </div>
@@ -1596,13 +353,6 @@ export function Reservations({
                             >
                               Open
                             </Button>
-                            <IconButton variant="ghost"
-                              type="button"
-                              onClick={() => setOpenId(r.id)}
-                              title="More options"
-                            >
-                              <Lucide.MoreVertical size={15} />
-                            </IconButton>
                           </div>
                         </td>
                       </tr>
@@ -1629,9 +379,9 @@ export function Reservations({
             {/* ================= 6. PAGINATION FOOTER ================= */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3.5 border-t border-divider bg-surface text-label">
               {/* Summary Count */}
-              <div className="text-ink-secondary">
-                Page {safePage + 1} of {pages} • {filtered.length} reservations
-              </div>
+              <p className="pms-helper">
+                Page {safePage + 1} of {pages} · {filtered.length} reservations
+              </p>
 
               {/* Right Controls: Rows per page & Pagination buttons */}
               <div className="flex items-center gap-3">
@@ -1657,6 +407,7 @@ export function Reservations({
                   <IconButton variant="ghost"
                     type="button"
                     disabled={safePage === 0}
+                    aria-label="Previous page"
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                     className="disabled:opacity-40 disabled:cursor-not-allowed"
                   >
@@ -1672,7 +423,7 @@ export function Reservations({
                         type="button"
                         onClick={() => setPage(i)}
                         className={`flex w-8 items-center justify-center transition-all cursor-pointer ${isCurrent
- ? 'bg-[var(--color-primary)] text-white shadow-xs'
+ ? '!bg-[var(--color-primary)] !text-white shadow-xs'
  : 'border border-border bg-surface text-ink hover:bg-page'
  }`}
                       >
@@ -1685,6 +436,7 @@ export function Reservations({
                   <IconButton variant="ghost"
                     type="button"
                     disabled={safePage >= pages - 1}
+                    aria-label="Next page"
                     onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
                     className="disabled:opacity-40 disabled:cursor-not-allowed"
                   >
