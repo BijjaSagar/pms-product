@@ -26,25 +26,25 @@ type StaffRow = {
 function roleBadge(role: string) {
   const r = (role || '').toLowerCase();
   if (r.includes('admin') || r.includes('owner')) {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-info-bg text-info-text">Admin</span>;
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-label font-semibold bg-info-bg text-info-text">Admin</span>;
   }
   if (r.includes('editor') || r.includes('desk') || r.includes('front')) {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">{role || 'Editor'}</span>;
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-label font-semibold bg-primary/10 text-primary">{role || 'Editor'}</span>;
   }
   if (r.includes('manager')) {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-success-bg text-success-text">{role}</span>;
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-label font-semibold bg-success-bg text-success-text">{role}</span>;
   }
-  return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-muted-surface text-ink">{role || 'Viewer'}</span>;
+  return <span className="inline-flex items-center px-3 py-1 rounded-full text-label font-semibold bg-muted-surface text-ink">{role || 'Viewer'}</span>;
 }
 
 function statusBadge(status: StaffRow['status']) {
   if (status === 'ACTIVE') {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-success-bg text-success-text">Active</span>;
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-label font-semibold bg-success-bg text-success-text">Active</span>;
   }
   if (status === 'INVITED') {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-warning-bg text-warning-text">Pending</span>;
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-label font-semibold bg-warning-bg text-warning-text">Pending</span>;
   }
-  return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-danger-bg text-danger-text">Inactive</span>;
+  return <span className="inline-flex items-center px-3 py-1 rounded-full text-label font-semibold bg-danger-bg text-danger-text">Inactive</span>;
 }
 
 export function Staff() {
@@ -126,10 +126,10 @@ export function Staff() {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">
+              <h1 className="text-disp3 font-bold tracking-tight text-ink leading-tight">
                 Staff & Access Roles
               </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
@@ -137,7 +137,7 @@ export function Staff() {
                 Staff Directory
               </span>
             </div>
-            <p className="text-xs text-ink-secondary mt-1">
+            <p className="text-label text-ink-secondary mt-1">
               Manage team members, property permissions, invitations, and role assignments
             </p>
           </div>
@@ -146,7 +146,7 @@ export function Staff() {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 text-label font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
             title="Refresh staff"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
@@ -155,7 +155,7 @@ export function Staff() {
           {can('user.invite') ? (
             <button
               type="button"
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
               onClick={() => {
                 setIsNew(true);
                 setEmail('');
@@ -178,8 +178,8 @@ export function Staff() {
           ['Roles', roles.length],
         ].map(([label, value]) => (
           <section key={label} className="pms-card p-3 sm:p-3.5">
-            <p className="text-xs font-medium text-ink-secondary">{label}</p>
-            <p className="text-xl font-bold text-ink tnum mt-1">{value}</p>
+            <p className="text-label font-medium text-ink-secondary">{label}</p>
+            <p className="text-disp2 font-bold text-ink tnum mt-1">{value}</p>
           </section>
         ))}
       </div>
@@ -190,7 +190,7 @@ export function Staff() {
           title="User Management"
           subtitle={resource.loading ? 'Loading users…' : 'A list of all registered users in the system.'}
           badge={
-            <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary border border-primary/30">
+            <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-micro font-bold text-primary border border-primary/30">
               {rows.length} Users
             </span>
           }
@@ -204,7 +204,7 @@ export function Staff() {
                   setEmail('');
                   setRoleKey(roles[0]?.key ?? 'FRONT_DESK');
                 }}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
               >
                 <Lucide.Plus size={14} />
                 <span>Add User</span>
@@ -225,13 +225,13 @@ export function Staff() {
               }}
               placeholder="Search by name, email or role…"
               aria-label="Search users"
-              className={`${inputClass('text-sm')} pl-9.5 w-full`}
+              className={`${inputClass('text-body')} pl-9.5 w-full`}
             />
           </div>
           {q ? (
             <button
               type="button"
-              className="pms-btn-ghost px-3.5 py-2 text-sm font-medium"
+              className="pms-btn-ghost px-3.5 py-2 text-body font-medium"
               onClick={() => {
                 setQ('');
                 setPage(0);
@@ -246,32 +246,32 @@ export function Staff() {
           <table className="pms-table min-w-[760px]">
             <thead>
               <tr>
-                <th className="w-12 text-center text-xs font-semibold">#</th>
-                <th className="text-xs font-semibold">NAME</th>
-                <th className="text-xs font-semibold">EMAIL</th>
-                <th className="text-xs font-semibold">ROLE</th>
-                <th className="text-xs font-semibold">STATUS</th>
-                <th className="text-xs font-semibold">INVITE STATUS</th>
-                <th className="text-right text-xs font-semibold">ACTIONS</th>
+                <th className="w-12 text-center text-label font-semibold">#</th>
+                <th className="text-label font-semibold">NAME</th>
+                <th className="text-label font-semibold">EMAIL</th>
+                <th className="text-label font-semibold">ROLE</th>
+                <th className="text-label font-semibold">STATUS</th>
+                <th className="text-label font-semibold">INVITE STATUS</th>
+                <th className="text-right text-label font-semibold">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {paginatedSlice.map((staff, idx) => (
                 <tr key={staff.userId}>
-                  <td className="text-center font-medium text-ink-secondary text-xs">
+                  <td className="text-center font-medium text-ink-secondary text-label">
                     {safePage * pageSize + idx + 1}
                   </td>
                   <td>
                     <div className="flex items-center gap-3">
                       <Avatar name={staff.fullName} size={36} />
                       <div>
-                        <span className="block font-semibold text-ink text-xs">{staff.fullName}</span>
-                        <span className="block font-mono text-xs text-ink-secondary">{staff.userId}</span>
+                        <span className="block font-semibold text-ink text-label">{staff.fullName}</span>
+                        <span className="block font-mono text-label text-ink-secondary">{staff.userId}</span>
                       </div>
                     </div>
                   </td>
                   <td>
-                    <span className="text-ink text-xs">{staff.email}</span>
+                    <span className="text-ink text-label">{staff.email}</span>
                   </td>
                   <td>
                     {roleBadge(staff.roleName || staff.roleKey)}
@@ -281,15 +281,15 @@ export function Staff() {
                   </td>
                   <td>
                     {staff.invitePending ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warning-bg text-warning-text border border-warning-border/60">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-label font-semibold bg-warning-bg text-warning-text border border-warning-border/60">
                         Pending
                       </span>
                     ) : staff.inviteExpired ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-danger-bg text-danger-text border border-danger-border/60">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-label font-semibold bg-danger-bg text-danger-text border border-danger-border/60">
                         Expired
                       </span>
                     ) : (
-                      <span className="text-ink-secondary text-xs">—</span>
+                      <span className="text-ink-secondary text-label">—</span>
                     )}
                   </td>
                   <td className="text-right">
@@ -321,7 +321,7 @@ export function Staff() {
               ))}
             </tbody>
           </table>
-          {filtered.length === 0 ? <p className="pms-helper py-8 text-center text-xs text-ink-secondary">No registered users match your query.</p> : null}
+          {filtered.length === 0 ? <p className="pms-helper py-8 text-center text-label text-ink-secondary">No registered users match your query.</p> : null}
         </TableContainer>
 
         <div className="mt-4 pt-1">
@@ -338,12 +338,12 @@ export function Staff() {
         <div className="flex flex-col gap-3">
           {resource.data.matrix.resources.map((group) => (
             <div key={group.resource}>
-              <p className="text-sm font-semibold text-ink mb-1">{group.resource}</p>
+              <p className="text-body font-semibold text-ink mb-1">{group.resource}</p>
               <div className="pms-table-scroll overflow-x-auto"><table className="pms-table min-w-[640px]">
-                <thead><tr><th className="text-xs font-semibold">Permission</th>{resource.data?.matrix?.roles.map((role) => <th key={role.key} className="text-xs font-semibold">{role.name}</th>)}</tr></thead>
+                <thead><tr><th className="text-label font-semibold">Permission</th>{resource.data?.matrix?.roles.map((role) => <th key={role.key} className="text-label font-semibold">{role.name}</th>)}</tr></thead>
                 <tbody>{group.permissions.map((permission) => <tr key={permission.key}>
-                  <td><span className="block font-medium text-xs text-ink">{permission.key}</span><span className="block text-xs text-ink-secondary">{permission.description}</span></td>
-                  {resource.data?.matrix?.roles.map((role) => <td key={role.key} className="text-center text-xs">{permission.roles.includes(role.key) ? '✓' : '—'}</td>)}
+                  <td><span className="block font-medium text-label text-ink">{permission.key}</span><span className="block text-label text-ink-secondary">{permission.description}</span></td>
+                  {resource.data?.matrix?.roles.map((role) => <td key={role.key} className="text-center text-label">{permission.roles.includes(role.key) ? '✓' : '—'}</td>)}
                 </tr>)}</tbody>
               </table></div>
             </div>
@@ -354,24 +354,24 @@ export function Staff() {
         <CardTitle title="Role catalogue" subtitle="Role permissions are managed in the backend" />
         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
           {roles.map((role: RoleRow) => <div key={role.id} className="rounded-control border p-3 sm:p-3.5" style={{ borderColor: 'var(--color-border)' }}>
-            <div className="flex items-center justify-between gap-2"><span className="text-sm font-semibold text-ink">{role.name}</span><Badge tone={role.isActive ? 'success' : 'neutral'}>{role.memberCount} members</Badge></div>
-            <p className="text-xs text-ink-secondary mt-1">{role.description ?? role.key}</p>
-            <p className="mt-1 text-xs text-ink-secondary">{role.permissions.length} permissions{role.isSystem ? ' · system role' : ''}</p>
+            <div className="flex items-center justify-between gap-2"><span className="text-body font-semibold text-ink">{role.name}</span><Badge tone={role.isActive ? 'success' : 'neutral'}>{role.memberCount} members</Badge></div>
+            <p className="text-label text-ink-secondary mt-1">{role.description ?? role.key}</p>
+            <p className="mt-1 text-label text-ink-secondary">{role.permissions.length} permissions{role.isSystem ? ' · system role' : ''}</p>
           </div>)}
         </div>
       </Card> : null}
       <Modal open={isNew || editing !== null} onClose={() => { setEditing(null); setIsNew(false); }} title={isNew ? 'Invite staff member' : `Manage ${editing?.fullName ?? ''}`} subtitle={isNew ? 'The backend returns an invite token; it does not send email.' : 'Changes are checked against your permissions'} wide>
         {isNew ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Full name"><input value={fullName} onChange={(event) => setFullName(event.target.value)} className={inputClass('text-sm')} /></Field>
-          <Field label="Email"><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass('text-sm')} /></Field>
-          <Field label="Role"><select value={roleKey} onChange={(event) => setRoleKey(event.target.value)} className={inputClass('text-sm')}>{roles.map((role: RoleRow) => <option key={role.key} value={role.key}>{role.name}</option>)}</select></Field>
-          <div className="flex items-end"><button type="button" className="pms-btn-primary w-full px-4 py-2.5 text-sm font-semibold" onClick={() => void save()}>Create invitation</button></div>
+          <Field label="Full name"><input value={fullName} onChange={(event) => setFullName(event.target.value)} className={inputClass('text-body')} /></Field>
+          <Field label="Email"><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass('text-body')} /></Field>
+          <Field label="Role"><select value={roleKey} onChange={(event) => setRoleKey(event.target.value)} className={inputClass('text-body')}>{roles.map((role: RoleRow) => <option key={role.key} value={role.key}>{role.name}</option>)}</select></Field>
+          <div className="flex items-end"><button type="button" className="pms-btn-primary w-full px-4 py-2.5 text-body font-semibold" onClick={() => void save()}>Create invitation</button></div>
         </div> : editing ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Full name"><input disabled={!can('user.update')} value={editing.fullName} onChange={(event) => setEditing({ ...editing, fullName: event.target.value })} className={inputClass('text-sm')} /></Field>
-          <Field label="Role"><select disabled={!can('role.assign')} value={editing.roleKey} onChange={(event) => setEditing({ ...editing, roleKey: event.target.value })} className={inputClass('text-sm')}>{roles.map((role: RoleRow) => <option key={role.key} value={role.key}>{role.name}</option>)}</select></Field>
-          <Field label="Status"><select disabled={!can('user.deactivate')} value={editing.status === 'ACTIVE' ? 'ACTIVE' : 'DISABLED'} onChange={(event) => setEditing({ ...editing, status: event.target.value as StaffRow['status'] })} className={inputClass('text-sm')}><option value="ACTIVE">Active</option><option value="DISABLED">Disabled</option></select></Field>
-          <div className="flex items-end"><button type="button" className="pms-btn-primary w-full px-4 py-2.5 text-sm font-semibold" onClick={() => void save()}>Save changes</button></div>
-          {editing.status === 'INVITED' && can('user.invite') ? <div className="flex gap-2 sm:col-span-2"><button type="button" className="pms-btn-ghost flex-1 px-4 py-2.5 text-sm font-medium" onClick={() => void updateInvite('reissue')}>Reissue invitation</button><button type="button" className="pms-btn-ghost flex-1 px-4 py-2.5 text-sm font-medium" onClick={() => void updateInvite('cancel')}>Cancel invitation</button></div> : null}
+          <Field label="Full name"><input disabled={!can('user.update')} value={editing.fullName} onChange={(event) => setEditing({ ...editing, fullName: event.target.value })} className={inputClass('text-body')} /></Field>
+          <Field label="Role"><select disabled={!can('role.assign')} value={editing.roleKey} onChange={(event) => setEditing({ ...editing, roleKey: event.target.value })} className={inputClass('text-body')}>{roles.map((role: RoleRow) => <option key={role.key} value={role.key}>{role.name}</option>)}</select></Field>
+          <Field label="Status"><select disabled={!can('user.deactivate')} value={editing.status === 'ACTIVE' ? 'ACTIVE' : 'DISABLED'} onChange={(event) => setEditing({ ...editing, status: event.target.value as StaffRow['status'] })} className={inputClass('text-body')}><option value="ACTIVE">Active</option><option value="DISABLED">Disabled</option></select></Field>
+          <div className="flex items-end"><button type="button" className="pms-btn-primary w-full px-4 py-2.5 text-body font-semibold" onClick={() => void save()}>Save changes</button></div>
+          {editing.status === 'INVITED' && can('user.invite') ? <div className="flex gap-2 sm:col-span-2"><button type="button" className="pms-btn-ghost flex-1 px-4 py-2.5 text-body font-medium" onClick={() => void updateInvite('reissue')}>Reissue invitation</button><button type="button" className="pms-btn-ghost flex-1 px-4 py-2.5 text-body font-medium" onClick={() => void updateInvite('cancel')}>Cancel invitation</button></div> : null}
         </div> : null}
       </Modal>
     </div>

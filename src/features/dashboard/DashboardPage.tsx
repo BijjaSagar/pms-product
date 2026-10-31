@@ -466,7 +466,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
 
   return (
-    <div className="w-full text-xs text-ink font-sans pb-8 flex flex-col gap-4">
+    <div className="w-full text-label text-ink font-sans pb-8 flex flex-col gap-4">
       {/* ================= 1. PAGE HEADER ================= */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Left Welcome Title */}
@@ -475,10 +475,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             <Lucide.Sun size={26} className="animate-pulse" />
           </div>
           <div>
-            <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">
+            <h1 className="text-disp3 font-bold tracking-tight text-ink leading-tight">
               Good morning, {me?.user.fullName ? me.user.fullName.split(' ')[0] : 'Admin'}
             </h1>
-            <p className="text-xs text-ink-secondary mt-1 font-normal">
+            <p className="text-label text-ink-secondary mt-1 font-normal">
               Here&apos;s what&apos;s happening at your hotel today <span className="text-ink-muted">•</span> October 14, 2026
             </p>
           </div>
@@ -500,8 +500,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[14px] font-bold text-ink tracking-tight">Today&apos;s Activity Timeline</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-xs font-bold text-success-text border border-success-border/60">
+                    <h2 className="text-body font-bold text-ink tracking-tight">Today&apos;s Activity Timeline</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-label font-bold text-success-text border border-success-border/60">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
@@ -509,14 +509,14 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                       Live Feed
                     </span>
                   </div>
-                  <p className="text-xs text-ink-muted mt-0.5">Real-time guest movements & operations</p>
+                  <p className="text-label text-ink-muted mt-0.5">Real-time guest movements & operations</p>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => go({ view: 'arrivals-departures' })}
-                className="text-xs font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                className="text-label font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
                 <span>Front Desk</span>
                 <Lucide.ArrowRight size={13} />
@@ -535,7 +535,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   key={tab.key}
                   type="button"
                   onClick={() => setTimelineTab(tab.key)}
-                  className={`flex-1 min-w-[70px] py-1.5 text-[12px] font-semibold rounded-lg transition-all cursor-pointer text-center ${timelineTab === tab.key
+                  className={`flex-1 min-w-[70px] py-1.5 text-label font-semibold rounded-lg transition-all cursor-pointer text-center ${timelineTab === tab.key
                     ? 'bg-surface text-ink shadow-2xs font-bold border border-border/50'
                     : 'text-ink-secondary hover:text-ink'
                     }`}
@@ -571,15 +571,15 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         {/* Meta Row: Time, Room, Status, Action */}
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                            <span className="font-mono text-xs font-bold text-ink bg-muted-surface/90 border border-border/60 px-2 py-0.5 rounded-md shadow-2xs">
+                            <span className="font-mono text-label font-bold text-ink bg-muted-surface/90 border border-border/60 px-2 py-0.5 rounded-md shadow-2xs">
                               {item.time}
                             </span>
                             {item.room && (
-                              <span className="text-xs font-semibold text-ink bg-muted-surface/80 px-2 py-0.5 rounded-md">
+                              <span className="text-label font-semibold text-ink bg-muted-surface/80 px-2 py-0.5 rounded-md">
                                 {item.room}
                               </span>
                             )}
-                            <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full border ${item.statusTone}`}>
+                            <span className={`inline-flex items-center gap-1 text-label font-bold px-2 py-0.5 rounded-full border ${item.statusTone}`}>
                               {item.status}
                             </span>
                           </div>
@@ -593,7 +593,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                                 go(item.target);
                               }
                             }}
-                            className={`flex-none text-xs font-semibold px-2.5 py-1 rounded-lg border shadow-2xs transition-all cursor-pointer hover:shadow-xs active:scale-95 flex items-center gap-1 ${item.actionTone}`}
+                            className={`flex-none text-label font-semibold px-2.5 py-1 rounded-lg border shadow-2xs transition-all cursor-pointer hover:shadow-xs active:scale-95 flex items-center gap-1 ${item.actionTone}`}
                           >
                             <span>{item.actionLabel}</span>
                             <Lucide.ArrowRight size={12} />
@@ -602,10 +602,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
                         {/* Title & Detail */}
                         <div className="mt-1.5">
-                          <h4 className="text-[13px] font-bold text-ink group-hover:text-[var(--color-primary)] transition-colors">
+                          <h4 className="text-body font-bold text-ink group-hover:text-[var(--color-primary)] transition-colors">
                             {item.title}
                           </h4>
-                          <p className="text-xs text-ink-secondary mt-0.5 truncate">
+                          <p className="text-label text-ink-secondary mt-0.5 truncate">
                             {item.subtitle}
                           </p>
                         </div>
@@ -618,10 +618,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           </div>
 
           {/* Footer Timeline Summary */}
-          <div className="pt-3.5 mt-3 border-t border-divider flex items-center justify-between text-xs text-ink-secondary">
+          <div className="pt-3.5 mt-3 border-t border-divider flex items-center justify-between text-label text-ink-secondary">
             <div className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-success-text" />
-              <span className="text-xs text-ink-secondary font-medium">
+              <span className="text-label text-ink-secondary font-medium">
                 Showing {filteredTimeline.slice(0, 5).length} of 5 operational activities
               </span>
             </div>
@@ -649,8 +649,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-[14px] font-bold text-ink tracking-tight">Pending Check-ins</h2>
-                      <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-xs font-bold text-success-text border border-success-border/60">
+                      <h2 className="text-body font-bold text-ink tracking-tight">Pending Check-ins</h2>
+                      <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-label font-bold text-success-text border border-success-border/60">
                         <span className="relative flex h-1.5 w-1.5">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
@@ -658,14 +658,14 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         {pendingCheckins.length} Expected
                       </span>
                     </div>
-                    <p className="text-xs text-ink-muted mt-0.5">Today&apos;s arrivals awaiting front desk check-in</p>
+                    <p className="text-label text-ink-muted mt-0.5">Today&apos;s arrivals awaiting front desk check-in</p>
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => go({ view: 'reservations' })}
-                  className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-xs font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                  className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-label font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
                   title="Open reservations"
                 >
                   <span>Reservations</span>
@@ -678,17 +678,17 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
                   <thead>
                     <tr>
-                      <th className="text-center whitespace-nowrap text-[12px] font-semibold">#</th>
-                      <th className="whitespace-nowrap text-[12px] ">Guest & Booking</th>
-                      <th className="whitespace-nowrap text-[12px] font-semibold">Assigned Room</th>
-                      <th className="whitespace-nowrap text-[12px] font-semibold">ETA & Stay</th>
-                      <th className="text-right whitespace-nowrap pr-3.5 text-[12px] font-semibold">Action</th>
+                      <th className="text-center whitespace-nowrap text-label font-semibold">#</th>
+                      <th className="whitespace-nowrap text-label ">Guest & Booking</th>
+                      <th className="whitespace-nowrap text-label font-semibold">Assigned Room</th>
+                      <th className="whitespace-nowrap text-label font-semibold">ETA & Stay</th>
+                      <th className="text-right whitespace-nowrap pr-3.5 text-label font-semibold">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pendingCheckins.map((r, idx) => (
                       <tr key={r.id}>
-                        <td className="text-center font-medium text-ink-secondary text-xs whitespace-nowrap">
+                        <td className="text-center font-medium text-ink-secondary text-label whitespace-nowrap">
                           {idx + 1}
                         </td>
                         <td className="whitespace-nowrap">
@@ -696,41 +696,41 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                             <Avatar name={r.guest} size={30} />
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <span className="font-semibold text-ink text-xs truncate max-w-[130px]">{r.guest}</span>
+                                <span className="font-semibold text-ink text-label truncate max-w-[130px]">{r.guest}</span>
                                 {r.isVip && (
-                                  <span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-primary/10 text-primary border border-primary/30">
+                                  <span className="px-1.5 py-0.5 rounded text-label font-semibold bg-primary/10 text-primary border border-primary/30">
                                     VIP
                                   </span>
                                 )}
                               </div>
-                              <span className="font-mono text-xs text-ink-secondary block">{r.bookingCode}</span>
+                              <span className="font-mono text-label text-ink-secondary block">{r.bookingCode}</span>
                             </div>
                           </div>
                         </td>
                         <td className="whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
-                            <span className={`font-bold text-xs px-2 py-0.5 rounded-md border ${r.room === 'Unassigned'
+                            <span className={`font-bold text-label px-2 py-0.5 rounded-md border ${r.room === 'Unassigned'
                               ? 'text-warning-text bg-warning-bg border-warning-border/80'
                               : 'text-ink bg-muted-surface border-border/60'
                               }`}>
                               {r.room === 'Unassigned' ? 'Unassigned' : `Room ${r.room}`}
                             </span>
-                            <span className={`inline-flex items-center gap-1 text-xs font-medium ${r.roomReady ? 'text-success-text' : 'text-warning-text'}`}>
+                            <span className={`inline-flex items-center gap-1 text-label font-medium ${r.roomReady ? 'text-success-text' : 'text-warning-text'}`}>
                               <span className={`h-1.5 w-1.5 rounded-full ${r.roomReady ? 'bg-success-text' : 'bg-warning-text'}`} />
                               {r.roomReady ? 'Ready' : 'Cleaning'}
                             </span>
                           </div>
-                          <span className="text-xs text-ink-secondary block mt-0.5">{r.roomType}</span>
+                          <span className="text-label text-ink-secondary block mt-0.5">{r.roomType}</span>
                         </td>
                         <td className="whitespace-nowrap">
-                          <span className="font-mono font-bold text-ink text-xs block">{r.eta}</span>
-                          <span className="text-xs text-ink-secondary block">{r.dates} ({r.nights}n)</span>
+                          <span className="font-mono font-bold text-ink text-label block">{r.eta}</span>
+                          <span className="text-label text-ink-secondary block">{r.dates} ({r.nights}n)</span>
                         </td>
                         <td className="text-right whitespace-nowrap pr-2">
                           <button
                             type="button"
                             onClick={() => go({ view: 'reservations', query: r.bookingCode })}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-success-text hover:bg-success-text text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-lg bg-success-text hover:bg-success-text text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
                           >
                             <span>View booking</span>
                           </button>
@@ -743,12 +743,12 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-xs text-ink-secondary">
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-label text-ink-secondary">
               <span>Showing {pendingCheckins.length} expected arrivals today</span>
               <button
                 type="button"
                 onClick={() => go({ view: 'reservations' })}
-                className="font-semibold text-xs text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                className="font-semibold text-label text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
                 <span>Open reservations</span>
                 <Lucide.ArrowRight size={13} />
@@ -767,8 +767,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-[14px] font-bold text-ink tracking-tight">Pending Check-outs</h2>
-                      <span className="flex items-center gap-1.5 rounded-full bg-warning-bg px-2.5 py-0.5 text-xs font-bold text-warning-text border border-warning-border/60">
+                      <h2 className="text-body font-bold text-ink tracking-tight">Pending Check-outs</h2>
+                      <span className="flex items-center gap-1.5 rounded-full bg-warning-bg px-2.5 py-0.5 text-label font-bold text-warning-text border border-warning-border/60">
                         <span className="relative flex h-1.5 w-1.5">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning-text opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-warning-text"></span>
@@ -776,14 +776,14 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         {pendingCheckouts.length} Due Out
                       </span>
                     </div>
-                    <p className="text-xs text-ink-muted mt-0.5">Departures scheduled today awaiting key return & folio balance</p>
+                    <p className="text-label text-ink-muted mt-0.5">Departures scheduled today awaiting key return & folio balance</p>
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => go({ view: 'folios' })}
-                  className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-xs font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                  className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-label font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
                   title="Open folios"
                 >
                   <span>Folios</span>
@@ -796,17 +796,17 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
                   <thead>
                     <tr>
-                      <th className="w-8 text-center whitespace-nowrap text-[12px] font-semibold">#</th>
-                      <th className="whitespace-nowrap text-[12px] font-semibold">GUEST & BOOKING</th>
-                      <th className="whitespace-nowrap text-[12px] font-semibold">ASSIGNED ROOM</th>
-                      <th className="whitespace-nowrap text-[12px] font-semibold">OUT TIME & STAY</th>
-                      <th className="text-right whitespace-nowrap pr-3.5 text-[12px] font-semibold">ACTION</th>
+                      <th className="w-8 text-center whitespace-nowrap text-label font-semibold">#</th>
+                      <th className="whitespace-nowrap text-label font-semibold">GUEST & BOOKING</th>
+                      <th className="whitespace-nowrap text-label font-semibold">ASSIGNED ROOM</th>
+                      <th className="whitespace-nowrap text-label font-semibold">OUT TIME & STAY</th>
+                      <th className="text-right whitespace-nowrap pr-3.5 text-label font-semibold">ACTION</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pendingCheckouts.map((d, idx) => (
                       <tr key={d.id}>
-                        <td className="text-center font-medium text-ink-secondary text-xs whitespace-nowrap">
+                        <td className="text-center font-medium text-ink-secondary text-label whitespace-nowrap">
                           {idx + 1}
                         </td>
                         <td className="whitespace-nowrap">
@@ -814,23 +814,23 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                             <Avatar name={d.guest} size={30} />
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <span className="font-semibold text-ink text-xs truncate max-w-[130px]">{d.guest}</span>
+                                <span className="font-semibold text-ink text-label truncate max-w-[130px]">{d.guest}</span>
                                 {d.isLateCheckout && (
-                                  <span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-primary/10 text-primary border border-primary/30">
+                                  <span className="px-1.5 py-0.5 rounded text-label font-semibold bg-primary/10 text-primary border border-primary/30">
                                     Late
                                   </span>
                                 )}
                               </div>
-                              <span className="font-mono text-xs text-ink-secondary block">{d.bookingCode}</span>
+                              <span className="font-mono text-label text-ink-secondary block">{d.bookingCode}</span>
                             </div>
                           </div>
                         </td>
                         <td className="whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-xs px-2 py-0.5 rounded-md border text-ink bg-muted-surface border-border/60">
+                            <span className="font-bold text-label px-2 py-0.5 rounded-md border text-ink bg-muted-surface border-border/60">
                               Room {d.room}
                             </span>
-                            <span className={`inline-flex items-center gap-1 text-xs font-medium ${d.status === 'Inspected'
+                            <span className={`inline-flex items-center gap-1 text-label font-medium ${d.status === 'Inspected'
                               ? 'text-success-text'
                               : d.status === 'Late Checkout'
                                 ? 'text-primary'
@@ -845,11 +845,11 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                               {d.status}
                             </span>
                           </div>
-                          <span className="text-xs text-ink-secondary block mt-0.5">{d.roomType}</span>
+                          <span className="text-label text-ink-secondary block mt-0.5">{d.roomType}</span>
                         </td>
                         <td className="whitespace-nowrap">
-                          <span className="font-mono font-bold text-ink text-xs block">{d.outTime}</span>
-                          <span className="text-xs text-ink-secondary block">{d.dates} ({d.nights}n)</span>
+                          <span className="font-mono font-bold text-ink text-label block">{d.outTime}</span>
+                          <span className="text-label text-ink-secondary block">{d.dates} ({d.nights}n)</span>
                         </td>
                         <td className="text-right whitespace-nowrap pr-3.5">
                           <button
@@ -860,7 +860,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                               }
                               go({ view: 'folios' });
                             }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-warning-text hover:bg-warning-text text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-lg bg-warning-text hover:bg-warning-text text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
                           >
                             <span>Open folio</span>
                           </button>
@@ -873,12 +873,12 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-xs text-ink-secondary">
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-label text-ink-secondary">
               <span>Showing {pendingCheckouts.length} departures pending today</span>
               <button
                 type="button"
                 onClick={() => go({ view: 'folios' })}
-                className="font-semibold text-xs text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                className="font-semibold text-label text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
                 <span>Open folios</span>
                 <Lucide.ArrowRight size={13} />
@@ -902,8 +902,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[14px] font-bold text-ink tracking-tight">Recent Reservations</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-info-bg px-2.5 py-0.5 text-xs font-bold text-info-text border border-info-border/60">
+                    <h2 className="text-body font-bold text-ink tracking-tight">Recent Reservations</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-info-bg px-2.5 py-0.5 text-label font-bold text-info-text border border-info-border/60">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-info-text opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-info-text"></span>
@@ -911,14 +911,14 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                       {recentReservations.length} Bookings
                     </span>
                   </div>
-                  <p className="text-xs text-ink-muted mt-0.5">Latest confirmed bookings & stays across property</p>
+                  <p className="text-label text-ink-muted mt-0.5">Latest confirmed bookings & stays across property</p>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => go({ view: 'reservations' })}
-                className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-xs font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-label font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
                 title="View all reservations"
               >
                 <span>View all</span>
@@ -931,39 +931,39 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
               <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
                 <thead>
                   <tr>
-                    <th className="w-8 text-center whitespace-nowrap text-[12px] font-semibold">#</th>
-                    <th className="whitespace-nowrap text-[12px] font-semibold">GUEST & BOOKING</th>
-                    <th className="whitespace-nowrap text-[12px] font-semibold">ROOM & DATES</th>
-                    <th className="whitespace-nowrap text-center text-[12px] font-semibold">STATUS</th>
-                    <th className="text-right whitespace-nowrap text-[12px] font-semibold">TOTAL</th>
-                    <th className="text-right w-12 whitespace-nowrap pr-3.5 text-[12px] font-semibold">ACTION</th>
+                    <th className="w-8 text-center whitespace-nowrap text-label font-semibold">#</th>
+                    <th className="whitespace-nowrap text-label font-semibold">GUEST & BOOKING</th>
+                    <th className="whitespace-nowrap text-label font-semibold">ROOM & DATES</th>
+                    <th className="whitespace-nowrap text-center text-label font-semibold">STATUS</th>
+                    <th className="text-right whitespace-nowrap text-label font-semibold">TOTAL</th>
+                    <th className="text-right w-12 whitespace-nowrap pr-3.5 text-label font-semibold">ACTION</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentReservations.map((r, idx) => (
                     <tr key={r.id}>
-                      <td className="text-center font-medium text-ink-secondary text-xs whitespace-nowrap">
+                      <td className="text-center font-medium text-ink-secondary text-label whitespace-nowrap">
                         {idx + 1}
                       </td>
                       <td className="whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Avatar name={r.guest} size={30} />
                           <div className="min-w-0">
-                            <span className="font-semibold text-ink text-xs block truncate max-w-[130px]">{r.guest}</span>
-                            <span className="font-mono text-xs text-ink-secondary block">{r.id}</span>
+                            <span className="font-semibold text-ink text-label block truncate max-w-[130px]">{r.guest}</span>
+                            <span className="font-mono text-label text-ink-secondary block">{r.id}</span>
                           </div>
                         </div>
                       </td>
                       <td className="whitespace-nowrap">
-                        <span className="font-medium text-ink text-xs block">{r.room}</span>
-                        <span className="text-xs text-ink-secondary block">{r.dates}</span>
+                        <span className="font-medium text-ink text-label block">{r.room}</span>
+                        <span className="text-label text-ink-secondary block">{r.dates}</span>
                       </td>
                       <td className="whitespace-nowrap text-center">
                         <Badge tone={r.status === 'Confirmed' ? 'success' : r.status === 'Pending' ? 'warning' : 'neutral'}>
                           {r.status}
                         </Badge>
                       </td>
-                      <td className="text-right font-bold text-ink text-xs font-mono whitespace-nowrap">
+                      <td className="text-right font-bold text-ink text-label font-mono whitespace-nowrap">
                         ₹{r.total.toLocaleString('en-IN')}.00
                       </td>
                       <td className="text-right whitespace-nowrap pr-3.5">
@@ -983,12 +983,12 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-xs text-ink-secondary">
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-label text-ink-secondary">
             <span>Showing {recentReservations.length} recent bookings</span>
             <button
               type="button"
               onClick={() => go({ view: 'reservations' })}
-              className="font-semibold text-xs text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+              className="font-semibold text-label text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Manage all reservations</span>
               <Lucide.ArrowRight size={13} />
@@ -1007,8 +1007,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[14px] font-bold text-ink tracking-tight">Recent Transactions</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary border border-primary/30">
+                    <h2 className="text-body font-bold text-ink tracking-tight">Recent Transactions</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-label font-bold text-primary border border-primary/30">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
@@ -1016,14 +1016,14 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                       {recentPayments.length} Settlements
                     </span>
                   </div>
-                  <p className="text-xs text-ink-muted mt-0.5">Latest settled folios, payments & guest transactions</p>
+                  <p className="text-label text-ink-muted mt-0.5">Latest settled folios, payments & guest transactions</p>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => go({ view: 'payments' })}
-                className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-xs font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-label font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
                 title="View all transactions"
               >
                 <span>View all</span>
@@ -1036,39 +1036,39 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
               <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
                 <thead>
                   <tr>
-                    <th className="w-8 text-center whitespace-nowrap text-[12px] font-semibold">#</th>
-                    <th className="whitespace-nowrap text-[12px] font-semibold">GUEST & REFERENCE</th>
-                    <th className="whitespace-nowrap text-[12px] font-semibold">DATE & METHOD</th>
-                    <th className="whitespace-nowrap text-center text-[12px] font-semibold">STATUS</th>
-                    <th className="text-right whitespace-nowrap text-[12px] font-semibold">AMOUNT</th>
-                    <th className="text-right w-12 whitespace-nowrap pr-3.5 text-[12px] font-semibold">ACTION</th>
+                    <th className="w-8 text-center whitespace-nowrap text-label font-semibold">#</th>
+                    <th className="whitespace-nowrap text-label font-semibold">GUEST & REFERENCE</th>
+                    <th className="whitespace-nowrap text-label font-semibold">DATE & METHOD</th>
+                    <th className="whitespace-nowrap text-center text-label font-semibold">STATUS</th>
+                    <th className="text-right whitespace-nowrap text-label font-semibold">AMOUNT</th>
+                    <th className="text-right w-12 whitespace-nowrap pr-3.5 text-label font-semibold">ACTION</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentPayments.map((p, idx) => (
                     <tr key={p.ref}>
-                      <td className="text-center font-medium text-ink-secondary text-xs whitespace-nowrap">
+                      <td className="text-center font-medium text-ink-secondary text-label whitespace-nowrap">
                         {idx + 1}
                       </td>
                       <td className="whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Avatar name={p.guest} size={30} />
                           <div className="min-w-0">
-                            <span className="font-semibold text-ink text-xs block truncate max-w-[130px]">{p.guest}</span>
-                            <span className="font-mono text-xs text-ink-secondary block">{p.ref}</span>
+                            <span className="font-semibold text-ink text-label block truncate max-w-[130px]">{p.guest}</span>
+                            <span className="font-mono text-label text-ink-secondary block">{p.ref}</span>
                           </div>
                         </div>
                       </td>
                       <td className="whitespace-nowrap">
-                        <span className="font-medium text-ink text-xs block">{p.date}</span>
-                        <span className="text-xs text-ink-secondary block">{p.method}</span>
+                        <span className="font-medium text-ink text-label block">{p.date}</span>
+                        <span className="text-label text-ink-secondary block">{p.method}</span>
                       </td>
                       <td className="whitespace-nowrap text-center">
                         <Badge tone={p.status === 'Paid' ? 'success' : 'warning'}>
                           {p.status}
                         </Badge>
                       </td>
-                      <td className="text-right font-bold text-ink text-xs font-mono whitespace-nowrap">
+                      <td className="text-right font-bold text-ink text-label font-mono whitespace-nowrap">
                         ₹{p.amount.toLocaleString('en-IN')}.00
                       </td>
                       <td className="text-right whitespace-nowrap pr-3.5">
@@ -1088,12 +1088,12 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-xs text-ink-secondary">
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-label text-ink-secondary">
             <span>Showing {recentPayments.length} recent settlements</span>
             <button
               type="button"
               onClick={() => go({ view: 'payments' })}
-              className="font-semibold text-xs text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+              className="font-semibold text-label text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Manage all transactions</span>
               <Lucide.ArrowRight size={13} />
@@ -1117,8 +1117,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[14px] font-bold text-ink tracking-tight">Housekeeping Progress</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-info-bg px-2.5 py-0.5 text-xs font-bold text-info-text border border-info-border/60">
+                    <h2 className="text-body font-bold text-ink tracking-tight">Housekeeping Progress</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-info-bg px-2.5 py-0.5 text-label font-bold text-info-text border border-info-border/60">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-info-text opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-info-text"></span>
@@ -1126,13 +1126,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                       Live Status
                     </span>
                   </div>
-                  <p className="text-xs text-ink-muted mt-0.5">Turnaround status & inspection</p>
+                  <p className="text-label text-ink-muted mt-0.5">Turnaround status & inspection</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => go({ view: 'room-overview' })}
-                className="text-xs font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                className="text-label font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
                 <span>Room board</span>
                 <Lucide.ArrowRight size={13} />
@@ -1142,8 +1142,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             {/* Progress Summary */}
             <div className="flex items-baseline justify-between mb-1.5">
               <div className="flex items-baseline gap-2">
-                <span className="text-xs font-bold text-ink">{readyPct}%</span>
-                <span className="text-xs text-ink-secondary font-normal">{readyRooms} of {totalRoomCount} rooms ready</span>
+                <span className="text-label font-bold text-ink">{readyPct}%</span>
+                <span className="text-label text-ink-secondary font-normal">{readyRooms} of {totalRoomCount} rooms ready</span>
               </div>
             </div>
 
@@ -1155,42 +1155,42 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             {/* 4 Stat Boxes */}
             <div className="grid grid-cols-4 gap-2 text-center mb-3.5">
               <div className="rounded-xl border border-success-border bg-success-bg/60 p-2">
-                <span className="text-xs font-medium text-success-text block">✓ Cleaned</span>
-                <span className="text-xs font-bold text-success-text mt-0.5 block">9</span>
+                <span className="text-label font-medium text-success-text block">✓ Cleaned</span>
+                <span className="text-label font-bold text-success-text mt-0.5 block">9</span>
               </div>
               <div className="rounded-xl border border-[var(--color-primary)]/20 bg-[var(--color-muted-surface)] p-2">
-                <span className="text-xs font-medium text-[var(--color-primary)] block">In progress</span>
-                <span className="text-xs font-bold text-[var(--color-primary-active)] mt-0.5 block">6</span>
+                <span className="text-label font-medium text-[var(--color-primary)] block">In progress</span>
+                <span className="text-label font-bold text-[var(--color-primary-active)] mt-0.5 block">6</span>
               </div>
               <div className="rounded-xl border border-border/60 bg-page p-2">
-                <span className="text-xs font-medium text-ink-secondary block">● Pending</span>
-                <span className="text-xs font-bold text-ink mt-0.5 block">31</span>
+                <span className="text-label font-medium text-ink-secondary block">● Pending</span>
+                <span className="text-label font-bold text-ink mt-0.5 block">31</span>
               </div>
               <div className="rounded-xl border border-danger-border bg-danger-bg/60 p-2">
-                <span className="text-xs font-medium text-danger-text block">! Issues</span>
-                <span className="text-xs font-bold text-danger-text mt-0.5 block">4</span>
+                <span className="text-label font-medium text-danger-text block">! Issues</span>
+                <span className="text-label font-bold text-danger-text mt-0.5 block">4</span>
               </div>
             </div>
 
             {/* Priority Turnaround Queue */}
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between text-[14px] font-semibold text-ink">
+              <div className="flex items-center justify-between text-body font-semibold text-ink">
                 <span>Priority Turnaround Queue</span>
-                <span className="text-xs text-ink-muted font-normal">Release for check-in</span>
+                <span className="text-label text-ink-muted font-normal">Release for check-in</span>
               </div>
 
               <div className="flex items-center justify-between gap-2 p-2 rounded-xl border border-border/60 bg-page/50 hover:bg-page transition-colors">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="h-2 w-2 rounded-full bg-warning-text flex-none" />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-ink truncate">Room 201 · Deluxe King</p>
-                    <p className="text-xs text-ink-muted">Assigned: Anita S. · Turnover due 12:00 PM</p>
+                    <p className="text-label font-bold text-ink truncate">Room 201 · Deluxe King</p>
+                    <p className="text-label text-ink-muted">Assigned: Anita S. · Turnover due 12:00 PM</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => toast('Room 201 verified', { detail: 'Marked clean & ready for check-in.', tone: 'success' })}
-                  className="flex-none text-xs font-semibold text-success-text bg-success-bg hover:bg-success-bg border border-success-border px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                  className="flex-none text-label font-semibold text-success-text bg-success-bg hover:bg-success-bg border border-success-border px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                 >
                   Mark Clean
                 </button>
@@ -1200,14 +1200,14 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="h-2 w-2 rounded-full bg-primary flex-none" />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-ink truncate">Room 304 · Executive Suite</p>
-                    <p className="text-xs text-ink-muted">VIP arrival 02:00 PM · Needs supervisor inspection</p>
+                    <p className="text-label font-bold text-ink truncate">Room 304 · Executive Suite</p>
+                    <p className="text-label text-ink-muted">VIP arrival 02:00 PM · Needs supervisor inspection</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => toast('Inspection queued', { detail: 'Supervisor alerted for Room 304.', tone: 'info' })}
-                  className="flex-none text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/10 border border-primary/30 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                  className="flex-none text-label font-semibold text-primary bg-primary/10 hover:bg-primary/10 border border-primary/30 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                 >
                   Inspect
                 </button>
@@ -1216,8 +1216,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           </div>
 
           {/* Footer */}
-          <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-xs text-ink-secondary">
-            <span className="text-xs text-ink-muted">4 priority turnovers due before 2:00 PM</span>
+          <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-label text-ink-secondary">
+            <span className="text-label text-ink-muted">4 priority turnovers due before 2:00 PM</span>
             <button
               type="button"
               onClick={() => go({ view: 'room-overview' })}
@@ -1240,8 +1240,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[14px] font-bold text-ink tracking-tight">Department Tasks</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary border border-primary/30">
+                    <h2 className="text-body font-bold text-ink tracking-tight">Department Tasks</h2>
+                    <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-label font-bold text-primary border border-primary/30">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
@@ -1249,13 +1249,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                       4 Actions
                     </span>
                   </div>
-                  <p className="text-xs text-ink-muted mt-0.5">Operational follow-ups & alerts</p>
+                  <p className="text-label text-ink-muted mt-0.5">Operational follow-ups & alerts</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => go({ view: 'maintenance' })}
-                className="text-xs font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                className="text-label font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
                 <span>View all</span>
                 <Lucide.ArrowRight size={13} />
@@ -1269,18 +1269,18 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 <div className="flex items-start gap-2.5 min-w-0">
                   <span className="h-2 w-2 rounded-full bg-warning-text mt-1.5 flex-none" />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-ink leading-tight">4 rooms pending inspection</p>
-                    <p className="text-xs text-ink-muted mt-0.5 truncate">Rooms 204, 305, 408, 501 · Ready for release</p>
+                    <p className="text-label font-bold text-ink leading-tight">4 rooms pending inspection</p>
+                    <p className="text-label text-ink-muted mt-0.5 truncate">Rooms 204, 305, 408, 501 · Ready for release</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-warning-bg px-2 py-0.5 text-xs font-bold text-warning-text">
+                  <span className="rounded-full bg-warning-bg px-2 py-0.5 text-label font-bold text-warning-text">
                     High
                   </span>
                   <button
                     type="button"
                     onClick={() => toast('Inspection alert sent', { detail: 'Floor supervisor notified.', tone: 'info' })}
-                    className="text-xs font-semibold text-ink-secondary hover:text-ink bg-muted-surface hover:bg-border px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="text-label font-semibold text-ink-secondary hover:text-ink bg-muted-surface hover:bg-border px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     Release
                   </button>
@@ -1292,18 +1292,18 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 <div className="flex items-start gap-2.5 min-w-0">
                   <span className="h-2 w-2 rounded-full bg-danger-text mt-1.5 flex-none" />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-ink leading-tight">2 maintenance requests</p>
-                    <p className="text-xs text-ink-muted mt-0.5 truncate">AC thermostat in 305 · TV issue in 118</p>
+                    <p className="text-label font-bold text-ink leading-tight">2 maintenance requests</p>
+                    <p className="text-label text-ink-muted mt-0.5 truncate">AC thermostat in 305 · TV issue in 118</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-danger-bg px-2 py-0.5 text-xs font-bold text-danger-text">
+                  <span className="rounded-full bg-danger-bg px-2 py-0.5 text-label font-bold text-danger-text">
                     Urgent
                   </span>
                   <button
                     type="button"
                     onClick={() => go({ view: 'maintenance' })}
-                    className="text-xs font-semibold text-danger-text hover:text-danger-text bg-danger-bg hover:bg-danger-bg px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="text-label font-semibold text-danger-text hover:text-danger-text bg-danger-bg hover:bg-danger-bg px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     Assign
                   </button>
@@ -1315,18 +1315,18 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 <div className="flex items-start gap-2.5 min-w-0">
                   <span className="h-2 w-2 rounded-full bg-warning-text mt-1.5 flex-none" />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-ink leading-tight">3 late check-out requests</p>
-                    <p className="text-xs text-ink-muted mt-0.5 truncate">101 (1:00 PM), 305 (2:00 PM), 501 (1:30 PM)</p>
+                    <p className="text-label font-bold text-ink leading-tight">3 late check-out requests</p>
+                    <p className="text-label text-ink-muted mt-0.5 truncate">101 (1:00 PM), 305 (2:00 PM), 501 (1:30 PM)</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-warning-bg px-2 py-0.5 text-xs font-bold text-warning-text">
+                  <span className="rounded-full bg-warning-bg px-2 py-0.5 text-label font-bold text-warning-text">
                     Attention
                   </span>
                   <button
                     type="button"
                     onClick={() => go({ view: 'folios' })}
-                    className="text-xs font-semibold text-ink-secondary hover:text-ink bg-muted-surface hover:bg-border px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="text-label font-semibold text-ink-secondary hover:text-ink bg-muted-surface hover:bg-border px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     Review
                   </button>
@@ -1338,18 +1338,18 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 <div className="flex items-start gap-2.5 min-w-0">
                   <span className="h-2 w-2 rounded-full bg-info-text mt-1.5 flex-none" />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-ink leading-tight">1 VIP arrival today</p>
-                    <p className="text-xs text-ink-muted mt-0.5 truncate">Amelia Hart · Deluxe Suite 204 · Amenity set</p>
+                    <p className="text-label font-bold text-ink leading-tight">1 VIP arrival today</p>
+                    <p className="text-label text-ink-muted mt-0.5 truncate">Amelia Hart · Deluxe Suite 204 · Amenity set</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-[var(--color-muted-surface)] px-2 py-0.5 text-xs font-bold text-[var(--color-primary)]">
+                  <span className="rounded-full bg-[var(--color-muted-surface)] px-2 py-0.5 text-label font-bold text-[var(--color-primary)]">
                     VIP Elite
                   </span>
                   <button
                     type="button"
                     onClick={() => go({ view: 'arrivals-departures' })}
-                    className="text-xs font-semibold text-primary hover:text-primary bg-primary/10 hover:bg-primary/10 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="text-label font-semibold text-primary hover:text-primary bg-primary/10 hover:bg-primary/10 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     Prepare
                   </button>
@@ -1359,8 +1359,8 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           </div>
 
           {/* Footer */}
-          <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-xs text-ink-secondary">
-            <span className="text-xs text-ink-muted">5 active tickets · 2 high priority</span>
+          <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-label text-ink-secondary">
+            <span className="text-label text-ink-muted">5 active tickets · 2 high priority</span>
             <button
               type="button"
               onClick={() => go({ view: 'maintenance' })}

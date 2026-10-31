@@ -36,8 +36,8 @@ export function ChannelDirectoryPanel({ channels, selectedChannelId, syncingChan
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 id="channel-directory-title" className="text-sm font-bold text-ink tracking-tight">Channel Connections</h2>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
+              <h2 id="channel-directory-title" className="text-body font-bold text-ink tracking-tight">Channel Connections</h2>
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
@@ -45,18 +45,18 @@ export function ChannelDirectoryPanel({ channels, selectedChannelId, syncingChan
                 Live Feed
               </span>
             </div>
-            <p className="text-[11px] text-ink-muted mt-0.5">Monitor health and run a channel sync.</p>
+            <p className="text-label text-ink-muted mt-0.5">Monitor health and run a channel sync.</p>
           </div>
         </div>
         <div className="flex gap-2">
           <label className="relative min-w-0 flex-1 sm:w-40 sm:flex-none">
             <span className="sr-only">Search channels</span>
             <Lucide.Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search channels" className="pms-input min-h-[36px] w-full pl-8 pr-2 text-xs" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search channels" className="pms-input min-h-[36px] w-full pl-8 pr-2 text-label" />
           </label>
           <label>
             <span className="sr-only">Filter channels by status</span>
-            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} className="pms-input min-h-[36px] max-w-[130px] px-2 text-xs">
+            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} className="pms-input min-h-[36px] max-w-[130px] px-2 text-label">
               <option value="all">All statuses</option><option value="connected">Connected</option><option value="error">Needs attention</option><option value="paused">Paused</option>
             </select>
           </label>
@@ -80,33 +80,33 @@ export function ChannelDirectoryPanel({ channels, selectedChannelId, syncingChan
                   <td>
                     <button type="button" onClick={() => onSelect(channel.id)} className="flex items-center gap-2.5 text-left" aria-pressed={selected}>
                       <ChannelLogo channel={channel} />
-                      <span className="min-w-0"><span className="block truncate font-semibold text-ink">{channel.name}</span><span className="mt-0.5 block text-[10px] uppercase tracking-wider text-ink-muted">{channel.code}</span></span>
+                      <span className="min-w-0"><span className="block truncate font-semibold text-ink">{channel.name}</span><span className="mt-0.5 block text-micro uppercase tracking-wider text-ink-muted">{channel.code}</span></span>
                     </button>
                   </td>
-                  <td><span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold" style={statusStyle}><span className={`h-1.5 w-1.5 rounded-full ${channel.status === 'connected' ? 'bg-success-text' : channel.status === 'error' ? 'bg-danger-text' : 'bg-ink-disabled'}`} />{STATUS_LABEL[channel.status]}</span></td>
+                  <td><span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-micro font-semibold" style={statusStyle}><span className={`h-1.5 w-1.5 rounded-full ${channel.status === 'connected' ? 'bg-success-text' : channel.status === 'error' ? 'bg-danger-text' : 'bg-ink-disabled'}`} />{STATUS_LABEL[channel.status]}</span></td>
                   <td className="tnum font-medium">{channel.activeRooms}</td>
                   <td className="tnum font-medium">{channel.bookingsMtd}</td>
                   <td>
                     <div className="flex items-center gap-2"><span className="tnum w-9 font-semibold">{channel.syncSuccess}%</span><span className="h-1.5 w-16 overflow-hidden rounded-full bg-muted-surface"><span className="block h-full rounded-full bg-primary" style={{ width: `${channel.syncSuccess}%` }} /></span></div>
                   </td>
-                  <td className={`whitespace-nowrap text-xs ${channel.status === 'error' ? 'font-semibold text-danger-text' : 'text-ink-secondary'}`}>{channel.lastSync}</td>
+                  <td className={`whitespace-nowrap text-label ${channel.status === 'error' ? 'font-semibold text-danger-text' : 'text-ink-secondary'}`}>{channel.lastSync}</td>
                   <td>
                     <div className="flex justify-end">
                       {channel.status === 'error' ? (
-                        <button type="button" onClick={() => onReconnect(channel)} className="pms-btn-primary min-h-[32px] px-2.5 py-1 text-[11px]">Reconnect</button>
+                        <button type="button" onClick={() => onReconnect(channel)} className="pms-btn-primary min-h-[32px] px-2.5 py-1 text-label">Reconnect</button>
                       ) : (
-                        <button type="button" onClick={() => onSync(channel)} disabled={channel.status === 'paused' || syncing} className="pms-btn-ghost min-h-[32px] px-2.5 py-1 text-[11px] disabled:opacity-50"><Lucide.RefreshCw size={12} className={syncing ? 'animate-spin' : ''} />{syncing ? 'Syncing' : 'Sync'}</button>
+                        <button type="button" onClick={() => onSync(channel)} disabled={channel.status === 'paused' || syncing} className="pms-btn-ghost min-h-[32px] px-2.5 py-1 text-label disabled:opacity-50"><Lucide.RefreshCw size={12} className={syncing ? 'animate-spin' : ''} />{syncing ? 'Syncing' : 'Sync'}</button>
                       )}
                     </div>
                   </td>
                 </tr>
               );
             })}
-            {filtered.length === 0 && <tr><td colSpan={7} className="py-9 text-center text-xs text-ink-muted">No channels match these filters.</td></tr>}
+            {filtered.length === 0 && <tr><td colSpan={7} className="py-9 text-center text-label text-ink-muted">No channels match these filters.</td></tr>}
           </tbody>
         </table>
       </div>
-      <div className="flex justify-between border-t px-4 py-3 text-[11px] text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>
+      <div className="flex justify-between border-t px-4 py-3 text-label text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>
         <span>{filtered.length} of {channels.length} channels</span><span>Select a row to view details</span>
       </div>
     </section>

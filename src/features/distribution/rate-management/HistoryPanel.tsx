@@ -15,8 +15,8 @@ export function HistoryPanel({ events }: { events: RateHistoryEvent[] }) {
           <Lucide.History size={18} strokeWidth={2.4} />
         </div>
         <div>
-          <h2 id="rate-history-title" className="text-sm font-bold text-ink tracking-tight">Rate Change History</h2>
-          <p className="text-[11px] text-ink-muted mt-0.5">A local audit trail of recent rate and distribution actions</p>
+          <h2 id="rate-history-title" className="text-body font-bold text-ink tracking-tight">Rate Change History</h2>
+          <p className="text-label text-ink-muted mt-0.5">A local audit trail of recent rate and distribution actions</p>
         </div>
       </div>
       {events.length ? (
@@ -29,18 +29,18 @@ export function HistoryPanel({ events }: { events: RateHistoryEvent[] }) {
                 <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full" style={{ color: tone.color, background: tone.bg }}><Icon size={16} /></span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                    <h3 className="text-sm font-semibold text-ink">{event.title}</h3>
-                    <time className="text-[11px] text-ink-muted">{event.timestamp}</time>
+                    <h3 className="text-body font-semibold text-ink">{event.title}</h3>
+                    <time className="text-label text-ink-muted">{event.timestamp}</time>
                   </div>
-                  <p className="mt-1 text-xs text-ink-secondary">{event.detail}</p>
-                  <p className="mt-1.5 text-[11px] text-ink-muted">By {event.user}</p>
+                  <p className="mt-1 text-label text-ink-secondary">{event.detail}</p>
+                  <p className="mt-1.5 text-label text-ink-muted">By {event.user}</p>
                 </div>
               </li>
             );
           })}
         </ol>
-      ) : <p className="p-10 text-center text-sm text-ink-muted">No rate changes have been recorded.</p>}
-      <div className="border-t px-4 py-3 text-[11px] text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>History entries are sample data and reset when the page is reloaded.</div>
+      ) : <p className="p-10 text-center text-body text-ink-muted">No rate changes have been recorded.</p>}
+      <div className="border-t px-4 py-3 text-label text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>History entries are sample data and reset when the page is reloaded.</div>
     </section>
   );
 }

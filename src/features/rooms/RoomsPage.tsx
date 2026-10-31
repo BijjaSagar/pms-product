@@ -43,8 +43,8 @@ function RoomDetail({
     <div className="flex flex-col gap-4">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="tnum text-[28px] font-bold leading-none text-ink">Room {room.number}</p>
-          <p className="mt-1 text-[13px] text-ink-secondary">
+          <p className="tnum text-disp3 font-bold leading-none text-ink">Room {room.number}</p>
+          <p className="mt-1 text-body text-ink-secondary">
             {room.type} · Floor {room.floor} · <span className="tnum font-semibold text-ink">{formatCurrency(room.rate, currencyCode)}/night</span>
           </p>
         </div>
@@ -61,7 +61,7 @@ function RoomDetail({
             <Avatar name={room.guest} size={38} />
             <div className="flex-1 min-w-0">
               <p className="font-bold text-ink truncate">{room.guest}</p>
-              <p className="tnum text-xs text-ink-secondary">
+              <p className="tnum text-label text-ink-secondary">
                 {room.checkIn} → {room.checkOut}
               </p>
             </div>
@@ -72,11 +72,11 @@ function RoomDetail({
       {room.status === 'Out-of-service' && room.oosReason ? (
         <div className="rounded-2xl border p-4 bg-danger-bg/50 border-danger-border">
           <p className="pms-label text-danger-text">Out of service details</p>
-          <p className="mt-1 text-sm text-danger-text font-medium">{room.oosReason}</p>
+          <p className="mt-1 text-body text-danger-text font-medium">{room.oosReason}</p>
         </div>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-2 text-[13px]">
+      <div className="grid grid-cols-2 gap-2 text-body">
         {[
           ['Max occupancy', `${room.maxOccupancy ?? 2} guests`],
           ['Bed setup', room.bedType ?? 'King bed'],
@@ -84,7 +84,7 @@ function RoomDetail({
           ['Room status', room.status],
         ].map(([k, v]) => (
           <div key={k} className="rounded-xl border p-2.5" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}>
-            <p className="text-xs text-ink-muted">{k}</p>
+            <p className="text-label text-ink-muted">{k}</p>
             <p className="font-semibold text-ink mt-0.5">{v}</p>
           </div>
         ))}
@@ -98,7 +98,7 @@ function RoomDetail({
         </p>
         <ul className="flex flex-col gap-1.5">
           {hkHistory.slice(0, 3).map((hk) => (
-            <li key={hk.id} className="rounded-xl border p-2.5 text-xs" style={{ borderColor: 'var(--color-border-subtle)' }}>
+            <li key={hk.id} className="rounded-xl border p-2.5 text-label" style={{ borderColor: 'var(--color-border-subtle)' }}>
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-ink">{hk.task}</span>
                 <span className="text-ink-secondary">{hk.updated}</span>
@@ -118,7 +118,7 @@ function RoomDetail({
         </p>
         <ul className="flex flex-col gap-1.5">
           {mxHistory.slice(0, 3).map((mx) => (
-            <li key={mx.id} className="rounded-xl border p-2.5 text-xs" style={{ borderColor: 'var(--color-border-subtle)' }}>
+            <li key={mx.id} className="rounded-xl border p-2.5 text-label" style={{ borderColor: 'var(--color-border-subtle)' }}>
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-ink">{mx.description}</span>
                 <span className="text-ink-secondary">{mx.status}</span>
@@ -264,7 +264,7 @@ export function Rooms({
               type="button"
               onClick={() => setViewMode('grid')}
               aria-pressed={viewMode === 'grid'}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'grid'
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-label font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'grid'
                 ? 'bg-[var(--color-primary)] text-white shadow-xs'
                 : 'text-ink-secondary hover:text-ink'
                 }`}
@@ -276,7 +276,7 @@ export function Rooms({
               type="button"
               onClick={() => setViewMode('timeline')}
               aria-pressed={viewMode === 'timeline'}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'timeline'
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-label font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'timeline'
                 ? 'bg-[var(--color-primary)] text-white shadow-xs'
                 : 'text-ink-secondary hover:text-ink'
                 }`}
@@ -299,13 +299,13 @@ export function Rooms({
               iconBg="bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20"
               title="Room Directory"
               badge={
-                <span className="flex items-center gap-1 rounded-full bg-info-bg px-2 py-0.5 text-[10px] font-bold text-info-text">
+                <span className="flex items-center gap-1 rounded-full bg-info-bg px-2 py-0.5 text-micro font-bold text-info-text">
                   {all.length} Rooms
                 </span>
               }
             />
             {resource.error ? (
-              <div className="mb-3 flex items-center gap-2 rounded-xl bg-danger-bg p-4 text-sm text-danger-text">
+              <div className="mb-3 flex items-center gap-2 rounded-xl bg-danger-bg p-4 text-body text-danger-text">
                 <Lucide.AlertCircle size={18} />
                 <span>Could not load room inventory: {resource.error}</span>
               </div>
@@ -319,14 +319,14 @@ export function Rooms({
                   onChange={(e) => setQ(e.target.value)}
                   placeholder="Room number or guest name…"
                   aria-label="Search rooms"
-                  className={`${inputClass()} pl-9 w-full text-[12px]`}
+                  className={`${inputClass()} pl-9 w-full text-label`}
                 />
               </div>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
                 aria-label="Filter by room type"
-                className={`${inputClass()} text-[12px]`}
+                className={`${inputClass()} text-label`}
               >
                 {types.map((t) => (
                   <option key={t} value={t}>{t === 'All' ? 'All room types' : t}</option>
@@ -336,7 +336,7 @@ export function Rooms({
                 value={floor}
                 onChange={(e) => setFloor(e.target.value)}
                 aria-label="Filter by floor"
-                className={`${inputClass()} text-[12px]`}
+                className={`${inputClass()} text-label`}
               >
                 {floorOptions.map((f) => (
                   <option key={f} value={f}>{f === 'All' ? 'All floors' : f === '0' ? 'Ground / Unassigned' : `Floor ${f}`}</option>
@@ -354,7 +354,7 @@ export function Rooms({
               <button
                 type="button"
                 onClick={clear}
-                className="ml-auto text-xs font-semibold text-primary hover:underline"
+                className="ml-auto text-label font-semibold text-primary hover:underline"
               >
                 Reset filters
               </button>
@@ -371,8 +371,8 @@ export function Rooms({
                 <div>
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="tnum text-[20px] font-bold leading-none text-ink">Room {room.number}</p>
-                      <p className="mt-1 text-[12px] text-ink-secondary">
+                      <p className="tnum text-disp2 font-bold leading-none text-ink">Room {room.number}</p>
+                      <p className="mt-1 text-label text-ink-secondary">
                         {room.type} · Floor {room.floor} · <span className="tnum font-semibold text-ink">{formatCurrency(room.rate, currencyCode)}</span>
                       </p>
                     </div>
@@ -380,7 +380,7 @@ export function Rooms({
                       <Badge tone={roomTone(room.status)}>{room.status}</Badge>
                     </span>
                   </div>
-                  <p className="tnum mt-3 min-h-[20px] text-[12px] text-ink-secondary">
+                  <p className="tnum mt-3 min-h-[20px] text-label text-ink-secondary">
                     {room.guest
                       ? `Guest: ${room.guest}${room.checkIn ? ` · ${room.checkIn} → ${room.checkOut}` : ''}`
                       : room.status === 'Out-of-service'
@@ -391,14 +391,14 @@ export function Rooms({
                 <div className="mt-4 flex gap-2 pt-2 border-t" style={{ borderColor: 'var(--color-border-subtle)' }}>
                   <button
                     type="button"
-                    className="pms-btn-ghost flex-1 py-1.5 text-xs font-medium"
+                    className="pms-btn-ghost flex-1 py-1.5 text-label font-medium"
                     onClick={() => setOpenNo(room.number)}
                   >
                     Details
                   </button>
                   <button
                     type="button"
-                    className="pms-btn-primary flex-1 py-1.5 text-xs font-semibold"
+                    className="pms-btn-primary flex-1 py-1.5 text-label font-semibold"
                     onClick={() => setOpenNo(room.number)}
                   >
                     Manage
@@ -416,7 +416,7 @@ export function Rooms({
                 <button
                   type="button"
                   onClick={clear}
-                  className="mt-2 text-xs font-semibold text-primary hover:underline"
+                  className="mt-2 text-label font-semibold text-primary hover:underline"
                 >
                   Clear all filters
                 </button>

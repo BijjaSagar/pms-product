@@ -36,8 +36,8 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 id="inventory-calendar-title" className="text-sm font-bold text-ink tracking-tight">Availability Calendar</h2>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
+              <h2 id="inventory-calendar-title" className="text-body font-bold text-ink tracking-tight">Availability Calendar</h2>
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
@@ -45,27 +45,27 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
                 Live Feed
               </span>
             </div>
-            <p className="text-[11px] text-ink-muted mt-0.5">{totalInventory} rooms · Select a cell to edit channel availability</p>
+            <p className="text-label text-ink-muted mt-0.5">{totalInventory} rooms · Select a cell to edit channel availability</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <label>
             <span className="sr-only">Filter inventory by room type</span>
-            <select value={roomFilter} onChange={(event) => onRoomFilterChange(event.target.value)} className="pms-input min-h-[38px] min-w-[145px] text-xs font-semibold">
+            <select value={roomFilter} onChange={(event) => onRoomFilterChange(event.target.value)} className="pms-input min-h-[38px] min-w-[145px] text-label font-semibold">
               <option value="all">All room types</option>
               {ROOM_TYPES.map((roomType) => <option key={roomType} value={roomType.toLowerCase()}>{roomType}</option>)}
             </select>
           </label>
           <div className="flex items-center gap-1 rounded-control border p-1" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
             <button type="button" onClick={onPrevious} aria-label="Previous 15 days" className="flex h-8 w-8 items-center justify-center rounded-control text-ink-secondary hover:bg-surface"><Lucide.ChevronLeft size={16} /></button>
-            <span className="min-w-[145px] text-center text-[11px] font-semibold text-ink" aria-live="polite">{dateLabel}</span>
+            <span className="min-w-[145px] text-center text-label font-semibold text-ink" aria-live="polite">{dateLabel}</span>
             <button type="button" onClick={onNext} aria-label="Next 15 days" className="flex h-8 w-8 items-center justify-center rounded-control text-ink-secondary hover:bg-surface"><Lucide.ChevronRight size={16} /></button>
           </div>
-          <button type="button" onClick={onToday} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-xs">Today</button>
+          <button type="button" onClick={onToday} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-label">Today</button>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-[10px] font-medium text-ink-secondary sm:px-5">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-micro font-medium text-ink-secondary sm:px-5">
         {[
           { label: 'High ≥70%', color: 'var(--color-success-text)' },
           { label: 'Moderate 40–69%', color: 'var(--color-warning-text)' },
@@ -77,12 +77,12 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
       <div className="grid gap-2 border-t p-3 sm:hidden" style={{ borderColor: 'var(--color-divider)' }}>
         {visibleRows.map((row) => (
           <section key={row.roomType} className="rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }} aria-label={`${row.roomType} availability`}>
-            <div className="mb-2 flex items-center justify-between"><h3 className="text-xs font-bold text-ink">{row.roomType}</h3><span className="text-[10px] text-ink-muted">{row.totalRooms} rooms</span></div>
+            <div className="mb-2 flex items-center justify-between"><h3 className="text-label font-bold text-ink">{row.roomType}</h3><span className="text-micro text-ink-muted">{row.totalRooms} rooms</span></div>
             <div className="grid grid-cols-5 gap-1.5">
               {dates.map((date, index) => {
                 const available = row.availability[index] ?? 0;
                 const tone = availabilityStyle(available, row.totalRooms);
-                return <button key={date.iso} type="button" onClick={() => onSelectCell({ roomType: row.roomType, date, available, total: row.totalRooms })} title={`${date.weekday}, ${date.month} ${date.day}: ${available}/${row.totalRooms} rooms`} aria-label={`${row.roomType}, ${date.month} ${date.day}: ${available} of ${row.totalRooms} rooms available`} className="flex min-h-[48px] flex-col items-center justify-center rounded-control transition-transform active:scale-95" style={{ background: tone.background, color: tone.color }}><span className="text-[10px] font-medium opacity-80">{date.day}</span><span className="text-xs font-bold tnum">{available}</span></button>;
+                return <button key={date.iso} type="button" onClick={() => onSelectCell({ roomType: row.roomType, date, available, total: row.totalRooms })} title={`${date.weekday}, ${date.month} ${date.day}: ${available}/${row.totalRooms} rooms`} aria-label={`${row.roomType}, ${date.month} ${date.day}: ${available} of ${row.totalRooms} rooms available`} className="flex min-h-[48px] flex-col items-center justify-center rounded-control transition-transform active:scale-95" style={{ background: tone.background, color: tone.color }}><span className="text-micro font-medium opacity-80">{date.day}</span><span className="text-label font-bold tnum">{available}</span></button>;
               })}
             </div>
           </section>
@@ -90,11 +90,11 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
       </div>
 
       <div className="pms-table-scroll hidden overflow-x-auto border-t sm:block" style={{ borderColor: 'var(--color-divider)' }}>
-        <table className="pms-matrix-table min-w-[1040px] w-full border-collapse text-xs">
+        <table className="pms-matrix-table min-w-[1040px] w-full border-collapse text-label">
           <thead><tr>
-            <th className="sticky left-0 z-20 min-w-[140px] border-r px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-ink-muted" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}>Room type</th>
-            <th className="min-w-[72px] border-r px-2 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-ink-muted" style={{ borderColor: 'var(--color-divider)' }}>Total</th>
-            {dates.map((date) => <th key={date.iso} className={`min-w-[48px] border-r px-1 py-2 text-center ${date.isWeekend ? 'bg-primary/5' : ''}`} style={{ borderColor: 'var(--color-divider)' }}><span className="block text-[10px] font-medium text-ink-muted">{date.weekday}</span><span className="block text-sm font-bold text-ink">{date.day}</span><span className="block text-[10px] text-ink-muted">{date.month}</span></th>)}
+            <th className="sticky left-0 z-20 min-w-[140px] border-r px-4 py-3 text-left text-micro font-bold uppercase tracking-wider text-ink-muted" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}>Room type</th>
+            <th className="min-w-[72px] border-r px-2 py-3 text-center text-micro font-bold uppercase tracking-wider text-ink-muted" style={{ borderColor: 'var(--color-divider)' }}>Total</th>
+            {dates.map((date) => <th key={date.iso} className={`min-w-[48px] border-r px-1 py-2 text-center ${date.isWeekend ? 'bg-primary/5' : ''}`} style={{ borderColor: 'var(--color-divider)' }}><span className="block text-micro font-medium text-ink-muted">{date.weekday}</span><span className="block text-body font-bold text-ink">{date.day}</span><span className="block text-micro text-ink-muted">{date.month}</span></th>)}
           </tr></thead>
           <tbody>
             {visibleRows.map((row) => (
@@ -106,7 +106,7 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
                   const tone = availabilityStyle(available, row.totalRooms);
                   return (
                     <td key={date.iso} className="border-r p-0.5" style={{ borderColor: 'var(--color-divider)' }}>
-                      <button type="button" onClick={() => onSelectCell({ roomType: row.roomType, date, available, total: row.totalRooms })} className="flex h-9 w-full items-center justify-center rounded-md text-xs font-bold tnum transition-transform hover:scale-[1.04] focus-visible:z-10" style={{ background: tone.background, color: tone.color }} aria-label={`${row.roomType}: ${available} of ${row.totalRooms} rooms available on ${date.weekday}, ${date.month} ${date.day}. ${tone.label}`} title={`${available}/${row.totalRooms} rooms · ${tone.label}`}>
+                      <button type="button" onClick={() => onSelectCell({ roomType: row.roomType, date, available, total: row.totalRooms })} className="flex h-9 w-full items-center justify-center rounded-md text-label font-bold tnum transition-transform hover:scale-[1.04] focus-visible:z-10" style={{ background: tone.background, color: tone.color }} aria-label={`${row.roomType}: ${available} of ${row.totalRooms} rooms available on ${date.weekday}, ${date.month} ${date.day}. ${tone.label}`} title={`${available}/${row.totalRooms} rooms · ${tone.label}`}>
                         {available}
                       </button>
                     </td>
@@ -114,11 +114,11 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
                 })}
               </tr>
             ))}
-            {visibleRows.length === 0 && <tr><td colSpan={dates.length + 2} className="py-10 text-center text-xs text-ink-muted">No room types match this filter.</td></tr>}
+            {visibleRows.length === 0 && <tr><td colSpan={dates.length + 2} className="py-10 text-center text-label text-ink-muted">No room types match this filter.</td></tr>}
           </tbody>
         </table>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-3 text-[11px] text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-3 text-label text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>
         <span>Availability shown is the channel inventory limit.</span><span>Last sync {lastUpdatedLabel}</span>
       </div>
     </section>

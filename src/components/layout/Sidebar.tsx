@@ -31,7 +31,7 @@ function NavButton({
       type="button"
       onClick={onSelect}
       aria-current={selected ? 'page' : undefined}
-      className="flex min-h-[40px] w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-all cursor-pointer hover:bg-muted-surface/70"
+      className="flex min-h-[40px] w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-body transition-all cursor-pointer hover:bg-muted-surface/70"
       style={
         selected
           ? {
@@ -229,17 +229,17 @@ export function Sidebar({
           <button
             type="button"
             onClick={() => go('dashboard')}
-            className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-[18px] font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+            className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-disp2 font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 cursor-pointer"
             style={{ background: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
             aria-label="Dashboard"
           >
             T
           </button>
           <div className="min-w-0">
-            <p className="font-brand truncate text-[18px] font-bold leading-none tracking-tight text-ink">
+            <p className="font-brand truncate text-disp2 font-bold leading-none tracking-tight text-ink">
               TriponX
             </p>
-            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
+            <p className="mt-1 text-label font-semibold uppercase tracking-[0.14em] text-ink-muted">
               Hotel PMS
             </p>
           </div>
@@ -284,7 +284,7 @@ export function Sidebar({
                   type="button"
                   onClick={() => toggleSection(section.title)}
                   aria-expanded={open}
-                  className="flex min-h-[34px] w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[11px] font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer hover:bg-muted-surface/60"
+                  className="flex min-h-[34px] w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-label font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer hover:bg-muted-surface/60"
                   style={{
                     color: containsActive ? 'var(--color-primary)' : 'var(--color-ink-secondary)',
                   }}
@@ -320,7 +320,7 @@ export function Sidebar({
           <button
             type="button"
             onClick={onOpenThemes}
-            className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-semibold text-ink hover:bg-muted-surface transition-colors cursor-pointer"
+            className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-label font-semibold text-ink hover:bg-muted-surface transition-colors cursor-pointer"
           >
             <Lucide.Palette size={16} className="text-[var(--color-primary)]" />
             <span>Theme Colors</span>
@@ -329,7 +329,7 @@ export function Sidebar({
         <button
           type="button"
           onClick={toggleCollapsed}
-          className="hidden lg:flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-medium text-ink-secondary hover:bg-muted-surface hover:text-ink transition-colors cursor-pointer"
+          className="hidden lg:flex items-center gap-2.5 rounded-md px-2.5 py-2 text-label font-medium text-ink-secondary hover:bg-muted-surface hover:text-ink transition-colors cursor-pointer"
         >
           <Lucide.ChevronsLeft size={16} />
           <span>Collapse sidebar</span>
@@ -348,7 +348,7 @@ export function Sidebar({
           onClick={() => go('dashboard')}
           onMouseEnter={(e) => handleMouseEnter(e, 'TriponX Hotel PMS', 'Go to Dashboard', 'PMS')}
           onMouseLeave={handleMouseLeave}
-          className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-[18px] font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+          className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-disp2 font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 cursor-pointer"
           style={{ background: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
           aria-label="TriponX Home"
         >
@@ -415,7 +415,7 @@ export function Sidebar({
                 {/* Sub-item count badge indicator */}
                 {!isDirectItem && (
                   <span
-                    className="absolute -bottom-0.5 -right-0.5 flex h-3.5 min-w-[14px] px-0.5 items-center justify-center rounded-full text-[10px] font-bold"
+                    className="absolute -bottom-0.5 -right-0.5 flex h-3.5 min-w-[14px] px-0.5 items-center justify-center rounded-full text-micro font-bold"
                     style={{
                       background: isSectionActive ? 'var(--color-primary)' : 'var(--color-ink-muted)',
                       color: 'var(--color-primary-foreground)',
@@ -487,17 +487,17 @@ export function Sidebar({
             <div className="mr-[-1px] h-0 w-0 border-y-[5px] border-y-transparent border-r-[6px] border-r-slate-900" />
             <div className="rounded-xl bg-ink/95 backdrop-blur-md px-3 py-1.5 text-white shadow-2xl border border-ink-disabled/60 text-left">
               <div className="flex items-center gap-1.5">
-                <span className="text-[12px] font-semibold tracking-tight text-white">
+                <span className="text-label font-semibold tracking-tight text-white">
                   {tooltip.title}
                 </span>
                 {tooltip.badge && (
-                  <span className="rounded-md bg-surface/20 px-1.5 py-0.5 text-[10px] font-bold tracking-wide uppercase text-ink-disabled">
+                  <span className="rounded-md bg-surface/20 px-1.5 py-0.5 text-micro font-bold tracking-wide uppercase text-ink-disabled">
                     {tooltip.badge}
                   </span>
                 )}
               </div>
               {tooltip.hint && (
-                <p className="mt-0.5 text-[11px] text-ink-disabled font-normal">
+                <p className="mt-0.5 text-label text-ink-disabled font-normal">
                   {tooltip.hint}
                 </p>
               )}
@@ -535,10 +535,10 @@ export function Sidebar({
                     <SectionIcon size={15} />
                   </div>
                   <div>
-                    <p className="text-[13px] font-bold text-ink leading-tight">
+                    <p className="text-body font-bold text-ink leading-tight">
                       {activeSection.title}
                     </p>
-                    <p className="text-[11px] font-medium text-ink-muted">
+                    <p className="text-label font-medium text-ink-muted">
                       {activeSection.items.length} views available
                     </p>
                   </div>
@@ -600,7 +600,7 @@ export function Sidebar({
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between">
                           <p
-                            className="text-[13px] font-semibold leading-snug truncate"
+                            className="text-body font-semibold leading-snug truncate"
                             style={{ color: isItemActive ? 'var(--color-primary)' : 'var(--color-ink)' }}
                           >
                             {item.label}
@@ -609,7 +609,7 @@ export function Sidebar({
                             <span className="h-1.5 w-1.5 rounded-full flex-none" style={{ background: 'var(--color-primary)' }} />
                           )}
                         </div>
-                        <p className="text-[11px] text-ink-muted font-normal truncate mt-0.5">
+                        <p className="text-label text-ink-muted font-normal truncate mt-0.5">
                           {item.hint}
                         </p>
                       </div>
@@ -637,7 +637,7 @@ export function Sidebar({
             style={{ borderColor: 'var(--color-border)', boxShadow: 'var(--shadow-2xl)', background: 'var(--color-sidebar)' }}
           >
             <div className="flex items-center justify-between border-b px-4 py-3 lg:hidden" style={{ borderColor: 'var(--color-border)' }}>
-              <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-ink-muted">Menu</span>
+              <span className="text-label font-bold uppercase tracking-[0.12em] text-ink-muted">Menu</span>
               <button type="button" onClick={onClose} aria-label="Close navigation" className="pms-btn-ghost min-h-[38px] min-w-[38px] px-2.5 py-1.5 cursor-pointer">✕</button>
             </div>
             <div className="h-[calc(100%-53px)]">{fullPanel}</div>

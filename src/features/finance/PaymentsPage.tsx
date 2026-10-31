@@ -85,10 +85,10 @@ export function Payments() {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">
+              <h1 className="text-disp3 font-bold tracking-tight text-ink leading-tight">
                 Payments & Transactions
               </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
@@ -96,7 +96,7 @@ export function Payments() {
                 Live Gateway
               </span>
             </div>
-            <p className="text-xs text-ink-secondary mt-1">
+            <p className="text-label text-ink-secondary mt-1">
               Track payment gateway transactions, process refunds, and review payment settlements
             </p>
           </div>
@@ -105,7 +105,7 @@ export function Payments() {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 text-label font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
             title="Refresh payments"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
@@ -124,7 +124,7 @@ export function Payments() {
           <section key={label} className="pms-card p-3 sm:p-3.5 flex items-start justify-between">
             <div>
               <p className="pms-label">{label}</p>
-              <p className="pms-kpi-value tnum mt-1 text-2xl font-bold">{val}</p>
+              <p className="pms-kpi-value tnum mt-1 text-disp3 font-bold">{val}</p>
               <p className="pms-helper mt-1">{sub}</p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink/[0.03] text-primary">
@@ -142,19 +142,19 @@ export function Payments() {
           title="Payment Ledger"
           subtitle={resource.loading ? 'Loading payment records…' : `${filtered.length} backend transactions`}
           badge={
-            <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary border border-primary/30">
+            <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-micro font-bold text-primary border border-primary/30">
               {rows.length} Total
             </span>
           }
           action={
-            <span className="pms-helper text-xs flex items-center gap-1">
+            <span className="pms-helper text-label flex items-center gap-1">
               <Lucide.Info size={13} />
               <span>Payments are posted from guest folios</span>
             </span>
           }
         />
         {resource.error ? (
-          <div className="mb-3 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-sm text-danger-text">
+          <div className="mb-3 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-body text-danger-text">
             <Lucide.AlertCircle size={18} />
             <span>Could not load payments: {resource.error}</span>
           </div>
@@ -181,7 +181,7 @@ export function Payments() {
           </div>
           <button
             type="button"
-            className="pms-btn-ghost px-3 py-2 text-xs font-semibold"
+            className="pms-btn-ghost px-3 py-2 text-label font-semibold"
             onClick={() => { setQ(''); setStatus('All'); setPage(0); }}
           >
             Reset
@@ -207,32 +207,32 @@ export function Payments() {
             <tbody>
               {slice.map((p, idx) => (
                 <tr key={p.ref} className="transition-colors hover:bg-page/70">
-                  <td className="text-center font-medium text-ink-muted text-xs">
+                  <td className="text-center font-medium text-ink-muted text-label">
                     {safe * PAGE_SIZE + idx + 1}
                   </td>
-                  <td className="tnum font-mono font-bold text-ink text-xs">
+                  <td className="tnum font-mono font-bold text-ink text-label">
                     {p.ref}
-                    <span className="tnum block font-mono text-[11px] text-ink-muted font-normal">
+                    <span className="tnum block font-mono text-label text-ink-muted font-normal">
                       {p.txn}
                     </span>
                   </td>
                   <td>
                     <div className="flex items-center gap-3">
                       <Avatar name={p.guest} size={36} />
-                      <span className="font-semibold text-ink text-xs">{p.guest}</span>
+                      <span className="font-semibold text-ink text-label">{p.guest}</span>
                     </div>
                   </td>
-                  <td className="tnum font-mono text-ink-secondary text-xs">{p.bookingId}</td>
-                  <td className="tnum text-xs text-ink-secondary">{p.date}</td>
+                  <td className="tnum font-mono text-ink-secondary text-label">{p.bookingId}</td>
+                  <td className="tnum text-label text-ink-secondary">{p.date}</td>
                   <td>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted-surface text-ink">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-label font-medium bg-muted-surface text-ink">
                       {p.method}
                     </span>
                   </td>
                   <td>
                     <Badge tone={paymentTone(p.status)}>{p.status}</Badge>
                   </td>
-                  <td className="tnum text-right font-bold text-ink text-xs">
+                  <td className="tnum text-right font-bold text-ink text-label">
                     {formatCurrency(p.amount, p.currencyCode)}
                   </td>
                   {can('payment.refund') ? (
@@ -240,7 +240,7 @@ export function Payments() {
                       {['Paid', 'Partially refunded'].includes(p.status) ? (
                         <button
                           type="button"
-                          className="pms-btn-ghost px-3 py-1 text-xs text-danger-text hover:bg-danger-bg border border-danger-border/60 rounded-lg font-semibold"
+                          className="pms-btn-ghost px-3 py-1 text-label text-danger-text hover:bg-danger-bg border border-danger-border/60 rounded-lg font-semibold"
                           onClick={() =>
                             setRefundModal({
                               payment: p,
@@ -252,7 +252,7 @@ export function Payments() {
                           Refund
                         </button>
                       ) : (
-                        <span className="text-ink-muted text-xs">—</span>
+                        <span className="text-ink-muted text-label">—</span>
                       )}
                     </td>
                   ) : null}

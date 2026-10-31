@@ -17,7 +17,7 @@ export function Field({
       <span className="pms-label">{label}</span>
       {children}
       {error ? (
-        <span className="text-[12px] font-medium" style={{ color: 'var(--color-danger-text)' }} role="alert">
+        <span className="text-label font-medium" style={{ color: 'var(--color-danger-text)' }} role="alert">
           {error}
         </span>
       ) : hint ? (
@@ -54,7 +54,7 @@ export function Tabs<T extends string>({
             role="tab"
             aria-selected={selected}
             onClick={() => onChange(t.id)}
-            className="min-h-[38px] flex-none whitespace-nowrap rounded-[9px] px-3.5 py-2 text-sm font-semibold snap-start"
+            className="min-h-[38px] flex-none whitespace-nowrap rounded-[9px] px-3.5 py-2 text-body font-semibold snap-start"
             style={{
               background: selected ? 'var(--color-surface)' : 'transparent',
               color: selected ? 'var(--color-ink)' : 'var(--color-ink-secondary)',
@@ -81,13 +81,13 @@ export function Pagination({
   onChange: (p: number) => void;
   summary: string;
 }) {
-  if (totalPages <= 1) return <p className="text-sm text-ink-secondary">{summary}</p>;
+  if (totalPages <= 1) return <p className="text-body text-ink-secondary">{summary}</p>;
   const windowPages = Array.from({ length: totalPages }, (_, i) => i).filter(
     (i) => i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1,
   );
   return (
-    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-ink-secondary">
-      <p className="text-sm text-ink-secondary font-normal">{summary}</p>
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-body text-ink-secondary">
+      <p className="text-body text-ink-secondary font-normal">{summary}</p>
       <div className="flex max-w-full items-center gap-1.5 overflow-x-auto pb-0.5" role="navigation" aria-label="Pagination">
         <button
           type="button"
@@ -109,7 +109,7 @@ export function Pagination({
                 onClick={() => onChange(i)}
                 aria-current={isCurrent ? 'page' : undefined}
                 aria-label={`Page ${i + 1}`}
-                className={`flex h-8 w-8 flex-none items-center justify-center rounded-lg text-xs font-semibold transition-all cursor-pointer ${isCurrent
+                className={`flex h-8 w-8 flex-none items-center justify-center rounded-lg text-label font-semibold transition-all cursor-pointer ${isCurrent
                   ? 'bg-primary text-primary-foreground shadow-xs'
                   : 'border border-border bg-surface text-ink hover:bg-hover-surface'
                   }`}
@@ -155,7 +155,7 @@ export function FilterChip({
       onClick={onClick}
       aria-pressed={active}
       aria-label={pressedLabel}
-      className="min-h-[30px] flex-none whitespace-nowrap rounded-full border px-3 py-1.5 text-[12px] font-semibold snap-start"
+      className="min-h-[30px] flex-none whitespace-nowrap rounded-full border px-3 py-1.5 text-label font-semibold snap-start"
       style={{
         borderColor: active ? 'var(--color-primary)' : 'var(--color-border)',
         background: active ? 'var(--color-primary)' : 'var(--color-surface)',

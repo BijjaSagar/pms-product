@@ -153,7 +153,7 @@ export function Maintenance() {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 text-label font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
             title="Refresh tickets"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
@@ -162,7 +162,7 @@ export function Maintenance() {
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
           >
             <Lucide.Plus size={15} strokeWidth={2.4} />
             <span>New Work Order</span>
@@ -179,7 +179,7 @@ export function Maintenance() {
           title="Work Orders"
           subtitle={resource.loading ? 'Loading maintenance tickets…' : `${filtered.length} of ${reqs.length} requests`}
           badge={
-            <span className="flex items-center gap-1 rounded-full bg-warning-bg px-2 py-0.5 text-[10px] font-bold text-warning-text border border-warning-border/60">
+            <span className="flex items-center gap-1 rounded-full bg-warning-bg px-2 py-0.5 text-micro font-bold text-warning-text border border-warning-border/60">
               {reqs.length} Orders
             </span>
           }
@@ -187,7 +187,7 @@ export function Maintenance() {
             <button
               type="button"
               onClick={() => setCreating(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
             >
               <Lucide.Plus size={14} strokeWidth={2.4} />
               <span>New request</span>
@@ -195,7 +195,7 @@ export function Maintenance() {
           }
         />
         {resource.error ? (
-          <div className="mb-3 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-sm text-danger-text">
+          <div className="mb-3 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-body text-danger-text">
             <Lucide.AlertCircle size={18} />
             <span>Could not load maintenance tickets: {resource.error}</span>
           </div>
@@ -209,7 +209,7 @@ export function Maintenance() {
               onChange={(e) => setQ(e.target.value)}
               placeholder="Ticket ID, room or issue…"
               aria-label="Search work orders"
-              className={`${inputClass()} pl-9 w-full text-[12px]`}
+              className={`${inputClass()} pl-9 w-full text-label`}
             />
           </div>
           <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by status">
@@ -221,7 +221,7 @@ export function Maintenance() {
           </div>
           <button
             type="button"
-            className="pms-btn-ghost px-3 py-2 text-[12px] font-semibold"
+            className="pms-btn-ghost px-3 py-2 text-label font-semibold"
             onClick={() => { setQ(''); setStatus('All'); }}
           >
             Reset
@@ -246,17 +246,17 @@ export function Maintenance() {
             <tbody>
               {filtered.map((r, idx) => (
                 <tr key={r.id} className="transition-colors hover:bg-page/70">
-                  <td className="text-center font-medium text-ink-muted text-[12px]">
+                  <td className="text-center font-medium text-ink-muted text-label">
                     {idx + 1}
                   </td>
-                  <td className="tnum font-mono font-bold text-ink text-[12px]">{r.id}</td>
-                  <td className="tnum font-semibold text-ink text-[12px]">{r.room}</td>
-                  <td className="max-w-[280px] truncate text-ink-secondary text-[12px] font-medium">{r.description}</td>
+                  <td className="tnum font-mono font-bold text-ink text-label">{r.id}</td>
+                  <td className="tnum font-semibold text-ink text-label">{r.room}</td>
+                  <td className="max-w-[280px] truncate text-ink-secondary text-label font-medium">{r.description}</td>
                   <td>
                     <Badge tone={priorityTone(r.priority)}>{r.priority}</Badge>
                   </td>
-                  <td className="text-ink-secondary text-[12px]">{r.assignee}</td>
-                  <td className="tnum text-[12px] text-ink-secondary">{r.due}</td>
+                  <td className="text-ink-secondary text-label">{r.assignee}</td>
+                  <td className="tnum text-label text-ink-secondary">{r.due}</td>
                   <td>
                     <Badge tone={statusTone(r.status)}>{r.status}</Badge>
                   </td>
@@ -285,16 +285,16 @@ export function Maintenance() {
         subtitle="Details, technician assignment and resolution"
       >
         {open ? (
-          <div className="flex flex-col gap-4 text-[13px]">
+          <div className="flex flex-col gap-4 text-body">
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone={priorityTone(open.priority)}>{open.priority}</Badge>
               <Badge tone={statusTone(open.status)}>{open.status}</Badge>
               <Badge tone="neutral">{open.category}</Badge>
             </div>
-            <p className="text-[14px] leading-relaxed text-ink font-medium p-3 rounded-xl border bg-ink/[0.02]" style={{ borderColor: 'var(--color-border-subtle)' }}>
+            <p className="text-body leading-relaxed text-ink font-medium p-3 rounded-xl border bg-ink/[0.02]" style={{ borderColor: 'var(--color-border-subtle)' }}>
               {open.description}
             </p>
-            <dl className="grid grid-cols-2 gap-2 text-[13px]">
+            <dl className="grid grid-cols-2 gap-2 text-body">
               {[
                 ['Room / Facility', open.room],
                 ['Reported by', open.reportedBy],
@@ -302,7 +302,7 @@ export function Maintenance() {
                 ['Due date', open.due],
               ].map(([k, v]) => (
                 <div key={k} className="rounded-xl border p-2.5" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}>
-                  <dt className="text-xs text-ink-muted">{k}</dt>
+                  <dt className="text-label text-ink-muted">{k}</dt>
                   <dd className="font-semibold text-ink mt-0.5">{v}</dd>
                 </div>
               ))}
@@ -342,7 +342,7 @@ export function Maintenance() {
                   open.notes.map((n, i) => (
                     <li
                       key={i}
-                      className="rounded-xl border px-3 py-2 text-xs text-ink-secondary"
+                      className="rounded-xl border px-3 py-2 text-label text-ink-secondary"
                       style={{ borderColor: 'var(--color-divider)' }}
                     >
                       {n}

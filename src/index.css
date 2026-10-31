@@ -1,11 +1,34 @@
 @import 'tailwindcss';
 @import './theme/tokens.css';
 
+
+/* Responsive type scale. One ladder for every page; bands match the layout
+   breakpoints: phone <768, tablet 768-1023, desktop 1024-1439, large 1440+. */
+:root {
+  --fs-micro: 10px; --fs-label: 12px; --fs-body: 14px;
+  --fs-title: 16px; --fs-disp2: 20px; --fs-disp3: 24px;
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root { --fs-label: 11px; --fs-body: 13px; --fs-title: 15px; --fs-disp2: 18px; --fs-disp3: 22px; }
+}
+@media (min-width: 1024px) and (max-width: 1439px) {
+  :root { --fs-label: 11px; --fs-body: 12px; --fs-title: 14px; --fs-disp2: 18px; --fs-disp3: 22px; }
+}
+@media (min-width: 1440px) {
+  :root { --fs-label: 12px; --fs-body: 13px; --fs-title: 15px; --fs-disp2: 18px; --fs-disp3: 22px; }
+}
+
 @theme {
   --breakpoint-xs: 26rem;
 }
 
 @theme inline {
+  --text-micro: var(--fs-micro);
+  --text-label: var(--fs-label);
+  --text-body: var(--fs-body);
+  --text-title: var(--fs-title);
+  --text-disp2: var(--fs-disp2);
+  --text-disp3: var(--fs-disp3);
   --color-primary: var(--color-primary);
   --color-primary-hover: var(--color-primary-hover);
   --color-primary-active: var(--color-primary-active);
@@ -102,7 +125,7 @@ body {
   background: var(--color-page);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: var(--fs-body);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -267,7 +290,7 @@ textarea {
     border: 1px solid color-mix(in srgb, var(--color-primary-active) 55%, transparent);
     border-radius: var(--radius-control) !important;
     font-weight: 600;
-    font-size: 14px;
+    font-size: var(--fs-body);
     letter-spacing: 0.01em;
     box-shadow: var(--shadow-xs);
     cursor: pointer;
@@ -312,7 +335,7 @@ textarea {
     border: 1px solid color-mix(in srgb, var(--color-danger-text) 72%, transparent);
     border-radius: var(--radius-control) !important;
     font-weight: 600;
-    font-size: 14px;
+    font-size: var(--fs-body);
     letter-spacing: 0.01em;
     box-shadow: var(--shadow-xs);
     cursor: pointer;
@@ -351,7 +374,7 @@ textarea {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-control) !important;
     font-weight: 600;
-    font-size: 14px;
+    font-size: var(--fs-body);
     box-shadow: var(--shadow-xs);
     cursor: pointer;
     transition:
@@ -382,7 +405,7 @@ textarea {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-control) !important;
     color: var(--color-ink);
-    font-size: 14px;
+    font-size: var(--fs-body);
     font-weight: 400;
     box-shadow: var(--shadow-xs);
     transition:
@@ -414,7 +437,7 @@ textarea {
   .pms-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 12px;
+    font-size: var(--fs-label);
     min-width: 0;
     background: var(--color-surface);
   }
@@ -426,7 +449,7 @@ textarea {
 
   .pms-table thead th {
     text-align: left;
-    font-size: 12px;
+    font-size: var(--fs-label);
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -442,7 +465,7 @@ textarea {
     border-bottom: 1px solid var(--color-divider);
     color: var(--color-ink);
     vertical-align: middle;
-    font-size: 12px;
+    font-size: var(--fs-label);
     font-weight: 400;
     background: var(--color-surface);
   }
@@ -473,14 +496,14 @@ textarea {
   }
 
   .pms-label {
-    font-size: 13px;
+    font-size: var(--fs-label);
     font-weight: 500;
     color: var(--color-ink-secondary);
     letter-spacing: 0.01em;
   }
 
   .pms-helper {
-    font-size: 12px;
+    font-size: var(--fs-label);
     font-weight: 400;
     color: var(--color-ink-muted);
     line-height: 1.5;
@@ -488,7 +511,7 @@ textarea {
 
   /* Shared section typography used by page and card primitives. */
   .pms-section-title {
-    font-size: clamp(22px, 1.2vw + 16px, 26px);
+    font-size: var(--fs-disp3);
     font-weight: 600;
     letter-spacing: -0.015em;
     line-height: 1.3;
@@ -496,7 +519,7 @@ textarea {
   }
 
   .pms-kpi-value {
-    font-size: clamp(24px, 1.6vw + 18px, 30px);
+    font-size: var(--fs-disp3);
     font-weight: 750;
     letter-spacing: -0.025em;
     line-height: 1.05;

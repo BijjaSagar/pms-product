@@ -17,11 +17,11 @@ export function SeasonalityPanel({ seasons, onAdd, onToggleStatus }: Props) {
             <Lucide.SunMedium size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="seasonality-title" className="text-sm font-bold text-ink tracking-tight">Seasonal Pricing</h2>
-            <p className="text-[11px] text-ink-muted mt-0.5">Set date-based adjustments for holidays, demand peaks and low seasons</p>
+            <h2 id="seasonality-title" className="text-body font-bold text-ink tracking-tight">Seasonal Pricing</h2>
+            <p className="text-label text-ink-muted mt-0.5">Set date-based adjustments for holidays, demand peaks and low seasons</p>
           </div>
         </div>
-        <button type="button" onClick={onAdd} className="pms-btn-primary min-h-[38px] px-3.5 py-1.5 text-xs">
+        <button type="button" onClick={onAdd} className="pms-btn-primary min-h-[38px] px-3.5 py-1.5 text-label">
           <Lucide.Plus size={15} /> Add season
         </button>
       </div>
@@ -39,23 +39,23 @@ export function SeasonalityPanel({ seasons, onAdd, onToggleStatus }: Props) {
                       <Lucide.CalendarRange size={17} />
                     </span>
                     <div className="min-w-0">
-                      <h3 className="truncate text-sm font-semibold text-ink">{season.name}</h3>
-                      <p className="mt-0.5 text-[11px] text-ink-muted">{formatSeasonPeriod(season.startDate, season.endDate)}</p>
+                      <h3 className="truncate text-body font-semibold text-ink">{season.name}</h3>
+                      <p className="mt-0.5 text-label text-ink-muted">{formatSeasonPeriod(season.startDate, season.endDate)}</p>
                     </div>
                   </div>
-                  <span className={`tnum rounded-full px-2.5 py-1 text-xs font-bold ${positive ? 'bg-warning-bg text-warning-text' : 'bg-success-bg text-success-text'}`}>
+                  <span className={`tnum rounded-full px-2.5 py-1 text-label font-bold ${positive ? 'bg-warning-bg text-warning-text' : 'bg-success-bg text-success-text'}`}>
                     {positive ? '+' : ''}{season.adjustmentPct}%
                   </span>
                 </div>
-                <p className="mt-4 text-xs leading-relaxed text-ink-secondary">
+                <p className="mt-4 text-label leading-relaxed text-ink-secondary">
                   {positive ? 'Increase rates' : 'Reduce rates'} during this season across applicable room types.
                 </p>
               </div>
               <div className="mt-4 flex items-center justify-between border-t pt-3" style={{ borderColor: 'var(--color-divider)' }}>
-                <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold ${active ? 'text-success-text' : 'text-ink-muted'}`}>
+                <span className={`inline-flex items-center gap-1.5 text-label font-semibold ${active ? 'text-success-text' : 'text-ink-muted'}`}>
                   <span className={`h-1.5 w-1.5 rounded-full ${active ? 'bg-success-text' : 'bg-ink-disabled'}`} />{season.status}
                 </span>
-                <button type="button" onClick={() => onToggleStatus(season)} className="text-xs font-semibold text-primary hover:underline">
+                <button type="button" onClick={() => onToggleStatus(season)} className="text-label font-semibold text-primary hover:underline">
                   {active ? 'Pause season' : 'Activate'}
                 </button>
               </div>
@@ -63,7 +63,7 @@ export function SeasonalityPanel({ seasons, onAdd, onToggleStatus }: Props) {
           );
         })}
       </div>
-      {seasons.length === 0 && <p className="p-10 text-center text-sm text-ink-muted">No seasonal rules yet. Add a season to get started.</p>}
+      {seasons.length === 0 && <p className="p-10 text-center text-body text-ink-muted">No seasonal rules yet. Add a season to get started.</p>}
     </section>
   );
 }

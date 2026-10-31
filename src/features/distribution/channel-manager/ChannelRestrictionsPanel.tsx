@@ -22,19 +22,19 @@ export function ChannelRestrictionsPanel({ settings, onChange }: Props) {
           <Lucide.Sliders size={18} strokeWidth={2.4} />
         </div>
         <div>
-          <h2 id="sync-rules-title" className="text-sm font-bold text-ink tracking-tight">Sync Rules</h2>
-          <p className="text-[11px] text-ink-muted mt-0.5">Choose which property changes are sent to connected channels</p>
+          <h2 id="sync-rules-title" className="text-body font-bold text-ink tracking-tight">Sync Rules</h2>
+          <p className="text-label text-ink-muted mt-0.5">Choose which property changes are sent to connected channels</p>
         </div>
       </div>
       <div className="divide-y" style={{ borderColor: 'var(--color-divider)' }}>
         {RULES.map(({ key, label, detail, icon: Icon }) => (
           <div key={key} className="flex items-center justify-between gap-4 px-4 py-4 sm:px-5">
-            <div className="flex min-w-0 items-center gap-3"><span className="flex h-9 w-9 flex-none items-center justify-center rounded-control bg-primary/10 text-primary"><Icon size={16} /></span><div className="min-w-0"><p className="text-xs font-semibold text-ink">{label}</p><p className="mt-0.5 text-[11px] text-ink-muted">{detail}</p></div></div>
-            <label className="inline-flex flex-none items-center gap-2 text-[11px] font-semibold text-ink-secondary"><input type="checkbox" role="switch" checked={settings[key]} onChange={(event) => onChange(key, event.target.checked)} aria-label={`Sync ${label}`} className="h-4 w-4 accent-primary" />{settings[key] ? 'On' : 'Off'}</label>
+            <div className="flex min-w-0 items-center gap-3"><span className="flex h-9 w-9 flex-none items-center justify-center rounded-control bg-primary/10 text-primary"><Icon size={16} /></span><div className="min-w-0"><p className="text-label font-semibold text-ink">{label}</p><p className="mt-0.5 text-label text-ink-muted">{detail}</p></div></div>
+            <label className="inline-flex flex-none items-center gap-2 text-label font-semibold text-ink-secondary"><input type="checkbox" role="switch" checked={settings[key]} onChange={(event) => onChange(key, event.target.checked)} aria-label={`Sync ${label}`} className="h-4 w-4 accent-primary" />{settings[key] ? 'On' : 'Off'}</label>
           </div>
         ))}
       </div>
-      <div className="border-t px-4 py-3 text-[11px] text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>Rules are saved locally in this demo. Paused channels will not receive updates.</div>
+      <div className="border-t px-4 py-3 text-label text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>Rules are saved locally in this demo. Paused channels will not receive updates.</div>
     </section>
   );
 }

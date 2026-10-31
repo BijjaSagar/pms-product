@@ -90,9 +90,9 @@ function MetricCard({
         <Icon size={18} strokeWidth={2} />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-[11px] font-medium text-ink-secondary">{label}</p>
-        <p className="mt-0.5 truncate text-lg font-bold leading-tight text-ink tnum">{value}</p>
-        <p className="mt-0.5 truncate text-[10px] text-ink-muted">{hint}</p>
+        <p className="truncate text-label font-medium text-ink-secondary">{label}</p>
+        <p className="mt-0.5 truncate text-disp2 font-bold leading-tight text-ink tnum">{value}</p>
+        <p className="mt-0.5 truncate text-micro text-ink-muted">{hint}</p>
       </div>
     </article>
   );
@@ -279,8 +279,8 @@ export function RateManagement() {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">Rate Management</h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
+              <h1 className="text-disp3 font-bold tracking-tight text-ink leading-tight">Rate Management</h1>
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
@@ -288,13 +288,13 @@ export function RateManagement() {
                 Active Rates
               </span>
             </div>
-            <p className="text-xs text-ink-secondary mt-1">Control pricing, stay rules and channel distribution from one workspace.</p>
+            <p className="text-label text-ink-secondary mt-1">Control pricing, stay rules and channel distribution from one workspace.</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => setActiveTab('bulk')} className="pms-btn-ghost min-h-[40px] px-3.5 py-2 text-xs"><Lucide.Zap size={14} /> Bulk update</button>
-          <button type="button" onClick={openCreatePlan} className="pms-btn-primary min-h-[40px] px-3.5 py-2 text-xs"><Lucide.Plus size={15} /> Create rate plan</button>
-          <button type="button" onClick={handlePublish} disabled={!hasUnpublishedChanges} className="pms-btn-ghost min-h-[40px] px-3.5 py-2 text-xs disabled:opacity-50"><Lucide.Upload size={14} /> Publish rates</button>
+          <button type="button" onClick={() => setActiveTab('bulk')} className="pms-btn-ghost min-h-[40px] px-3.5 py-2 text-label"><Lucide.Zap size={14} /> Bulk update</button>
+          <button type="button" onClick={openCreatePlan} className="pms-btn-primary min-h-[40px] px-3.5 py-2 text-label"><Lucide.Plus size={15} /> Create rate plan</button>
+          <button type="button" onClick={handlePublish} disabled={!hasUnpublishedChanges} className="pms-btn-ghost min-h-[40px] px-3.5 py-2 text-label disabled:opacity-50"><Lucide.Upload size={14} /> Publish rates</button>
         </div>
       </header>
 
@@ -303,21 +303,21 @@ export function RateManagement() {
       </section>
 
       <section className="pms-card grid gap-3 p-4 sm:grid-cols-2 sm:p-4 lg:grid-cols-[minmax(180px,0.8fr)_minmax(240px,1.2fr)_minmax(0,1fr)] lg:items-end" aria-label="Rate calendar filters">
-        <label className="flex flex-col gap-1.5 text-[11px] font-semibold text-ink-secondary">
+        <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">
           Room type
-          <select value={selectedRoomType} onChange={(event) => handleRoomTypeChange(event.target.value)} className="pms-input min-h-[40px] w-full text-xs font-semibold">
+          <select value={selectedRoomType} onChange={(event) => handleRoomTypeChange(event.target.value)} className="pms-input min-h-[40px] w-full text-label font-semibold">
             {ROOM_TYPES.map((roomType) => <option key={roomType} value={roomType}>{roomType}</option>)}
           </select>
         </label>
-        <label className="flex flex-col gap-1.5 text-[11px] font-semibold text-ink-secondary">
+        <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">
           Rate plan
-          <select value={selectedPlan?.id ?? ''} onChange={(event) => setSelectedPlanId(event.target.value)} className="pms-input min-h-[40px] w-full text-xs font-semibold">
+          <select value={selectedPlan?.id ?? ''} onChange={(event) => setSelectedPlanId(event.target.value)} className="pms-input min-h-[40px] w-full text-label font-semibold">
             {eligiblePlans.map((plan) => <option key={plan.id} value={plan.id}>{plan.name}</option>)}
           </select>
         </label>
         <div className="flex min-h-[40px] items-center justify-between gap-3 rounded-control border px-3" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
-          <span className="text-[11px] font-medium text-ink-secondary">Selected window</span>
-          <span className="text-xs font-semibold text-ink">{dateLabel}</span>
+          <span className="text-label font-medium text-ink-secondary">Selected window</span>
+          <span className="text-label font-semibold text-ink">{dateLabel}</span>
         </div>
       </section>
 
@@ -340,7 +340,7 @@ export function RateManagement() {
           {TABS.map(({ id, label, icon: Icon }) => {
             const selected = activeTab === id;
             return (
-              <button key={id} type="button" role="tab" tabIndex={selected ? 0 : -1} id={`rate-tab-${id}`} aria-selected={selected} aria-controls="rate-tab-panel" onClick={() => setActiveTab(id)} className={`relative flex min-h-[48px] flex-none items-center gap-2 px-3 text-xs font-semibold transition-colors sm:px-4 ${selected ? 'text-primary' : 'text-ink-muted hover:text-ink'}`}>
+              <button key={id} type="button" role="tab" tabIndex={selected ? 0 : -1} id={`rate-tab-${id}`} aria-selected={selected} aria-controls="rate-tab-panel" onClick={() => setActiveTab(id)} className={`relative flex min-h-[48px] flex-none items-center gap-2 px-3 text-label font-semibold transition-colors sm:px-4 ${selected ? 'text-primary' : 'text-ink-muted hover:text-ink'}`}>
                 <Icon size={15} aria-hidden="true" />{label}
                 {selected && <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-primary sm:inset-x-4" />}
               </button>
@@ -390,18 +390,18 @@ export function RateManagement() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-2.5">
                         <span className="flex h-9 w-9 flex-none items-center justify-center rounded-control bg-primary/10 text-primary"><Lucide.Tag size={16} /></span>
-                        <div className="min-w-0"><p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Selected rate plan</p><h2 id="selected-plan-title" className="mt-0.5 truncate text-sm font-bold text-ink">{selectedPlan.name}</h2></div>
+                        <div className="min-w-0"><p className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Selected rate plan</p><h2 id="selected-plan-title" className="mt-0.5 truncate text-body font-bold text-ink">{selectedPlan.name}</h2></div>
                       </div>
-                      <span className={`tnum rounded-full px-2.5 py-1 text-[11px] font-bold ${selectedPlan.adjustmentPct < 0 ? 'bg-success-bg text-success-text' : selectedPlan.adjustmentPct > 0 ? 'bg-warning-bg text-warning-text' : 'bg-muted-surface text-ink-secondary'}`}>{selectedPlan.adjustmentPct > 0 ? '+' : ''}{selectedPlan.adjustmentPct}%</span>
+                      <span className={`tnum rounded-full px-2.5 py-1 text-label font-bold ${selectedPlan.adjustmentPct < 0 ? 'bg-success-bg text-success-text' : selectedPlan.adjustmentPct > 0 ? 'bg-warning-bg text-warning-text' : 'bg-muted-surface text-ink-secondary'}`}>{selectedPlan.adjustmentPct > 0 ? '+' : ''}{selectedPlan.adjustmentPct}%</span>
                     </div>
-                    <p className="mt-3 text-xs leading-relaxed text-ink-secondary">{selectedPlan.description}</p>
-                    <dl className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3 border-t pt-4 text-xs" style={{ borderColor: 'var(--color-divider)' }}>
-                      <div><dt className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Meal plan</dt><dd className="mt-1 font-medium text-ink">{selectedPlan.mealPlan}</dd></div>
-                      <div><dt className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Coverage</dt><dd className="mt-1 font-medium text-ink">{selectedPlan.channels.filter((id) => connectedChannelIds.includes(id)).length} channels</dd></div>
-                      <div className="col-span-2"><dt className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Cancellation</dt><dd className="mt-1 font-medium text-ink">{selectedPlan.cancellationPolicy}</dd></div>
+                    <p className="mt-3 text-label leading-relaxed text-ink-secondary">{selectedPlan.description}</p>
+                    <dl className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3 border-t pt-4 text-label" style={{ borderColor: 'var(--color-divider)' }}>
+                      <div><dt className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Meal plan</dt><dd className="mt-1 font-medium text-ink">{selectedPlan.mealPlan}</dd></div>
+                      <div><dt className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Coverage</dt><dd className="mt-1 font-medium text-ink">{selectedPlan.channels.filter((id) => connectedChannelIds.includes(id)).length} channels</dd></div>
+                      <div className="col-span-2"><dt className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Cancellation</dt><dd className="mt-1 font-medium text-ink">{selectedPlan.cancellationPolicy}</dd></div>
                     </dl>
                     <div className="mt-auto flex gap-2 pt-5">
-                      <button type="button" onClick={() => openEditPlan(selectedPlan)} className="pms-btn-ghost flex-1 px-3 py-2 text-xs"><Lucide.Pencil size={13} /> Edit plan</button>
+                      <button type="button" onClick={() => openEditPlan(selectedPlan)} className="pms-btn-ghost flex-1 px-3 py-2 text-label"><Lucide.Pencil size={13} /> Edit plan</button>
                       <button type="button" onClick={() => {
                         const clone: RatePlan = { ...selectedPlan, id: `plan-${Date.now()}`, code: `${selectedPlan.code.slice(0, 8)}-COPY`, name: `${selectedPlan.name} copy`, status: 'Inactive' };
                         setRatePlans((previous) => [clone, ...previous]);

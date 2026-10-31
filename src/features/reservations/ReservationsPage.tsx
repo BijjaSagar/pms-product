@@ -48,49 +48,49 @@ function StatusPill({ status }: { status: ReservationStatus }) {
   switch (status) {
     case 'Confirmed':
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-success-bg text-success-text border border-success-border">
+        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-semibold bg-success-bg text-success-text border border-success-border">
           <span className="h-1.5 w-1.5 rounded-full bg-success-text" />
           Confirmed
         </span>
       );
     case 'Checked-in':
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-[var(--color-muted-surface)] text-[var(--color-primary)] border border-[color-mix(in_srgb,var(--color-primary)_25%,transparent)]">
+        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-semibold bg-[var(--color-muted-surface)] text-[var(--color-primary)] border border-[color-mix(in_srgb,var(--color-primary)_25%,transparent)]">
           <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-primary)]" />
           Checked-in
         </span>
       );
     case 'Checked-out':
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-muted-surface text-ink border border-border">
+        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-semibold bg-muted-surface text-ink border border-border">
           <span className="h-1.5 w-1.5 rounded-full bg-ink-disabled" />
           Checked-out
         </span>
       );
     case 'Pending':
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-warning-bg text-warning-text border border-warning-border">
+        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-semibold bg-warning-bg text-warning-text border border-warning-border">
           <span className="h-1.5 w-1.5 rounded-full bg-warning-text" />
           Pending
         </span>
       );
     case 'Cancelled':
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-danger-bg text-danger-text border border-danger-border">
+        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-semibold bg-danger-bg text-danger-text border border-danger-border">
           <span className="h-1.5 w-1.5 rounded-full bg-danger-text" />
           Cancelled
         </span>
       );
     case 'No-show':
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-danger-bg text-danger-text border border-danger-border">
+        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-semibold bg-danger-bg text-danger-text border border-danger-border">
           <span className="h-1.5 w-1.5 rounded-full bg-danger-text" />
           No-show
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-page text-ink border border-border">
+        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-semibold bg-page text-ink border border-border">
           {status}
         </span>
       );
@@ -140,30 +140,30 @@ function ReservationDrawer({
 
   return (
     <>
-      <div className="flex flex-col gap-4 text-xs text-ink">
+      <div className="flex flex-col gap-4 text-label text-ink">
         <div className="flex items-center justify-between border-b pb-3 border-border">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-sm text-ink">{r.guest}</span>
+            <span className="font-bold text-body text-ink">{r.guest}</span>
             <StatusPill status={r.status} />
           </div>
-          <span className="font-bold text-sm text-ink">₹{r.total.toLocaleString('en-IN')}.00</span>
+          <span className="font-bold text-body text-ink">₹{r.total.toLocaleString('en-IN')}.00</span>
         </div>
 
         <div className="grid grid-cols-2 gap-3 rounded-md border border-border bg-page p-3">
           <div>
-            <span className="text-[11px] text-ink-muted">Room</span>
+            <span className="text-label text-ink-muted">Room</span>
             <p className="font-semibold text-ink">{r.roomSummary ?? (r.roomNumber ? `Room ${r.roomNumber} (${r.roomType})` : `Unassigned (${r.roomType})`)}</p>
           </div>
           <div>
-            <span className="text-[11px] text-ink-muted">Rate Plan</span>
+            <span className="text-label text-ink-muted">Rate Plan</span>
             <p className="font-semibold text-ink">{r.ratePlan}</p>
           </div>
           <div>
-            <span className="text-[11px] text-ink-muted">Stay Dates</span>
+            <span className="text-label text-ink-muted">Stay Dates</span>
             <p className="font-semibold text-ink">{r.checkIn} → {r.checkOut} ({r.nights}n)</p>
           </div>
           <div>
-            <span className="text-[11px] text-ink-muted">Guests</span>
+            <span className="text-label text-ink-muted">Guests</span>
             <p className="font-semibold text-ink">{r.adults + r.children} Guests</p>
           </div>
         </div>
@@ -190,7 +190,7 @@ function ReservationDrawer({
         {r.status === 'Checked-in' && (
           <button
             type="button"
-            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-md bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-white font-semibold text-xs shadow-xs cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-md bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-white font-semibold text-label shadow-xs cursor-pointer"
             onClick={() => { go({ view: 'folios' }); onClose(); }}
           >
             <Lucide.Receipt size={15} />
@@ -200,7 +200,7 @@ function ReservationDrawer({
         {(r.status === 'Confirmed' || r.status === 'Pending') && (
           <button
             type="button"
-            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-md border border-border bg-surface hover:bg-page text-ink font-semibold text-xs shadow-xs cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-md border border-border bg-surface hover:bg-page text-ink font-semibold text-label shadow-xs cursor-pointer"
             onClick={() => setEditOpen(true)}
           >
             <Lucide.CalendarClock size={15} />
@@ -210,7 +210,7 @@ function ReservationDrawer({
         {(r.status === 'Confirmed' || r.status === 'Pending') && (
           <button
             type="button"
-            className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md border border-danger-border bg-surface hover:bg-danger-bg text-danger-text font-semibold text-xs shadow-xs cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md border border-danger-border bg-surface hover:bg-danger-bg text-danger-text font-semibold text-label shadow-xs cursor-pointer"
             onClick={() => setConfirm('cancel')}
           >
             <Lucide.XCircle size={15} />
@@ -230,7 +230,7 @@ function ReservationDrawer({
             <button
               type="button"
               onClick={() => setEditOpen(false)}
-              className="rounded-md border border-border px-4 py-2 text-xs font-semibold text-ink hover:bg-page"
+              className="rounded-md border border-border px-4 py-2 text-label font-semibold text-ink hover:bg-page"
               disabled={isUpdating}
             >
               Cancel
@@ -238,7 +238,7 @@ function ReservationDrawer({
             <button
               type="button"
               onClick={() => void handleSaveDates()}
-              className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-xs font-semibold text-white hover:bg-[var(--color-primary-hover)] shadow-xs"
+              className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-label font-semibold text-white hover:bg-[var(--color-primary-hover)] shadow-xs"
               disabled={isUpdating}
             >
               {isUpdating ? 'Saving…' : 'Save Dates'}
@@ -248,21 +248,21 @@ function ReservationDrawer({
       >
         <div className="flex flex-col gap-4 py-2">
           <div>
-            <label className="block text-xs font-semibold text-ink mb-1">Check-in Date</label>
+            <label className="block text-label font-semibold text-ink mb-1">Check-in Date</label>
             <input
               type="date"
               value={editCheckIn}
               onChange={(e) => setEditCheckIn(e.target.value)}
-              className="w-full rounded-md border border-border p-2.5 text-xs text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
+              className="w-full rounded-md border border-border p-2.5 text-label text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-ink mb-1">Check-out Date</label>
+            <label className="block text-label font-semibold text-ink mb-1">Check-out Date</label>
             <input
               type="date"
               value={editCheckOut}
               onChange={(e) => setEditCheckOut(e.target.value)}
-              className="w-full rounded-md border border-border p-2.5 text-xs text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
+              className="w-full rounded-md border border-border p-2.5 text-label text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
             />
           </div>
         </div>
@@ -781,7 +781,7 @@ export function RoomCalendar({
                 <Lucide.ChevronLeft size={16} />
               </button>
 
-              <label className="relative flex min-h-9 cursor-pointer items-center gap-2 rounded-xl border border-border/80 bg-surface px-3 text-xs font-semibold text-ink shadow-2xs focus-within:ring-2 focus-within:ring-[var(--color-primary)]/25">
+              <label className="relative flex min-h-9 cursor-pointer items-center gap-2 rounded-xl border border-border/80 bg-surface px-3 text-label font-semibold text-ink shadow-2xs focus-within:ring-2 focus-within:ring-[var(--color-primary)]/25">
                 <Lucide.Calendar size={14} className="text-[var(--color-primary)]" />
                 <span>
                   {formatCalendarDate(baseDate).month} {formatCalendarDate(baseDate).dayNum}, {formatCalendarDate(baseDate).year}
@@ -818,13 +818,13 @@ export function RoomCalendar({
             <button
               type="button"
               onClick={jumpToToday}
-              className="min-h-10 rounded-xl border border-border bg-surface px-3.5 text-xs font-semibold text-ink shadow-2xs transition-colors hover:bg-page cursor-pointer"
+              className="min-h-10 rounded-xl border border-border bg-surface px-3.5 text-label font-semibold text-ink shadow-2xs transition-colors hover:bg-page cursor-pointer"
             >
               Today
             </button>
 
             {/* Horizon Switcher (7 / 14 / 30 Days) */}
-            <div className="flex items-center rounded-xl border border-border bg-page p-1 text-xs font-semibold shadow-2xs" role="group" aria-label="Calendar range">
+            <div className="flex items-center rounded-xl border border-border bg-page p-1 text-label font-semibold shadow-2xs" role="group" aria-label="Calendar range">
               {([7, 14, 30] as const).map((days) => (
                 <button
                   key={days}
@@ -842,20 +842,20 @@ export function RoomCalendar({
             </div>
             <div className="flex flex-wrap items-center gap-2">
 
-              <div className="flex items-center gap-2 rounded-xl ml-4 border border-border bg-page px-2 py-1.5 text-xs">
+              <div className="flex items-center gap-2 rounded-xl ml-4 border border-border bg-page px-2 py-1.5 text-label">
                 <span className="text-ink-secondary">Rooms</span>
                 <span className="font-bold tabular-nums text-ink">{stats.totalRoomsCount}</span>
               </div>
-              <div className="flex items-center gap-2 rounded-xl border border-[var(--color-success-border)] bg-[var(--color-success-bg)] px-2 py-1.5 text-xs text-[var(--color-success-text)]">
+              <div className="flex items-center gap-2 rounded-xl border border-[var(--color-success-border)] bg-[var(--color-success-bg)] px-2 py-1.5 text-label text-[var(--color-success-text)]">
                 <span>Available</span>
                 <span className="font-bold tabular-nums">{stats.availableToday}</span>
               </div>
-              <div className="flex items-center gap-2 rounded-xl border border-[var(--color-info-border)] bg-[var(--color-info-bg)] px-2 py-1.5 text-xs text-[var(--color-info-text)]">
+              <div className="flex items-center gap-2 rounded-xl border border-[var(--color-info-border)] bg-[var(--color-info-bg)] px-2 py-1.5 text-label text-[var(--color-info-text)]">
                 <span>Occupied</span>
                 <span className="font-bold tabular-nums">{stats.occupiedToday} · {stats.occupancyRate}%</span>
               </div>
               {stats.oooCount > 0 && (
-                <div className="flex items-center gap-2 rounded-xl border border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] px-2 py-1.5 text-xs text-[var(--color-danger-text)]">
+                <div className="flex items-center gap-2 rounded-xl border border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] px-2 py-1.5 text-label text-[var(--color-danger-text)]">
                   <span>Out of order</span>
                   <span className="font-bold tabular-nums">{stats.oooCount}</span>
                 </div>
@@ -877,7 +877,7 @@ export function RoomCalendar({
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search guest, ID, room..."
               aria-label="Search reservations by guest, ID, or room"
-              className="min-h-10 w-full border border-border bg-page/60 py-2 pl-9 pr-3 text-xs font-medium text-ink transition-all focus:border-[var(--color-primary)] focus:bg-surface focus:outline-none"
+              className="min-h-10 w-full border border-border bg-page/60 py-2 pl-9 pr-3 text-label font-medium text-ink transition-all focus:border-[var(--color-primary)] focus:bg-surface focus:outline-none"
             />
           </div>
 
@@ -888,7 +888,7 @@ export function RoomCalendar({
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as RoomType | 'All')}
               aria-label="Filter by room type"
-              className="min-h-10 w-full border border-border bg-page/60 px-3 py-2 text-xs font-semibold text-ink focus:bg-surface focus:outline-none cursor-pointer"
+              className="min-h-10 w-full border border-border bg-page/60 px-3 py-2 text-label font-semibold text-ink focus:bg-surface focus:outline-none cursor-pointer"
             >
               <option value="All">All Room Types</option>
               <option value="Standard">Standard</option>
@@ -906,7 +906,7 @@ export function RoomCalendar({
               value={filterFloor}
               onChange={(e) => setFilterFloor(e.target.value === 'All' ? 'All' : Number(e.target.value))}
               aria-label="Filter by floor"
-              className="min-h-10 w-full border border-border bg-page/60 px-3 py-2 text-xs font-semibold text-ink focus:bg-surface focus:outline-none cursor-pointer"
+              className="min-h-10 w-full border border-border bg-page/60 px-3 py-2 text-label font-semibold text-ink focus:bg-surface focus:outline-none cursor-pointer"
             >
               <option value="All">All Floors ({rooms.length} Rooms)</option>
               {floorOptions.map((option) => (
@@ -923,7 +923,7 @@ export function RoomCalendar({
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as CalendarReservationStatus | 'All')}
               aria-label="Filter by reservation status"
-              className="min-h-10 w-full border border-border bg-page/60 px-3 py-2 text-xs font-semibold text-ink focus:bg-surface focus:outline-none cursor-pointer"
+              className="min-h-10 w-full border border-border bg-page/60 px-3 py-2 text-label font-semibold text-ink focus:bg-surface focus:outline-none cursor-pointer"
             >
               <option value="All">All Statuses</option>
               <option value="Confirmed">Confirmed</option>
@@ -942,7 +942,7 @@ export function RoomCalendar({
               value={filterSource}
               onChange={(e) => setFilterSource(e.target.value as BookingSource | 'All')}
               aria-label="Filter by booking source"
-              className="min-h-10 w-full border border-border bg-page/60 px-3 py-2 text-xs font-semibold text-ink focus:bg-surface focus:outline-none cursor-pointer"
+              className="min-h-10 w-full border border-border bg-page/60 px-3 py-2 text-label font-semibold text-ink focus:bg-surface focus:outline-none cursor-pointer"
             >
               <option value="All">All Sources</option>
               <option value="Direct">Direct Desk</option>
@@ -967,7 +967,7 @@ export function RoomCalendar({
           {/* Sticky Top-Left Corner */}
           <div
             style={{ width: `${ROOM_COL_WIDTH}px` }}
-            className="sticky left-0 z-30 flex shrink-0 items-center justify-between border-r border-border bg-page px-3 py-3 text-[12px] font-bold uppercase tracking-wider text-ink-secondary shadow-xs"
+            className="sticky left-0 z-30 flex shrink-0 items-center justify-between border-r border-border bg-page px-3 py-3 text-label font-bold uppercase tracking-wider text-ink-secondary shadow-xs"
           >
             <span>Room no</span>
           </div>
@@ -993,20 +993,20 @@ export function RoomCalendar({
                   className="flex shrink-0 flex-col items-center justify-center border-r px-1 py-2 text-center transition-colors"
                 >
                   <span
-                    className={`text-[10px] font-bold uppercase tracking-wider ${isToday ? 'font-bold text-[var(--color-primary)]' : 'text-ink-secondary'
+                    className={`text-micro font-bold uppercase tracking-wider ${isToday ? 'font-bold text-[var(--color-primary)]' : 'text-ink-secondary'
                       }`}
                   >
                     {dateInfo.weekday}
                   </span>
                   <span
-                    className={`text-sm leading-none mt-0.5 ${isToday
+                    className={`text-body leading-none mt-0.5 ${isToday
                       ? 'flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary)] font-bold text-white shadow-xs'
                       : 'font-bold text-ink'
                       }`}
                   >
                     {dateInfo.dayNum}
                   </span>
-                  <span className="mt-0.5 text-[10px] font-medium text-ink-secondary">
+                  <span className="mt-0.5 text-micro font-medium text-ink-secondary">
                     {dateInfo.month}
                   </span>
                 </div>
@@ -1034,8 +1034,8 @@ export function RoomCalendar({
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-muted-surface)] text-[var(--color-ink-secondary)]">
                   <Lucide.SearchX size={18} />
                 </span>
-                <span className="text-sm font-semibold text-ink">No rooms match these filters</span>
-                <span className="text-xs text-ink-secondary">Try a different room type, floor, or search.</span>
+                <span className="text-body font-semibold text-ink">No rooms match these filters</span>
+                <span className="text-label text-ink-secondary">Try a different room type, floor, or search.</span>
               </div>
             ) : filteredRooms.map((room) => {
               const isOOO = room.status === 'Out-of-Order';
@@ -1077,7 +1077,7 @@ export function RoomCalendar({
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="flex flex-col">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[12px] font-black text-ink tracking-tight">
+                          <span className="text-label font-black text-ink tracking-tight">
                             Rm {room.number}
                           </span>
 
@@ -1203,7 +1203,7 @@ export function RoomCalendar({
                           }}
                           className={`absolute ${startedBefore ? 'rounded-l-none' : 'rounded-l-xl'
                             } ${endsAfter ? 'rounded-r-none' : 'rounded-r-xl'
-                            } z-10 group flex select-none items-center justify-between overflow-hidden border px-2 py-0.5 text-xs font-semibold shadow-xs transition-all cursor-grab active:cursor-grabbing focus-visible:z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-1 ${isBeingDragged ? 'opacity-30' : 'hover:brightness-[0.98] hover:shadow-sm'
+                            } z-10 group flex select-none items-center justify-between overflow-hidden border px-2 py-0.5 text-label font-semibold shadow-xs transition-all cursor-grab active:cursor-grabbing focus-visible:z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-1 ${isBeingDragged ? 'opacity-30' : 'hover:brightness-[0.98] hover:shadow-sm'
                             } ${isInactive ? 'opacity-75' : ''} ${res.status === 'Cancelled' ? 'cursor-not-allowed' : ''
                             }`}
                           title={`${res.guestName} (${res.id}) · ${res.checkInDate} to ${res.checkOutDate} (${res.nights}n) · ₹${res.totalAmount.toLocaleString('en-IN')}`}
@@ -1222,13 +1222,13 @@ export function RoomCalendar({
                           {/* Bar Content */}
                           <div className="flex min-w-0 items-center gap-1 truncate pl-1 pr-1">
                             {startedBefore && (
-                              <span className="text-[10px] opacity-75 font-mono">‹</span>
+                              <span className="text-micro opacity-75 font-mono">‹</span>
                             )}
-                            <span className={`truncate text-xs font-bold leading-tight ${isInactive ? 'line-through' : ''}`}>
+                            <span className={`truncate text-label font-bold leading-tight ${isInactive ? 'line-through' : ''}`}>
                               {res.guestName}
                             </span>
                             <span
-                              className="shrink-0 rounded border px-1 py-0.2 text-[10px] font-semibold"
+                              className="shrink-0 rounded border px-1 py-0.2 text-micro font-semibold"
                               style={{
                                 background: `color-mix(in srgb, ${barTone.color} 9%, var(--color-surface))`,
                                 borderColor: barTone.border,
@@ -1236,11 +1236,11 @@ export function RoomCalendar({
                             >
                               {res.nights}n
                             </span>
-                            <span className="hidden truncate text-[10px] opacity-80 2xl:inline">
+                            <span className="hidden truncate text-micro opacity-80 2xl:inline">
                               ₹{res.totalAmount.toLocaleString('en-IN')}
                             </span>
                             {endsAfter && (
-                              <span className="text-[10px] opacity-75 font-mono">›</span>
+                              <span className="text-micro opacity-75 font-mono">›</span>
                             )}
                           </div>
 
@@ -1293,7 +1293,7 @@ export function RoomCalendar({
                             top: '8px',
                             bottom: '8px',
                           }}
-                          className={`absolute rounded-xl px-2.5 py-0.5 flex items-center justify-between text-xs font-bold shadow-xl pointer-events-none z-30 transition-all border-2 border-dashed ${dragState.isValid
+                          className={`absolute rounded-xl px-2.5 py-0.5 flex items-center justify-between text-label font-bold shadow-xl pointer-events-none z-30 transition-all border-2 border-dashed ${dragState.isValid
                             ? 'bg-[var(--color-primary)]/90 border-surface text-white ring-2 ring-[var(--color-primary)]'
                             : 'bg-danger-text/90 border-surface text-white ring-2 ring-danger-text'
                             }`}
@@ -1304,7 +1304,7 @@ export function RoomCalendar({
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-1 shrink-0 text-[10px]">
+                          <div className="flex items-center gap-1 shrink-0 text-micro">
                             {dragState.isValid ? (
                               <span className="bg-surface/25 px-1.5 py-0.5 rounded">Drop to Confirm</span>
                             ) : (
@@ -1504,7 +1504,7 @@ export function Reservations({
   return (
     <div className="w-full text-ink font-sans pb-8 flex flex-col gap-3.5">
       {resource.error && (
-        <div className="flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-xs text-danger-text">
+        <div className="flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-label text-danger-text">
           <Lucide.AlertCircle size={16} />
           <span>Notice: {resource.error}</span>
         </div>
@@ -1521,7 +1521,7 @@ export function Reservations({
             <button
               type="button"
               onClick={() => setViewMode('calendar')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'calendar'
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-label font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'calendar'
                 ? 'bg-[var(--color-primary)] text-white shadow-xs'
                 : 'text-ink-secondary hover:text-ink'
                 }`}
@@ -1531,7 +1531,7 @@ export function Reservations({
             <button
               type="button"
               onClick={() => setViewMode('list')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'list'
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-label font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'list'
                 ? 'bg-[var(--color-primary)] text-white shadow-xs'
                 : 'text-ink-secondary hover:text-ink'
                 }`}
@@ -1550,9 +1550,9 @@ export function Reservations({
           <section className="pms-card flex flex-col gap-3.5 p-4 sm:p-5" aria-label="Reservation filters">
             <div className="flex flex-col gap-2 border-b border-divider pb-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-sm font-bold tracking-tight text-ink">Find reservations</h2>
+                <h2 className="text-body font-bold tracking-tight text-ink">Find reservations</h2>
               </div>
-              <span className="inline-flex w-fit items-center rounded-full border border-border bg-page px-2.5 py-1 text-xs font-semibold text-ink-secondary">
+              <span className="inline-flex w-fit items-center rounded-full border border-border bg-page px-2.5 py-1 text-label font-semibold text-ink-secondary">
                 {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
               </span>
             </div>
@@ -1572,18 +1572,18 @@ export function Reservations({
                     setPage(0);
                   }}
                   placeholder="Search guest name, booking ID, phone, email..."
-                  className="min-h-10 w-full rounded-control border border-border bg-surface py-2 pl-10 pr-3.5 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                  className="min-h-10 w-full rounded-control border border-border bg-surface py-2 pl-10 pr-3.5 text-label text-ink placeholder:text-ink-muted focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
                 />
               </div>
 
               {/* Check-in Date Picker */}
-              <div className="flex min-h-10 items-center justify-between gap-1.5 rounded-control border border-border bg-surface px-3 py-2 text-xs text-ink">
+              <div className="flex min-h-10 items-center justify-between gap-1.5 rounded-control border border-border bg-surface px-3 py-2 text-label text-ink">
                 <span>Check-in date</span>
                 <Lucide.Calendar size={14} className="text-ink-muted ml-1" />
               </div>
 
               {/* Check-out Date Picker */}
-              <div className="flex min-h-10 items-center justify-between gap-1.5 rounded-control border border-border bg-surface px-3 py-2 text-xs text-ink">
+              <div className="flex min-h-10 items-center justify-between gap-1.5 rounded-control border border-border bg-surface px-3 py-2 text-label text-ink">
                 <span>Check-out date</span>
                 <Lucide.Calendar size={14} className="text-ink-muted ml-1" />
               </div>
@@ -1596,7 +1596,7 @@ export function Reservations({
                   setPage(0);
                 }}
                 aria-label="Filter by source"
-                className="min-h-10 rounded-control border border-border bg-surface px-3 py-2 text-xs text-ink focus:outline-none focus:border-[var(--color-primary)]"
+                className="min-h-10 rounded-control border border-border bg-surface px-3 py-2 text-label text-ink focus:outline-none focus:border-[var(--color-primary)]"
               >
                 <option value="All">All sources</option>
                 {sources
@@ -1616,7 +1616,7 @@ export function Reservations({
                   setPage(0);
                 }}
                 aria-label="Filter by room type"
-                className="min-h-10 rounded-control border border-border bg-surface px-3 py-2 text-xs text-ink focus:outline-none focus:border-[var(--color-primary)]"
+                className="min-h-10 rounded-control border border-border bg-surface px-3 py-2 text-label text-ink focus:outline-none focus:border-[var(--color-primary)]"
               >
                 <option value="All">All rooms</option>
                 {roomTypes
@@ -1630,7 +1630,7 @@ export function Reservations({
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="flex items-center gap-1.5  rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-ink hover:bg-page cursor-pointer shadow-xs"
+                className="flex items-center gap-1.5  rounded-lg border border-border bg-surface px-3 py-1.5 text-label font-semibold text-ink hover:bg-page cursor-pointer shadow-xs"
               >
 
                 <Lucide.RotateCcw size={13} className="text-ink-muted" />
@@ -1656,7 +1656,7 @@ export function Reservations({
                         setStatus(f);
                         setPage(0);
                       }}
-                      className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${isActive
+                      className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-label font-semibold transition-all cursor-pointer ${isActive
                         ? 'bg-[var(--color-primary)] text-white shadow-xs'
                         : 'bg-surface text-ink-secondary border border-border hover:bg-page'
                         }`}
@@ -1695,10 +1695,10 @@ export function Reservations({
                   <Lucide.ClipboardList size={17} />
                 </span>
                 <div>
-                  <h2 className="text-sm font-bold tracking-tight text-ink">Reservation list</h2>
+                  <h2 className="text-body font-bold tracking-tight text-ink">Reservation list</h2>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-xs text-ink-secondary">
+              <div className="flex items-center gap-2 text-label text-ink-secondary">
                 {selectedRowIds.length > 0 && (
                   <span className="rounded-full border border-[var(--color-primary)]/20 bg-[var(--color-muted-surface)] px-2.5 py-1 font-semibold text-[var(--color-primary)]">
                     {selectedRowIds.length} selected
@@ -1709,10 +1709,10 @@ export function Reservations({
             </div>
 
             <div className="pms-table-scroll overflow-x-auto">
-              <table className="pms-table min-w-[1020px] w-full border-collapse text-left text-xs">
+              <table className="pms-table min-w-[1020px] w-full border-collapse text-left text-label">
                 {/* Table Header */}
                 <thead>
-                  <tr className="border-b border-border bg-page/80 text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
+                  <tr className="border-b border-border bg-page/80 text-label font-semibold uppercase tracking-wider text-ink-secondary">
                     <th className="py-2.5 px-3 w-10">
                       <input
                         type="checkbox"
@@ -1785,10 +1785,10 @@ export function Reservations({
 
                         {/* Reference & Created Time */}
                         <td className="py-2.5 px-3">
-                          <div className="font-bold text-ink tracking-tight text-xs font-mono">
+                          <div className="font-bold text-ink tracking-tight text-label font-mono">
                             {r.id}
                           </div>
-                          <div className="text-[12px] text-ink-muted mt-0.5">
+                          <div className="text-label text-ink-muted mt-0.5">
                             {r.checkInIso ? `Oct 15, 2026 • 10:24 AM` : 'Oct 15, 2026 • 09:12 AM'}
                           </div>
                         </td>
@@ -1798,8 +1798,8 @@ export function Reservations({
                           <div className="flex items-center gap-3">
                             <Avatar name={r.guest} size={36} />
                             <div>
-                              <p className="font-semibold text-ink text-[12px] leading-tight">{r.guest}</p>
-                              <p className="text-[12px] text-ink-muted mt-0.5">
+                              <p className="font-semibold text-ink text-label leading-tight">{r.guest}</p>
+                              <p className="text-label text-ink-muted mt-0.5">
                                 {r.guest === 'Rahul Sharma'
                                   ? '+91 91234 56789'
                                   : r.guest === 'Priya Mehta'
@@ -1828,7 +1828,7 @@ export function Reservations({
                                 className="h-9 w-9 rounded-md object-cover shrink-0 border border-border"
                               />
                               <div>
-                                <p className="font-bold text-ink text-[12px] leading-tight">{r.roomSummary ?? r.roomNumber}</p>
+                                <p className="font-bold text-ink text-label leading-tight">{r.roomSummary ?? r.roomNumber}</p>
                               </div>
                             </div>
                           ) : (
@@ -1836,13 +1836,13 @@ export function Reservations({
                               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-dashed border-ink-disabled bg-page text-ink-muted">
                                 <Lucide.Home size={16} />
                               </div>
-                              <span className="text-xs text-ink-secondary font-medium">Unassigned</span>
+                              <span className="text-label text-ink-secondary font-medium">Unassigned</span>
                             </div>
                           )}
                         </td>
 
                         {/* Stay Dates */}
-                        <td className="whitespace-nowrap px-3 py-3 text-xs text-ink">
+                        <td className="whitespace-nowrap px-3 py-3 text-label text-ink">
                           <span className="font-medium">
                             {r.checkIn} → {r.checkOut}
                           </span>{' '}
@@ -1850,7 +1850,7 @@ export function Reservations({
                         </td>
 
                         {/* Guests Count */}
-                        <td className="whitespace-nowrap px-3 py-3 text-xs text-ink">
+                        <td className="whitespace-nowrap px-3 py-3 text-label text-ink">
                           <span className="inline-flex items-center gap-1.5 font-medium">
                             <Lucide.User size={14} className="text-ink-muted" />
                             <span>{r.adults + r.children}</span>
@@ -1863,7 +1863,7 @@ export function Reservations({
                         </td>
 
                         {/* Total */}
-                        <td className="whitespace-nowrap px-3 py-3 text-right text-xs font-bold text-ink tnum">
+                        <td className="whitespace-nowrap px-3 py-3 text-right text-label font-bold text-ink tnum">
                           ₹{r.total.toLocaleString('en-IN')}.00
                         </td>
 
@@ -1873,7 +1873,7 @@ export function Reservations({
                             <button
                               type="button"
                               onClick={() => setOpenId(r.id)}
-                              className="rounded-md border border-border bg-surface px-3.5 py-1 text-xs font-semibold text-ink hover:bg-page shadow-xs transition-colors cursor-pointer"
+                              className="rounded-md border border-border bg-surface px-3.5 py-1 text-label font-semibold text-ink hover:bg-page shadow-xs transition-colors cursor-pointer"
                             >
                               Open
                             </button>
@@ -1896,11 +1896,11 @@ export function Reservations({
               {slice.length === 0 && (
                 <div className="py-12 text-center">
                   <Lucide.CalendarX size={36} className="mx-auto text-ink-disabled mb-2" />
-                  <p className="text-xs text-ink-secondary">No reservations match the selected filters.</p>
+                  <p className="text-label text-ink-secondary">No reservations match the selected filters.</p>
                   <button
                     type="button"
                     onClick={clearAllFilters}
-                    className="mt-3 text-xs font-semibold text-[var(--color-primary)] hover:underline cursor-pointer"
+                    className="mt-3 text-label font-semibold text-[var(--color-primary)] hover:underline cursor-pointer"
                   >
                     Clear all filters
                   </button>
@@ -1909,7 +1909,7 @@ export function Reservations({
             </div>
 
             {/* ================= 6. PAGINATION FOOTER ================= */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3.5 border-t border-divider bg-surface text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3.5 border-t border-divider bg-surface text-label">
               {/* Summary Count */}
               <div className="text-ink-secondary">
                 Page {safePage + 1} of {pages} • {filtered.length} reservations
@@ -1925,7 +1925,7 @@ export function Reservations({
                       setPageSize(Number(e.target.value));
                       setPage(0);
                     }}
-                    className="rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink font-semibold focus:border-[var(--color-primary)] focus:outline-none"
+                    className="rounded-md border border-border bg-surface px-2 py-1 text-label text-ink font-semibold focus:border-[var(--color-primary)] focus:outline-none"
                   >
                     <option value={10}>10</option>
                     <option value={25}>25</option>
@@ -1953,7 +1953,7 @@ export function Reservations({
                         key={i}
                         type="button"
                         onClick={() => setPage(i)}
-                        className={`flex h-8 w-8 items-center justify-center rounded-md text-xs font-bold transition-all cursor-pointer ${isCurrent
+                        className={`flex h-8 w-8 items-center justify-center rounded-md text-label font-bold transition-all cursor-pointer ${isCurrent
                           ? 'bg-[var(--color-primary)] text-white shadow-xs'
                           : 'border border-border bg-surface text-ink hover:bg-page'
                           }`}

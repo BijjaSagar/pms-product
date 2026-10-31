@@ -61,10 +61,10 @@ export function Invoices() {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">
+              <h1 className="text-disp3 font-bold tracking-tight text-ink leading-tight">
                 Invoices & Billing Documents
               </h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
@@ -72,7 +72,7 @@ export function Invoices() {
                 Official Records
               </span>
             </div>
-            <p className="text-xs text-ink-secondary mt-1">
+            <p className="text-label text-ink-secondary mt-1">
               Official tax invoices, credit notes, guest billing records, and audit receipts
             </p>
           </div>
@@ -81,7 +81,7 @@ export function Invoices() {
           <button
             type="button"
             onClick={() => resource.refresh()}
-            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl cursor-pointer"
+            className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-label font-semibold rounded-xl cursor-pointer"
             title="Refresh invoices"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
@@ -100,7 +100,7 @@ export function Invoices() {
           <section key={label} className="pms-card p-3 sm:p-3.5 flex items-start justify-between">
             <div>
               <p className="pms-label">{label}</p>
-              <p className="pms-kpi-value tnum mt-1 text-2xl font-bold">{val}</p>
+              <p className="pms-kpi-value tnum mt-1 text-disp3 font-bold">{val}</p>
               <p className="pms-helper mt-1">{sub}</p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink/[0.03] text-primary">
@@ -117,13 +117,13 @@ export function Invoices() {
           title="Invoices"
           subtitle={resource.loading ? 'Loading invoices…' : `${rows.length} billing documents`}
           badge={
-            <span className="flex items-center gap-1 rounded-full bg-info-bg px-2 py-0.5 text-[10px] font-bold text-info-text border border-info-border/60">
+            <span className="flex items-center gap-1 rounded-full bg-info-bg px-2 py-0.5 text-micro font-bold text-info-text border border-info-border/60">
               {rows.length} Documents
             </span>
           }
         />
         {resource.error ? (
-          <div className="mb-3 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-sm text-danger-text">
+          <div className="mb-3 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-body text-danger-text">
             <Lucide.AlertCircle size={18} />
             <span>Could not load invoices: {resource.error}</span>
           </div>
@@ -149,7 +149,7 @@ export function Invoices() {
           </div>
           <button
             type="button"
-            className="pms-btn-ghost px-3 py-2 text-xs font-semibold"
+            className="pms-btn-ghost px-3 py-2 text-label font-semibold"
             onClick={() => { setQ(''); setStatus('All'); }}
           >
             Reset
@@ -173,24 +173,24 @@ export function Invoices() {
             <tbody>
               {rows.map((i, idx) => (
                 <tr key={i.id} className="transition-colors hover:bg-page/70">
-                  <td className="text-center font-medium text-ink-muted text-xs">
+                  <td className="text-center font-medium text-ink-muted text-label">
                     {idx + 1}
                   </td>
-                  <td className="tnum font-mono font-bold text-ink text-xs">{i.id}</td>
+                  <td className="tnum font-mono font-bold text-ink text-label">{i.id}</td>
                   <td>
-                    <span className="block font-semibold text-ink text-xs">{i.guest}</span>
-                    <span className="tnum block text-xs text-ink-muted">Room {i.room}</span>
+                    <span className="block font-semibold text-ink text-label">{i.guest}</span>
+                    <span className="tnum block text-label text-ink-muted">Room {i.room}</span>
                   </td>
-                  <td className="tnum text-xs text-ink-secondary">{i.due}</td>
+                  <td className="tnum text-label text-ink-secondary">{i.due}</td>
                   <td>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted-surface text-ink">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-label font-medium bg-muted-surface text-ink">
                       {i.method}
                     </span>
                   </td>
                   <td>
                     <Badge tone={paymentTone(i.status)}>{i.status}</Badge>
                   </td>
-                  <td className="tnum text-right font-bold text-ink text-xs">
+                  <td className="tnum text-right font-bold text-ink text-label">
                     {formatCurrency(i.amount, i.currencyCode)}
                   </td>
                   <td className="text-right">
@@ -228,34 +228,34 @@ export function Invoices() {
                 style={{ borderColor: 'var(--color-border)' }}
               >
                 <div>
-                  <p className="text-[20px] font-bold text-ink">
+                  <p className="text-disp2 font-bold text-ink">
                     {preview?.property?.name ?? 'Grand Horizon Resort'}
                   </p>
-                  <p className="text-[12px] text-ink-secondary mt-0.5">
+                  <p className="text-label text-ink-secondary mt-0.5">
                     {[preview?.property?.addressLine1, preview?.property?.city, preview?.property?.countryCode]
                       .filter(Boolean)
                       .join(', ')}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="tnum font-mono text-[15px] font-bold text-primary">{open.id}</p>
-                  <p className="text-[12px] text-ink-secondary">Issued {open.due}</p>
+                  <p className="tnum font-mono text-title font-bold text-primary">{open.id}</p>
+                  <p className="text-label text-ink-secondary">Issued {open.due}</p>
                   <p className="mt-1">
                     <Badge tone={paymentTone(open.status)}>{open.status}</Badge>
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 py-4 text-[13px]">
+              <div className="grid grid-cols-2 gap-3 py-4 text-body">
                 <div className="rounded-xl border p-2.5" style={{ borderColor: 'var(--color-border-subtle)' }}>
                   <p className="pms-label">Billed to</p>
                   <p className="font-bold text-ink mt-0.5">{open.guest}</p>
-                  <p className="text-xs text-ink-secondary">Booking {preview?.bookingCode ?? '—'}</p>
+                  <p className="text-label text-ink-secondary">Booking {preview?.bookingCode ?? '—'}</p>
                 </div>
                 <div className="rounded-xl border p-2.5" style={{ borderColor: 'var(--color-border-subtle)' }}>
                   <p className="pms-label">Stay reference</p>
                   <p className="font-bold text-ink mt-0.5">Folio {preview?.folioNo ?? '—'}</p>
-                  <p className="text-xs text-ink-secondary">Room {open.room}</p>
+                  <p className="text-label text-ink-secondary">Room {open.room}</p>
                 </div>
               </div>
 
@@ -284,8 +284,8 @@ export function Invoices() {
                 className="pms-summary-row mt-4 border-t pt-3"
                 style={{ borderColor: 'var(--color-border)' }}
               >
-                <span className="font-bold text-[15px] text-ink">Total Invoiced</span>
-                <span className="tnum text-[22px] font-bold text-ink">
+                <span className="font-bold text-title text-ink">Total Invoiced</span>
+                <span className="tnum text-disp3 font-bold text-ink">
                   {formatCurrency(open.amount, open.currencyCode)}
                 </span>
               </div>

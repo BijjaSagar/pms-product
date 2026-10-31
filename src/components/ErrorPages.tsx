@@ -51,7 +51,7 @@ export function ForbiddenPage({
         </div>
 
         {/* Status Pill */}
-        <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold tracking-wide uppercase mb-3"
+        <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-bold tracking-wide uppercase mb-3"
           style={{
             background: 'var(--color-warning-bg)',
             color: 'var(--color-warning-text)',
@@ -63,20 +63,20 @@ export function ForbiddenPage({
         </div>
 
         {/* Title & Body */}
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink">
+        <h1 className="text-disp2 sm:text-disp3 font-bold tracking-tight text-ink">
           Access Restricted to This View
         </h1>
 
-        <p className="mt-2 text-[13px] leading-relaxed text-ink-secondary max-w-[440px] mx-auto">
+        <p className="mt-2 text-body leading-relaxed text-ink-secondary max-w-[440px] mx-auto">
           Your staff role at <strong className="text-ink">{propertyName || 'this property'}</strong> does not include the required permission{' '}
-          <code className="rounded px-1.5 py-0.5 font-mono text-xs bg-muted text-ink font-semibold border" style={{ borderColor: 'var(--color-border)' }}>
+          <code className="rounded px-1.5 py-0.5 font-mono text-label bg-muted text-ink font-semibold border" style={{ borderColor: 'var(--color-border)' }}>
             {permission}
           </code>.
         </p>
 
         {/* User Identity Chip */}
         <div
-          className="my-5 flex items-center justify-center gap-2 rounded-xl border p-2.5 max-w-[360px] mx-auto text-xs"
+          className="my-5 flex items-center justify-center gap-2 rounded-xl border p-2.5 max-w-[360px] mx-auto text-label"
           style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}
         >
           <Lucide.UserCheck size={14} className="text-ink-muted" />
@@ -89,7 +89,7 @@ export function ForbiddenPage({
           <button
             type="button"
             onClick={() => onGo({ view: 'dashboard' })}
-            className="w-full sm:w-auto pms-btn-primary flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold shadow-sm"
+            className="w-full sm:w-auto pms-btn-primary flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-label font-semibold shadow-sm"
           >
             <Lucide.LayoutDashboard size={15} />
             <span>Return to Dashboard</span>
@@ -103,7 +103,7 @@ export function ForbiddenPage({
                 tone: 'info',
               });
             }}
-            className="w-full sm:w-auto rounded-xl border px-4 py-2.5 text-xs font-semibold text-ink hover:bg-hover-surface transition-colors"
+            className="w-full sm:w-auto rounded-xl border px-4 py-2.5 text-label font-semibold text-ink hover:bg-hover-surface transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
             Request Access
@@ -143,7 +143,7 @@ export function NotFoundPage({ onGo }: { onGo: (t: NavTarget) => void }) {
         </div>
 
         {/* Status Pill */}
-        <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold tracking-wide uppercase mb-3"
+        <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-bold tracking-wide uppercase mb-3"
           style={{
             background: 'color-mix(in srgb, var(--color-primary) 14%, transparent)',
             color: 'var(--color-primary)',
@@ -153,11 +153,11 @@ export function NotFoundPage({ onGo }: { onGo: (t: NavTarget) => void }) {
           <span>Navigation Service · 404 Screen Not Found</span>
         </div>
 
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink">
+        <h1 className="text-disp2 sm:text-disp3 font-bold tracking-tight text-ink">
           Page or View Unavailable
         </h1>
 
-        <p className="mt-2 text-[13px] leading-relaxed text-ink-secondary max-w-[440px] mx-auto">
+        <p className="mt-2 text-body leading-relaxed text-ink-secondary max-w-[440px] mx-auto">
           The view or route you requested could not be resolved in this hotel PMS session. It may have moved or been decommissioned.
         </p>
 
@@ -173,7 +173,7 @@ export function NotFoundPage({ onGo }: { onGo: (t: NavTarget) => void }) {
               key={item.label}
               type="button"
               onClick={() => onGo({ view: item.view })}
-              className="flex items-center gap-2 rounded-xl border p-2.5 text-xs font-semibold text-ink hover:bg-hover-surface transition-colors"
+              className="flex items-center gap-2 rounded-xl border p-2.5 text-label font-semibold text-ink hover:bg-hover-surface transition-colors"
               style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             >
               <item.icon size={15} className="text-primary flex-none" />
@@ -186,7 +186,7 @@ export function NotFoundPage({ onGo }: { onGo: (t: NavTarget) => void }) {
         <button
           type="button"
           onClick={() => onGo({ view: 'dashboard' })}
-          className="pms-btn-primary inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-semibold shadow-sm"
+          className="pms-btn-primary inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-label font-semibold shadow-sm"
         >
           <Lucide.Home size={15} />
           <span>Back to Dashboard</span>

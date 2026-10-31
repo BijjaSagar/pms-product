@@ -729,7 +729,7 @@ export function Billing() {
 
   if (!currentGuest) {
     return (
-      <div className="pms-card p-6 text-center text-sm text-ink-secondary">
+      <div className="pms-card p-6 text-center text-body text-ink-secondary">
         No in-house guests with an open folio. Check in a guest to start billing.
       </div>
     );
@@ -747,10 +747,10 @@ export function Billing() {
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-[22px] font-bold tracking-tight text-ink leading-tight">
+                <h1 className="text-disp3 font-bold tracking-tight text-ink leading-tight">
                   Folios & Billing
                 </h1>
-                <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
+                <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
@@ -758,7 +758,7 @@ export function Billing() {
                   Active Ledger
                 </span>
               </div>
-              <p className="text-xs text-ink-secondary mt-1">
+              <p className="text-label text-ink-secondary mt-1">
                 View, manage and settle guest folios, post charges and generate invoices
               </p>
             </div>
@@ -768,7 +768,7 @@ export function Billing() {
             <button
               type="button"
               onClick={() => window.print()}
-              className="pms-btn-ghost px-3.5 py-2 text-sm font-medium flex items-center gap-2"
+              className="pms-btn-ghost px-3.5 py-2 text-body font-medium flex items-center gap-2"
             >
               <Lucide.Printer size={15} />
               <span>Print Folio</span>
@@ -776,7 +776,7 @@ export function Billing() {
             <button
               type="button"
               onClick={() => setEmailModalOpen(true)}
-              className="pms-btn-ghost px-3.5 py-2 text-sm font-medium flex items-center gap-2"
+              className="pms-btn-ghost px-3.5 py-2 text-body font-medium flex items-center gap-2"
             >
               <Lucide.Mail size={15} />
               <span>Email</span>
@@ -784,7 +784,7 @@ export function Billing() {
             <button
               type="button"
               onClick={() => setPostChargeModalOpen(true)}
-              className="pms-btn-primary px-4 py-2 text-sm font-semibold flex items-center gap-2"
+              className="pms-btn-primary px-4 py-2 text-body font-semibold flex items-center gap-2"
             >
               <Lucide.Plus size={16} />
               <span>Add Charge</span>
@@ -806,10 +806,10 @@ export function Billing() {
               <Lucide.UserCheck size={18} />
             </div>
             <div>
-              <label htmlFor="top-guest-select" className="text-[11px] font-bold text-ink-muted uppercase tracking-wider block">
+              <label htmlFor="top-guest-select" className="text-label font-bold text-ink-muted uppercase tracking-wider block">
                 Select Guest / Folio
               </label>
-              <span className="text-xs text-ink-secondary font-medium">
+              <span className="text-label text-ink-secondary font-medium">
                 Choose an in-house guest to manage charges &amp; invoices
               </span>
             </div>
@@ -821,7 +821,7 @@ export function Billing() {
                 id="top-guest-select"
                 value={selectedGuestId}
                 onChange={(e) => setSelectedGuestId(e.target.value)}
-                className="w-full pl-3.5 pr-10 py-2.5 rounded-xl border font-bold text-ink text-[13px] shadow-xs cursor-pointer appearance-none transition-all"
+                className="w-full pl-3.5 pr-10 py-2.5 rounded-xl border font-bold text-ink text-body shadow-xs cursor-pointer appearance-none transition-all"
                 style={{
                   background: 'var(--color-page)',
                   borderColor: 'var(--color-border)',
@@ -837,7 +837,7 @@ export function Billing() {
             </div>
 
             <span
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border"
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-label font-semibold border"
               style={{
                 background: 'var(--color-muted-surface)',
                 color: 'var(--color-primary)',
@@ -858,17 +858,17 @@ export function Billing() {
       >
         {/* Left Column: Avatar & Guest Profile */}
         <div className="md:col-span-5 flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center flex-shrink-0 shadow-xs">
+          <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground font-bold text-disp2 flex items-center justify-center flex-shrink-0 shadow-xs">
             {currentGuest.avatarInitials}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h2 className="text-sm font-bold text-ink truncate">{currentGuest.name}</h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-info-bg text-info-text border border-info-border">
+              <h2 className="text-body font-bold text-ink truncate">{currentGuest.name}</h2>
+              <span className="px-2.5 py-0.5 rounded-full text-label font-semibold bg-info-bg text-info-text border border-info-border">
                 {currentGuest.status}
               </span>
             </div>
-            <div className="flex items-center gap-3 text-xs text-ink-secondary mt-1.5 flex-wrap">
+            <div className="flex items-center gap-3 text-label text-ink-secondary mt-1.5 flex-wrap">
               <span className="flex items-center gap-1">
                 <Lucide.Phone size={13} className="text-ink-muted" />
                 <span>{currentGuest.phone}</span>
@@ -886,8 +886,8 @@ export function Billing() {
         </div>
 
         {/* Center Column: Stay Details */}
-        <div className="md:col-span-4 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-5 flex flex-col gap-1.5 text-xs text-ink-secondary" style={{ borderColor: 'var(--color-divider)' }}>
-          <p className="font-semibold text-ink-muted text-[11px] uppercase tracking-wider">Stay Details</p>
+        <div className="md:col-span-4 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-5 flex flex-col gap-1.5 text-label text-ink-secondary" style={{ borderColor: 'var(--color-divider)' }}>
+          <p className="font-semibold text-ink-muted text-label uppercase tracking-wider">Stay Details</p>
           <div className="flex items-center gap-2 text-ink">
             <Lucide.Calendar size={14} className="text-ink-muted flex-shrink-0" />
             <span className="font-medium">{currentGuest.stayDates}</span>
@@ -905,10 +905,10 @@ export function Billing() {
         {/* Right Column: Reservation & Status */}
         <div className="md:col-span-3 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-5 flex flex-col justify-center gap-2" style={{ borderColor: 'var(--color-divider)' }}>
           <div>
-            <p className="font-semibold text-ink-muted text-[11px] uppercase tracking-wider">Reservation</p>
+            <p className="font-semibold text-ink-muted text-label uppercase tracking-wider">Reservation</p>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="font-bold text-ink text-sm sm:text-[15px]">{currentGuest.reservationCode}</span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-success-bg text-success-text border border-success-border">
+              <span className="font-bold text-ink text-body sm:text-title">{currentGuest.reservationCode}</span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-label font-bold bg-success-bg text-success-text border border-success-border">
                 <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
                 <span>{currentGuest.reservationStatus}</span>
               </span>
@@ -917,7 +917,7 @@ export function Billing() {
           <button
             type="button"
             onClick={() => toast(`Opening details for ${currentGuest.reservationCode}`, { tone: 'info' })}
-            className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 w-fit mt-0.5"
+            className="text-label font-semibold text-primary hover:underline flex items-center gap-1 w-fit mt-0.5"
           >
             <span>View reservation</span>
             <Lucide.ArrowRight size={13} />
@@ -944,7 +944,7 @@ export function Billing() {
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
-                className={`pb-3 text-sm font-semibold whitespace-nowrap transition-colors relative ${
+                className={`pb-3 text-body font-semibold whitespace-nowrap transition-colors relative ${
                   isActive ? 'text-primary' : 'text-ink-secondary hover:text-ink'
                 }`}
               >
@@ -977,7 +977,7 @@ export function Billing() {
                   <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="w-full pl-3 pr-8 py-2 rounded-xl border text-xs font-bold text-ink cursor-pointer appearance-none shadow-xs"
+                    className="w-full pl-3 pr-8 py-2 rounded-xl border text-label font-bold text-ink cursor-pointer appearance-none shadow-xs"
                     style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
                   >
                     <option value="All">All charges</option>
@@ -991,14 +991,14 @@ export function Billing() {
                 </div>
 
                 {/* From Date */}
-                <div className="flex items-center gap-1.5 text-xs text-ink-muted font-medium">
+                <div className="flex items-center gap-1.5 text-label text-ink-muted font-medium">
                   <span>From</span>
                   <div className="relative">
                     <input
                       type="text"
                       value={fromDate}
                       onChange={(e) => setFromDate(e.target.value)}
-                      className="pl-3 pr-7 py-1.5 rounded-xl border text-xs font-semibold text-ink w-[110px]"
+                      className="pl-3 pr-7 py-1.5 rounded-xl border text-label font-semibold text-ink w-[110px]"
                       style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
                     />
                     <Lucide.Calendar size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
@@ -1006,14 +1006,14 @@ export function Billing() {
                 </div>
 
                 {/* To Date */}
-                <div className="flex items-center gap-1.5 text-xs text-ink-muted font-medium">
+                <div className="flex items-center gap-1.5 text-label text-ink-muted font-medium">
                   <span>To</span>
                   <div className="relative">
                     <input
                       type="text"
                       value={toDate}
                       onChange={(e) => setToDate(e.target.value)}
-                      className="pl-3 pr-7 py-1.5 rounded-xl border text-xs font-semibold text-ink w-[110px]"
+                      className="pl-3 pr-7 py-1.5 rounded-xl border text-label font-semibold text-ink w-[110px]"
                       style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
                     />
                     <Lucide.Calendar size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
@@ -1028,7 +1028,7 @@ export function Billing() {
                     placeholder="Search description or reference..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-8 py-2 rounded-xl border text-xs text-ink placeholder:text-ink-muted shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="w-full pl-9 pr-8 py-2 rounded-xl border text-label text-ink placeholder:text-ink-muted shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
                     style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
                   />
                   {searchQuery ? (
@@ -1047,7 +1047,7 @@ export function Billing() {
               <button
                 type="button"
                 onClick={() => setMoreFiltersOpen(!moreFiltersOpen)}
-                className={`pms-btn-ghost px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 ${
+                className={`pms-btn-ghost px-3 py-1.5 text-label font-semibold flex items-center gap-1.5 ${
                   moreFiltersOpen ? 'bg-primary/10 text-primary border-primary/30' : ''
                 }`}
               >
@@ -1059,7 +1059,7 @@ export function Billing() {
             {/* More filters drawer panel if toggled */}
             {moreFiltersOpen ? (
               <div
-                className="p-3.5 rounded-2xl border text-xs flex flex-wrap items-center gap-4"
+                className="p-3.5 rounded-2xl border text-label flex flex-wrap items-center gap-4"
                 style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
               >
                 <span className="font-bold text-ink">Active filters:</span>
@@ -1086,7 +1086,7 @@ export function Billing() {
                 <table className="pms-table w-full text-left border-collapse min-w-[700px]">
                   <thead>
                     <tr
-                      className="border-b text-[11px] font-bold uppercase tracking-wider text-ink-muted bg-page/90"
+                      className="border-b text-label font-bold uppercase tracking-wider text-ink-muted bg-page/90"
                       style={{ borderColor: 'var(--color-divider)' }}
                     >
                       <th className="py-2.5 px-3 w-10 text-center">
@@ -1109,7 +1109,7 @@ export function Billing() {
                       <th className="py-2.5 px-3 font-bold text-center w-12">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y text-xs text-ink" style={{ borderColor: 'var(--color-divider)' }}>
+                  <tbody className="divide-y text-label text-ink" style={{ borderColor: 'var(--color-divider)' }}>
                     {filteredTransactions.map((tx) => {
                       const isSelected = selectedTxIds.includes(tx.id);
                       return (
@@ -1130,8 +1130,8 @@ export function Billing() {
 
                           {/* Date & Time */}
                           <td className="py-2.5 px-3 whitespace-nowrap">
-                            <div className="font-semibold text-ink text-[12px]">{tx.date}</div>
-                            <div className="text-[11px] text-ink-muted font-medium">{tx.time}</div>
+                            <div className="font-semibold text-ink text-label">{tx.date}</div>
+                            <div className="text-label text-ink-muted font-medium">{tx.time}</div>
                           </td>
 
                           {/* Description with Icon */}
@@ -1139,31 +1139,31 @@ export function Billing() {
                             <div className="flex items-center gap-3">
                               {renderItemIcon(tx.iconType)}
                               <div>
-                                <div className="font-bold text-ink text-[13px]">{tx.title}</div>
-                                <div className="text-[11px] text-ink-muted">{tx.detail}</div>
+                                <div className="font-bold text-ink text-body">{tx.title}</div>
+                                <div className="text-label text-ink-muted">{tx.detail}</div>
                               </div>
                             </div>
                           </td>
 
                           {/* Reference */}
                           <td className="py-2.5 px-3 whitespace-nowrap">
-                            <span className="font-mono text-xs font-semibold text-ink-secondary bg-muted-surface border border-border/40 px-2 py-0.5 rounded">
+                            <span className="font-mono text-label font-semibold text-ink-secondary bg-muted-surface border border-border/40 px-2 py-0.5 rounded">
                               {tx.reference}
                             </span>
                           </td>
 
                           {/* Charges */}
-                          <td className="py-2.5 px-3 text-right whitespace-nowrap font-semibold text-ink text-[13px]">
+                          <td className="py-2.5 px-3 text-right whitespace-nowrap font-semibold text-ink text-body">
                             {tx.charge > 0 ? formatNumber(tx.charge) : '—'}
                           </td>
 
                           {/* Credits */}
-                          <td className="py-2.5 px-3 text-right whitespace-nowrap font-semibold text-success-text text-[13px]">
+                          <td className="py-2.5 px-3 text-right whitespace-nowrap font-semibold text-success-text text-body">
                             {tx.credit > 0 ? formatNumber(tx.credit) : '—'}
                           </td>
 
                           {/* Running Balance */}
-                          <td className="py-2.5 px-3 text-right whitespace-nowrap font-bold text-ink text-[13px]">
+                          <td className="py-2.5 px-3 text-right whitespace-nowrap font-bold text-ink text-body">
                             {formatNumber(tx.balance)}
                           </td>
 
@@ -1176,7 +1176,7 @@ export function Billing() {
                               >
                                 <Lucide.MoreVertical size={16} />
                               </button>
-                              <div className="hidden group-hover:flex flex-col absolute right-0 top-full z-20 w-36 bg-surface rounded-xl border border-border shadow-lg py-1 text-xs">
+                              <div className="hidden group-hover:flex flex-col absolute right-0 top-full z-20 w-36 bg-surface rounded-xl border border-border shadow-lg py-1 text-label">
                                 <button
                                   type="button"
                                   onClick={() => toast(`Item details: ${tx.title} (${tx.reference})`, { tone: 'info' })}
@@ -1223,14 +1223,14 @@ export function Billing() {
 
               {/* Table Footer: Add Manual Charge & Pagination */}
               <div
-                className="p-3.5 border-t flex flex-wrap items-center justify-between gap-3 text-xs"
+                className="p-3.5 border-t flex flex-wrap items-center justify-between gap-3 text-label"
                 style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}
               >
                 <div>
                   <button
                     type="button"
                     onClick={() => setPostChargeModalOpen(true)}
-                    className="pms-btn-ghost px-3.5 py-1.5 text-xs font-semibold text-primary border-primary/30 hover:bg-primary/5 flex items-center gap-1.5"
+                    className="pms-btn-ghost px-3.5 py-1.5 text-label font-semibold text-primary border-primary/30 hover:bg-primary/5 flex items-center gap-1.5"
                   >
                     <Lucide.Plus size={14} />
                     <span>Add manual charge</span>
@@ -1243,7 +1243,7 @@ export function Billing() {
                     <select
                       value={rowsPerPage}
                       onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                      className="rounded-lg border px-2 py-1 text-xs font-semibold text-ink"
+                      className="rounded-lg border px-2 py-1 text-label font-semibold text-ink"
                       style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
                     >
                       <option value={10}>10</option>
@@ -1267,7 +1267,7 @@ export function Billing() {
                         key={page}
                         type="button"
                         onClick={() => setCurrentPage(page)}
-                        className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+                        className={`w-7 h-7 rounded-lg text-label font-bold transition-all ${
                           currentPage === page
                             ? 'bg-primary text-white shadow-xs'
                             : 'border text-ink hover:bg-ink/5'
@@ -1307,12 +1307,12 @@ export function Billing() {
                     <Lucide.ReceiptText size={17} strokeWidth={2.4} />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-ink tracking-tight">Folio Summary</h3>
-                    <p className="text-[11px] text-ink-muted mt-0.5">Department breakdown & balances</p>
+                    <h3 className="text-body font-bold text-ink tracking-tight">Folio Summary</h3>
+                    <p className="text-label text-ink-muted mt-0.5">Department breakdown & balances</p>
                   </div>
                 </div>
                 <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-micro font-bold border ${
                     currentGuest.folioStatus === 'Settled'
                       ? 'bg-info-bg text-info-text border-info-border/60'
                       : 'bg-success-bg text-success-text border-success-border/60'
@@ -1328,13 +1328,13 @@ export function Billing() {
               </div>
 
               {/* Department Breakdown */}
-              <div className="flex flex-col gap-2.5 text-xs">
+              <div className="flex flex-col gap-2.5 text-label">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-ink-secondary">
                     <Lucide.BedDouble size={14} className="text-ink-muted" />
                     <span>Room Charges</span>
                   </span>
-                  <span className="font-bold text-ink text-sm">
+                  <span className="font-bold text-ink text-body">
                     {formatINR(currentGuest.summary.roomCharges)}
                   </span>
                 </div>
@@ -1344,7 +1344,7 @@ export function Billing() {
                     <Lucide.Sparkles size={14} className="text-ink-muted" />
                     <span>Extra Services</span>
                   </span>
-                  <span className="font-bold text-ink text-sm">
+                  <span className="font-bold text-ink text-body">
                     {formatINR(currentGuest.summary.extraServices)}
                   </span>
                 </div>
@@ -1354,7 +1354,7 @@ export function Billing() {
                     <Lucide.UtensilsCrossed size={14} className="text-ink-muted" />
                     <span>Food &amp; Beverage</span>
                   </span>
-                  <span className="font-bold text-ink text-sm">
+                  <span className="font-bold text-ink text-body">
                     {formatINR(currentGuest.summary.foodBeverage)}
                   </span>
                 </div>
@@ -1364,17 +1364,17 @@ export function Billing() {
                     <Lucide.Package size={14} className="text-ink-muted" />
                     <span>Other Charges</span>
                   </span>
-                  <span className="font-bold text-ink text-sm">
+                  <span className="font-bold text-ink text-body">
                     {formatINR(currentGuest.summary.otherCharges)}
                   </span>
                 </div>
               </div>
 
               {/* Subtotal & Taxes */}
-              <div className="border-t pt-3 flex flex-col gap-2 text-xs" style={{ borderColor: 'var(--color-divider)' }}>
+              <div className="border-t pt-3 flex flex-col gap-2 text-label" style={{ borderColor: 'var(--color-divider)' }}>
                 <div className="flex items-center justify-between text-ink font-semibold">
                   <span>Subtotal</span>
-                  <span className="text-sm font-bold">{formatINR(currentGuest.summary.subtotal)}</span>
+                  <span className="text-body font-bold">{formatINR(currentGuest.summary.subtotal)}</span>
                 </div>
 
                 <div className="flex items-center justify-between text-ink-secondary">
@@ -1395,14 +1395,14 @@ export function Billing() {
                       <Lucide.ShieldCheck size={14} className="text-ink-muted" />
                       <span>Taxes &amp; Fees</span>
                     </span>
-                    <span className="flex items-center gap-1 font-bold text-ink text-xs">
+                    <span className="flex items-center gap-1 font-bold text-ink text-label">
                       <span>{formatINR(currentGuest.summary.taxesAndFees)}</span>
                       {taxesExpanded ? <Lucide.ChevronUp size={13} /> : <Lucide.ChevronDown size={13} />}
                     </span>
                   </button>
 
                   {taxesExpanded ? (
-                    <div className="mt-2 pl-5 pr-1 flex flex-col gap-1 text-[11px] text-ink-muted">
+                    <div className="mt-2 pl-5 pr-1 flex flex-col gap-1 text-label text-ink-muted">
                       <div className="flex items-center justify-between">
                         <span>GST (12%)</span>
                         <span className="font-semibold text-ink-secondary">
@@ -1422,30 +1422,30 @@ export function Billing() {
 
               {/* Total Amount Box (Soft green-tinted card) */}
               <div className="rounded-xl border border-success-border bg-success-bg/70 p-3.5 border-l-4 border-l-emerald-600 flex items-center justify-between">
-                <span className="font-bold text-ink text-sm">Total Amount</span>
-                <span className="font-bold text-ink text-lg tracking-tight">
+                <span className="font-bold text-ink text-body">Total Amount</span>
+                <span className="font-bold text-ink text-disp2 tracking-tight">
                   {formatINR(currentGuest.summary.totalAmount)}
                 </span>
               </div>
 
               {/* Payments & Outstanding Balance */}
-              <div className="flex flex-col gap-2 text-xs pt-1">
+              <div className="flex flex-col gap-2 text-label pt-1">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1.5 text-success-text font-semibold">
                     <Lucide.CheckCircle2 size={14} />
                     <span>Payments Received</span>
                   </span>
-                  <span className="font-bold text-success-text text-sm">
+                  <span className="font-bold text-success-text text-body">
                     -{formatINR(currentGuest.summary.paymentsReceived)}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between pt-1 border-t" style={{ borderColor: 'var(--color-divider)' }}>
-                  <span className="flex items-center gap-1.5 font-bold text-danger-text text-xs uppercase tracking-wider">
+                  <span className="flex items-center gap-1.5 font-bold text-danger-text text-label uppercase tracking-wider">
                     <Lucide.AlertCircle size={14} />
                     <span>Outstanding Balance</span>
                   </span>
-                  <span className="font-bold text-danger-text text-lg">
+                  <span className="font-bold text-danger-text text-disp2">
                     {formatINR(currentGuest.summary.outstandingBalance)}
                   </span>
                 </div>
@@ -1456,14 +1456,14 @@ export function Billing() {
                 <button
                   type="button"
                   onClick={() => setSettleFolioModalOpen(true)}
-                  className="pms-btn-primary w-full py-2.5 text-xs font-bold"
+                  className="pms-btn-primary w-full py-2.5 text-label font-bold"
                 >
                   Settle Folio
                 </button>
                 <button
                   type="button"
                   onClick={() => setInvoiceModalOpen(true)}
-                  className="pms-btn-ghost w-full py-2.5 text-xs font-semibold text-primary border-primary/30 hover:bg-primary/5"
+                  className="pms-btn-ghost w-full py-2.5 text-label font-semibold text-primary border-primary/30 hover:bg-primary/5"
                 >
                   Generate Invoice
                 </button>
@@ -1476,7 +1476,7 @@ export function Billing() {
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
               <div className="flex items-center justify-between">
-                <h4 className="font-bold text-ink text-sm">Payment Details</h4>
+                <h4 className="font-bold text-ink text-body">Payment Details</h4>
                 <button
                   type="button"
                   onClick={() => {
@@ -1487,7 +1487,7 @@ export function Billing() {
                     });
                     setPaymentModalOpen(true);
                   }}
-                  className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+                  className="text-label font-bold text-primary hover:underline flex items-center gap-1"
                 >
                   <Lucide.Plus size={13} />
                   <span>Add Payment</span>
@@ -1498,7 +1498,7 @@ export function Billing() {
               {currentGuest.payments.map((p) => (
                 <div
                   key={p.id}
-                  className="rounded-xl border p-3 flex items-center justify-between gap-3 text-xs"
+                  className="rounded-xl border p-3 flex items-center justify-between gap-3 text-label"
                   style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
                 >
                   <div className="flex items-center gap-2.5">
@@ -1507,20 +1507,20 @@ export function Billing() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-ink text-[12px]">{p.date}</span>
-                        <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[10px] font-bold bg-success-bg/70 text-success-text">
+                        <span className="font-bold text-ink text-label">{p.date}</span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-micro font-bold bg-success-bg/70 text-success-text">
                           <span className="w-1 h-1 rounded-full bg-success-text" />
                           <span>{p.status}</span>
                         </span>
                       </div>
-                      <div className="text-[11px] text-ink-muted mt-0.5">
+                      <div className="text-label text-ink-muted mt-0.5">
                         <span>{p.method}</span>
                         <span className="mx-1.5">·</span>
                         <span className="font-mono">Ref: {p.ref}</span>
                       </div>
                     </div>
                   </div>
-                  <span className="font-bold text-ink text-sm whitespace-nowrap">
+                  <span className="font-bold text-ink text-body whitespace-nowrap">
                     {formatINR(p.amount)}
                   </span>
                 </div>
@@ -1532,12 +1532,12 @@ export function Billing() {
               className="rounded-2xl border p-4 sm:p-5 shadow-xs flex flex-col gap-3"
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
-              <h4 className="font-bold text-ink text-sm">Quick Actions</h4>
+              <h4 className="font-bold text-ink text-body">Quick Actions</h4>
               <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setPostChargeModalOpen(true)}
-                  className="pms-btn-ghost px-2 py-2 text-[11px] font-semibold flex flex-col items-center justify-center gap-1 hover:border-primary/40"
+                  className="pms-btn-ghost px-2 py-2 text-label font-semibold flex flex-col items-center justify-center gap-1 hover:border-primary/40"
                 >
                   <Lucide.Zap size={15} className="text-primary" />
                   <span>Post Charge</span>
@@ -1545,7 +1545,7 @@ export function Billing() {
                 <button
                   type="button"
                   onClick={() => setDiscountModalOpen(true)}
-                  className="pms-btn-ghost px-2 py-2 text-[11px] font-semibold flex flex-col items-center justify-center gap-1 hover:border-primary/40"
+                  className="pms-btn-ghost px-2 py-2 text-label font-semibold flex flex-col items-center justify-center gap-1 hover:border-primary/40"
                 >
                   <Lucide.Tag size={15} className="text-warning-text" />
                   <span>Apply Discount</span>
@@ -1553,7 +1553,7 @@ export function Billing() {
                 <button
                   type="button"
                   onClick={() => setSplitFolioModalOpen(true)}
-                  className="pms-btn-ghost px-2 py-2 text-[11px] font-semibold flex flex-col items-center justify-center gap-1 hover:border-primary/40"
+                  className="pms-btn-ghost px-2 py-2 text-label font-semibold flex flex-col items-center justify-center gap-1 hover:border-primary/40"
                 >
                   <Lucide.Split size={15} className="text-primary" />
                   <span>Split Folio</span>
@@ -1563,7 +1563,7 @@ export function Billing() {
 
             {/* Card 4: Info Note */}
             <div
-              className="rounded-2xl border p-3.5 flex items-start gap-2.5 text-xs"
+              className="rounded-2xl border p-3.5 flex items-start gap-2.5 text-label"
               style={{
                 background: 'color-mix(in srgb, var(--color-primary) 6%, var(--color-surface))',
                 borderColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
@@ -1588,13 +1588,13 @@ export function Billing() {
                 <Lucide.BedDouble size={17} strokeWidth={2.4} />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-ink tracking-tight">Room Folio 1 — {currentGuest.room}</h3>
-                <p className="text-[11px] text-ink-muted mt-0.5">Master room tariff and lodging charges for {currentGuest.stayDates}</p>
+                <h3 className="text-body font-bold text-ink tracking-tight">Room Folio 1 — {currentGuest.room}</h3>
+                <p className="text-label text-ink-muted mt-0.5">Master room tariff and lodging charges for {currentGuest.stayDates}</p>
               </div>
             </div>
-            <span className="font-bold text-primary text-base">{formatINR(currentGuest.summary.roomCharges)}</span>
+            <span className="font-bold text-primary text-title">{formatINR(currentGuest.summary.roomCharges)}</span>
           </div>
-          <div className="border rounded-xl p-4 text-xs flex flex-col gap-2" style={{ borderColor: 'var(--color-divider)' }}>
+          <div className="border rounded-xl p-4 text-label flex flex-col gap-2" style={{ borderColor: 'var(--color-divider)' }}>
             <div className="flex justify-between py-1 border-b" style={{ borderColor: 'var(--color-divider)' }}>
               <span className="font-medium text-ink">Room Tariff (Deluxe King, {currentGuest.nights} nights)</span>
               <span className="font-bold text-ink">{formatINR(currentGuest.summary.roomCharges)}</span>
@@ -1615,8 +1615,8 @@ export function Billing() {
                 <Lucide.CreditCard size={17} strokeWidth={2.4} />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-ink tracking-tight">Payment Transactions &amp; Vouchers</h3>
-                <p className="text-[11px] text-ink-muted mt-0.5">All successful receipts and settlement transactions on record</p>
+                <h3 className="text-body font-bold text-ink tracking-tight">Payment Transactions &amp; Vouchers</h3>
+                <p className="text-label text-ink-muted mt-0.5">All successful receipts and settlement transactions on record</p>
               </div>
             </div>
             <button
@@ -1629,7 +1629,7 @@ export function Billing() {
                 });
                 setPaymentModalOpen(true);
               }}
-              className="pms-btn-primary px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5"
+              className="pms-btn-primary px-3.5 py-1.5 text-label font-semibold flex items-center gap-1.5"
             >
               <Lucide.Plus size={14} />
               <span>Record Payment</span>
@@ -1638,17 +1638,17 @@ export function Billing() {
 
           <div className="divide-y border rounded-xl overflow-hidden" style={{ borderColor: 'var(--color-divider)' }}>
             {currentGuest.payments.map((pm) => (
-              <div key={pm.id} className="p-3.5 flex items-center justify-between text-xs">
+              <div key={pm.id} className="p-3.5 flex items-center justify-between text-label">
                 <div>
                   <div className="font-bold text-ink">{pm.method}</div>
-                  <div className="text-ink-muted text-[11px] mt-0.5">{pm.date} · Ref: {pm.ref}</div>
+                  <div className="text-ink-muted text-label mt-0.5">{pm.date} · Ref: {pm.ref}</div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-success-text text-sm">{formatINR(pm.amount)}</div>
+                  <div className="font-bold text-success-text text-body">{formatINR(pm.amount)}</div>
                   <button
                     type="button"
                     onClick={() => window.print()}
-                    className="text-[11px] text-primary hover:underline font-semibold"
+                    className="text-label text-primary hover:underline font-semibold"
                   >
                     Download Receipt
                   </button>
@@ -1667,24 +1667,24 @@ export function Billing() {
                 <Lucide.FileSpreadsheet size={17} strokeWidth={2.4} />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-ink tracking-tight">Guest Account Statement</h3>
-                <p className="text-[11px] text-ink-muted mt-0.5">Detailed line-by-line financial statement for checkout presentation</p>
+                <h3 className="text-body font-bold text-ink tracking-tight">Guest Account Statement</h3>
+                <p className="text-label text-ink-muted mt-0.5">Detailed line-by-line financial statement for checkout presentation</p>
               </div>
             </div>
             <button
               type="button"
               onClick={() => window.print()}
-              className="pms-btn-primary px-4 py-2 text-xs font-bold flex items-center gap-1.5"
+              className="pms-btn-primary px-4 py-2 text-label font-bold flex items-center gap-1.5"
             >
               <Lucide.Printer size={14} />
               <span>Print Statement</span>
             </button>
           </div>
 
-          <div className="border rounded-2xl p-6 flex flex-col gap-4 font-mono text-xs" style={{ borderColor: 'var(--color-divider)' }}>
+          <div className="border rounded-2xl p-6 flex flex-col gap-4 font-mono text-label" style={{ borderColor: 'var(--color-divider)' }}>
             <div className="flex justify-between border-b pb-4" style={{ borderColor: 'var(--color-divider)' }}>
               <div>
-                <p className="font-bold text-sm font-sans">{currentGuest.name}</p>
+                <p className="font-bold text-body font-sans">{currentGuest.name}</p>
                 <p className="text-ink-muted">{currentGuest.room} · {currentGuest.reservationCode}</p>
               </div>
               <div className="text-right">
@@ -1701,7 +1701,7 @@ export function Billing() {
               <span>Total Payments Received</span>
               <span>-{formatINR(currentGuest.summary.paymentsReceived)}</span>
             </div>
-            <div className="flex justify-between font-bold text-sm py-2 text-danger-text">
+            <div className="flex justify-between font-bold text-body py-2 text-danger-text">
               <span>Balance Due</span>
               <span>{formatINR(currentGuest.summary.outstandingBalance)}</span>
             </div>
@@ -1718,8 +1718,8 @@ export function Billing() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-bold text-ink tracking-tight">Folio Audit Timeline</h3>
-                  <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-[10px] font-bold text-success-text border border-success-border/60">
+                  <h3 className="text-body font-bold text-ink tracking-tight">Folio Audit Timeline</h3>
+                  <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
                     <span className="relative flex h-1.5 w-1.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
@@ -1727,16 +1727,16 @@ export function Billing() {
                     Live Feed
                   </span>
                 </div>
-                <p className="text-[11px] text-ink-muted mt-0.5">All system postings, modifications, and payments logged for this reservation</p>
+                <p className="text-label text-ink-muted mt-0.5">All system postings, modifications, and payments logged for this reservation</p>
               </div>
             </div>
           </div>
-          <div className="border-l-2 border-primary/30 pl-4 ml-2 flex flex-col gap-4 mt-2 text-xs">
+          <div className="border-l-2 border-primary/30 pl-4 ml-2 flex flex-col gap-4 mt-2 text-label">
             {currentGuest.transactions.map((tx) => (
               <div key={tx.id} className="relative">
                 <span className="w-2.5 h-2.5 rounded-full bg-primary absolute -left-[21px] top-1" />
                 <p className="font-bold text-ink">{tx.title}</p>
-                <p className="text-ink-muted text-[11px]">{tx.date} {tx.time} · {tx.reference} · {tx.charge > 0 ? `Charged ${formatINR(tx.charge)}` : `Credited ${formatINR(tx.credit)}`}</p>
+                <p className="text-ink-muted text-label">{tx.date} {tx.time} · {tx.reference} · {tx.charge > 0 ? `Charged ${formatINR(tx.charge)}` : `Credited ${formatINR(tx.credit)}`}</p>
               </div>
             ))}
           </div>
@@ -1756,7 +1756,7 @@ export function Billing() {
             <button
               type="button"
               onClick={() => setPostChargeModalOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-xs font-semibold"
+              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
               disabled={isSubmitting}
             >
               Cancel
@@ -1764,7 +1764,7 @@ export function Billing() {
             <button
               type="button"
               onClick={() => void handlePostCharge()}
-              className="pms-btn-primary px-5 py-2 text-xs font-bold"
+              className="pms-btn-primary px-5 py-2 text-label font-bold"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Posting…' : 'Post Charge'}
@@ -1772,7 +1772,7 @@ export function Billing() {
           </div>
         }
       >
-        <div className="flex flex-col gap-4 py-2 text-xs">
+        <div className="flex flex-col gap-4 py-2 text-label">
           <div>
             <label className="font-bold text-ink block mb-1">Department / Category</label>
             <select
@@ -1850,7 +1850,7 @@ export function Billing() {
             <button
               type="button"
               onClick={() => setPaymentModalOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-xs font-semibold"
+              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
               disabled={isSubmitting}
             >
               Cancel
@@ -1858,7 +1858,7 @@ export function Billing() {
             <button
               type="button"
               onClick={() => void handleRecordPayment()}
-              className="pms-btn-primary px-5 py-2 text-xs font-bold"
+              className="pms-btn-primary px-5 py-2 text-label font-bold"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Recording…' : 'Record Payment'}
@@ -1866,7 +1866,7 @@ export function Billing() {
           </div>
         }
       >
-        <div className="flex flex-col gap-4 py-2 text-xs">
+        <div className="flex flex-col gap-4 py-2 text-label">
           <div>
             <label className="font-bold text-ink block mb-1">Payment Method</label>
             <select
@@ -1890,7 +1890,7 @@ export function Billing() {
                 <button
                   type="button"
                   onClick={() => setPaymentData({ ...paymentData, amount: String(currentGuest.summary.outstandingBalance) })}
-                  className="text-[11px] text-primary font-bold hover:underline"
+                  className="text-label text-primary font-bold hover:underline"
                 >
                   Pay full balance ({formatINR(currentGuest.summary.outstandingBalance)})
                 </button>
@@ -1902,7 +1902,7 @@ export function Billing() {
               step="0.01"
               value={paymentData.amount}
               onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })}
-              className="w-full p-2.5 rounded-xl border font-bold text-ink bg-page text-sm"
+              className="w-full p-2.5 rounded-xl border font-bold text-ink bg-page text-body"
               autoFocus
             />
           </div>
@@ -1930,21 +1930,21 @@ export function Billing() {
             <button
               type="button"
               onClick={() => setSettleFolioModalOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-xs font-semibold"
+              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSettleFolio}
-              className="pms-btn-primary px-5 py-2 text-xs font-bold"
+              className="pms-btn-primary px-5 py-2 text-label font-bold"
             >
               Confirm Settlement
             </button>
           </div>
         }
       >
-        <div className="flex flex-col gap-4 py-2 text-xs">
+        <div className="flex flex-col gap-4 py-2 text-label">
           <div className="p-4 rounded-xl border bg-page flex flex-col gap-2">
             <div className="flex justify-between">
               <span className="text-ink-secondary">Guest Name:</span>
@@ -1962,7 +1962,7 @@ export function Billing() {
               <span className="font-bold">Payments Received:</span>
               <span className="font-bold">-{formatINR(currentGuest.summary.paymentsReceived)}</span>
             </div>
-            <div className="flex justify-between text-base font-bold text-danger-text border-t pt-2" style={{ borderColor: 'var(--color-divider)' }}>
+            <div className="flex justify-between text-title font-bold text-danger-text border-t pt-2" style={{ borderColor: 'var(--color-divider)' }}>
               <span>Settlement Amount Due:</span>
               <span>{formatINR(currentGuest.summary.outstandingBalance)}</span>
             </div>
@@ -1984,7 +1984,7 @@ export function Billing() {
             <button
               type="button"
               onClick={() => setInvoiceModalOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-xs font-semibold"
+              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
             >
               Close
             </button>
@@ -1994,7 +1994,7 @@ export function Billing() {
                 window.print();
                 toast('Invoice ready for printing', { tone: 'success' });
               }}
-              className="pms-btn-primary px-5 py-2 text-xs font-bold flex items-center gap-1.5"
+              className="pms-btn-primary px-5 py-2 text-label font-bold flex items-center gap-1.5"
             >
               <Lucide.Printer size={14} />
               <span>Print / Download PDF</span>
@@ -2002,22 +2002,22 @@ export function Billing() {
           </div>
         }
       >
-        <div className="flex flex-col gap-4 py-2 text-xs">
+        <div className="flex flex-col gap-4 py-2 text-label">
           <div className="p-4 rounded-xl border bg-surface flex flex-col gap-3" style={{ borderColor: 'var(--color-border)' }}>
             <div className="flex justify-between items-start border-b pb-3" style={{ borderColor: 'var(--color-divider)' }}>
               <div>
-                <h4 className="font-bold text-sm text-ink">TRIOUNITY GRAND HOTEL &amp; SUITES</h4>
-                <p className="text-[11px] text-ink-muted">GSTIN: 27AABCT3518Q1ZV · Licensed PMS Hotel</p>
+                <h4 className="font-bold text-body text-ink">TRIOUNITY GRAND HOTEL &amp; SUITES</h4>
+                <p className="text-label text-ink-muted">GSTIN: 27AABCT3518Q1ZV · Licensed PMS Hotel</p>
               </div>
               <div className="text-right">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-success-bg text-success-text">
+                <span className="px-2.5 py-0.5 rounded-full text-micro font-bold bg-success-bg text-success-text">
                   ORIGINAL FOR RECIPIENT
                 </span>
                 <p className="font-mono text-ink font-bold mt-1">INV-2026-{currentGuest.roomNumber}-01</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 text-[11px]">
+            <div className="grid grid-cols-2 gap-4 text-label">
               <div>
                 <span className="font-bold text-ink block">Billed To:</span>
                 <p className="text-ink font-semibold">{currentGuest.name}</p>
@@ -2032,7 +2032,7 @@ export function Billing() {
               </div>
             </div>
 
-            <table className="w-full text-left border-t border-b text-[11px]" style={{ borderColor: 'var(--color-divider)' }}>
+            <table className="w-full text-left border-t border-b text-label" style={{ borderColor: 'var(--color-divider)' }}>
               <thead>
                 <tr className="text-ink-muted font-bold py-1.5">
                   <th className="py-1">Description</th>
@@ -2054,7 +2054,7 @@ export function Billing() {
                   <td className="py-1 text-ink">GST (12%) &amp; Hotel Occupancy Tax (2%)</td>
                   <td className="py-1 text-right font-bold text-ink">{formatINR(currentGuest.summary.taxesAndFees)}</td>
                 </tr>
-                <tr className="font-bold text-xs">
+                <tr className="font-bold text-label">
                   <td className="py-1.5 text-ink">Total Invoice Value</td>
                   <td className="py-1.5 text-right text-ink">{formatINR(currentGuest.summary.totalAmount)}</td>
                 </tr>
@@ -2075,21 +2075,21 @@ export function Billing() {
             <button
               type="button"
               onClick={() => setDiscountModalOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-xs font-semibold"
+              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleApplyDiscount}
-              className="pms-btn-primary px-5 py-2 text-xs font-bold"
+              className="pms-btn-primary px-5 py-2 text-label font-bold"
             >
               Apply Discount
             </button>
           </div>
         }
       >
-        <div className="flex flex-col gap-4 py-2 text-xs">
+        <div className="flex flex-col gap-4 py-2 text-label">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="font-bold text-ink block mb-1">Discount Type</label>
@@ -2141,7 +2141,7 @@ export function Billing() {
             <button
               type="button"
               onClick={() => setSplitFolioModalOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-xs font-semibold"
+              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
             >
               Cancel
             </button>
@@ -2154,14 +2154,14 @@ export function Billing() {
                 });
                 setSplitFolioModalOpen(false);
               }}
-              className="pms-btn-primary px-5 py-2 text-xs font-bold"
+              className="pms-btn-primary px-5 py-2 text-label font-bold"
             >
               Split Folio
             </button>
           </div>
         }
       >
-        <div className="flex flex-col gap-4 py-2 text-xs">
+        <div className="flex flex-col gap-4 py-2 text-label">
           <div>
             <label className="font-bold text-ink block mb-1">Split Strategy</label>
             <div className="grid grid-cols-2 gap-2.5">
@@ -2221,7 +2221,7 @@ export function Billing() {
             <button
               type="button"
               onClick={() => setEmailModalOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-xs font-semibold"
+              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
             >
               Cancel
             </button>
@@ -2234,7 +2234,7 @@ export function Billing() {
                 });
                 setEmailModalOpen(false);
               }}
-              className="pms-btn-primary px-5 py-2 text-xs font-bold flex items-center gap-1.5"
+              className="pms-btn-primary px-5 py-2 text-label font-bold flex items-center gap-1.5"
             >
               <Lucide.Mail size={14} />
               <span>Send Email</span>
@@ -2242,7 +2242,7 @@ export function Billing() {
           </div>
         }
       >
-        <div className="flex flex-col gap-4 py-2 text-xs">
+        <div className="flex flex-col gap-4 py-2 text-label">
           <div>
             <label className="font-bold text-ink block mb-1">Recipient Email</label>
             <input
@@ -2280,21 +2280,21 @@ export function Billing() {
             <button
               type="button"
               onClick={() => setVoidModalOpen(null)}
-              className="pms-btn-ghost px-4 py-2 text-xs font-semibold"
+              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleVoidCharge}
-              className="pms-btn-danger px-5 py-2 text-xs font-bold"
+              className="pms-btn-danger px-5 py-2 text-label font-bold"
             >
               Confirm Void
             </button>
           </div>
         }
       >
-        <div className="flex flex-col gap-3 py-2 text-xs">
+        <div className="flex flex-col gap-3 py-2 text-label">
           <p className="text-ink">
             Are you sure you want to void this item from the guest folio? This action will adjust the running balance and tax calculations.
           </p>
