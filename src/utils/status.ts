@@ -16,6 +16,8 @@ export function reservationTone(status: ReservationStatus): BadgeTone {
       return 'danger';
     case 'No-show':
       return 'warning';
+    default:
+      return 'neutral';
   }
 }
 

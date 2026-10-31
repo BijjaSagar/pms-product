@@ -13,6 +13,8 @@ import { NAV_ICONS } from './navIcons';
 import { TONE_VARS } from '../../theme/tone';
 import type { Tone } from '../../theme/tone';
 import { Button, IconButton, ListItem, TextField } from '../primitives';
+import { TodayGlance } from './TodayGlance';
+import type { GlanceItem } from './TodayGlance';
 
 function buildNoticeTone(
   icon: Lucide.LucideIcon,
@@ -102,7 +104,7 @@ export function Header({
 }) {
   const { me, can, logout, switchProperty } = useAuth();
   const [panel, setPanel] = useState<'none' | 'notices' | 'profile'>('none');
-  const [kpiDrawerOpen, setKpiDrawerOpen] = useState(false);
+  const [glanceOpen, setGlanceOpen] = useState(false);
   const [readNotices, setReadNotices] = useState<string[]>([]);
   const [dismissedNotices, setDismissedNotices] = useState<string[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -126,11 +128,11 @@ export function Header({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const closePanels = () => setPanel('none');
   const dismissRef = useDismiss(closePanels);
-  const kpiDismissRef = useDismiss(() => setKpiDrawerOpen(false));
+  const glanceDismissRef = useDismiss(() => setGlanceOpen(false));
 
   // Every figure comes from the store (see the effect below). Nothing is invented:
   // until the data arrives, and when it is genuinely zero, the value is 0.
-  const [kpi, setKpi] = useState({
+  const [glance, setGlance] = useState({
     occupancyPct: 0,
     occupiedRooms: 0,
     totalRooms: 0,
@@ -171,7 +173,7 @@ export function Header({
         const pendingPaymentsCount = payments?.filter((p: { status?: string }) => p.status === 'Pending').length ?? 0;
 
         if (mounted) {
-          setKpi({
+          setGlance({
             occupancyPct,
             occupiedRooms,
             totalRooms,
@@ -342,76 +344,19 @@ export function Header({
     }
   };
 
-  const kpiDrawerItems = [
-    {
-      label: 'Occupancy',
-      value: `${kpi.occupancyPct}%`,
-      icon: Lucide.BedDouble,
-      iconStrokeWidth: 2.2,
-      iconStyle: 'bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/25',
-      valueStyle: 'text-ink',
-      badgeStyle: 'font-bold text-success-text bg-success-text/10',
-      target: { view: 'occupancy-report' } as NavTarget,
-    },
-    {
-      label: 'Arrivals',
-      value: String(kpi.arrivalsCount),
-      icon: Lucide.ArrowUpRight,
-      iconStrokeWidth: 2.5,
-      iconStyle: 'bg-gradient-to-tr from-success-text to-success-border text-success-foreground shadow-xs shadow-success-text/25',
-      valueStyle: 'text-ink',
-      badgeStyle: 'font-bold text-warning-text bg-warning-text/15',
-      target: { view: 'reservations' } as NavTarget,
-    },
-    {
-      label: 'Departures',
-      value: String(kpi.departuresCount),
-      icon: Lucide.ArrowDownRight,
-      iconStrokeWidth: 2.5,
-      iconStyle: 'bg-gradient-to-tr from-warning-text to-warning-border text-warning-foreground shadow-xs shadow-warning-text/25',
-      valueStyle: 'text-ink',
-      badgeStyle: 'font-semibold text-ink-secondary bg-ink/[0.04]',
-      target: { view: 'folios' } as NavTarget,
-    },
-    {
-      label: 'In-House',
-      value: String(kpi.inHouseCount),
-      badge: 'Active',
-      icon: Lucide.Users,
-      iconStrokeWidth: 2.2,
-      iconStyle: 'bg-gradient-to-tr from-primary to-primary-hover text-primary-foreground shadow-xs shadow-primary/25',
-      valueStyle: 'text-ink',
-      badgeStyle: 'font-semibold text-primary bg-primary/15',
-      target: { view: 'reservations' } as NavTarget,
-    },
-    {
-      label: 'Revenue',
-      value: `₹${kpi.totalRevenue.toLocaleString('en-IN')}`,
-      badge: 'Today',
-      icon: Lucide.CreditCard,
-      iconStrokeWidth: 2.2,
-      iconStyle: 'bg-gradient-to-tr from-success-text to-success-border text-success-foreground shadow-xs shadow-success-text/25',
-      valueStyle: 'text-success-text',
-      badgeStyle: 'font-bold text-success-text bg-success-text/15',
-      target: { view: 'revenue-report' } as NavTarget,
-    },
-    {
-      label: 'Pending',
-      value: String(kpi.pendingPaymentsCount),
-      badge: 'Due',
-      icon: Lucide.AlertCircle,
-      iconStrokeWidth: 2.3,
-      iconStyle: 'bg-gradient-to-tr from-danger-text to-danger-border text-danger-foreground shadow-xs shadow-danger-text/25',
-      valueStyle: 'text-danger-text',
-      badgeStyle: 'font-bold text-danger-text bg-danger-text/15',
-      target: { view: 'payments' } as NavTarget,
-    },
+  const glanceItems: GlanceItem[] = [
+    { key: 'occupancy', label: 'Occupancy', value: `${glance.occupancyPct}%`, detail: `${glance.occupiedRooms} of ${glance.totalRooms} rooms`, tone: 'primary', icon: Lucide.BedDouble, target: { view: 'occupancy-report' } },
+    { key: 'arrivals', label: 'Arrivals', value: String(glance.arrivalsCount), detail: 'Expected today', tone: 'success', icon: Lucide.DoorOpen, target: { view: 'reservations' } },
+    { key: 'departures', label: 'Departures', value: String(glance.departuresCount), detail: 'Due out today', tone: 'warning', icon: Lucide.DoorClosed, target: { view: 'folios' } },
+    { key: 'in-house', label: 'In-house', value: String(glance.inHouseCount), detail: 'Guests staying', tone: 'info', icon: Lucide.Users, target: { view: 'reservations' } },
+    { key: 'revenue', label: 'Revenue', value: `₹${glance.totalRevenue.toLocaleString('en-IN')}`, detail: 'Gross today', tone: 'success', icon: Lucide.CreditCard, target: { view: 'revenue-report' } },
+    { key: 'pending', label: 'Pending', value: String(glance.pendingPaymentsCount), detail: 'Payments awaiting', tone: 'danger', icon: Lucide.Banknote, target: { view: 'payments' } },
   ];
 
   return (
     <>
       <header
-        ref={kpiDismissRef}
+        ref={glanceDismissRef}
         className="relative z-30 flex-none border-b backdrop-blur-xl transition-all"
         style={{
           background: 'color-mix(in srgb, var(--color-surface) 88%, transparent)',
@@ -437,155 +382,22 @@ export function Header({
             </IconButton>
           </div>
 
-          {/* Keep the KPI deck in the header on the dashboard only. */}
-          {currentView === 'dashboard' && <div
-            className="hidden lg:flex items-center rounded-2xl p-1 border shadow-xs backdrop-blur-md gap-0.5 xl:gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-none"
-            style={{
-              borderColor: 'var(--color-border)',
-              background: 'color-mix(in srgb, var(--color-surface) 94%, var(--color-page))',
-              boxShadow: 'var(--shadow-xs), inset 0 1px 0 color-mix(in srgb, var(--color-primary-foreground) 60%, transparent)',
-            }}
-          >
-            {/* 1. Occupancy */}
-            <ListItem
-              type="button"
-              onClick={() => onGo({ view: 'occupancy-report' })}
-              className="!w-auto !px-2.5 !py-1 xl:!px-3 !rounded-xl group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
-              title={`Occupancy: ${kpi.occupancyPct}% (${kpi.occupiedRooms} of ${kpi.totalRooms} rooms)`}
-            >
-              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/25 group-hover:scale-105 transition-transform">
-                <Lucide.BedDouble size={14} strokeWidth={2.2} />
-              </div>
-              <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-label font-bold uppercase tracking-wider text-ink-muted">Occupancy</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-body font-bold tnum text-ink">{kpi.occupancyPct}%</span>
-                </div>
-              </div>
-            </ListItem>
-
-            <div className="h-5 w-px my-auto mx-0.5 flex-none" style={{ background: 'var(--color-border)' }} />
-
-            {/* 2. Today's Arrivals */}
-            <ListItem
-              type="button"
-              onClick={() => onGo({ view: 'reservations' })}
-              className="!w-auto !px-2.5 !py-1 xl:!px-3 !rounded-xl group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
-              title={`Today's Arrivals: ${kpi.arrivalsCount}`}
-            >
-              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-success-text to-success-border text-success-foreground shadow-xs shadow-success-text/25 group-hover:scale-105 transition-transform">
-                <Lucide.ArrowUpRight size={14} strokeWidth={2.5} />
-              </div>
-              <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-label font-bold uppercase tracking-wider text-ink-muted">Arrivals</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-body font-bold tnum text-ink">{kpi.arrivalsCount}</span>
-                </div>
-              </div>
-            </ListItem>
-
-            <div className="h-5 w-px my-auto mx-0.5 flex-none" style={{ background: 'var(--color-border)' }} />
-
-            {/* 3. Today's Departures */}
-            <ListItem
-              type="button"
-              onClick={() => onGo({ view: 'folios' })}
-              className="!w-auto !px-2.5 !py-1 xl:!px-3 !rounded-xl group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
-              title={`Today's Departures: ${kpi.departuresCount}`}
-            >
-              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-warning-text to-warning-border text-warning-foreground shadow-xs shadow-warning-text/25 group-hover:scale-105 transition-transform">
-                <Lucide.ArrowDownRight size={14} strokeWidth={2.5} />
-              </div>
-              <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-label font-bold uppercase tracking-wider text-ink-muted">Departures</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-body font-bold tnum text-ink">{kpi.departuresCount}</span>
-                </div>
-              </div>
-            </ListItem>
-
-            <div className="h-5 w-px my-auto mx-0.5 flex-none" style={{ background: 'var(--color-border)' }} />
-
-            {/* 4. In-house Guests */}
-            <ListItem
-              type="button"
-              onClick={() => onGo({ view: 'reservations' })}
-              className="!w-auto !px-2.5 !py-1 xl:!px-3 !rounded-xl group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
-              title="In-house Guests: 8 (28 rooms • 4 extra guests)"
-            >
-              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-primary to-primary-hover text-primary-foreground shadow-xs shadow-primary/25 group-hover:scale-105 transition-transform">
-                <Lucide.Users size={14} strokeWidth={2.2} />
-              </div>
-              <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-label font-bold uppercase tracking-wider text-ink-muted">In-House</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-body font-bold tnum text-ink">{kpi.inHouseCount}</span>
-                  <span className="text-micro font-semibold text-primary bg-primary/15 px-1.5 py-0.5 rounded-md leading-tight">
-                    Active
-                  </span>
-                </div>
-              </div>
-            </ListItem>
-
-            <div className="h-5 w-px my-auto mx-0.5 flex-none" style={{ background: 'var(--color-border)' }} />
-
-            {/* 5. Total Revenue */}
-            <ListItem
-              type="button"
-              onClick={() => onGo({ view: 'revenue-report' })}
-              className="!w-auto !px-2.5 !py-1 xl:!px-3 !rounded-xl group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
-              title="Total Revenue (Today)"
-            >
-              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-success-text to-success-border text-success-foreground shadow-xs shadow-success-text/25 group-hover:scale-105 transition-transform">
-                <Lucide.CreditCard size={14} strokeWidth={2.2} />
-              </div>
-              <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-label font-bold uppercase tracking-wider text-ink-muted">Revenue</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-body font-bold tnum text-success-text">₹{kpi.totalRevenue.toLocaleString('en-IN')}</span>
-                  <span className="text-micro font-bold text-success-text bg-success-text/15 px-1.5 py-0.5 rounded-md leading-tight">
-                    Today
-                  </span>
-                </div>
-              </div>
-            </ListItem>
-
-            <div className="h-5 w-px my-auto mx-0.5 flex-none" style={{ background: 'var(--color-border)' }} />
-
-            {/* 6. Pending Payments */}
-            <ListItem
-              type="button"
-              onClick={() => onGo({ view: 'payments' })}
-              className="!w-auto !px-2.5 !py-1 xl:!px-3 !rounded-xl group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
-              title="Pending Payments: 3 (₹28,160 outstanding)"
-            >
-              <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-danger-text to-danger-border text-danger-foreground shadow-xs shadow-danger-text/25 group-hover:scale-105 transition-transform">
-                <Lucide.AlertCircle size={14} strokeWidth={2.3} />
-              </div>
-              <div className="flex flex-col leading-tight gap-0.5">
-                <span className="text-label font-bold uppercase tracking-wider text-ink-muted">Pending</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-body font-bold tnum text-danger-text">{kpi.pendingPaymentsCount}</span>
-                  <span className="text-micro font-bold text-danger-text bg-danger-text/15 px-1.5 py-0.5 rounded-md leading-tight">
-                    Due
-                  </span>
-                </div>
-              </div>
-            </ListItem>
-          </div>}
+          {currentView === 'dashboard' && (
+            <TodayGlance items={glanceItems} onGo={onGo} className="hidden lg:flex flex-none" />
+          )}
 
           {currentView !== 'dashboard' && (
             <div className="relative flex-none">
               <Button variant="secondary"
                 type="button"
-                onClick={() => setKpiDrawerOpen((open) => !open)}
-                aria-label={kpiDrawerOpen ? 'Close dashboard KPIs' : 'Show dashboard KPIs'}
-                aria-expanded={kpiDrawerOpen}
+                onClick={() => setGlanceOpen((open) => !open)}
+                aria-label={glanceOpen ? 'Close today at a glance' : 'Show today at a glance'}
+                aria-expanded={glanceOpen}
                 className="flex items-center gap-1.5 border border-border bg-surface text-ink shadow-xs transition-colors hover:bg-page"
-                title="Dashboard KPIs"
+                title="Today at a glance"
               >
-                <span className="hidden sm:inline">KPIs</span>
-                <Lucide.ChevronDown size={15} className={`transition-transform ${kpiDrawerOpen ? 'rotate-180' : ''}`} />
+                <span className="hidden sm:inline">Today</span>
+                <Lucide.ChevronDown size={15} className={`transition-transform ${glanceOpen ? 'rotate-180' : ''}`} />
               </Button>
             </div>
           )}
@@ -1031,45 +843,22 @@ export function Header({
           </div>
         </div>
 
-        {currentView !== 'dashboard' && kpiDrawerOpen && (
+        {currentView !== 'dashboard' && glanceOpen && (
           <div
             className="pms-animate-pop absolute inset-x-3 top-full z-50 mt-2 overflow-hidden rounded-3xl border border-border bg-surface shadow-2xl sm:inset-x-5 lg:inset-x-8"
             role="dialog"
-            aria-label="Dashboard KPI summary"
+            aria-label="Today at a glance"
           >
             <div className="h-1 bg-gradient-to-r from-primary via-primary-hover to-dark-accent" />
-            <div className="bg-gradient-to-br from-surface via-surface to-page/80 p-4 sm:p-6">
-
-              <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 xl:grid-cols-6">
-                {kpiDrawerItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <ListItem
-                      type="button"
-                      key={item.label}
-                      onClick={() => {
-                        setKpiDrawerOpen(false);
-                        onGo(item.target);
-                      }}
-                      className="group flex min-w-0 items-center gap-2 text-left transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer"
-                      title={`${item.label}: ${item.value}`}
-                    >
-                      <span className={`flex h-7 w-7 flex-none items-center justify-center rounded-lg transition-transform group-hover:scale-105 ${item.iconStyle}`}>
-                        <Icon size={14} strokeWidth={item.iconStrokeWidth} />
-                      </span>
-                      <div className="flex min-w-0 flex-col gap-0.5 leading-tight">
-                        <span className="truncate text-label font-bold uppercase tracking-wider text-ink-muted">{item.label}</span>
-                        <div className="flex min-w-0 items-center gap-1.5">
-                          <span className={`truncate text-body font-bold tnum ${item.valueStyle}`} title={item.value}>{item.value}</span>
-                          <span className={`flex-none rounded-md px-1.5 py-0.5 text-micro leading-tight ${item.badgeStyle}`}>
-                            {item.badge}
-                          </span>
-                        </div>
-                      </div>
-                    </ListItem>
-                  );
-                })}
-              </div>
+            <div className="p-4 sm:p-6">
+              <TodayGlance
+                items={glanceItems}
+                layout="grid"
+                onGo={(target) => {
+                  setGlanceOpen(false);
+                  onGo(target);
+                }}
+              />
             </div>
           </div>
         )}
