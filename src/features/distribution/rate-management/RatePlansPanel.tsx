@@ -1,3 +1,4 @@
+import { Button, IconButton, TextField } from '../../../components/primitives';
 import { useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { inputClass } from '../../../utils/styling';
@@ -42,11 +43,11 @@ export function RatePlansPanel({ plans, onCreate, onEdit, onToggleStatus }: Prop
           <label className="relative min-w-0 xs:min-w-[220px]">
             <span className="sr-only">Search rate plans</span>
             <Lucide.Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" aria-hidden="true" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} className={`${inputClass('pl-9')} min-h-[38px] text-label`} placeholder="Search plans" />
+            <TextField value={query} onChange={(event) => setQuery(event.target.value)} className={`${inputClass('')}`} placeholder="Search plans" />
           </label>
-          <button type="button" onClick={onCreate} className="pms-btn-primary min-h-[38px] px-3.5 py-1.5 text-label">
+          <Button variant="primary" type="button" onClick={onCreate} >
             <Lucide.Plus size={15} /> Create plan
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -72,12 +73,12 @@ export function RatePlansPanel({ plans, onCreate, onEdit, onToggleStatus }: Prop
                 <td><StatusPill status={plan.status} /></td>
                 <td>
                   <div className="flex justify-end gap-1.5">
-                    <button type="button" onClick={() => onEdit(plan)} className="pms-btn-ghost min-h-[34px] px-2.5 py-1 text-label" aria-label={`Edit ${plan.name}`}>
+                    <Button variant="secondary" type="button" onClick={() => onEdit(plan)}  aria-label={`Edit ${plan.name}`}>
                       <Lucide.Pencil size={13} /> Edit
-                    </button>
-                    <button type="button" onClick={() => onToggleStatus(plan)} className="flex h-[34px] w-[34px] items-center justify-center rounded-control text-ink-muted hover:bg-hover-surface hover:text-ink" aria-label={`${plan.status === 'Active' ? 'Pause' : 'Activate'} ${plan.name}`} title={plan.status === 'Active' ? 'Pause plan' : 'Activate plan'}>
+                    </Button>
+                    <IconButton variant="ghost" type="button" onClick={() => onToggleStatus(plan)} className="flex items-center justify-center text-ink-muted hover:bg-hover-surface hover:text-ink" aria-label={`${plan.status === 'Active' ? 'Pause' : 'Activate'} ${plan.name}`} title={plan.status === 'Active' ? 'Pause plan' : 'Activate plan'}>
                       {plan.status === 'Active' ? <Lucide.Pause size={14} /> : <Lucide.Play size={14} />}
-                    </button>
+                    </IconButton>
                   </div>
                 </td>
               </tr>

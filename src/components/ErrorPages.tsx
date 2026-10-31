@@ -1,6 +1,7 @@
 import * as Lucide from 'lucide-react';
 import type { NavTarget } from '../config/navigation';
 import { toast } from '../utils/toast';
+import { Button } from './primitives';
 
 /**
  * Premium 403 Forbidden / Restricted Access Page
@@ -86,16 +87,16 @@ export function ForbiddenPage({
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-1">
-          <button
+          <Button variant="primary"
             type="button"
             onClick={() => onGo({ view: 'dashboard' })}
-            className="w-full sm:w-auto pms-btn-primary flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-label font-semibold shadow-sm"
+            className="w-full sm:w-auto flex items-center justify-center gap-2"
           >
             <Lucide.LayoutDashboard size={15} />
             <span>Return to Dashboard</span>
-          </button>
+          </Button>
 
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => {
               toast('Access request dispatched', {
@@ -103,11 +104,11 @@ export function ForbiddenPage({
                 tone: 'info',
               });
             }}
-            className="w-full sm:w-auto rounded-xl border px-4 py-2.5 text-label font-semibold text-ink hover:bg-hover-surface transition-colors"
+            className="w-full sm:w-auto transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
             Request Access
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -169,28 +170,28 @@ export function NotFoundPage({ onGo }: { onGo: (t: NavTarget) => void }) {
             { label: 'Guest Directory', view: 'guests' as const, icon: Lucide.BookUser },
             { label: 'System Settings', view: 'settings' as const, icon: Lucide.Settings },
           ].map((item) => (
-            <button
+            <Button variant="secondary"
               key={item.label}
               type="button"
               onClick={() => onGo({ view: item.view })}
-              className="flex items-center gap-2 rounded-xl border p-2.5 text-label font-semibold text-ink hover:bg-hover-surface transition-colors"
+              className="flex items-center gap-2 transition-colors"
               style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             >
               <item.icon size={15} className="text-primary flex-none" />
               <span className="truncate">{item.label}</span>
-            </button>
+            </Button>
           ))}
         </div>
 
         {/* Action Button */}
-        <button
+        <Button variant="primary"
           type="button"
           onClick={() => onGo({ view: 'dashboard' })}
-          className="pms-btn-primary inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-label font-semibold shadow-sm"
+          className="inline-flex items-center gap-2"
         >
           <Lucide.Home size={15} />
           <span>Back to Dashboard</span>
-        </button>
+        </Button>
       </div>
     </div>
   );

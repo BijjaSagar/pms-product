@@ -1,5 +1,6 @@
 import * as Lucide from 'lucide-react';
 import type { CalendarDate } from './types';
+import { Button } from '../../../components/primitives';
 
 interface Props {
   dates: CalendarDate[];
@@ -39,9 +40,9 @@ export function RateRestrictionsPanel({ dates, minStays, maxStays, closedToArriv
             <p className="text-label text-ink-muted mt-0.5">Review arrival, departure, stop-sell and stay-length rules in the selected date window</p>
           </div>
         </div>
-        <button type="button" onClick={onOpenCalendar} className="pms-btn-ghost min-h-[38px] px-3.5 py-1.5 text-label">
+        <Button variant="secondary" type="button" onClick={onOpenCalendar} >
           <Lucide.CalendarDays size={14} /> Edit calendar
-        </button>
+        </Button>
       </div>
 
       <div className="grid gap-3 p-4 sm:grid-cols-3 sm:p-5">

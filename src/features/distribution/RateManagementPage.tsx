@@ -33,6 +33,7 @@ import { RateRestrictionsPanel } from './rate-management/RateRestrictionsPanel';
 import { SeasonDialog } from './rate-management/SeasonDialog';
 import { SeasonalityPanel } from './rate-management/SeasonalityPanel';
 import type { BulkUpdatePayload, EditableRateRow, RateHistoryEvent, RatePlan, RateTabId, Season } from './rate-management/types';
+import { Button, SelectField } from '../../components/primitives';
 
 const ROOM_RATE_MULTIPLIER: Record<string, number> = {
   Standard: 0.72,
@@ -292,9 +293,9 @@ export function RateManagement() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => setActiveTab('bulk')} className="pms-btn-ghost min-h-[40px] px-3.5 py-2 text-label"><Lucide.Zap size={14} /> Bulk update</button>
-          <button type="button" onClick={openCreatePlan} className="pms-btn-primary min-h-[40px] px-3.5 py-2 text-label"><Lucide.Plus size={15} /> Create rate plan</button>
-          <button type="button" onClick={handlePublish} disabled={!hasUnpublishedChanges} className="pms-btn-ghost min-h-[40px] px-3.5 py-2 text-label disabled:opacity-50"><Lucide.Upload size={14} /> Publish rates</button>
+          <Button variant="secondary" type="button" onClick={() => setActiveTab('bulk')} ><Lucide.Zap size={14} /> Bulk update</Button>
+          <Button variant="primary" type="button" onClick={openCreatePlan} ><Lucide.Plus size={15} /> Create rate plan</Button>
+          <Button variant="secondary" type="button" onClick={handlePublish} disabled={!hasUnpublishedChanges} className="disabled:opacity-50"><Lucide.Upload size={14} /> Publish rates</Button>
         </div>
       </header>
 
@@ -305,15 +306,15 @@ export function RateManagement() {
       <section className="pms-card grid gap-3 p-4 sm:grid-cols-2 sm:p-4 lg:grid-cols-[minmax(180px,0.8fr)_minmax(240px,1.2fr)_minmax(0,1fr)] lg:items-end" aria-label="Rate calendar filters">
         <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">
           Room type
-          <select value={selectedRoomType} onChange={(event) => handleRoomTypeChange(event.target.value)} className="pms-input min-h-[40px] w-full text-label font-semibold">
+          <SelectField value={selectedRoomType} onChange={(event) => handleRoomTypeChange(event.target.value)} className="w-full">
             {ROOM_TYPES.map((roomType) => <option key={roomType} value={roomType}>{roomType}</option>)}
-          </select>
+          </SelectField>
         </label>
         <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">
           Rate plan
-          <select value={selectedPlan?.id ?? ''} onChange={(event) => setSelectedPlanId(event.target.value)} className="pms-input min-h-[40px] w-full text-label font-semibold">
+          <SelectField value={selectedPlan?.id ?? ''} onChange={(event) => setSelectedPlanId(event.target.value)} className="w-full">
             {eligiblePlans.map((plan) => <option key={plan.id} value={plan.id}>{plan.name}</option>)}
-          </select>
+          </SelectField>
         </label>
         <div className="flex min-h-[40px] items-center justify-between gap-3 rounded-control border px-3" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
           <span className="text-label font-medium text-ink-secondary">Selected window</span>
@@ -340,10 +341,10 @@ export function RateManagement() {
           {TABS.map(({ id, label, icon: Icon }) => {
             const selected = activeTab === id;
             return (
-              <button key={id} type="button" role="tab" tabIndex={selected ? 0 : -1} id={`rate-tab-${id}`} aria-selected={selected} aria-controls="rate-tab-panel" onClick={() => setActiveTab(id)} className={`relative flex min-h-[48px] flex-none items-center gap-2 px-3 text-label font-semibold transition-colors sm:px-4 ${selected ? 'text-primary' : 'text-ink-muted hover:text-ink'}`}>
+              <Button variant="text" key={id} type="button" role="tab" tabIndex={selected ? 0 : -1} id={`rate-tab-${id}`} aria-selected={selected} aria-controls="rate-tab-panel" onClick={() => setActiveTab(id)} className={`relative flex flex-none items-center gap-2 transition-colors ${selected ? 'text-primary' : 'text-ink-muted hover:text-ink'}`}>
                 <Icon size={15} aria-hidden="true" />{label}
                 {selected && <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-primary sm:inset-x-4" />}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -401,15 +402,15 @@ export function RateManagement() {
                       <div className="col-span-2"><dt className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Cancellation</dt><dd className="mt-1 font-medium text-ink">{selectedPlan.cancellationPolicy}</dd></div>
                     </dl>
                     <div className="mt-auto flex gap-2 pt-5">
-                      <button type="button" onClick={() => openEditPlan(selectedPlan)} className="pms-btn-ghost flex-1 px-3 py-2 text-label"><Lucide.Pencil size={13} /> Edit plan</button>
-                      <button type="button" onClick={() => {
+                      <Button variant="secondary" type="button" onClick={() => openEditPlan(selectedPlan)} className="flex-1"><Lucide.Pencil size={13} /> Edit plan</Button>
+                      <Button variant="secondary" type="button" onClick={() => {
                         const clone: RatePlan = { ...selectedPlan, id: `plan-${Date.now()}`, code: `${selectedPlan.code.slice(0, 8)}-COPY`, name: `${selectedPlan.name} copy`, status: 'Inactive' };
                         setRatePlans((previous) => [clone, ...previous]);
                         setSelectedPlanId(clone.id);
                         setHasUnpublishedChanges(true);
                         addHistory('Rate plan cloned', clone.name, 'info');
                         toast(`${selectedPlan.name} cloned`, { tone: 'success' });
-                      }} aria-label="Clone selected rate plan" className="pms-btn-ghost min-w-[42px] px-2 py-2"><Lucide.Copy size={14} /></button>
+                      }} aria-label="Clone selected rate plan" className="min-w-[42px]"><Lucide.Copy size={14} /></Button>
                     </div>
                   </aside>
                 )}

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
 import { lockAppScroll } from '../lib/scrollLock';
+import { Backdrop, Button, TextField } from './primitives';
 export { Toaster } from './Toaster';
 export type { ToasterProps } from './Toaster';
 
@@ -48,13 +49,13 @@ function useDialogFocus<T extends HTMLElement>(open: boolean) {
   return ref;
 }
 
-function Backdrop({ onClose, label }: { onClose: () => void; label: string }) {
+function ScrimBackdrop({ onClose, label }: { onClose: () => void; label: string }) {
   return (
-    <button
+    <Backdrop
       type="button"
       aria-label={label}
       onClick={onClose}
-      className="pms-overlay-backdrop absolute inset-0 h-full w-full"
+      
       style={{ background: 'var(--color-scrim)' }}
     />
   );
@@ -85,7 +86,7 @@ export function Modal({
   // (e.g. the animated main container) can reposition or clip the dialog.
   return createPortal(
     <div className="pms-overlay-enter fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-0 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={title}>
-      <Backdrop onClose={onClose} label="Close dialog" />
+      <ScrimBackdrop onClose={onClose} label="Close dialog" />
       <div
         ref={panelRef}
         tabIndex={-1}
@@ -104,9 +105,9 @@ export function Modal({
             <h2 className="pms-section-title truncate">{title}</h2>
             {subtitle ? <p className="pms-helper mt-0.5 text-pretty">{subtitle}</p> : null}
           </div>
-          <button type="button" onClick={onClose} className="pms-btn-ghost flex h-9 w-9 items-center justify-center rounded-lg p-0" aria-label="Close dialog">
+          <Button variant="secondary" type="button" onClick={onClose} className="flex w-9 items-center justify-center" aria-label="Close dialog">
             <Lucide.X size={18} />
-          </button>
+          </Button>
         </div>
         <div className="overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
         {footer ? (
@@ -139,7 +140,7 @@ export function Drawer({
   if (!open) return null;
   return createPortal(
     <div className="pms-overlay-enter fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={title}>
-      <Backdrop onClose={onClose} label="Close panel" />
+      <ScrimBackdrop onClose={onClose} label="Close panel" />
       <aside
         ref={panelRef}
         tabIndex={-1}
@@ -151,9 +152,9 @@ export function Drawer({
             <h2 className="pms-section-title truncate">{title}</h2>
             {subtitle ? <p className="pms-helper mt-0.5 text-pretty">{subtitle}</p> : null}
           </div>
-          <button type="button" onClick={onClose} className="pms-btn-ghost flex h-9 w-9 items-center justify-center rounded-lg p-0" aria-label="Close panel">
+          <Button variant="secondary" type="button" onClick={onClose} className="flex w-9 items-center justify-center" aria-label="Close panel">
             <Lucide.X size={18} />
-          </button>
+          </Button>
         </div>
         <div className="pms-safe-bottom flex-1 overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
       </aside>
@@ -192,20 +193,20 @@ export function ConfirmDialog({
       title={title}
       footer={
         <>
-          <button type="button" onClick={onClose} disabled={busy} className="pms-btn-ghost px-4 py-2.5 disabled:opacity-50">
+          <Button variant="secondary" type="button" onClick={onClose} disabled={busy} className="disabled:opacity-50">
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button variant={danger ? 'danger' : 'primary'}
             type="button"
             disabled={busy}
             onClick={() => {
               void onConfirm();
               if (autoClose) onClose();
             }}
-            className={`${danger ? 'pms-btn-danger' : 'pms-btn-primary'} px-4 py-2.5 disabled:opacity-50`}
+            className="disabled:opacity-50"
           >
             {confirmLabel}
-          </button>
+          </Button>
         </>
       }
     >
@@ -260,19 +261,18 @@ export function PromptDialog({
       subtitle={subtitle}
       footer={
         <>
-          <button type="button" onClick={onClose} className="pms-btn-ghost px-4 py-2.5">
+          <Button variant="secondary" type="button" onClick={onClose} >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button variant={danger ? 'danger' : 'primary'}
             type="button"
             onClick={() => {
               void onSubmit(val);
               onClose();
             }}
-            className={`${danger ? 'pms-btn-danger' : 'pms-btn-primary'} px-4 py-2.5`}
           >
             {confirmLabel}
-          </button>
+          </Button>
         </>
       }
     >
@@ -285,13 +285,13 @@ export function PromptDialog({
         className="flex flex-col gap-2"
       >
         {label ? <span className="pms-label">{label}</span> : null}
-        <input
+        <TextField
           type={inputType}
           autoFocus
           value={val}
           onChange={(e) => setVal(e.target.value)}
           placeholder={placeholder}
-          className="pms-input w-full min-h-[42px] px-3.5 py-2.5"
+          className="w-full"
         />
       </form>
     </Modal>

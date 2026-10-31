@@ -3,6 +3,7 @@ import * as Lucide from 'lucide-react';
 import { Modal } from '../../../components/overlays';
 import { inputClass } from '../../../utils/styling';
 import type { ChannelProvider } from './types';
+import { Button, SelectField, TextField } from '../../../components/primitives';
 
 interface Props {
   open: boolean;
@@ -33,26 +34,26 @@ export function AddChannelDialog({ open, providers, onClose, onConnect }: Props)
 
   return (
     <Modal open={open} onClose={onClose} title="Connect a channel" subtitle="Add a channel connection to the local demo workspace." footer={(
-      <><button type="button" onClick={onClose} className="pms-btn-ghost px-4 py-2 text-label">Cancel</button><button type="submit" form="add-channel-form" className="pms-btn-primary px-4 py-2 text-label"><Lucide.Link2 size={14} /> Connect channel</button></>
+      <><Button variant="secondary" type="button" onClick={onClose} >Cancel</Button><Button variant="primary" type="submit" form="add-channel-form" ><Lucide.Link2 size={14} /> Connect channel</Button></>
     )}>
       <form id="add-channel-form" onSubmit={submit} className="flex flex-col gap-3.5">
         {!providers.length ? (
           <div className="rounded-control border p-4 text-center text-body text-ink-secondary" style={{ borderColor: 'var(--color-border)' }}>All available demo providers are already connected.</div>
         ) : <>
           <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">Channel provider
-            <select value={providerId} onChange={(event) => setProviderId(event.target.value)} className={`${inputClass()} text-label`}>
+            <SelectField value={providerId} onChange={(event) => setProviderId(event.target.value)} className={`${inputClass()}`}>
               {providers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-            </select>
+            </SelectField>
           </label>
           <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">Property ID on channel
-            <input value={propertyId} onChange={(event) => setPropertyId(event.target.value)} className={`${inputClass()} text-label`} placeholder="e.g. PROP-8849102" />
+            <TextField value={propertyId} onChange={(event) => setPropertyId(event.target.value)} className={`${inputClass()}`} placeholder="e.g. PROP-8849102" />
           </label>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">API client ID
-              <input value={clientId} onChange={(event) => setClientId(event.target.value)} className={`${inputClass()} text-label`} placeholder="client_live_…" autoComplete="off" />
+              <TextField value={clientId} onChange={(event) => setClientId(event.target.value)} className={`${inputClass()}`} placeholder="client_live_…" autoComplete="off" />
             </label>
             <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">API secret
-              <input type="password" value={secret} onChange={(event) => setSecret(event.target.value)} className={`${inputClass()} text-label`} placeholder="Enter secret" autoComplete="new-password" />
+              <TextField type="password" value={secret} onChange={(event) => setSecret(event.target.value)} className={`${inputClass()}`} placeholder="Enter secret" autoComplete="new-password" />
             </label>
           </div>
           <div className="flex items-start gap-2 rounded-control border p-3 text-label leading-relaxed text-ink-secondary" style={{ borderColor: 'var(--color-info-border)', background: 'var(--color-info-bg)' }}>

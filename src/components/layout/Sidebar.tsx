@@ -7,6 +7,7 @@ import { useAuth } from '../../features/auth/AuthContext';
 import { useTheme } from '../../theme/useTheme';
 import { THEME_PRESETS } from '../../theme/presets';
 import { NAV_ICONS, SECTION_ICONS } from './navIcons';
+import { Backdrop, Button, IconButton, ListItem } from '../primitives';
 
 function NavIcon({ id, className = 'h-[18px] w-[18px] flex-none' }: { id: ViewId; className?: string }) {
   const Icon = NAV_ICONS[id] || Lucide.CircleDot;
@@ -27,11 +28,11 @@ function NavButton({
   fourthColor?: string;
 }) {
   return (
-    <button
+    <ListItem
       type="button"
       onClick={onSelect}
       aria-current={selected ? 'page' : undefined}
-      className="flex min-h-[40px] w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-body transition-all cursor-pointer hover:bg-muted-surface/70"
+      className="flex w-full items-center gap-2.5 text-left text-body transition-all cursor-pointer hover:bg-muted-surface/70"
       style={
         selected
           ? {
@@ -55,7 +56,7 @@ function NavButton({
       <span className="min-w-0 flex-1 truncate" style={{ color: selected ? 'var(--color-primary)' : 'var(--color-ink)' }}>
         {label}
       </span>
-    </button>
+    </ListItem>
   );
 }
 
@@ -280,11 +281,11 @@ export function Sidebar({
 
             return (
               <li key={section.title} className="mt-3.5 first:mt-0">
-                <button
+                <ListItem
                   type="button"
                   onClick={() => toggleSection(section.title)}
                   aria-expanded={open}
-                  className="flex min-h-[34px] w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-label font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer hover:bg-muted-surface/60"
+                  className="flex w-full items-center justify-between text-left text-label font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer hover:bg-muted-surface/60"
                   style={{
                     color: containsActive ? 'var(--color-primary)' : 'var(--color-ink-secondary)',
                   }}
@@ -298,7 +299,7 @@ export function Sidebar({
                     className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
                     style={{ color: containsActive ? 'var(--color-primary)' : 'var(--color-ink-muted)' }}
                   />
-                </button>
+                </ListItem>
                 {open ? (
                   <ul className="mt-1 flex flex-col gap-0.5 pl-1.5">
                     {section.items.map((item) => (
@@ -317,23 +318,23 @@ export function Sidebar({
       {/* Footer controls in full panel */}
       <div className="border-t p-3 flex flex-col gap-1.5" style={{ borderColor: 'var(--color-border)' }}>
         {onOpenThemes && (
-          <button
+          <ListItem
             type="button"
             onClick={onOpenThemes}
-            className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-label font-semibold text-ink hover:bg-muted-surface transition-colors cursor-pointer"
+            className="flex items-center gap-2.5 text-label font-semibold text-ink hover:bg-muted-surface transition-colors cursor-pointer"
           >
             <Lucide.Palette size={16} className="text-[var(--color-primary)]" />
             <span>Theme Colors</span>
-          </button>
+          </ListItem>
         )}
-        <button
+        <ListItem
           type="button"
           onClick={toggleCollapsed}
-          className="hidden lg:flex items-center gap-2.5 rounded-md px-2.5 py-2 text-label font-medium text-ink-secondary hover:bg-muted-surface hover:text-ink transition-colors cursor-pointer"
+          className="items-center gap-2.5 rounded-md px-2.5 py-2 text-label font-medium text-ink-secondary hover:bg-muted-surface hover:text-ink transition-colors cursor-pointer !hidden lg:!flex"
         >
           <Lucide.ChevronsLeft size={16} />
           <span>Collapse sidebar</span>
-        </button>
+        </ListItem>
       </div>
     </div>
   );
@@ -375,7 +376,7 @@ export function Sidebar({
                 />
               )}
 
-              <button
+              <IconButton variant="plain"
                 type="button"
                 onClick={(e) => handleSectionClick(e, section)}
                 onMouseEnter={(e) =>
@@ -389,10 +390,7 @@ export function Sidebar({
                 onMouseLeave={handleMouseLeave}
                 aria-label={section.title}
                 aria-expanded={isFlyoutOpen}
-                className={`relative flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-150 cursor-pointer ${isFlyoutOpen
-                    ? 'ring-2 ring-ink-muted scale-105'
-                    : 'hover:bg-muted-surface hover:scale-105 active:scale-95'
-                  }`}
+                className={`relative flex items-center justify-center transition-all duration-150 cursor-pointer ${isFlyoutOpen ? 'ring-2 ring-ink-muted scale-105' : 'hover:bg-muted-surface hover:scale-105 active:scale-95' }`}
                 style={
                   isSectionActive
                     ? {
@@ -424,7 +422,7 @@ export function Sidebar({
                     {section.items.length}
                   </span>
                 )}
-              </button>
+              </IconButton>
             </div>
           );
         })}
@@ -434,29 +432,29 @@ export function Sidebar({
       <div className="flex h-20 w-full flex-col items-center justify-center border-t gap-1.5 py-2" style={{ borderColor: 'var(--color-border)' }}>
         {/* Theme Swatcher Trigger */}
         {onOpenThemes && (
-          <button
+          <IconButton variant="plain"
             type="button"
             onClick={onOpenThemes}
             onMouseEnter={(e) => handleMouseEnter(e, 'Hotel Theme', 'Switch between 9 color palettes', 'Theme')}
             onMouseLeave={handleMouseLeave}
-            className="flex h-9 w-9 items-center justify-center rounded-xl transition-all hover:bg-muted-surface hover:scale-110 active:scale-95 cursor-pointer text-ink-secondary hover:text-ink"
+            className="flex items-center justify-center transition-all hover:bg-muted-surface hover:scale-110 active:scale-95 cursor-pointer text-ink-secondary hover:text-ink"
             aria-label="Change Theme"
           >
             <Lucide.Palette size={18} />
-          </button>
+          </IconButton>
         )}
 
         {/* Expand Sidebar Toggle */}
-        <button
+        <IconButton variant="plain"
           type="button"
           onClick={toggleCollapsed}
           onMouseEnter={(e) => handleMouseEnter(e, 'Expand Sidebar', 'Show full navigation (Ctrl+\\)', 'Shortcut')}
           onMouseLeave={handleMouseLeave}
-          className="flex h-8 w-8 items-center justify-center rounded-lg transition-all hover:bg-muted-surface hover:scale-110 active:scale-95 cursor-pointer text-ink-muted hover:text-ink"
+          className="flex items-center justify-center transition-all hover:bg-muted-surface hover:scale-110 active:scale-95 cursor-pointer text-ink-muted hover:text-ink"
           aria-label="Expand sidebar"
         >
           <Lucide.ChevronsRight size={17} />
-        </button>
+        </IconButton>
       </div>
     </div>
   );
@@ -543,14 +541,14 @@ export function Sidebar({
                     </p>
                   </div>
                 </div>
-                <button
+                <IconButton variant="plain"
                   type="button"
                   onClick={() => setFlyout(null)}
-                  className="flex h-6 w-6 items-center justify-center rounded-lg text-ink-muted hover:bg-border/60 hover:text-ink-secondary transition-colors cursor-pointer"
+                  className="flex items-center justify-center text-ink-muted hover:bg-border/60 hover:text-ink-secondary transition-colors cursor-pointer"
                   aria-label="Close menu"
                 >
                   <Lucide.X size={14} />
-                </button>
+                </IconButton>
               </div>
 
               {/* Flyout Items List */}
@@ -558,7 +556,7 @@ export function Sidebar({
                 {activeSection.items.map((item) => {
                   const isItemActive = item.id === active;
                   return (
-                    <button
+                    <ListItem
                       key={item.id}
                       type="button"
                       onClick={() => {
@@ -576,10 +574,7 @@ export function Sidebar({
                             border: '1.5px solid transparent',
                           }
                       }
-                      className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-all cursor-pointer ${isItemActive
-                          ? 'font-semibold shadow-2xs'
-                          : 'text-ink hover:bg-muted-surface/80 hover:text-ink'
-                        }`}
+                      className={`group flex w-full items-center gap-3 text-left transition-all cursor-pointer ${isItemActive ? 'font-semibold shadow-2xs' : 'text-ink hover:bg-muted-surface/80 hover:text-ink' }`}
                     >
                       <div
                         className="flex h-8 w-8 flex-none items-center justify-center rounded-lg transition-colors"
@@ -613,7 +608,7 @@ export function Sidebar({
                           {item.hint}
                         </p>
                       </div>
-                    </button>
+                    </ListItem>
                   );
                 })}
               </div>
@@ -625,10 +620,10 @@ export function Sidebar({
       {/* Mobile Drawer */}
       {mobileOpen ? (
         <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
-          <button
+          <Backdrop
             type="button"
             aria-label="Close navigation"
-            className="pms-overlay-backdrop absolute inset-0 h-full w-full"
+            
             style={{ background: 'var(--color-scrim)' }}
             onClick={onClose}
           />
@@ -638,7 +633,7 @@ export function Sidebar({
           >
             <div className="flex items-center justify-between border-b px-4 py-3 lg:hidden" style={{ borderColor: 'var(--color-border)' }}>
               <span className="text-label font-bold uppercase tracking-[0.12em] text-ink-muted">Menu</span>
-              <button type="button" onClick={onClose} aria-label="Close navigation" className="pms-btn-ghost min-h-[38px] min-w-[38px] px-2.5 py-1.5 cursor-pointer">✕</button>
+              <Button variant="secondary" type="button" onClick={onClose} aria-label="Close navigation" className="min-w-[38px] cursor-pointer">✕</Button>
             </div>
             <div className="h-[calc(100%-53px)]">{fullPanel}</div>
           </aside>

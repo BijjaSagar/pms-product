@@ -8,6 +8,7 @@ import { useAuth } from '../../features/auth/AuthContext';
 import type { PaymentRow, ReservationRow, StayRow } from '../../lib/api/pms';
 import { toast } from '../../utils/toast';
 import { Avatar, Badge, TableActionBtn, TableContainer } from '../../components/ui';
+import { Button } from '../../components/primitives';
 
 // ================= DEMO FALLBACK DATA MATCHING REFERENCE IMAGE =================
 
@@ -513,14 +514,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 </div>
               </div>
 
-              <button
+              <Button variant="link"
                 type="button"
                 onClick={() => go({ view: 'arrivals-departures' })}
-                className="text-label font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
                 <span>Front Desk</span>
                 <Lucide.ArrowRight size={13} />
-              </button>
+              </Button>
             </div>
 
             {/* Filter Tabs (Segmented Control) */}
@@ -531,17 +531,17 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 { key: 'departures' as const, label: 'Departures (1)' },
                 { key: 'in-house' as const, label: 'In-House (2)' },
               ].map((tab) => (
-                <button
+                <Button variant="secondary"
                   key={tab.key}
                   type="button"
                   onClick={() => setTimelineTab(tab.key)}
-                  className={`flex-1 min-w-[70px] py-1.5 text-label font-semibold rounded-lg transition-all cursor-pointer text-center ${timelineTab === tab.key
-                    ? 'bg-surface text-ink shadow-2xs font-bold border border-border/50'
-                    : 'text-ink-secondary hover:text-ink'
-                    }`}
+                  className={`flex-1 min-w-[70px] transition-all cursor-pointer text-center ${timelineTab === tab.key
+ ? 'bg-surface text-ink shadow-2xs border border-border/50'
+ : 'text-ink-secondary hover:text-ink'
+ }`}
                 >
                   {tab.label}
-                </button>
+                </Button>
               ))}
             </div>
 
@@ -584,7 +584,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                             </span>
                           </div>
 
-                          <button
+                          <Button variant="secondary"
                             type="button"
                             onClick={() => {
                               if (item.actionLabel === 'Mark Done' || item.actionLabel === 'Mark Clean') {
@@ -593,11 +593,11 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                                 go(item.target);
                               }
                             }}
-                            className={`flex-none text-label font-semibold px-2.5 py-1 rounded-lg border shadow-2xs transition-all cursor-pointer hover:shadow-xs active:scale-95 flex items-center gap-1 ${item.actionTone}`}
+                            className={`flex-none border shadow-2xs transition-all cursor-pointer hover:shadow-xs active:scale-95 flex items-center gap-1 ${item.actionTone}`}
                           >
                             <span>{item.actionLabel}</span>
                             <Lucide.ArrowRight size={12} />
-                          </button>
+                          </Button>
                         </div>
 
                         {/* Title & Detail */}
@@ -625,14 +625,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 Showing {filteredTimeline.slice(0, 5).length} of 5 operational activities
               </span>
             </div>
-            <button
+            <Button variant="link"
               type="button"
               onClick={() => go({ view: 'arrivals-departures' })}
-              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Movement report</span>
               <Lucide.ArrowRight size={12} />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -662,15 +661,15 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   </div>
                 </div>
 
-                <button
+                <Button variant="secondary"
                   type="button"
                   onClick={() => go({ view: 'reservations' })}
-                  className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-label font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                  className="cursor-pointer transition-colors flex items-center gap-1"
                   title="Open reservations"
                 >
                   <span>Reservations</span>
                   <Lucide.ArrowUpRight size={14} className="text-ink-secondary" />
-                </button>
+                </Button>
               </div>
 
               {/* Table Container */}
@@ -727,13 +726,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                           <span className="text-label text-ink-secondary block">{r.dates} ({r.nights}n)</span>
                         </td>
                         <td className="text-right whitespace-nowrap pr-2">
-                          <button
+                          <Button variant="success"
                             type="button"
                             onClick={() => go({ view: 'reservations', query: r.bookingCode })}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-lg bg-success-text hover:bg-success-text text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                            className="inline-flex items-center gap-1.5 transition-all cursor-pointer"
                           >
                             <span>View booking</span>
-                          </button>
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -745,14 +744,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             {/* Footer */}
             <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-label text-ink-secondary">
               <span>Showing {pendingCheckins.length} expected arrivals today</span>
-              <button
+              <Button variant="link"
                 type="button"
                 onClick={() => go({ view: 'reservations' })}
-                className="font-semibold text-label text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
                 <span>Open reservations</span>
                 <Lucide.ArrowRight size={13} />
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -780,15 +778,15 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   </div>
                 </div>
 
-                <button
+                <Button variant="secondary"
                   type="button"
                   onClick={() => go({ view: 'folios' })}
-                  className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-label font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                  className="cursor-pointer transition-colors flex items-center gap-1"
                   title="Open folios"
                 >
                   <span>Folios</span>
                   <Lucide.ArrowUpRight size={14} className="text-ink-secondary" />
-                </button>
+                </Button>
               </div>
 
               {/* Table Container */}
@@ -852,7 +850,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                           <span className="text-label text-ink-secondary block">{d.dates} ({d.nights}n)</span>
                         </td>
                         <td className="text-right whitespace-nowrap pr-3.5">
-                          <button
+                          <Button variant="warning"
                             type="button"
                             onClick={() => {
                               if (d.folioBalance > 0) {
@@ -860,10 +858,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                               }
                               go({ view: 'folios' });
                             }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-lg bg-warning-text hover:bg-warning-text text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                            className="inline-flex items-center gap-1.5 transition-all cursor-pointer"
                           >
                             <span>Open folio</span>
-                          </button>
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -875,14 +873,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             {/* Footer */}
             <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-label text-ink-secondary">
               <span>Showing {pendingCheckouts.length} departures pending today</span>
-              <button
+              <Button variant="link"
                 type="button"
                 onClick={() => go({ view: 'folios' })}
-                className="font-semibold text-label text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
                 <span>Open folios</span>
                 <Lucide.ArrowRight size={13} />
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -915,15 +912,15 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 </div>
               </div>
 
-              <button
+              <Button variant="secondary"
                 type="button"
                 onClick={() => go({ view: 'reservations' })}
-                className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-label font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                className="cursor-pointer transition-colors flex items-center gap-1"
                 title="View all reservations"
               >
                 <span>View all</span>
                 <Lucide.ArrowRight size={14} className="text-ink-secondary" />
-              </button>
+              </Button>
             </div>
 
             {/* Table Container */}
@@ -985,14 +982,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           {/* Footer */}
           <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-label text-ink-secondary">
             <span>Showing {recentReservations.length} recent bookings</span>
-            <button
+            <Button variant="link"
               type="button"
               onClick={() => go({ view: 'reservations' })}
-              className="font-semibold text-label text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Manage all reservations</span>
               <Lucide.ArrowRight size={13} />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -1020,15 +1016,15 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                 </div>
               </div>
 
-              <button
+              <Button variant="secondary"
                 type="button"
                 onClick={() => go({ view: 'payments' })}
-                className="rounded-lg border border-border bg-surface hover:bg-muted-surface px-3 py-1.5 text-label font-medium text-ink cursor-pointer shadow-2xs transition-colors flex items-center gap-1"
+                className="cursor-pointer transition-colors flex items-center gap-1"
                 title="View all transactions"
               >
                 <span>View all</span>
                 <Lucide.ArrowRight size={14} className="text-ink-secondary" />
-              </button>
+              </Button>
             </div>
 
             {/* Table Container */}
@@ -1090,14 +1086,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           {/* Footer */}
           <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-label text-ink-secondary">
             <span>Showing {recentPayments.length} recent settlements</span>
-            <button
+            <Button variant="link"
               type="button"
               onClick={() => go({ view: 'payments' })}
-              className="font-semibold text-label text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Manage all transactions</span>
               <Lucide.ArrowRight size={13} />
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -1129,14 +1124,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   <p className="text-label text-ink-muted mt-0.5">Turnaround status & inspection</p>
                 </div>
               </div>
-              <button
+              <Button variant="link"
                 type="button"
                 onClick={() => go({ view: 'room-overview' })}
-                className="text-label font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
                 <span>Room board</span>
                 <Lucide.ArrowRight size={13} />
-              </button>
+              </Button>
             </div>
 
             {/* Progress Summary */}
@@ -1187,13 +1181,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                     <p className="text-label text-ink-muted">Assigned: Anita S. · Turnover due 12:00 PM</p>
                   </div>
                 </div>
-                <button
+                <Button variant="success"
                   type="button"
                   onClick={() => toast('Room 201 verified', { detail: 'Marked clean & ready for check-in.', tone: 'success' })}
-                  className="flex-none text-label font-semibold text-success-text bg-success-bg hover:bg-success-bg border border-success-border px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                  className="flex-none cursor-pointer transition-colors"
                 >
                   Mark Clean
-                </button>
+                </Button>
               </div>
 
               <div className="flex items-center justify-between gap-2 p-2 rounded-xl border border-border/60 bg-page/50 hover:bg-page transition-colors">
@@ -1204,13 +1198,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                     <p className="text-label text-ink-muted">VIP arrival 02:00 PM · Needs supervisor inspection</p>
                   </div>
                 </div>
-                <button
+                <Button variant="secondary"
                   type="button"
                   onClick={() => toast('Inspection queued', { detail: 'Supervisor alerted for Room 304.', tone: 'info' })}
-                  className="flex-none text-label font-semibold text-primary bg-primary/10 hover:bg-primary/10 border border-primary/30 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                  className="flex-none cursor-pointer transition-colors"
                 >
                   Inspect
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -1218,14 +1212,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           {/* Footer */}
           <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-label text-ink-secondary">
             <span className="text-label text-ink-muted">4 priority turnovers due before 2:00 PM</span>
-            <button
+            <Button variant="link"
               type="button"
               onClick={() => go({ view: 'room-overview' })}
-              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Room board</span>
               <Lucide.ArrowRight size={12} />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -1252,14 +1245,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   <p className="text-label text-ink-muted mt-0.5">Operational follow-ups & alerts</p>
                 </div>
               </div>
-              <button
+              <Button variant="link"
                 type="button"
                 onClick={() => go({ view: 'maintenance' })}
-                className="text-label font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
                 <span>View all</span>
                 <Lucide.ArrowRight size={13} />
-              </button>
+              </Button>
             </div>
 
             {/* Tasks List */}
@@ -1277,13 +1269,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   <span className="rounded-full bg-warning-bg px-2 py-0.5 text-label font-bold text-warning-text">
                     High
                   </span>
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={() => toast('Inspection alert sent', { detail: 'Floor supervisor notified.', tone: 'info' })}
-                    className="text-label font-semibold text-ink-secondary hover:text-ink bg-muted-surface hover:bg-border px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="cursor-pointer transition-colors"
                   >
                     Release
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -1300,13 +1292,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   <span className="rounded-full bg-danger-bg px-2 py-0.5 text-label font-bold text-danger-text">
                     Urgent
                   </span>
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={() => go({ view: 'maintenance' })}
-                    className="text-label font-semibold text-danger-text hover:text-danger-text bg-danger-bg hover:bg-danger-bg px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="cursor-pointer transition-colors text-danger-text hover:text-danger-text bg-danger-bg hover:bg-danger-bg"
                   >
                     Assign
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -1323,13 +1315,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   <span className="rounded-full bg-warning-bg px-2 py-0.5 text-label font-bold text-warning-text">
                     Attention
                   </span>
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={() => go({ view: 'folios' })}
-                    className="text-label font-semibold text-ink-secondary hover:text-ink bg-muted-surface hover:bg-border px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="cursor-pointer transition-colors"
                   >
                     Review
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -1346,13 +1338,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   <span className="rounded-full bg-[var(--color-muted-surface)] px-2 py-0.5 text-label font-bold text-[var(--color-primary)]">
                     VIP Elite
                   </span>
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={() => go({ view: 'arrivals-departures' })}
-                    className="text-label font-semibold text-primary hover:text-primary bg-primary/10 hover:bg-primary/10 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                    className="cursor-pointer transition-colors"
                   >
                     Prepare
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1361,14 +1353,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           {/* Footer */}
           <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-label text-ink-secondary">
             <span className="text-label text-ink-muted">5 active tickets · 2 high priority</span>
-            <button
+            <Button variant="link"
               type="button"
               onClick={() => go({ view: 'maintenance' })}
-              className="font-semibold text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Task manager</span>
               <Lucide.ArrowRight size={12} />
-            </button>
+            </Button>
           </div>
         </div>
 

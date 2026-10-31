@@ -3,6 +3,7 @@ import * as Lucide from 'lucide-react';
 import { Modal } from '../../../components/overlays';
 import { inputClass } from '../../../utils/styling';
 import type { RatePlan } from './types';
+import { Button, Checkbox, SelectField, TextArea, TextField } from '../../../components/primitives';
 
 interface Props {
   open: boolean;
@@ -69,10 +70,10 @@ export function RatePlanDialog({ open, plan, roomTypes, channelIds, onClose, onS
       wide
       footer={(
         <>
-          <button type="button" onClick={onClose} className="pms-btn-ghost px-4 py-2 text-label">Cancel</button>
-          <button type="button" onClick={handleSave} className="pms-btn-primary px-4 py-2 text-label">
+          <Button variant="secondary" type="button" onClick={onClose} >Cancel</Button>
+          <Button variant="primary" type="button" onClick={handleSave} >
             <Lucide.Check size={14} /> {plan ? 'Save plan' : 'Create plan'}
-          </button>
+          </Button>
         </>
       )}
     >
@@ -86,16 +87,16 @@ export function RatePlanDialog({ open, plan, roomTypes, channelIds, onClose, onS
               <input value={draft.code} onChange={(event) => setDraft({ ...draft, code: event.target.value.toUpperCase() })} className={inputClass('text-label uppercase')} placeholder="WKND10" maxLength={12} />
             </label>
             <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">Rate adjustment
-              <span className="relative"><input type="number" value={draft.adjustmentPct} onChange={(event) => setDraft({ ...draft, adjustmentPct: Number(event.target.value) })} className={`${inputClass('pr-9')} text-label`} /><span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted">%</span></span>
+              <span className="relative"><TextField type="number" value={draft.adjustmentPct} onChange={(event) => setDraft({ ...draft, adjustmentPct: Number(event.target.value) })} className={`${inputClass('')}`} /><span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted">%</span></span>
             </label>
           </div>
           <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">Description
-            <textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} className={`${inputClass('min-h-[88px] resize-y')} text-label`} placeholder="Describe this offer" />
+            <TextArea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} className={`${inputClass(' resize-y')}`} placeholder="Describe this offer" />
           </label>
           <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">Status
-            <select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value as RatePlan['status'] })} className={`${inputClass()} text-label`}>
+            <SelectField value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value as RatePlan['status'] })} className={`${inputClass()}`}>
               <option>Active</option><option>Inactive</option><option>Scheduled</option>
-            </select>
+            </SelectField>
           </label>
         </div>
 
@@ -105,7 +106,7 @@ export function RatePlanDialog({ open, plan, roomTypes, channelIds, onClose, onS
             <div className="grid grid-cols-2 gap-2 rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}>
               {['All room types', ...roomTypes].map((roomType) => (
                 <label key={roomType} className="flex items-center gap-2 text-label text-ink">
-                  <input type="checkbox" checked={selectedRoomTypes.includes(roomType)} onChange={() => toggleSelection(selectedRoomTypes, roomType, (next) => setSelectedRoomTypes(roomType === 'All room types' && !selectedRoomTypes.includes(roomType) ? ['All room types'] : next.filter((item) => item !== 'All room types')))} className="h-4 w-4 accent-primary" />
+                  <Checkbox type="checkbox" checked={selectedRoomTypes.includes(roomType)} onChange={() => toggleSelection(selectedRoomTypes, roomType, (next) => setSelectedRoomTypes(roomType === 'All room types' && !selectedRoomTypes.includes(roomType) ? ['All room types'] : next.filter((item) => item !== 'All room types')))} />
                   {roomType}
                 </label>
               ))}
@@ -116,7 +117,7 @@ export function RatePlanDialog({ open, plan, roomTypes, channelIds, onClose, onS
             <div className="grid grid-cols-2 gap-2 rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}>
               {channelIds.map((channelId) => (
                 <label key={channelId} className="flex items-center gap-2 text-label capitalize text-ink">
-                  <input type="checkbox" checked={selectedChannels.includes(channelId)} onChange={() => toggleSelection(selectedChannels, channelId, setSelectedChannels)} className="h-4 w-4 accent-primary" />
+                  <Checkbox type="checkbox" checked={selectedChannels.includes(channelId)} onChange={() => toggleSelection(selectedChannels, channelId, setSelectedChannels)} />
                   {{ booking: 'Booking.com', expedia: 'Expedia', airbnb: 'Airbnb', agoda: 'Agoda', makemytrip: 'MakeMyTrip', goibibo: 'Goibibo' }[channelId] ?? channelId}
                 </label>
               ))}
@@ -124,14 +125,14 @@ export function RatePlanDialog({ open, plan, roomTypes, channelIds, onClose, onS
           </fieldset>
           <div className="grid grid-cols-2 gap-3">
             <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">Meal plan
-              <select value={draft.mealPlan} onChange={(event) => setDraft({ ...draft, mealPlan: event.target.value })} className={`${inputClass()} text-label`}>
+              <SelectField value={draft.mealPlan} onChange={(event) => setDraft({ ...draft, mealPlan: event.target.value })} className={`${inputClass()}`}>
                 <option>Room only</option><option>Breakfast included</option><option>Half board</option><option>Full board</option>
-              </select>
+              </SelectField>
             </label>
             <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">Cancellation
-              <select value={draft.cancellationPolicy} onChange={(event) => setDraft({ ...draft, cancellationPolicy: event.target.value })} className={`${inputClass()} text-label`}>
+              <SelectField value={draft.cancellationPolicy} onChange={(event) => setDraft({ ...draft, cancellationPolicy: event.target.value })} className={`${inputClass()}`}>
                 <option>Free cancellation up to 24 hours</option><option>Free cancellation up to 48 hours</option><option>Non-refundable</option><option>Free cancellation up to 72 hours</option>
-              </select>
+              </SelectField>
             </label>
           </div>
         </div>

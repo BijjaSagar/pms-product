@@ -1,3 +1,4 @@
+import { Button, Checkbox, IconButton, TextField } from '../../../components/primitives';
 import * as Lucide from 'lucide-react';
 import type { CalendarDate, EditableRateRow, RatePlan } from './types';
 
@@ -27,15 +28,15 @@ interface Props {
 
 function CopyRowButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button
+    <IconButton variant="ghost"
       type="button"
       aria-label={`Copy first ${label.toLowerCase()} value to every date`}
       title={`Copy ${label} across all dates`}
       onClick={onClick}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-hover-surface hover:text-primary"
+      className="inline-flex items-center justify-center transition-colors"
     >
       <Lucide.Copy size={14} aria-hidden="true" />
-    </button>
+    </IconButton>
   );
 }
 
@@ -49,12 +50,11 @@ function ToggleCell({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <input
+    <Checkbox
       type="checkbox"
       checked={checked}
       aria-label={label}
       onChange={(event) => onChange(event.target.checked)}
-      className="h-4 w-4 cursor-pointer rounded border-border accent-primary focus-visible:outline-focus"
     />
   );
 }
@@ -110,15 +110,15 @@ export function RateCalendarPanel({
 
         <div className="flex items-center justify-between gap-2 sm:justify-end">
           <div className="flex items-center gap-1 rounded-control border p-1" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
-            <button type="button" onClick={onPrevious} aria-label="Previous 15 dates" className="flex h-8 w-8 items-center justify-center rounded-control text-ink-secondary hover:bg-surface hover:text-ink">
+            <IconButton variant="ghost" type="button" onClick={onPrevious} aria-label="Previous 15 dates" className="flex items-center justify-center">
               <Lucide.ChevronLeft size={16} />
-            </button>
+            </IconButton>
             <span className="min-w-[150px] text-center text-label font-semibold text-ink" aria-live="polite">{startLabel}</span>
-            <button type="button" onClick={onNext} aria-label="Next 15 dates" className="flex h-8 w-8 items-center justify-center rounded-control text-ink-secondary hover:bg-surface hover:text-ink">
+            <IconButton variant="ghost" type="button" onClick={onNext} aria-label="Next 15 dates" className="flex items-center justify-center">
               <Lucide.ChevronRight size={16} />
-            </button>
+            </IconButton>
           </div>
-          <button type="button" onClick={onToday} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-label">Today</button>
+          <Button variant="secondary" type="button" onClick={onToday} >Today</Button>
         </div>
       </div>
 
@@ -158,7 +158,7 @@ export function RateCalendarPanel({
                   <label className="sr-only" htmlFor={`rate-${dates[index].iso}`}>Nightly rate for {dates[index].weekday}, {dates[index].month} {dates[index].day}</label>
                   <div className="relative">
                     <span className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 text-micro text-ink-muted">₹</span>
-                    <input id={`rate-${dates[index].iso}`} type="number" min={0} step={100} value={rate} onChange={(event) => onRateChange(index, Number(event.target.value))} className="pms-input min-h-[34px] w-full px-1 py-1 pl-4 text-center text-micro font-semibold tnum" />
+                    <TextField id={`rate-${dates[index].iso}`} type="number" min={0} step={100} value={rate} onChange={(event) => onRateChange(index, Number(event.target.value))} className="w-full text-center pl-4" />
                   </div>
                 </td>
               ))}
@@ -169,7 +169,7 @@ export function RateCalendarPanel({
               {minStays.map((value, index) => (
                 <td key={dates[index].iso} className={`border-r p-1 text-center ${dates[index].isWeekend ? 'bg-danger-bg/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
                   <label className="sr-only" htmlFor={`min-stay-${dates[index].iso}`}>Minimum stay for {dates[index].month} {dates[index].day}</label>
-                  <input id={`min-stay-${dates[index].iso}`} type="number" min={1} max={30} value={value} onChange={(event) => onMinStayChange(index, Number(event.target.value))} className="pms-input min-h-[34px] w-full px-1 py-1 text-center text-label tnum" />
+                  <TextField id={`min-stay-${dates[index].iso}`} type="number" min={1} max={30} value={value} onChange={(event) => onMinStayChange(index, Number(event.target.value))} className="w-full text-center" />
                 </td>
               ))}
               <td className="px-1 text-center"><CopyRowButton label="Minimum stay" onClick={() => onCopyRow('minStay')} /></td>
@@ -179,7 +179,7 @@ export function RateCalendarPanel({
               {maxStays.map((value, index) => (
                 <td key={dates[index].iso} className={`border-r p-1 text-center ${dates[index].isWeekend ? 'bg-danger-bg/30' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
                   <label className="sr-only" htmlFor={`max-stay-${dates[index].iso}`}>Maximum stay for {dates[index].month} {dates[index].day}</label>
-                  <input id={`max-stay-${dates[index].iso}`} type="number" min={1} max={90} value={value} onChange={(event) => onMaxStayChange(index, Number(event.target.value))} className="pms-input min-h-[34px] w-full px-1 py-1 text-center text-label tnum" />
+                  <TextField id={`max-stay-${dates[index].iso}`} type="number" min={1} max={90} value={value} onChange={(event) => onMaxStayChange(index, Number(event.target.value))} className="w-full text-center" />
                 </td>
               ))}
               <td className="px-1 text-center"><CopyRowButton label="Maximum stay" onClick={() => onCopyRow('maxStay')} /></td>
@@ -235,10 +235,10 @@ export function RateCalendarPanel({
             </div>
             <div className="grid grid-cols-3 gap-2">
               <label className="col-span-3 flex flex-col gap-1 text-micro font-semibold text-ink-muted">Nightly rate
-                <span className="relative"><span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-micro">₹</span><input type="number" min={0} step={100} value={rates[index]} onChange={(event) => onRateChange(index, Number(event.target.value))} aria-label={`Nightly rate for ${date.month} ${date.day}`} className="pms-input min-h-[36px] w-full pl-6 pr-2 text-label font-semibold tnum" /></span>
+                <span className="relative"><span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-micro">₹</span><TextField type="number" min={0} step={100} value={rates[index]} onChange={(event) => onRateChange(index, Number(event.target.value))} aria-label={`Nightly rate for ${date.month} ${date.day}`} className="w-full pl-6 pr-2" /></span>
               </label>
-              <label className="flex flex-col gap-1 text-micro font-semibold text-ink-muted">Min stay<input type="number" min={1} max={30} value={minStays[index]} onChange={(event) => onMinStayChange(index, Number(event.target.value))} aria-label={`Minimum stay for ${date.month} ${date.day}`} className="pms-input min-h-[34px] w-full px-2 text-label tnum" /></label>
-              <label className="flex flex-col gap-1 text-micro font-semibold text-ink-muted">Max stay<input type="number" min={1} max={90} value={maxStays[index]} onChange={(event) => onMaxStayChange(index, Number(event.target.value))} aria-label={`Maximum stay for ${date.month} ${date.day}`} className="pms-input min-h-[34px] w-full px-2 text-label tnum" /></label>
+              <label className="flex flex-col gap-1 text-micro font-semibold text-ink-muted">Min stay<TextField type="number" min={1} max={30} value={minStays[index]} onChange={(event) => onMinStayChange(index, Number(event.target.value))} aria-label={`Minimum stay for ${date.month} ${date.day}`} className="w-full" /></label>
+              <label className="flex flex-col gap-1 text-micro font-semibold text-ink-muted">Max stay<TextField type="number" min={1} max={90} value={maxStays[index]} onChange={(event) => onMaxStayChange(index, Number(event.target.value))} aria-label={`Maximum stay for ${date.month} ${date.day}`} className="w-full" /></label>
               <label className="flex flex-col gap-1 text-micro font-semibold text-ink-muted">Availability<span className="flex min-h-[34px] items-center px-2 text-label font-bold text-ink tnum">{availability[index]} rooms</span></label>
             </div>
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 border-t pt-3" style={{ borderColor: 'var(--color-divider)' }}>

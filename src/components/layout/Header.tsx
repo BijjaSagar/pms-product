@@ -12,6 +12,7 @@ import { folioApi, frontDeskApi, reportsApi } from '../../lib/api/pms';
 import { NAV_ICONS } from './navIcons';
 import { TONE_VARS } from '../../theme/tone';
 import type { Tone } from '../../theme/tone';
+import { Button, IconButton, ListItem, TextField } from '../primitives';
 
 function buildNoticeTone(
   icon: Lucide.LucideIcon,
@@ -421,11 +422,11 @@ export function Header({
         <div className="flex h-16 w-full items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           {/* ================= LEFT GROUP: Mobile menu toggle ================= */}
           <div className="flex items-center gap-2 lg:hidden">
-            <button
+            <IconButton variant="ghost"
               type="button"
               onClick={onMenu}
               aria-label="Open mobile menu"
-              className="flex h-10 w-10 items-center justify-center rounded-xl border transition-colors cursor-pointer"
+              className="flex items-center justify-center border transition-colors cursor-pointer"
               style={{
                 borderColor: 'var(--color-border)',
                 background: 'var(--color-surface)',
@@ -433,7 +434,7 @@ export function Header({
               }}
             >
               <Lucide.Menu size={20} />
-            </button>
+            </IconButton>
           </div>
 
           {/* Keep the KPI deck in the header on the dashboard only. */}
@@ -446,10 +447,10 @@ export function Header({
             }}
           >
             {/* 1. Occupancy */}
-            <button
+            <ListItem
               type="button"
               onClick={() => onGo({ view: 'occupancy-report' })}
-              className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title={`Occupancy: ${kpi.occupancyPct}% (${kpi.occupiedRooms} of ${kpi.totalRooms} rooms)`}
             >
               <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/25 group-hover:scale-105 transition-transform">
@@ -461,15 +462,15 @@ export function Header({
                   <span className="text-body font-bold tnum text-ink">{kpi.occupancyPct}%</span>
                 </div>
               </div>
-            </button>
+            </ListItem>
 
             <div className="h-5 w-px my-auto mx-0.5 flex-none" style={{ background: 'var(--color-border)' }} />
 
             {/* 2. Today's Arrivals */}
-            <button
+            <ListItem
               type="button"
               onClick={() => onGo({ view: 'reservations' })}
-              className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title={`Today's Arrivals: ${kpi.arrivalsCount}`}
             >
               <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-success-text to-success-border text-success-foreground shadow-xs shadow-success-text/25 group-hover:scale-105 transition-transform">
@@ -481,15 +482,15 @@ export function Header({
                   <span className="text-body font-bold tnum text-ink">{kpi.arrivalsCount}</span>
                 </div>
               </div>
-            </button>
+            </ListItem>
 
             <div className="h-5 w-px my-auto mx-0.5 flex-none" style={{ background: 'var(--color-border)' }} />
 
             {/* 3. Today's Departures */}
-            <button
+            <ListItem
               type="button"
               onClick={() => onGo({ view: 'folios' })}
-              className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title={`Today's Departures: ${kpi.departuresCount}`}
             >
               <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-warning-text to-warning-border text-warning-foreground shadow-xs shadow-warning-text/25 group-hover:scale-105 transition-transform">
@@ -501,15 +502,15 @@ export function Header({
                   <span className="text-body font-bold tnum text-ink">{kpi.departuresCount}</span>
                 </div>
               </div>
-            </button>
+            </ListItem>
 
             <div className="h-5 w-px my-auto mx-0.5 flex-none" style={{ background: 'var(--color-border)' }} />
 
             {/* 4. In-house Guests */}
-            <button
+            <ListItem
               type="button"
               onClick={() => onGo({ view: 'reservations' })}
-              className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="In-house Guests: 8 (28 rooms • 4 extra guests)"
             >
               <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-primary to-primary-hover text-primary-foreground shadow-xs shadow-primary/25 group-hover:scale-105 transition-transform">
@@ -524,15 +525,15 @@ export function Header({
                   </span>
                 </div>
               </div>
-            </button>
+            </ListItem>
 
             <div className="h-5 w-px my-auto mx-0.5 flex-none" style={{ background: 'var(--color-border)' }} />
 
             {/* 5. Total Revenue */}
-            <button
+            <ListItem
               type="button"
               onClick={() => onGo({ view: 'revenue-report' })}
-              className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Total Revenue (Today)"
             >
               <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-success-text to-success-border text-success-foreground shadow-xs shadow-success-text/25 group-hover:scale-105 transition-transform">
@@ -547,15 +548,15 @@ export function Header({
                   </span>
                 </div>
               </div>
-            </button>
+            </ListItem>
 
             <div className="h-5 w-px my-auto mx-0.5 flex-none" style={{ background: 'var(--color-border)' }} />
 
             {/* 6. Pending Payments */}
-            <button
+            <ListItem
               type="button"
               onClick={() => onGo({ view: 'payments' })}
-              className="group flex items-center gap-2 px-2.5 py-1 xl:px-3 rounded-xl transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
+              className="group flex items-center gap-2 transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer text-left flex-none"
               title="Pending Payments: 3 (₹28,160 outstanding)"
             >
               <div className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-tr from-danger-text to-danger-border text-danger-foreground shadow-xs shadow-danger-text/25 group-hover:scale-105 transition-transform">
@@ -570,22 +571,22 @@ export function Header({
                   </span>
                 </div>
               </div>
-            </button>
+            </ListItem>
           </div>}
 
           {currentView !== 'dashboard' && (
             <div className="relative flex-none">
-              <button
+              <Button variant="secondary"
                 type="button"
                 onClick={() => setKpiDrawerOpen((open) => !open)}
                 aria-label={kpiDrawerOpen ? 'Close dashboard KPIs' : 'Show dashboard KPIs'}
                 aria-expanded={kpiDrawerOpen}
-                className="flex h-10 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-label font-semibold text-ink shadow-xs transition-colors hover:bg-page"
+                className="flex items-center gap-1.5 border border-border bg-surface text-ink shadow-xs transition-colors hover:bg-page"
                 title="Dashboard KPIs"
               >
                 <span className="hidden sm:inline">KPIs</span>
                 <Lucide.ChevronDown size={15} className={`transition-transform ${kpiDrawerOpen ? 'rotate-180' : ''}`} />
-              </button>
+              </Button>
             </div>
           )}
 
@@ -593,24 +594,24 @@ export function Header({
           <div className="flex items-center gap-2 sm:gap-2.5 ml-auto flex-none">
             {/* + New Booking Button */}
             {can('reservation.create') ? (
-              <button
+              <Button variant="primary"
                 type="button"
                 onClick={() => onGo({ view: 'new-reservation' })}
-                className="pms-btn-primary flex items-center gap-1.5 px-3.5 py-2 text-body font-semibold rounded-xl shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer flex-none"
+                className="flex items-center gap-1.5 shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer flex-none"
                 title="Create a new reservation"
               >
                 <Lucide.Plus size={15} strokeWidth={2.6} />
-              </button>
+              </Button>
             ) : null}
 
             {/* ================= LUXURY NOTIFICATIONS POPOVER ================= */}
             <div className="relative flex-none" ref={panel === 'notices' ? dismissRef : undefined}>
-              <button
+              <IconButton variant="ghost"
                 type="button"
                 onClick={() => setPanel(panel === 'notices' ? 'none' : 'notices')}
                 aria-label={`Notifications, ${unreadCount} unread`}
                 aria-expanded={panel === 'notices'}
-                className="group relative flex h-10 w-10 items-center justify-center rounded-xl border transition-all hover:bg-ink/[0.03] cursor-pointer flex-none"
+                className="group relative flex items-center justify-center border transition-all hover:bg-ink/[0.03] cursor-pointer flex-none"
                 style={{
                   borderColor: panel === 'notices' ? 'var(--color-primary)' : 'var(--color-border)',
                   background: panel === 'notices' ? 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))' : 'var(--color-surface)',
@@ -627,7 +628,7 @@ export function Header({
                     {unreadCount}
                   </span>
                 ) : null}
-              </button>
+              </IconButton>
 
               {panel === 'notices' ? (
                 <div
@@ -669,10 +670,10 @@ export function Header({
 
                       <div className="flex items-center gap-2">
                         {unreadCount > 0 ? (
-                          <button
+                          <Button variant="secondary"
                             type="button"
                             onClick={markAllAsRead}
-                            className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-label font-bold transition-all hover:bg-ink/[0.04]"
+                            className="flex items-center gap-1.5 border transition-all hover:bg-ink/[0.04]"
                             style={{
                               borderColor: 'var(--color-border)',
                               color: 'var(--color-primary)',
@@ -681,20 +682,20 @@ export function Header({
                           >
                             <Lucide.CheckCheck size={14} />
                             <span>Mark all read</span>
-                          </button>
+                          </Button>
                         ) : null}
 
                         {readNotices.length > 0 ? (
-                          <button
+                          <Button variant="secondary"
                             type="button"
                             onClick={clearAllRead}
-                            className="flex items-center gap-1 rounded-lg border px-2 py-1 text-label font-semibold text-ink-muted hover:text-danger-text transition-colors"
+                            className="flex items-center gap-1 border text-ink-muted hover:text-danger-text transition-colors"
                             style={{ borderColor: 'var(--color-border)' }}
                             title="Clear read notifications"
                           >
                             <Lucide.Trash2 size={13} />
                             <span>Clear</span>
-                          </button>
+                          </Button>
                         ) : null}
                       </div>
                     </div>
@@ -707,39 +708,30 @@ export function Header({
                         borderColor: 'var(--color-border)',
                       }}
                     >
-                      <button
+                      <Button variant="secondary"
                         type="button"
                         onClick={() => setNoticeTab('all')}
-                        className={`flex-1 rounded-lg py-1.5 text-center text-label font-bold transition-all ${noticeTab === 'all'
-                          ? 'bg-surface shadow-xs text-ink'
-                          : 'text-ink-secondary hover:text-ink'
-                          }`}
+                        className={`flex-1 text-center transition-all ${noticeTab === 'all' ? 'bg-surface shadow-xs text-ink' : 'text-ink-secondary hover:text-ink' }`}
                         style={noticeTab === 'all' ? { background: 'var(--color-surface)' } : undefined}
                       >
                         All ({visibleNotices.length})
-                      </button>
-                      <button
+                      </Button>
+                      <Button variant="secondary"
                         type="button"
                         onClick={() => setNoticeTab('unread')}
-                        className={`flex-1 rounded-lg py-1.5 text-center text-label font-bold transition-all ${noticeTab === 'unread'
-                          ? 'bg-surface shadow-xs text-ink'
-                          : 'text-ink-secondary hover:text-ink'
-                          }`}
+                        className={`flex-1 text-center transition-all ${noticeTab === 'unread' ? 'bg-surface shadow-xs text-ink' : 'text-ink-secondary hover:text-ink' }`}
                         style={noticeTab === 'unread' ? { background: 'var(--color-surface)' } : undefined}
                       >
                         Unread ({unreadCount})
-                      </button>
-                      <button
+                      </Button>
+                      <Button variant="secondary"
                         type="button"
                         onClick={() => setNoticeTab('urgent')}
-                        className={`flex-1 rounded-lg py-1.5 text-center text-label font-bold transition-all ${noticeTab === 'urgent'
-                          ? 'bg-surface shadow-xs text-ink'
-                          : 'text-ink-secondary hover:text-ink'
-                          }`}
+                        className={`flex-1 text-center transition-all ${noticeTab === 'urgent' ? 'bg-surface shadow-xs text-ink' : 'text-ink-secondary hover:text-ink' }`}
                         style={noticeTab === 'urgent' ? { background: 'var(--color-surface)' } : undefined}
                       >
                         Urgent ({urgentCount})
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -813,13 +805,13 @@ export function Header({
 
                                   <span className="text-label text-ink-muted">·</span>
 
-                                  <button
+                                  <Button variant="text"
                                     type="button"
                                     onClick={(e) => toggleSingleRead(n.id, e)}
-                                    className="text-label font-semibold text-ink-muted hover:text-ink transition-colors"
+                                    className="text-ink-muted hover:text-ink transition-colors"
                                   >
                                     {isRead ? 'Mark as unread' : 'Mark as read'}
-                                  </button>
+                                  </Button>
                                 </div>
 
                                 <div className="flex items-center gap-2">
@@ -828,14 +820,14 @@ export function Header({
                                     <Lucide.ArrowRight size={13} strokeWidth={2.4} />
                                   </span>
 
-                                  <button
+                                  <IconButton variant="plain"
                                     type="button"
                                     onClick={(e) => dismissSingleNotice(n.id, e)}
-                                    className="opacity-0 group-hover:opacity-100 p-1 text-ink-muted hover:text-danger-text transition-opacity"
+                                    className="opacity-0 group-hover:opacity-100 text-ink-muted hover:text-danger-text transition-opacity"
                                     title="Dismiss alert"
                                   >
                                     <Lucide.X size={13} />
-                                  </button>
+                                  </IconButton>
                                 </div>
                               </div>
                             </div>
@@ -872,17 +864,17 @@ export function Header({
                     }}
                   >
                     <span className="text-label text-ink-muted">TriponX Notification Hub · Operational Alerts</span>
-                    <button
+                    <Button variant="link"
                       type="button"
                       onClick={() => {
                         onGo({ view: 'settings' });
                         closePanels();
                       }}
-                      className="text-label font-bold text-primary hover:underline flex items-center gap-1"
+                      className="text-primary hover:underline flex items-center gap-1"
                     >
                       <Lucide.SlidersHorizontal size={13} />
                       <span>Preferences</span>
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : null}
@@ -946,49 +938,49 @@ export function Header({
                   </div>
 
                   <div className="p-1.5">
-                    <button
+                    <ListItem
                       type="button"
                       role="menuitem"
                       onClick={() => {
                         onGo({ view: 'settings' });
                         closePanels();
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-body font-medium transition-colors hover:bg-ink/[0.03]"
+                      className="flex w-full items-center gap-2.5 text-left text-body font-medium transition-colors hover:bg-ink/[0.03]"
                       style={{ color: 'var(--color-ink)' }}
                     >
                       <Lucide.Settings size={16} className="text-ink-muted" />
                       <span>My profile & settings</span>
-                    </button>
+                    </ListItem>
 
                     {can('user.read') ? (
-                      <button
+                      <ListItem
                         type="button"
                         role="menuitem"
                         onClick={() => {
                           onGo({ view: 'staff-roles' });
                           closePanels();
                         }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-body font-medium transition-colors hover:bg-ink/[0.03]"
+                        className="flex w-full items-center gap-2.5 text-left text-body font-medium transition-colors hover:bg-ink/[0.03]"
                         style={{ color: 'var(--color-ink)' }}
                       >
                         <Lucide.ShieldCheck size={16} className="text-ink-muted" />
                         <span>Staff directory & roles</span>
-                      </button>
+                      </ListItem>
                     ) : null}
 
-                    <button
+                    <ListItem
                       type="button"
                       role="menuitem"
                       onClick={() => {
                         onOpenThemes();
                         closePanels();
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-body font-medium transition-colors hover:bg-ink/[0.03] cursor-pointer"
+                      className="flex w-full items-center gap-2.5 text-left text-body font-medium transition-colors hover:bg-ink/[0.03] cursor-pointer"
                       style={{ color: 'var(--color-ink)' }}
                     >
                       <Lucide.Palette size={16} className="text-primary" />
                       <span>Appearance & themes</span>
-                    </button>
+                    </ListItem>
                   </div>
 
                   {otherMemberships.length > 0 ? (
@@ -997,7 +989,7 @@ export function Header({
                         Switch Property
                       </p>
                       {otherMemberships.map((membership) => (
-                        <button
+                        <ListItem
                           key={membership.propertyId}
                           type="button"
                           role="menuitem"
@@ -1007,18 +999,18 @@ export function Header({
                               toast('Property switch failed', { detail: displayApiError(error), tone: 'danger' })
                             );
                           }}
-                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-body font-medium transition-colors hover:bg-ink/[0.03]"
+                          className="flex w-full items-center gap-2.5 text-left text-body font-medium transition-colors hover:bg-ink/[0.03]"
                           style={{ color: 'var(--color-ink)' }}
                         >
                           <Lucide.Building2 size={16} className="text-ink-muted" />
                           <span className="truncate">Switch to {membership.property.name}</span>
-                        </button>
+                        </ListItem>
                       ))}
                     </div>
                   ) : null}
 
                   <div className="border-t p-1.5" style={{ borderColor: 'var(--color-border)' }}>
-                    <button
+                    <ListItem
                       type="button"
                       role="menuitem"
                       onClick={() => {
@@ -1027,11 +1019,11 @@ export function Header({
                           toast('Sign out failed', { detail: displayApiError(error), tone: 'danger' })
                         );
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-body font-bold transition-colors hover:bg-danger-bg text-danger-text"
+                      className="flex w-full items-center gap-2.5 text-left text-body font-bold transition-colors hover:bg-danger-bg text-danger-text"
                     >
                       <Lucide.LogOut size={16} />
                       <span>Sign out</span>
-                    </button>
+                    </ListItem>
                   </div>
                 </div>
               ) : null}
@@ -1052,14 +1044,14 @@ export function Header({
                 {kpiDrawerItems.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <button
+                    <ListItem
                       type="button"
                       key={item.label}
                       onClick={() => {
                         setKpiDrawerOpen(false);
                         onGo(item.target);
                       }}
-                      className="group flex min-w-0 items-center gap-2 rounded-xl px-2.5 py-1 text-left transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer xl:px-3"
+                      className="group flex min-w-0 items-center gap-2 text-left transition-all duration-150 hover:bg-surface hover:shadow-xs active:scale-[0.98] cursor-pointer"
                       title={`${item.label}: ${item.value}`}
                     >
                       <span className={`flex h-7 w-7 flex-none items-center justify-center rounded-lg transition-transform group-hover:scale-105 ${item.iconStyle}`}>
@@ -1074,7 +1066,7 @@ export function Header({
                           </span>
                         </div>
                       </div>
-                    </button>
+                    </ListItem>
                   );
                 })}
               </div>
@@ -1114,7 +1106,7 @@ export function Header({
                 >
                   <Lucide.Search size={20} strokeWidth={2.4} />
                 </div>
-                <input
+                <TextField
                   ref={searchInputRef}
                   type="text"
                   value={searchQuery}
@@ -1123,20 +1115,20 @@ export function Header({
                     setSelectedIndex(0);
                   }}
                   placeholder="Type anything to search (e.g., 'reservations', 'check in', 'cleaning', 'rooms', 'bills')..."
-                  className="w-full bg-transparent text-title font-semibold text-ink placeholder:text-ink-muted focus:outline-none"
+                  className="border-0 bg-transparent shadow-none px-0 py-0 min-h-0 w-full text-title font-semibold text-ink placeholder:text-ink-muted focus:outline-none"
                 />
                 {searchQuery ? (
-                  <button
+                  <IconButton variant="plain"
                     type="button"
                     onClick={() => {
                       setSearchQuery('');
                       setSelectedIndex(0);
                     }}
-                    className="rounded-lg p-1 text-ink-muted hover:text-ink hover:bg-ink/[0.05]"
+                    className="text-ink-muted hover:text-ink hover:bg-ink/[0.05]"
                     title="Clear input"
                   >
                     <Lucide.X size={17} />
-                  </button>
+                  </IconButton>
                 ) : null}
                 <kbd
                   onClick={() => setSearchOpen(false)}
@@ -1169,17 +1161,14 @@ export function Header({
                             const section = NAV_SECTIONS.find((s) => s.items.some((i) => i.id === item.id));
 
                             return (
-                              <button
+                              <ListItem
                                 key={item.id}
                                 type="button"
                                 onClick={() => {
                                   setSearchOpen(false);
                                   onGo({ view: item.id });
                                 }}
-                                className={`group flex items-center justify-between rounded-xl px-3.5 py-2.5 text-left transition-all ${isSelected
-                                  ? 'bg-primary text-white shadow-md'
-                                  : 'hover:bg-primary/[0.07] text-ink'
-                                  }`}
+                                className={`group flex items-center justify-between text-left transition-all ${isSelected ? 'bg-primary text-white shadow-md' : 'hover:bg-primary/[0.07] text-ink' }`}
                                 style={
                                   !isSelected
                                     ? {
@@ -1232,7 +1221,7 @@ export function Header({
                                   </span>
                                   <Lucide.ArrowRight size={14} strokeWidth={2.4} />
                                 </div>
-                              </button>
+                              </ListItem>
                             );
                           })}
                         </div>
@@ -1273,17 +1262,14 @@ export function Header({
                         ].map((act) => {
                           const isSelected = selectedIndex === act.idx;
                           return (
-                            <button
+                            <ListItem
                               key={act.idx}
                               type="button"
                               onClick={() => {
                                 setSearchOpen(false);
                                 act.action();
                               }}
-                              className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-left transition-all ${isSelected
-                                ? 'bg-primary text-white shadow-md'
-                                : 'hover:bg-ink/[0.04] text-ink'
-                                }`}
+                              className={`flex items-center justify-between text-left transition-all ${isSelected ? 'bg-primary text-white shadow-md' : 'hover:bg-ink/[0.04] text-ink' }`}
                               style={
                                 !isSelected
                                   ? {
@@ -1312,7 +1298,7 @@ export function Header({
                                 </div>
                               </div>
                               <Lucide.ArrowRight size={14} className={isSelected ? 'text-white' : 'text-ink-muted'} />
-                            </button>
+                            </ListItem>
                           );
                         })}
                       </div>
@@ -1332,19 +1318,19 @@ export function Header({
                           { id: 'new-reservation' as const, label: '+ New Booking', icon: Lucide.CalendarPlus },
                           { id: 'guests' as const, label: 'Guest Directory', icon: Lucide.BookUser },
                         ].map((item) => (
-                          <button
+                          <ListItem
                             key={item.id}
                             type="button"
                             onClick={() => {
                               setSearchOpen(false);
                               onGo({ view: item.id });
                             }}
-                            className="flex items-center gap-2.5 rounded-xl border p-2.5 text-left text-body font-bold transition-all hover:bg-primary/[0.05] hover:border-primary"
+                            className="flex items-center gap-2.5 border text-left text-body font-bold transition-all hover:bg-primary/[0.05] hover:border-primary"
                             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                           >
                             <item.icon size={17} className="text-primary flex-none" />
                             <span className="truncate">{item.label}</span>
-                          </button>
+                          </ListItem>
                         ))}
                       </div>
                     </div>
@@ -1361,19 +1347,19 @@ export function Header({
                           { id: 'folios' as const, label: 'Folios & Billing', icon: Lucide.ReceiptText },
                           { id: 'invoices' as const, label: 'Invoices', icon: Lucide.FileText },
                         ].map((item) => (
-                          <button
+                          <ListItem
                             key={item.id}
                             type="button"
                             onClick={() => {
                               setSearchOpen(false);
                               onGo({ view: item.id });
                             }}
-                            className="flex items-center gap-2.5 rounded-xl border p-2.5 text-left text-body font-bold transition-all hover:bg-primary/[0.05] hover:border-primary"
+                            className="flex items-center gap-2.5 border text-left text-body font-bold transition-all hover:bg-primary/[0.05] hover:border-primary"
                             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                           >
                             <item.icon size={17} className="text-primary flex-none" />
                             <span className="truncate">{item.label}</span>
-                          </button>
+                          </ListItem>
                         ))}
                       </div>
                     </div>

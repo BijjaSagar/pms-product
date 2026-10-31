@@ -16,6 +16,7 @@ import { displayApiError } from '../../lib/api/client';
 import { formatCurrency } from '../../lib/api/format';
 import { useAuth } from '../../features/auth/AuthContext';
 import { StatusTimeline } from './StatusTimeline';
+import { Button, SelectField, TextField } from '../../components/primitives';
 
 const STATUS_FILTERS: ('All' | RoomStatus)[] = ['All', 'Available', 'Occupied', 'Dirty', 'Inspected', 'Out-of-service'];
 
@@ -133,23 +134,23 @@ function RoomDetail({
       {/* Actions */}
       <div className="mt-2 flex flex-wrap gap-2.5 pt-2 border-t" style={{ borderColor: 'var(--color-border)' }}>
         {room.status === 'Out-of-service' ? (
-          <button
+          <Button variant="primary"
             type="button"
-            className="pms-btn-primary flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5"
+            className="flex-1 flex items-center justify-center gap-1.5"
             onClick={() => onStatus(room, 'Available')}
           >
             <Lucide.CheckCircle2 size={16} />
             <span>Return to service</span>
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button variant="secondary"
             type="button"
-            className="pms-btn-ghost flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 text-danger"
+            className="flex-1 flex items-center justify-center gap-1.5 text-danger"
             onClick={() => onStatus(room, 'Out-of-service')}
           >
             <Lucide.AlertOctagon size={16} />
             <span>Take out of service</span>
-          </button>
+          </Button>
         )}
       </div>
     </div>
@@ -260,30 +261,30 @@ export function Rooms({
             role="group"
             aria-label="Room board view"
           >
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => setViewMode('grid')}
               aria-pressed={viewMode === 'grid'}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-label font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'grid'
-                ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                : 'text-ink-secondary hover:text-ink'
-                }`}
+              className={`flex items-center gap-1.5 transition-all cursor-pointer ${viewMode === 'grid'
+ ? 'bg-[var(--color-primary)] text-white shadow-xs'
+ : 'text-ink-secondary hover:text-ink'
+ }`}
             >
               <Lucide.LayoutGrid size={14} />
               <span>Grid</span>
-            </button>
-            <button
+            </Button>
+            <Button variant="secondary"
               type="button"
               onClick={() => setViewMode('timeline')}
               aria-pressed={viewMode === 'timeline'}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-label font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'timeline'
-                ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                : 'text-ink-secondary hover:text-ink'
-                }`}
+              className={`flex items-center gap-1.5 transition-all cursor-pointer ${viewMode === 'timeline'
+ ? 'bg-[var(--color-primary)] text-white shadow-xs'
+ : 'text-ink-secondary hover:text-ink'
+ }`}
             >
               <Lucide.CalendarRange size={14} />
               <span>Timeline</span>
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -314,34 +315,34 @@ export function Rooms({
             <div className="grid grid-cols-1 gap-2.5 md:grid-cols-4">
               <div className="relative">
                 <Lucide.Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
-                <input
+                <TextField
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   placeholder="Room number or guest name…"
                   aria-label="Search rooms"
-                  className={`${inputClass()} pl-9 w-full text-label`}
+                  className={`${inputClass()} w-full`}
                 />
               </div>
-              <select
+              <SelectField
                 value={type}
                 onChange={(e) => setType(e.target.value)}
                 aria-label="Filter by room type"
-                className={`${inputClass()} text-label`}
+                className={`${inputClass()}`}
               >
                 {types.map((t) => (
                   <option key={t} value={t}>{t === 'All' ? 'All room types' : t}</option>
                 ))}
-              </select>
-              <select
+              </SelectField>
+              <SelectField
                 value={floor}
                 onChange={(e) => setFloor(e.target.value)}
                 aria-label="Filter by floor"
-                className={`${inputClass()} text-label`}
+                className={`${inputClass()}`}
               >
                 {floorOptions.map((f) => (
                   <option key={f} value={f}>{f === 'All' ? 'All floors' : f === '0' ? 'Ground / Unassigned' : `Floor ${f}`}</option>
                 ))}
-              </select>
+              </SelectField>
 
             </div>
 
@@ -351,13 +352,13 @@ export function Rooms({
                   {s}
                 </FilterChip>
               ))}
-              <button
+              <Button variant="link"
                 type="button"
                 onClick={clear}
-                className="ml-auto text-label font-semibold text-primary hover:underline"
+                className="ml-auto hover:underline"
               >
                 Reset filters
-              </button>
+              </Button>
             </div>
           </Card>
 
@@ -389,20 +390,20 @@ export function Rooms({
                   </p>
                 </div>
                 <div className="mt-4 flex gap-2 pt-2 border-t" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <button
+                  <Button variant="secondary"
                     type="button"
-                    className="pms-btn-ghost flex-1 py-1.5 text-label font-medium"
+                    className="flex-1"
                     onClick={() => setOpenNo(room.number)}
                   >
                     Details
-                  </button>
-                  <button
+                  </Button>
+                  <Button variant="primary"
                     type="button"
-                    className="pms-btn-primary flex-1 py-1.5 text-label font-semibold"
+                    className="flex-1"
                     onClick={() => setOpenNo(room.number)}
                   >
                     Manage
-                  </button>
+                  </Button>
                 </div>
               </article>
             ))}
@@ -413,13 +414,13 @@ export function Rooms({
               <div className="py-12 text-center">
                 <Lucide.DoorClosed size={40} className="mx-auto text-ink-muted mb-2 opacity-40" />
                 <p className="pms-helper">No rooms match these filters.</p>
-                <button
+                <Button variant="link"
                   type="button"
                   onClick={clear}
-                  className="mt-2 text-label font-semibold text-primary hover:underline"
+                  className="mt-2 hover:underline"
                 >
                   Clear all filters
-                </button>
+                </Button>
               </div>
             </Card>
           ) : null}

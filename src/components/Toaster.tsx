@@ -4,6 +4,7 @@ import { dismissToast, snapshotToasts, subscribeToasts } from '../utils/toast';
 import type { ToastItem } from '../utils/toast';
 import { TONE_VARS } from '../theme/tone';
 import type { Tone } from '../theme/tone';
+import { Button, IconButton } from './primitives';
 
 interface ToneConfig {
   icon: Lucide.LucideIcon;
@@ -158,13 +159,13 @@ function ToastCard({ toast: t, onDismiss }: ToastCardProps) {
           {/* Action button if specified */}
           {t.action ? (
             <div className="mt-2.5 flex items-center gap-2">
-              <button
+              <Button variant="secondary"
                 type="button"
                 onClick={() => {
                   void t.action?.onClick();
                   onDismiss(t.id);
                 }}
-                className="inline-flex items-center gap-1.5 text-label font-semibold px-2.5 py-1 rounded-lg border shadow-xs transition-all duration-150 active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-1.5 transition-all cursor-pointer"
                 style={{
                   background: 'var(--color-surface)',
                   borderColor: 'var(--color-border)',
@@ -173,17 +174,17 @@ function ToastCard({ toast: t, onDismiss }: ToastCardProps) {
               >
                 <span>{t.action.label}</span>
                 <Lucide.ArrowRight size={12} className="opacity-70" />
-              </button>
+              </Button>
             </div>
           ) : null}
         </div>
 
         {/* Dismiss Button */}
-        <button
+        <IconButton variant="ghost"
           type="button"
           onClick={() => onDismiss(t.id)}
           aria-label="Dismiss notification"
-          className="flex h-7 w-7 flex-none items-center justify-center rounded-lg transition-all duration-150 -mt-1 cursor-pointer"
+          className="flex flex-none items-center justify-center transition-all cursor-pointer"
           style={{ color: 'var(--color-ink-muted)' }}
           onMouseEnter={(e) => {
             e.currentTarget.style.color = 'var(--color-ink)';
@@ -195,7 +196,7 @@ function ToastCard({ toast: t, onDismiss }: ToastCardProps) {
           }}
         >
           <Lucide.X size={15} strokeWidth={2.2} />
-        </button>
+        </IconButton>
       </div>
 
       {/* Sleek countdown progress bar at bottom */}

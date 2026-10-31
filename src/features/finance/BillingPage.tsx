@@ -7,6 +7,7 @@ import { BUSINESS_DATE, GUESTS } from '../../data/catalog';
 import { addDays, nightsBetween } from '../../data/model';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { formatINR, formatNumber } from '../../utils';
+import { Button, Checkbox, IconButton, ListItem, SelectField, TextField } from '../../components/primitives';
 
 // Types
 export interface BillingTransaction {
@@ -765,31 +766,31 @@ export function Billing() {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => window.print()}
-              className="pms-btn-ghost px-3.5 py-2 text-body font-medium flex items-center gap-2"
+              className="flex items-center gap-2"
             >
               <Lucide.Printer size={15} />
               <span>Print Folio</span>
-            </button>
-            <button
+            </Button>
+            <Button variant="secondary"
               type="button"
               onClick={() => setEmailModalOpen(true)}
-              className="pms-btn-ghost px-3.5 py-2 text-body font-medium flex items-center gap-2"
+              className="flex items-center gap-2"
             >
               <Lucide.Mail size={15} />
               <span>Email</span>
-            </button>
-            <button
+            </Button>
+            <Button variant="primary"
               type="button"
               onClick={() => setPostChargeModalOpen(true)}
-              className="pms-btn-primary px-4 py-2 text-body font-semibold flex items-center gap-2"
+              className="flex items-center gap-2"
             >
               <Lucide.Plus size={16} />
               <span>Add Charge</span>
               <Lucide.ChevronDown size={14} className="opacity-70" />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -817,11 +818,11 @@ export function Billing() {
 
           <div className="flex items-center gap-3">
             <div className="relative min-w-[280px] sm:min-w-[360px]">
-              <select
+              <SelectField
                 id="top-guest-select"
                 value={selectedGuestId}
                 onChange={(e) => setSelectedGuestId(e.target.value)}
-                className="w-full pl-3.5 pr-10 py-2.5 rounded-xl border font-bold text-ink text-body shadow-xs cursor-pointer appearance-none transition-all"
+                className="w-full cursor-pointer transition-all pl-3.5 pr-10"
                 style={{
                   background: 'var(--color-page)',
                   borderColor: 'var(--color-border)',
@@ -832,7 +833,7 @@ export function Billing() {
                     {g.name} · Room {g.roomNumber} ({g.roomType}) — {g.reservationCode}
                   </option>
                 ))}
-              </select>
+              </SelectField>
               <Lucide.ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
             </div>
 
@@ -914,14 +915,14 @@ export function Billing() {
               </span>
             </div>
           </div>
-          <button
+          <Button variant="link"
             type="button"
             onClick={() => toast(`Opening details for ${currentGuest.reservationCode}`, { tone: 'info' })}
-            className="text-label font-semibold text-primary hover:underline flex items-center gap-1 w-fit mt-0.5"
+            className="hover:underline flex items-center gap-1 w-fit mt-0.5"
           >
             <span>View reservation</span>
             <Lucide.ArrowRight size={13} />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -940,13 +941,11 @@ export function Billing() {
           ).map((tab) => {
             const isActive = activeTab === tab;
             return (
-              <button
+              <Button variant="text"
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
-                className={`pb-3 text-body font-semibold whitespace-nowrap transition-colors relative ${
-                  isActive ? 'text-primary' : 'text-ink-secondary hover:text-ink'
-                }`}
+                className={`pb-3 text-body font-semibold whitespace-nowrap transition-colors relative ${ isActive ? 'text-primary' : 'text-ink-secondary hover:text-ink' }`}
               >
                 <span>{tab}</span>
                 {isActive ? (
@@ -955,7 +954,7 @@ export function Billing() {
                     style={{ background: 'var(--color-primary)' }}
                   />
                 ) : null}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -974,10 +973,10 @@ export function Billing() {
               <div className="flex items-center gap-2.5 flex-wrap flex-1 min-w-[280px]">
                 {/* Category Select */}
                 <div className="relative min-w-[130px]">
-                  <select
+                  <SelectField
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="w-full pl-3 pr-8 py-2 rounded-xl border text-label font-bold text-ink cursor-pointer appearance-none shadow-xs"
+                    className="w-full cursor-pointer pl-3 pr-8"
                     style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
                   >
                     <option value="All">All charges</option>
@@ -986,7 +985,7 @@ export function Billing() {
                     <option value="Food &amp; Beverage">Food &amp; Beverage</option>
                     <option value="Other charges">Other charges</option>
                     <option value="Payments &amp; Credits">Payments &amp; Credits</option>
-                  </select>
+                  </SelectField>
                   <Lucide.ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
                 </div>
 
@@ -994,11 +993,11 @@ export function Billing() {
                 <div className="flex items-center gap-1.5 text-label text-ink-muted font-medium">
                   <span>From</span>
                   <div className="relative">
-                    <input
+                    <TextField
                       type="text"
                       value={fromDate}
                       onChange={(e) => setFromDate(e.target.value)}
-                      className="pl-3 pr-7 py-1.5 rounded-xl border text-label font-semibold text-ink w-[110px]"
+                      className="w-[110px] pl-3 pr-7"
                       style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
                     />
                     <Lucide.Calendar size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
@@ -1009,11 +1008,11 @@ export function Billing() {
                 <div className="flex items-center gap-1.5 text-label text-ink-muted font-medium">
                   <span>To</span>
                   <div className="relative">
-                    <input
+                    <TextField
                       type="text"
                       value={toDate}
                       onChange={(e) => setToDate(e.target.value)}
-                      className="pl-3 pr-7 py-1.5 rounded-xl border text-label font-semibold text-ink w-[110px]"
+                      className="w-[110px] pl-3 pr-7"
                       style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
                     />
                     <Lucide.Calendar size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
@@ -1023,37 +1022,35 @@ export function Billing() {
                 {/* Search Input */}
                 <div className="relative flex-1 min-w-[180px]">
                   <Lucide.Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
-                  <input
+                  <TextField
                     type="text"
                     placeholder="Search description or reference..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-8 py-2 rounded-xl border text-label text-ink placeholder:text-ink-muted shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="w-full placeholder:text-ink-muted transition-colors focus:outline-none focus:ring-2 pl-9 pr-8"
                     style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
                   />
                   {searchQuery ? (
-                    <button
+                    <IconButton variant="plain"
                       type="button"
                       onClick={() => setSearchQuery('')}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink"
                     >
                       <Lucide.X size={12} />
-                    </button>
+                    </IconButton>
                   ) : null}
                 </div>
               </div>
 
               {/* More Filters button */}
-              <button
+              <Button variant="secondary"
                 type="button"
                 onClick={() => setMoreFiltersOpen(!moreFiltersOpen)}
-                className={`pms-btn-ghost px-3 py-1.5 text-label font-semibold flex items-center gap-1.5 ${
-                  moreFiltersOpen ? 'bg-primary/10 text-primary border-primary/30' : ''
-                }`}
+                className={`flex items-center gap-1.5 ${ moreFiltersOpen ? 'bg-primary/10 text-primary border-primary/30' : '' }`}
               >
                 <Lucide.SlidersHorizontal size={13} />
                 <span>More filters</span>
-              </button>
+              </Button>
             </div>
 
             {/* More filters drawer panel if toggled */}
@@ -1064,16 +1061,16 @@ export function Billing() {
               >
                 <span className="font-bold text-ink">Active filters:</span>
                 <span className="text-ink-secondary">Showing charges for stay period 13-10-2026 to 17-10-2026.</span>
-                <button
+                <Button variant="link"
                   type="button"
                   onClick={() => {
                     setCategoryFilter('All');
                     setSearchQuery('');
                   }}
-                  className="text-primary font-semibold hover:underline ml-auto"
+                  className="hover:underline ml-auto"
                 >
                   Reset all filters
-                </button>
+                </Button>
               </div>
             ) : null}
 
@@ -1090,14 +1087,13 @@ export function Billing() {
                       style={{ borderColor: 'var(--color-divider)' }}
                     >
                       <th className="py-2.5 px-3 w-10 text-center">
-                        <input
+                        <Checkbox
                           type="checkbox"
                           onChange={handleSelectAll}
                           checked={
                             selectedTxIds.length > 0 &&
                             selectedTxIds.length === filteredTransactions.length
                           }
-                          className="rounded border-border text-primary focus:ring-primary cursor-pointer"
                         />
                       </th>
                       <th className="py-2.5 px-3 font-bold">Date</th>
@@ -1120,11 +1116,10 @@ export function Billing() {
                           }`}
                         >
                           <td className="py-2.5 px-3 text-center">
-                            <input
+                            <Checkbox
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => handleToggleSelect(tx.id)}
-                              className="rounded border-border text-primary focus:ring-primary cursor-pointer"
                             />
                           </td>
 
@@ -1170,38 +1165,38 @@ export function Billing() {
                           {/* Actions */}
                           <td className="py-2.5 px-3 text-center whitespace-nowrap">
                             <div className="relative inline-block text-left group">
-                              <button
+                              <IconButton variant="ghost"
                                 type="button"
-                                className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-muted hover:text-ink hover:bg-ink/5 transition-colors"
+                                className="flex items-center justify-center transition-colors"
                               >
                                 <Lucide.MoreVertical size={16} />
-                              </button>
+                              </IconButton>
                               <div className="hidden group-hover:flex flex-col absolute right-0 top-full z-20 w-36 bg-surface rounded-xl border border-border shadow-lg py-1 text-label">
-                                <button
+                                <ListItem
                                   type="button"
                                   onClick={() => toast(`Item details: ${tx.title} (${tx.reference})`, { tone: 'info' })}
-                                  className="w-full text-left px-3 py-1.5 hover:bg-page font-medium text-ink flex items-center gap-2"
+                                  className="w-full text-left hover:bg-page font-medium text-ink flex items-center gap-2"
                                 >
                                   <Lucide.FileText size={13} />
                                   <span>View Details</span>
-                                </button>
-                                <button
+                                </ListItem>
+                                <ListItem
                                   type="button"
                                   onClick={() => window.print()}
-                                  className="w-full text-left px-3 py-1.5 hover:bg-page font-medium text-ink flex items-center gap-2"
+                                  className="w-full text-left hover:bg-page font-medium text-ink flex items-center gap-2"
                                 >
                                   <Lucide.Printer size={13} />
                                   <span>Receipt</span>
-                                </button>
+                                </ListItem>
                                 {tx.category !== 'payment' ? (
-                                  <button
+                                  <Button variant="secondary"
                                     type="button"
                                     onClick={() => setVoidModalOpen({ id: tx.id, title: tx.title })}
-                                    className="w-full text-left px-3 py-1.5 hover:bg-danger-bg text-danger-text font-medium flex items-center gap-2 border-t border-border/50"
+                                    className="w-full text-left flex items-center gap-2 hover:bg-danger-bg text-danger-text"
                                   >
                                     <Lucide.AlertCircle size={13} />
                                     <span>Void Charge</span>
-                                  </button>
+                                  </Button>
                                 ) : null}
                               </div>
                             </div>
@@ -1227,67 +1222,62 @@ export function Billing() {
                 style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}
               >
                 <div>
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={() => setPostChargeModalOpen(true)}
-                    className="pms-btn-ghost px-3.5 py-1.5 text-label font-semibold text-primary border-primary/30 hover:bg-primary/5 flex items-center gap-1.5"
+                    className="flex items-center gap-1.5"
                   >
                     <Lucide.Plus size={14} />
                     <span>Add manual charge</span>
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="flex items-center gap-4 flex-wrap">
                   <div className="flex items-center gap-1.5 text-ink-muted font-medium">
                     <span>Rows per page</span>
-                    <select
+                    <SelectField
                       value={rowsPerPage}
                       onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                      className="rounded-lg border px-2 py-1 text-label font-semibold text-ink"
                       style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
                     >
                       <option value={10}>10</option>
                       <option value={25}>25</option>
                       <option value={50}>50</option>
-                    </select>
+                    </SelectField>
                   </div>
 
                   <div className="flex items-center gap-1">
-                    <button
+                    <IconButton variant="ghost"
                       type="button"
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      className="w-7 h-7 rounded-lg border flex items-center justify-center text-ink-muted hover:text-ink disabled:opacity-40"
+                      className="flex items-center justify-center disabled:opacity-40"
                       style={{ borderColor: 'var(--color-border)' }}
                     >
                       <Lucide.ChevronLeft size={14} />
-                    </button>
+                    </IconButton>
                     {[1, 2, 3].map((page) => (
-                      <button
+                      <IconButton variant="ghost"
                         key={page}
                         type="button"
                         onClick={() => setCurrentPage(page)}
-                        className={`w-7 h-7 rounded-lg text-label font-bold transition-all ${
-                          currentPage === page
-                            ? 'bg-primary text-white shadow-xs'
-                            : 'border text-ink hover:bg-ink/5'
-                        }`}
+                        className={`transition-all ${ currentPage === page ? 'bg-primary text-white shadow-xs' : 'border text-ink hover:bg-ink/5' }`}
                         style={{
                           borderColor: currentPage === page ? 'transparent' : 'var(--color-border)',
                           background: currentPage === page ? 'var(--color-primary)' : 'transparent',
                         }}
                       >
                         {page}
-                      </button>
+                      </IconButton>
                     ))}
-                    <button
+                    <IconButton variant="ghost"
                       type="button"
                       onClick={() => setCurrentPage((p) => Math.min(3, p + 1))}
-                      className="w-7 h-7 rounded-lg border flex items-center justify-center text-ink-muted hover:text-ink"
+                      className="flex items-center justify-center"
                       style={{ borderColor: 'var(--color-border)' }}
                     >
                       <Lucide.ChevronRight size={14} />
-                    </button>
+                    </IconButton>
                   </div>
                 </div>
               </div>
@@ -1386,7 +1376,7 @@ export function Billing() {
 
                 {/* Taxes & Fees with accordion */}
                 <div>
-                  <button
+                  <ListItem
                     type="button"
                     onClick={() => setTaxesExpanded(!taxesExpanded)}
                     className="w-full flex items-center justify-between text-ink-secondary hover:text-ink font-medium"
@@ -1399,7 +1389,7 @@ export function Billing() {
                       <span>{formatINR(currentGuest.summary.taxesAndFees)}</span>
                       {taxesExpanded ? <Lucide.ChevronUp size={13} /> : <Lucide.ChevronDown size={13} />}
                     </span>
-                  </button>
+                  </ListItem>
 
                   {taxesExpanded ? (
                     <div className="mt-2 pl-5 pr-1 flex flex-col gap-1 text-label text-ink-muted">
@@ -1453,20 +1443,20 @@ export function Billing() {
 
               {/* CTA Buttons Side-by-Side */}
               <div className="grid grid-cols-2 gap-2.5 pt-2">
-                <button
+                <Button variant="primary"
                   type="button"
                   onClick={() => setSettleFolioModalOpen(true)}
-                  className="pms-btn-primary w-full py-2.5 text-label font-bold"
+                  className="w-full"
                 >
                   Settle Folio
-                </button>
-                <button
+                </Button>
+                <Button variant="secondary"
                   type="button"
                   onClick={() => setInvoiceModalOpen(true)}
-                  className="pms-btn-ghost w-full py-2.5 text-label font-semibold text-primary border-primary/30 hover:bg-primary/5"
+                  className="w-full"
                 >
                   Generate Invoice
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -1477,7 +1467,7 @@ export function Billing() {
             >
               <div className="flex items-center justify-between">
                 <h4 className="font-bold text-ink text-body">Payment Details</h4>
-                <button
+                <Button variant="link"
                   type="button"
                   onClick={() => {
                     setPaymentData({
@@ -1487,11 +1477,11 @@ export function Billing() {
                     });
                     setPaymentModalOpen(true);
                   }}
-                  className="text-label font-bold text-primary hover:underline flex items-center gap-1"
+                  className="hover:underline flex items-center gap-1"
                 >
                   <Lucide.Plus size={13} />
                   <span>Add Payment</span>
-                </button>
+                </Button>
               </div>
 
               {/* Payment item tile */}
@@ -1534,30 +1524,30 @@ export function Billing() {
             >
               <h4 className="font-bold text-ink text-body">Quick Actions</h4>
               <div className="grid grid-cols-3 gap-2">
-                <button
+                <Button variant="secondary"
                   type="button"
                   onClick={() => setPostChargeModalOpen(true)}
-                  className="pms-btn-ghost px-2 py-2 text-label font-semibold flex flex-col items-center justify-center gap-1 hover:border-primary/40"
+                  className="flex flex-col items-center justify-center gap-1"
                 >
                   <Lucide.Zap size={15} className="text-primary" />
                   <span>Post Charge</span>
-                </button>
-                <button
+                </Button>
+                <Button variant="secondary"
                   type="button"
                   onClick={() => setDiscountModalOpen(true)}
-                  className="pms-btn-ghost px-2 py-2 text-label font-semibold flex flex-col items-center justify-center gap-1 hover:border-primary/40"
+                  className="flex flex-col items-center justify-center gap-1"
                 >
                   <Lucide.Tag size={15} className="text-warning-text" />
                   <span>Apply Discount</span>
-                </button>
-                <button
+                </Button>
+                <Button variant="secondary"
                   type="button"
                   onClick={() => setSplitFolioModalOpen(true)}
-                  className="pms-btn-ghost px-2 py-2 text-label font-semibold flex flex-col items-center justify-center gap-1 hover:border-primary/40"
+                  className="flex flex-col items-center justify-center gap-1"
                 >
                   <Lucide.Split size={15} className="text-primary" />
                   <span>Split Folio</span>
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -1619,7 +1609,7 @@ export function Billing() {
                 <p className="text-label text-ink-muted mt-0.5">All successful receipts and settlement transactions on record</p>
               </div>
             </div>
-            <button
+            <Button variant="primary"
               type="button"
               onClick={() => {
                 setPaymentData({
@@ -1629,11 +1619,11 @@ export function Billing() {
                 });
                 setPaymentModalOpen(true);
               }}
-              className="pms-btn-primary px-3.5 py-1.5 text-label font-semibold flex items-center gap-1.5"
+              className="flex items-center gap-1.5"
             >
               <Lucide.Plus size={14} />
               <span>Record Payment</span>
-            </button>
+            </Button>
           </div>
 
           <div className="divide-y border rounded-xl overflow-hidden" style={{ borderColor: 'var(--color-divider)' }}>
@@ -1645,13 +1635,13 @@ export function Billing() {
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-success-text text-body">{formatINR(pm.amount)}</div>
-                  <button
+                  <Button variant="link"
                     type="button"
                     onClick={() => window.print()}
-                    className="text-label text-primary hover:underline font-semibold"
+                    className="hover:underline"
                   >
                     Download Receipt
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
@@ -1671,14 +1661,14 @@ export function Billing() {
                 <p className="text-label text-ink-muted mt-0.5">Detailed line-by-line financial statement for checkout presentation</p>
               </div>
             </div>
-            <button
+            <Button variant="primary"
               type="button"
               onClick={() => window.print()}
-              className="pms-btn-primary px-4 py-2 text-label font-bold flex items-center gap-1.5"
+              className="flex items-center gap-1.5"
             >
               <Lucide.Printer size={14} />
               <span>Print Statement</span>
-            </button>
+            </Button>
           </div>
 
           <div className="border rounded-2xl p-6 flex flex-col gap-4 font-mono text-label" style={{ borderColor: 'var(--color-divider)' }}>
@@ -1753,32 +1743,30 @@ export function Billing() {
         subtitle={`${currentGuest.name} · Room ${currentGuest.roomNumber} (${currentGuest.reservationCode})`}
         footer={
           <div className="flex items-center justify-end gap-2.5 w-full">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => setPostChargeModalOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
               disabled={isSubmitting}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button variant="primary"
               type="button"
               onClick={() => void handlePostCharge()}
-              className="pms-btn-primary px-5 py-2 text-label font-bold"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Posting…' : 'Post Charge'}
-            </button>
+            </Button>
           </div>
         }
       >
         <div className="flex flex-col gap-4 py-2 text-label">
           <div>
             <label className="font-bold text-ink block mb-1">Department / Category</label>
-            <select
+            <SelectField
               value={postChargeData.category}
               onChange={(e) => setPostChargeData({ ...postChargeData, category: e.target.value as BillingTransaction['category'] })}
-              className="w-full p-2.5 rounded-xl border font-medium text-ink bg-page"
+              className="w-full"
             >
               <option value="service">Extra Services / Amenities</option>
               <option value="food">Food &amp; Beverage / Restaurant</option>
@@ -1787,17 +1775,17 @@ export function Billing() {
               <option value="minibar">Minibar Consumption</option>
               <option value="room">Room Charge Extension</option>
               <option value="other">Other Incidentals</option>
-            </select>
+            </SelectField>
           </div>
 
           <div>
             <label className="font-bold text-ink block mb-1">Item Description</label>
-            <input
+            <TextField
               type="text"
               placeholder="e.g. Laundry Express, Spa Massage, Dinner Platter"
               value={postChargeData.title}
               onChange={(e) => setPostChargeData({ ...postChargeData, title: e.target.value })}
-              className="w-full p-2.5 rounded-xl border font-medium text-ink bg-page"
+              className="w-full"
               autoFocus
             />
           </div>
@@ -1805,35 +1793,35 @@ export function Billing() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="font-bold text-ink block mb-1">Charge Amount ({currentGuest.currency})</label>
-              <input
+              <TextField
                 type="number"
                 placeholder="0.00"
                 step="0.01"
                 value={postChargeData.amount}
                 onChange={(e) => setPostChargeData({ ...postChargeData, amount: e.target.value })}
-                className="w-full p-2.5 rounded-xl border font-bold text-ink bg-page"
+                className="w-full"
               />
             </div>
             <div>
               <label className="font-bold text-ink block mb-1">Reference Code</label>
-              <input
+              <TextField
                 type="text"
                 placeholder="e.g. POS-9812, SVC-301"
                 value={postChargeData.reference}
                 onChange={(e) => setPostChargeData({ ...postChargeData, reference: e.target.value })}
-                className="w-full p-2.5 rounded-xl border font-mono font-medium text-ink bg-page"
+                className="w-full font-mono"
               />
             </div>
           </div>
 
           <div>
             <label className="font-bold text-ink block mb-1">Additional Detail / Note</label>
-            <input
+            <TextField
               type="text"
               placeholder="e.g. 2 guests, Room 201 charge"
               value={postChargeData.detail}
               onChange={(e) => setPostChargeData({ ...postChargeData, detail: e.target.value })}
-              className="w-full p-2.5 rounded-xl border font-medium text-ink bg-page"
+              className="w-full"
             />
           </div>
         </div>
@@ -1847,32 +1835,30 @@ export function Billing() {
         subtitle={`${currentGuest.name} · Outstanding: ${formatINR(currentGuest.summary.outstandingBalance)}`}
         footer={
           <div className="flex items-center justify-end gap-2.5 w-full">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => setPaymentModalOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
               disabled={isSubmitting}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button variant="primary"
               type="button"
               onClick={() => void handleRecordPayment()}
-              className="pms-btn-primary px-5 py-2 text-label font-bold"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Recording…' : 'Record Payment'}
-            </button>
+            </Button>
           </div>
         }
       >
         <div className="flex flex-col gap-4 py-2 text-label">
           <div>
             <label className="font-bold text-ink block mb-1">Payment Method</label>
-            <select
+            <SelectField
               value={paymentData.method}
               onChange={(e) => setPaymentData({ ...paymentData, method: e.target.value })}
-              className="w-full p-2.5 rounded-xl border font-medium text-ink bg-page"
+              className="w-full"
             >
               <option value="Card (VISA **** 4242)">Card (VISA **** 4242)</option>
               <option value="Card (Mastercard **** 8812)">Card (Mastercard)</option>
@@ -1880,40 +1866,40 @@ export function Billing() {
               <option value="Bank Transfer (NEFT/IMPS)">Bank Transfer (NEFT/IMPS)</option>
               <option value="UPI / QR Payment">UPI / QR Code</option>
               <option value="Corporate Account">Corporate Account Billing</option>
-            </select>
+            </SelectField>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="font-bold text-ink">Payment Amount ({currentGuest.currency})</label>
               {currentGuest.summary.outstandingBalance > 0 ? (
-                <button
+                <Button variant="link"
                   type="button"
                   onClick={() => setPaymentData({ ...paymentData, amount: String(currentGuest.summary.outstandingBalance) })}
-                  className="text-label text-primary font-bold hover:underline"
+                  className="hover:underline"
                 >
                   Pay full balance ({formatINR(currentGuest.summary.outstandingBalance)})
-                </button>
+                </Button>
               ) : null}
             </div>
-            <input
+            <TextField
               type="number"
               placeholder="0.00"
               step="0.01"
               value={paymentData.amount}
               onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })}
-              className="w-full p-2.5 rounded-xl border font-bold text-ink bg-page text-body"
+              className="w-full"
               autoFocus
             />
           </div>
 
           <div>
             <label className="font-bold text-ink block mb-1">Transaction Reference</label>
-            <input
+            <TextField
               type="text"
               value={paymentData.ref}
               onChange={(e) => setPaymentData({ ...paymentData, ref: e.target.value })}
-              className="w-full p-2.5 rounded-xl border font-mono font-medium text-ink bg-page"
+              className="w-full font-mono"
             />
           </div>
         </div>
@@ -1927,20 +1913,18 @@ export function Billing() {
         subtitle={`Settle remaining balance for ${currentGuest.name}`}
         footer={
           <div className="flex items-center justify-end gap-2.5 w-full">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => setSettleFolioModalOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button variant="primary"
               type="button"
               onClick={handleSettleFolio}
-              className="pms-btn-primary px-5 py-2 text-label font-bold"
             >
               Confirm Settlement
-            </button>
+            </Button>
           </div>
         }
       >
@@ -1981,24 +1965,23 @@ export function Billing() {
         subtitle={`Invoice # INV-2026-${currentGuest.roomNumber}-01`}
         footer={
           <div className="flex items-center justify-end gap-2.5 w-full">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => setInvoiceModalOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
             >
               Close
-            </button>
-            <button
+            </Button>
+            <Button variant="primary"
               type="button"
               onClick={() => {
                 window.print();
                 toast('Invoice ready for printing', { tone: 'success' });
               }}
-              className="pms-btn-primary px-5 py-2 text-label font-bold flex items-center gap-1.5"
+              className="flex items-center gap-1.5"
             >
               <Lucide.Printer size={14} />
               <span>Print / Download PDF</span>
-            </button>
+            </Button>
           </div>
         }
       >
@@ -2072,20 +2055,18 @@ export function Billing() {
         subtitle={`Current Subtotal: ${formatINR(currentGuest.summary.subtotal)}`}
         footer={
           <div className="flex items-center justify-end gap-2.5 w-full">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => setDiscountModalOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button variant="primary"
               type="button"
               onClick={handleApplyDiscount}
-              className="pms-btn-primary px-5 py-2 text-label font-bold"
             >
               Apply Discount
-            </button>
+            </Button>
           </div>
         }
       >
@@ -2093,25 +2074,25 @@ export function Billing() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="font-bold text-ink block mb-1">Discount Type</label>
-              <select
+              <SelectField
                 value={discountData.type}
                 onChange={(e) => setDiscountData({ ...discountData, type: e.target.value as 'percent' | 'amount' })}
-                className="w-full p-2.5 rounded-xl border font-medium text-ink bg-page"
+                className="w-full"
               >
                 <option value="amount">Fixed Amount (₹)</option>
                 <option value="percent">Percentage (%)</option>
-              </select>
+              </SelectField>
             </div>
             <div>
               <label className="font-bold text-ink block mb-1">
                 Value ({discountData.type === 'amount' ? '₹' : '%'})
               </label>
-              <input
+              <TextField
                 type="number"
                 placeholder="e.g. 500 or 10"
                 value={discountData.value}
                 onChange={(e) => setDiscountData({ ...discountData, value: e.target.value })}
-                className="w-full p-2.5 rounded-xl border font-bold text-ink bg-page"
+                className="w-full"
                 autoFocus
               />
             </div>
@@ -2119,12 +2100,12 @@ export function Billing() {
 
           <div>
             <label className="font-bold text-ink block mb-1">Reason / Promo Code</label>
-            <input
+            <TextField
               type="text"
               placeholder="e.g. Corporate Agreement, VIP Courtesy, Management Approval"
               value={discountData.reason}
               onChange={(e) => setDiscountData({ ...discountData, reason: e.target.value })}
-              className="w-full p-2.5 rounded-xl border font-medium text-ink bg-page"
+              className="w-full"
             />
           </div>
         </div>
@@ -2138,14 +2119,13 @@ export function Billing() {
         subtitle={`Split charges from ${currentGuest.name} to Secondary Folio`}
         footer={
           <div className="flex items-center justify-end gap-2.5 w-full">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => setSplitFolioModalOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button variant="primary"
               type="button"
               onClick={() => {
                 toast('Folio split created', {
@@ -2154,10 +2134,9 @@ export function Billing() {
                 });
                 setSplitFolioModalOpen(false);
               }}
-              className="pms-btn-primary px-5 py-2 text-label font-bold"
             >
               Split Folio
-            </button>
+            </Button>
           </div>
         }
       >
@@ -2165,41 +2144,33 @@ export function Billing() {
           <div>
             <label className="font-bold text-ink block mb-1">Split Strategy</label>
             <div className="grid grid-cols-2 gap-2.5">
-              <button
+              <ListItem
                 type="button"
                 onClick={() => setSplitMethod('percent')}
-                className={`p-3 rounded-xl border text-left font-semibold ${
-                  splitMethod === 'percent'
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-border text-ink bg-page'
-                }`}
+                className={` border text-left font-semibold ${ splitMethod === 'percent' ? 'border-primary bg-primary/10 text-primary' : 'border-border text-ink bg-page' }`}
               >
                 Percentage Split
-              </button>
-              <button
+              </ListItem>
+              <ListItem
                 type="button"
                 onClick={() => setSplitMethod('items')}
-                className={`p-3 rounded-xl border text-left font-semibold ${
-                  splitMethod === 'items'
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-border text-ink bg-page'
-                }`}
+                className={` border text-left font-semibold ${ splitMethod === 'items' ? 'border-primary bg-primary/10 text-primary' : 'border-border text-ink bg-page' }`}
               >
                 Itemized Selection
-              </button>
+              </ListItem>
             </div>
           </div>
 
           {splitMethod === 'percent' ? (
             <div>
               <label className="font-bold text-ink block mb-1">Percentage to Split (%)</label>
-              <input
+              <TextField
                 type="number"
                 min="1"
                 max="99"
                 value={splitPercent}
                 onChange={(e) => setSplitPercent(e.target.value)}
-                className="w-full p-2.5 rounded-xl border font-bold text-ink bg-page"
+                className="w-full"
               />
             </div>
           ) : (
@@ -2218,14 +2189,13 @@ export function Billing() {
         subtitle={`Send PDF copy to ${currentGuest.name}`}
         footer={
           <div className="flex items-center justify-end gap-2.5 w-full">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => setEmailModalOpen(false)}
-              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button variant="primary"
               type="button"
               onClick={() => {
                 toast('Folio emailed successfully', {
@@ -2234,29 +2204,29 @@ export function Billing() {
                 });
                 setEmailModalOpen(false);
               }}
-              className="pms-btn-primary px-5 py-2 text-label font-bold flex items-center gap-1.5"
+              className="flex items-center gap-1.5"
             >
               <Lucide.Mail size={14} />
               <span>Send Email</span>
-            </button>
+            </Button>
           </div>
         }
       >
         <div className="flex flex-col gap-4 py-2 text-label">
           <div>
             <label className="font-bold text-ink block mb-1">Recipient Email</label>
-            <input
+            <TextField
               type="email"
               defaultValue={currentGuest.email}
-              className="w-full p-2.5 rounded-xl border font-medium text-ink bg-page"
+              className="w-full"
             />
           </div>
           <div>
             <label className="font-bold text-ink block mb-1">Subject</label>
-            <input
+            <TextField
               type="text"
               defaultValue={`Your Hotel Folio Statement — ${currentGuest.reservationCode}`}
-              className="w-full p-2.5 rounded-xl border font-medium text-ink bg-page"
+              className="w-full"
             />
           </div>
           <div>
@@ -2277,20 +2247,18 @@ export function Billing() {
         subtitle={voidModalOpen?.title}
         footer={
           <div className="flex items-center justify-end gap-2.5 w-full">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => setVoidModalOpen(null)}
-              className="pms-btn-ghost px-4 py-2 text-label font-semibold"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button variant="danger"
               type="button"
               onClick={handleVoidCharge}
-              className="pms-btn-danger px-5 py-2 text-label font-bold"
             >
               Confirm Void
-            </button>
+            </Button>
           </div>
         }
       >
@@ -2300,12 +2268,12 @@ export function Billing() {
           </p>
           <div>
             <label className="font-bold text-ink block mb-1">Reason for voiding (required)</label>
-            <input
+            <TextField
               type="text"
               placeholder="e.g. Guest dispute, billing correction, courtesy cancellation"
               value={voidReason}
               onChange={(e) => setVoidReason(e.target.value)}
-              className="w-full p-2.5 rounded-xl border font-medium text-ink bg-page"
+              className="w-full"
               autoFocus
             />
           </div>

@@ -1,3 +1,4 @@
+import { Button, IconButton, ListItem, SelectField } from '../../../components/primitives';
 import * as Lucide from 'lucide-react';
 import { ROOM_TYPES } from './data';
 import type { InventoryDate, InventoryRow, InventorySelection } from './types';
@@ -51,17 +52,17 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
         <div className="flex flex-wrap items-center gap-2">
           <label>
             <span className="sr-only">Filter inventory by room type</span>
-            <select value={roomFilter} onChange={(event) => onRoomFilterChange(event.target.value)} className="pms-input min-h-[38px] min-w-[145px] text-label font-semibold">
+            <SelectField value={roomFilter} onChange={(event) => onRoomFilterChange(event.target.value)} className="min-w-[145px]">
               <option value="all">All room types</option>
               {ROOM_TYPES.map((roomType) => <option key={roomType} value={roomType.toLowerCase()}>{roomType}</option>)}
-            </select>
+            </SelectField>
           </label>
           <div className="flex items-center gap-1 rounded-control border p-1" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
-            <button type="button" onClick={onPrevious} aria-label="Previous 15 days" className="flex h-8 w-8 items-center justify-center rounded-control text-ink-secondary hover:bg-surface"><Lucide.ChevronLeft size={16} /></button>
+            <IconButton variant="ghost" type="button" onClick={onPrevious} aria-label="Previous 15 days" className="flex items-center justify-center"><Lucide.ChevronLeft size={16} /></IconButton>
             <span className="min-w-[145px] text-center text-label font-semibold text-ink" aria-live="polite">{dateLabel}</span>
-            <button type="button" onClick={onNext} aria-label="Next 15 days" className="flex h-8 w-8 items-center justify-center rounded-control text-ink-secondary hover:bg-surface"><Lucide.ChevronRight size={16} /></button>
+            <IconButton variant="ghost" type="button" onClick={onNext} aria-label="Next 15 days" className="flex items-center justify-center"><Lucide.ChevronRight size={16} /></IconButton>
           </div>
-          <button type="button" onClick={onToday} className="pms-btn-ghost min-h-[38px] px-3 py-1.5 text-label">Today</button>
+          <Button variant="secondary" type="button" onClick={onToday} >Today</Button>
         </div>
       </div>
 
@@ -106,9 +107,9 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
                   const tone = availabilityStyle(available, row.totalRooms);
                   return (
                     <td key={date.iso} className="border-r p-0.5" style={{ borderColor: 'var(--color-divider)' }}>
-                      <button type="button" onClick={() => onSelectCell({ roomType: row.roomType, date, available, total: row.totalRooms })} className="flex h-9 w-full items-center justify-center rounded-md text-label font-bold tnum transition-transform hover:scale-[1.04] focus-visible:z-10" style={{ background: tone.background, color: tone.color }} aria-label={`${row.roomType}: ${available} of ${row.totalRooms} rooms available on ${date.weekday}, ${date.month} ${date.day}. ${tone.label}`} title={`${available}/${row.totalRooms} rooms · ${tone.label}`}>
+                      <ListItem type="button" onClick={() => onSelectCell({ roomType: row.roomType, date, available, total: row.totalRooms })} className="flex w-full items-center justify-center text-label font-bold tnum transition-transform hover:scale-[1.04] focus-visible:z-10" style={{ background: tone.background, color: tone.color }} aria-label={`${row.roomType}: ${available} of ${row.totalRooms} rooms available on ${date.weekday}, ${date.month} ${date.day}. ${tone.label}`} title={`${available}/${row.totalRooms} rooms · ${tone.label}`}>
                         {available}
-                      </button>
+                      </ListItem>
                     </td>
                   );
                 })}

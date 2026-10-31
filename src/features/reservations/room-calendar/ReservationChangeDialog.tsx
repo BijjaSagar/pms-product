@@ -4,6 +4,7 @@ import * as Lucide from 'lucide-react';
 import type { ProposedReservationChange } from './types';
 import { ROOM_TYPE_CONFIG } from './calendarData';
 import { lockAppScroll } from '../../../lib/scrollLock';
+import { Button, Checkbox, IconButton } from '../../../components/primitives';
 
 interface Props {
   change: ProposedReservationChange | null;
@@ -96,14 +97,14 @@ export function ReservationChangeDialog({
             </div>
           </div>
 
-          <button
+          <IconButton variant="ghost"
             type="button"
             onClick={onCancel}
             disabled={isSaving}
-            className="text-ink-muted hover:text-ink-secondary p-1.5 rounded-xl hover:bg-muted-surface transition-colors cursor-pointer"
+            className="transition-colors cursor-pointer"
           >
             <Lucide.X size={18} />
-          </button>
+          </IconButton>
         </div>
 
         {/* Before & After Comparison Grid */}
@@ -219,11 +220,10 @@ export function ReservationChangeDialog({
 
         {/* Simulated Notification Toggle */}
         <label className="flex items-start gap-2.5 text-label text-ink cursor-pointer select-none">
-          <input
+          <Checkbox
             type="checkbox"
             checked={notifyGuest}
             onChange={(e) => setNotifyGuest(e.target.checked)}
-            className="mt-0.5 h-4 w-4 rounded border-ink-disabled text-[var(--color-primary)] focus:ring-[var(--color-primary)] cursor-pointer"
           />
           <div>
             <span className="font-bold text-ink block">Queue simulated guest notification</span>
@@ -235,20 +235,20 @@ export function ReservationChangeDialog({
 
         {/* Action Buttons */}
         <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-divider">
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={onCancel}
             disabled={isSaving}
-            className="px-4 py-2.5 rounded-xl border border-border bg-surface hover:bg-page text-ink font-bold text-label shadow-xs transition-colors cursor-pointer"
+            className="transition-colors cursor-pointer"
           >
             Cancel & Revert
-          </button>
+          </Button>
           
-          <button
+          <Button variant="primary"
             type="button"
             onClick={() => onConfirm(notifyGuest)}
             disabled={isSaving}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--color-primary)] hover:opacity-95 text-white font-bold text-label shadow-md shadow-[var(--color-primary)]/20 transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
           >
             {isSaving ? (
               <>
@@ -261,7 +261,7 @@ export function ReservationChangeDialog({
                 <span>Confirm Change</span>
               </>
             )}
-          </button>
+          </Button>
         </div>
 
       </div>

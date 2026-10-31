@@ -15,9 +15,7 @@ import type {
   CalendarRoom,
   DragState,
   ProposedReservationChange,
-  RoomType,
   ReservationStatus as CalendarReservationStatus,
-  BookingSource,
 } from './room-calendar/types';
 import {
   BUSINESS_DATE,
@@ -30,16 +28,9 @@ import {
 import { validateReservationMove } from './room-calendar/validation';
 import { ReservationChangeDialog } from './room-calendar/ReservationChangeDialog';
 import { ReservationDetailModal } from './room-calendar/ReservationDetailModal';
+import { Button, Checkbox, IconButton, SelectField, TextField } from '../../components/primitives';
+import { ReservationFilterBar, EMPTY_RESERVATION_FILTERS, type ReservationFilters } from './ReservationFilterBar';
 
-const STATUS_FILTERS: (ReservationStatus | 'All')[] = [
-  'All',
-  'Confirmed',
-  'Pending',
-  'Checked-in',
-  'Checked-out',
-  'Cancelled',
-  'No-show',
-];
 
 type SortKey = 'checkIn' | 'guest' | 'amount';
 
@@ -188,34 +179,34 @@ function ReservationDrawer({
 
       <div className="mt-6 flex flex-wrap gap-2.5">
         {r.status === 'Checked-in' && (
-          <button
+          <Button variant="primary"
             type="button"
-            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-md bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-white font-semibold text-label shadow-xs cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-1.5 cursor-pointer"
             onClick={() => { go({ view: 'folios' }); onClose(); }}
           >
             <Lucide.Receipt size={15} />
             <span>Open Folio</span>
-          </button>
+          </Button>
         )}
         {(r.status === 'Confirmed' || r.status === 'Pending') && (
-          <button
+          <Button variant="secondary"
             type="button"
-            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-md border border-border bg-surface hover:bg-page text-ink font-semibold text-label shadow-xs cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-1.5 cursor-pointer"
             onClick={() => setEditOpen(true)}
           >
             <Lucide.CalendarClock size={15} />
             <span>Modify Dates</span>
-          </button>
+          </Button>
         )}
         {(r.status === 'Confirmed' || r.status === 'Pending') && (
-          <button
+          <Button variant="danger"
             type="button"
-            className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md border border-danger-border bg-surface hover:bg-danger-bg text-danger-text font-semibold text-label shadow-xs cursor-pointer"
+            className="flex items-center justify-center gap-1.5 cursor-pointer"
             onClick={() => setConfirm('cancel')}
           >
             <Lucide.XCircle size={15} />
             <span>Cancel</span>
-          </button>
+          </Button>
         )}
       </div>
 
@@ -227,42 +218,40 @@ function ReservationDrawer({
         subtitle={`Update check-in and check-out dates for ${r.guest}`}
         footer={
           <>
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => setEditOpen(false)}
-              className="rounded-md border border-border px-4 py-2 text-label font-semibold text-ink hover:bg-page"
               disabled={isUpdating}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button variant="primary"
               type="button"
               onClick={() => void handleSaveDates()}
-              className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-label font-semibold text-white hover:bg-[var(--color-primary-hover)] shadow-xs"
               disabled={isUpdating}
             >
               {isUpdating ? 'Saving…' : 'Save Dates'}
-            </button>
+            </Button>
           </>
         }
       >
         <div className="flex flex-col gap-4 py-2">
           <div>
             <label className="block text-label font-semibold text-ink mb-1">Check-in Date</label>
-            <input
+            <TextField
               type="date"
               value={editCheckIn}
               onChange={(e) => setEditCheckIn(e.target.value)}
-              className="w-full rounded-md border border-border p-2.5 text-label text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
+              className="w-full"
             />
           </div>
           <div>
             <label className="block text-label font-semibold text-ink mb-1">Check-out Date</label>
-            <input
+            <TextField
               type="date"
               value={editCheckOut}
               onChange={(e) => setEditCheckOut(e.target.value)}
-              className="w-full rounded-md border border-border p-2.5 text-label text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
+              className="w-full"
             />
           </div>
         </div>
@@ -344,9 +333,11 @@ const RESERVATION_BAR_TONES: Record<
 export function RoomCalendar({
   go,
   onReservationUpdated,
+  filters,
 }: {
   go?: (t: NavTarget) => void;
   onReservationUpdated?: () => void;
+  filters: ReservationFilters;
 }) {
   // Calendar base anchor date synced with the canonical PMS BUSINESS_DATE
   const [baseDate, setBaseDate] = useState(BUSINESS_DATE);
@@ -354,23 +345,9 @@ export function RoomCalendar({
 
   // Master Data synchronized with central PMS store
   const [rooms] = useState<CalendarRoom[]>(loadCalendarRooms);
-  const floorOptions = useMemo(() => {
-    const floors = [...new Set(rooms.map((room) => room.floor))].sort((a, b) => a - b);
-    return floors.map((floor) => {
-      const numbers = rooms.filter((room) => room.floor === floor).map((room) => room.number).sort();
-      return { floor, first: numbers[0], last: numbers[numbers.length - 1] };
-    });
-  }, [rooms]);
   const [reservations, setReservations] = useState<CalendarReservation[]>(() =>
     loadSyncedReservations()
   );
-
-  // Filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<RoomType | 'All'>('All');
-  const [filterFloor, setFilterFloor] = useState<number | 'All'>('All');
-  const [filterStatus, setFilterStatus] = useState<CalendarReservationStatus | 'All'>('All');
-  const [filterSource, setFilterSource] = useState<BookingSource | 'All'>('All');
 
   // Detail Modal & Change Confirmation Modal
   const [activeReservation, setActiveReservation] = useState<CalendarReservation | null>(null);
@@ -396,20 +373,19 @@ export function RoomCalendar({
   // Filtered Rooms
   const filteredRooms = useMemo(() => {
     return rooms.filter((r) => {
-      const matchType = filterType === 'All' || r.type === filterType;
-      const matchFloor = filterFloor === 'All' || r.floor === filterFloor;
+      const matchType = filters.roomType === 'All' || r.type === filters.roomType;
       const matchSearch =
-        !searchQuery.trim() ||
-        r.number.includes(searchQuery.trim()) ||
+        !filters.q.trim() ||
+        r.number.includes(filters.q.trim()) ||
         reservations.some(
           (res) =>
             res.roomId === r.id &&
-            (res.guestName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              res.id.toLowerCase().includes(searchQuery.toLowerCase()))
+            (res.guestName.toLowerCase().includes(filters.q.toLowerCase()) ||
+              res.id.toLowerCase().includes(filters.q.toLowerCase()))
         );
-      return matchType && matchFloor && matchSearch;
+      return matchType && matchSearch;
     });
-  }, [rooms, filterType, filterFloor, searchQuery, reservations]);
+  }, [rooms, filters.roomType, filters.q, reservations]);
 
   // Date Navigation
   const stepDate = (days: number) => {
@@ -762,82 +738,78 @@ export function RoomCalendar({
           {/* Left: Date Stepper & Today */}
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <div className="flex items-center rounded-xl border border-border bg-page p-1 shadow-2xs">
-              <button
+              <IconButton variant="ghost"
                 type="button"
                 onClick={() => stepDate(-7)}
                 title="Previous Week (-7 days)"
                 aria-label="Previous week"
-                className="flex h-9 w-9 items-center justify-center rounded-xl text-ink-secondary transition-colors hover:bg-surface cursor-pointer"
               >
                 <Lucide.ChevronsLeft size={16} />
-              </button>
-              <button
+              </IconButton>
+              <IconButton variant="ghost"
                 type="button"
                 onClick={() => stepDate(-1)}
                 title="Previous Day (-1 day)"
                 aria-label="Previous day"
-                className="flex h-9 w-9 items-center justify-center rounded-xl text-ink-secondary transition-colors hover:bg-surface cursor-pointer"
               >
                 <Lucide.ChevronLeft size={16} />
-              </button>
+              </IconButton>
 
               <label className="relative flex min-h-9 cursor-pointer items-center gap-2 rounded-xl border border-border/80 bg-surface px-3 text-label font-semibold text-ink shadow-2xs focus-within:ring-2 focus-within:ring-[var(--color-primary)]/25">
                 <Lucide.Calendar size={14} className="text-[var(--color-primary)]" />
                 <span>
                   {formatCalendarDate(baseDate).month} {formatCalendarDate(baseDate).dayNum}, {formatCalendarDate(baseDate).year}
                 </span>
-                <input
+                <TextField
                   type="date"
                   value={baseDate}
                   onChange={(e) => e.target.value && setBaseDate(e.target.value)}
                   aria-label="Choose calendar date"
-                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                  className="absolute inset-0 w-full cursor-pointer opacity-0"
                 />
               </label>
 
-              <button
+              <IconButton variant="ghost"
                 type="button"
                 onClick={() => stepDate(1)}
                 title="Next Day (+1 day)"
                 aria-label="Next day"
-                className="flex h-9 w-9 items-center justify-center rounded-xl text-ink-secondary transition-colors hover:bg-surface cursor-pointer"
               >
                 <Lucide.ChevronRight size={16} />
-              </button>
-              <button
+              </IconButton>
+              <IconButton variant="ghost"
                 type="button"
                 onClick={() => stepDate(7)}
                 title="Next Week (+7 days)"
                 aria-label="Next week"
-                className="flex h-9 w-9 items-center justify-center rounded-xl text-ink-secondary transition-colors hover:bg-surface cursor-pointer"
               >
                 <Lucide.ChevronsRight size={16} />
-              </button>
+              </IconButton>
             </div>
 
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={jumpToToday}
-              className="min-h-10 rounded-xl border border-border bg-surface px-3.5 text-label font-semibold text-ink shadow-2xs transition-colors hover:bg-page cursor-pointer"
+              className="transition-colors cursor-pointer"
             >
               Today
-            </button>
+            </Button>
 
             {/* Horizon Switcher (7 / 14 / 30 Days) */}
             <div className="flex items-center rounded-xl border border-border bg-page p-1 text-label font-semibold shadow-2xs" role="group" aria-label="Calendar range">
               {([7, 14, 30] as const).map((days) => (
-                <button
+                <Button variant="secondary"
                   key={days}
                   type="button"
                   onClick={() => setViewHorizonDays(days)}
                   aria-pressed={viewHorizonDays === days}
-                  className={`min-h-8 rounded-xl px-3 transition-all cursor-pointer ${viewHorizonDays === days
-                    ? 'bg-surface text-ink shadow-2xs border border-border/60'
-                    : 'text-ink-secondary hover:text-ink'
-                    }`}
+                  className={`transition-all cursor-pointer ${viewHorizonDays === days
+ ? 'bg-surface text-ink shadow-2xs border border-border/60'
+ : 'text-ink-secondary hover:text-ink'
+ }`}
                 >
                   {days} Days
-                </button>
+                </Button>
               ))}
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -861,97 +833,6 @@ export function RoomCalendar({
                 </div>
               )}
             </div>
-          </div>
-
-        </div>
-
-        {/* Bottom Row: Search Box & Filter Dropdowns */}
-        <div className="grid grid-cols-1 gap-2 border-t border-divider pt-3 sm:grid-cols-2 xl:grid-cols-5">
-
-          {/* Search */}
-          <div className="relative sm:col-span-2 xl:col-span-1">
-            <Lucide.Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search guest, ID, room..."
-              aria-label="Search reservations by guest, ID, or room"
-              className="min-h-10 w-full border border-border bg-page/60 py-2 pl-9 pr-3 text-label font-medium text-ink transition-all focus:border-[var(--color-primary)] focus:bg-surface focus:outline-none"
-            />
-          </div>
-
-
-          {/* Room Type */}
-          <div>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value as RoomType | 'All')}
-              aria-label="Filter by room type"
-              className="min-h-10 w-full border border-border bg-page/60 px-3 py-2 text-label font-semibold text-ink focus:bg-surface focus:outline-none cursor-pointer"
-            >
-              <option value="All">All Room Types</option>
-              <option value="Standard">Standard</option>
-              <option value="Deluxe">Deluxe</option>
-              <option value="Superior">Superior</option>
-              <option value="Executive">Executive</option>
-              <option value="Family Suite">Family Suite</option>
-              <option value="Panorama Suite">Panorama Suite</option>
-            </select>
-          </div>
-
-          {/* Floor */}
-          <div>
-            <select
-              value={filterFloor}
-              onChange={(e) => setFilterFloor(e.target.value === 'All' ? 'All' : Number(e.target.value))}
-              aria-label="Filter by floor"
-              className="min-h-10 w-full border border-border bg-page/60 px-3 py-2 text-label font-semibold text-ink focus:bg-surface focus:outline-none cursor-pointer"
-            >
-              <option value="All">All Floors ({rooms.length} Rooms)</option>
-              {floorOptions.map((option) => (
-                <option key={option.floor} value={option.floor}>
-                  Floor {option.floor} (Rooms {option.first}–{option.last})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Reservation Status */}
-          <div>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as CalendarReservationStatus | 'All')}
-              aria-label="Filter by reservation status"
-              className="min-h-10 w-full border border-border bg-page/60 px-3 py-2 text-label font-semibold text-ink focus:bg-surface focus:outline-none cursor-pointer"
-            >
-              <option value="All">All Statuses</option>
-              <option value="Confirmed">Confirmed</option>
-              <option value="Pending">Pending</option>
-              <option value="Tentative">Tentative</option>
-              <option value="Checked-in">Checked-in</option>
-              <option value="Checked-out">Checked-out</option>
-              <option value="Cancelled">Cancelled</option>
-              <option value="No-show">No-show</option>
-            </select>
-          </div>
-
-          {/* Booking Source */}
-          <div>
-            <select
-              value={filterSource}
-              onChange={(e) => setFilterSource(e.target.value as BookingSource | 'All')}
-              aria-label="Filter by booking source"
-              className="min-h-10 w-full border border-border bg-page/60 px-3 py-2 text-label font-semibold text-ink focus:bg-surface focus:outline-none cursor-pointer"
-            >
-              <option value="All">All Sources</option>
-              <option value="Direct">Direct Desk</option>
-              <option value="Booking.com">Booking.com</option>
-              <option value="Agoda">Agoda</option>
-              <option value="Expedia">Expedia</option>
-              <option value="Corporate">Corporate</option>
-              <option value="Walk-in">Walk-in</option>
-            </select>
           </div>
 
         </div>
@@ -1045,8 +926,8 @@ export function RoomCalendar({
               const roomReservations = reservations.filter(
                 (res) =>
                   (res.roomId === room.id || res.roomNumber === room.number) &&
-                  (filterStatus === 'All' || res.status === filterStatus) &&
-                  (filterSource === 'All' || res.bookingSource === filterSource)
+                  (filters.status === 'All' || res.status === filters.status) &&
+                  (filters.source === 'All' || res.bookingSource === filters.source)
               );
 
               return (
@@ -1374,46 +1255,26 @@ export function Reservations({
   const resource = useApiResource(loadRows);
   const rows = useMemo(() => resource.data ?? [], [resource.data]);
 
-  const [q, setQ] = useState(initialQuery);
-  const [status, setStatus] = useState<(typeof STATUS_FILTERS)[number]>('All');
-  const [source, setSource] = useState('All');
-  const [roomFilter, setRoomFilter] = useState('All');
-  const [guestCountFilter, setGuestCountFilter] = useState('All');
+  const [filters, setFilters] = useState<ReservationFilters>(() => ({ ...EMPTY_RESERVATION_FILTERS, q: initialQuery }));
   const [sort, setSort] = useState<SortKey>('checkIn');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [openId, setOpenId] = useState<string | null>(focusId ?? null);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
 
-  // Unique options for filters
-  const sources = useMemo(
-    () => ['All', 'Direct', 'Booking.com', 'Agoda', 'Expedia', 'Corporate', 'Walk-in'],
-    []
-  );
-  const roomTypes = useMemo(
-    () => ['All', 'Deluxe', 'Standard', 'Superior', 'Suite'],
-    []
-  );
-
   const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
+    const needle = filters.q.trim().toLowerCase();
     const list = rows.filter((r) => {
       const matchSearch =
         !needle ||
         r.guest.toLowerCase().includes(needle) ||
         r.id.toLowerCase().includes(needle) ||
         (r.roomNumber && r.roomNumber.toLowerCase().includes(needle));
-      const matchStatus = status === 'All' || r.status === status;
-      const matchSource = source === 'All' || r.channel.toLowerCase() === source.toLowerCase();
-      const matchRoom = roomFilter === 'All' || r.roomType.toLowerCase() === roomFilter.toLowerCase();
-      const totalGuests = r.adults + r.children;
-      const matchGuests =
-        guestCountFilter === 'All' ||
-        (guestCountFilter === '1' && totalGuests === 1) ||
-        (guestCountFilter === '2' && totalGuests === 2) ||
-        (guestCountFilter === '3+' && totalGuests >= 3);
+      const matchStatus = filters.status === 'All' || r.status === filters.status;
+      const matchSource = filters.source === 'All' || r.channel.toLowerCase() === filters.source.toLowerCase();
+      const matchRoom = filters.roomType === 'All' || r.roomType.toLowerCase() === filters.roomType.toLowerCase();
 
-      return matchSearch && matchStatus && matchSource && matchRoom && matchGuests;
+      return matchSearch && matchStatus && matchSource && matchRoom;
     });
 
     return [...list].sort((a, b) =>
@@ -1423,9 +1284,8 @@ export function Reservations({
           ? b.total - a.total
           : a.checkIn.localeCompare(b.checkIn)
     );
-  }, [rows, q, status, source, roomFilter, guestCountFilter, sort]);
+  }, [rows, filters, sort]);
 
-  const totalReservationsCount = 43; // matches screenshot proof point
   const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pages - 1);
   const slice = filtered.slice(safePage * pageSize, safePage * pageSize + pageSize);
@@ -1478,12 +1338,13 @@ export function Reservations({
   };
 
   const clearAllFilters = () => {
-    setQ('');
-    setStatus('All');
-    setSource('All');
-    setRoomFilter('All');
-    setGuestCountFilter('All');
+    setFilters(EMPTY_RESERVATION_FILTERS);
     setSort('checkIn');
+    setPage(0);
+  };
+
+  const updateFilters = (patch: Partial<ReservationFilters>) => {
+    setFilters((previous) => ({ ...previous, ...patch }));
     setPage(0);
   };
 
@@ -1518,175 +1379,36 @@ export function Reservations({
         <div className="flex flex-wrap items-center gap-2">
           {/* View Switcher: List View vs Calendar View */}
           <div className="flex items-center p-1 rounded-xl border border-border bg-surface shadow-2xs">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => setViewMode('calendar')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-label font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'calendar'
-                ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                : 'text-ink-secondary hover:text-ink'
-                }`}
+              className={`flex items-center gap-1.5 transition-all cursor-pointer ${viewMode === 'calendar'
+ ? 'bg-[var(--color-primary)] text-white shadow-xs'
+ : 'text-ink-secondary hover:text-ink'
+ }`}
             >
               <Lucide.CalendarRange size={14} />
-            </button>
-            <button
+            </Button>
+            <Button variant="secondary"
               type="button"
               onClick={() => setViewMode('list')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-label font-bold rounded-xl transition-all cursor-pointer ${viewMode === 'list'
-                ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                : 'text-ink-secondary hover:text-ink'
-                }`}
+              className={`flex items-center gap-1.5 transition-all cursor-pointer ${viewMode === 'list'
+ ? 'bg-[var(--color-primary)] text-white shadow-xs'
+ : 'text-ink-secondary hover:text-ink'
+ }`}
             >
               <Lucide.List size={14} />
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
+      <ReservationFilterBar filters={filters} onChange={updateFilters} onClear={clearAllFilters} />
+
       {viewMode === 'calendar' ? (
-        <RoomCalendar go={go} onReservationUpdated={() => resource.refresh()} />
+        <RoomCalendar go={go} onReservationUpdated={() => resource.refresh()} filters={filters} />
       ) : (
         <>
-          {/* ================= 4. SEARCH & FILTER CARD ================= */}
-          <section className="pms-card flex flex-col gap-3.5 p-4 sm:p-5" aria-label="Reservation filters">
-            <div className="flex flex-col gap-2 border-b border-divider pb-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-body font-bold tracking-tight text-ink">Find reservations</h2>
-              </div>
-              <span className="inline-flex w-fit items-center rounded-full border border-border bg-page px-2.5 py-1 text-label font-semibold text-ink-secondary">
-                {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
-              </span>
-            </div>
-            {/* Row 1: Search + Date Pickers + Dropdowns */}
-            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-7">
-              {/* Search Box */}
-              <div className="relative min-w-0 sm:col-span-2 xl:col-span-2">
-                <Lucide.Search
-                  size={15}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none"
-                />
-                <input
-                  type="text"
-                  value={q}
-                  onChange={(e) => {
-                    setQ(e.target.value);
-                    setPage(0);
-                  }}
-                  placeholder="Search guest name, booking ID, phone, email..."
-                  className="min-h-10 w-full rounded-control border border-border bg-surface py-2 pl-10 pr-3.5 text-label text-ink placeholder:text-ink-muted focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                />
-              </div>
-
-              {/* Check-in Date Picker */}
-              <div className="flex min-h-10 items-center justify-between gap-1.5 rounded-control border border-border bg-surface px-3 py-2 text-label text-ink">
-                <span>Check-in date</span>
-                <Lucide.Calendar size={14} className="text-ink-muted ml-1" />
-              </div>
-
-              {/* Check-out Date Picker */}
-              <div className="flex min-h-10 items-center justify-between gap-1.5 rounded-control border border-border bg-surface px-3 py-2 text-label text-ink">
-                <span>Check-out date</span>
-                <Lucide.Calendar size={14} className="text-ink-muted ml-1" />
-              </div>
-
-              {/* All Sources Dropdown */}
-              <select
-                value={source}
-                onChange={(e) => {
-                  setSource(e.target.value);
-                  setPage(0);
-                }}
-                aria-label="Filter by source"
-                className="min-h-10 rounded-control border border-border bg-surface px-3 py-2 text-label text-ink focus:outline-none focus:border-[var(--color-primary)]"
-              >
-                <option value="All">All sources</option>
-                {sources
-                  .filter((item) => item !== 'All')
-                  .map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-              </select>
-
-              {/* All Rooms Dropdown */}
-              <select
-                value={roomFilter}
-                onChange={(e) => {
-                  setRoomFilter(e.target.value);
-                  setPage(0);
-                }}
-                aria-label="Filter by room type"
-                className="min-h-10 rounded-control border border-border bg-surface px-3 py-2 text-label text-ink focus:outline-none focus:border-[var(--color-primary)]"
-              >
-                <option value="All">All rooms</option>
-                {roomTypes
-                  .filter((t) => t !== 'All')
-                  .map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-              </select>
-              <button
-                type="button"
-                onClick={clearAllFilters}
-                className="flex items-center gap-1.5  rounded-lg border border-border bg-surface px-3 py-1.5 text-label font-semibold text-ink hover:bg-page cursor-pointer shadow-xs"
-              >
-
-                <Lucide.RotateCcw size={13} className="text-ink-muted" />
-                <span>Clear filters</span>
-              </button>
-
-            </div>
-
-            {/* Row 2: Status Pills + Filters Actions */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-divider">
-              {/* Status Pills */}
-              <div className="flex flex-wrap items-center gap-2">
-                {STATUS_FILTERS.map((f) => {
-                  const count = f === 'All' ? totalReservationsCount : rows.filter((r) => r.status === f).length;
-                  const isActive = status === f;
-
-                  return (
-                    <button
-                      key={f}
-                      type="button"
-                      aria-pressed={isActive}
-                      onClick={() => {
-                        setStatus(f);
-                        setPage(0);
-                      }}
-                      className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-label font-semibold transition-all cursor-pointer ${isActive
-                        ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                        : 'bg-surface text-ink-secondary border border-border hover:bg-page'
-                        }`}
-                    >
-                      {f !== 'All' && (
-                        <span
-                          className={`h-1.5 w-1.5 rounded-full ${isActive
-                            ? 'bg-surface'
-                            : f === 'Confirmed'
-                              ? 'bg-success-text'
-                              : f === 'Pending'
-                                ? 'bg-warning-text'
-                                : f === 'Checked-in'
-                                  ? 'bg-info-text'
-                                  : f === 'Checked-out'
-                                    ? 'bg-ink-disabled'
-                                    : 'bg-danger-text'
-                            }`}
-                        />
-                      )}
-                      <span>
-                        {f} ({count})
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-
           {/* ================= 5. RESERVATIONS TABLE CARD ================= */}
           <section className="pms-card overflow-hidden" aria-label="Reservation list">
             <div className="flex flex-col gap-3 border-b border-border/80 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
@@ -1714,12 +1436,11 @@ export function Reservations({
                 <thead>
                   <tr className="border-b border-border bg-page/80 text-label font-semibold uppercase tracking-wider text-ink-secondary">
                     <th className="py-2.5 px-3 w-10">
-                      <input
+                      <Checkbox
                         type="checkbox"
                         checked={slice.length > 0 && selectedRowIds.length === slice.length}
                         onChange={toggleSelectAll}
                         aria-label="Select all"
-                        className="h-4 w-4 rounded border-ink-disabled text-[var(--color-primary)] focus:ring-[var(--color-primary)]/20 cursor-pointer accent-[var(--color-primary)]"
                       />
                     </th>
                     <th className="py-3 px-3 font-semibold">
@@ -1774,12 +1495,11 @@ export function Reservations({
                       >
                         {/* Checkbox */}
                         <td className="px-3 py-3">
-                          <input
+                          <Checkbox
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => toggleSelectRow(r.id)}
                             aria-label={`Select ${r.id}`}
-                            className="h-4 w-4 rounded border-ink-disabled text-[var(--color-primary)] focus:ring-[var(--color-primary)]/20 cursor-pointer accent-[var(--color-primary)]"
                           />
                         </td>
 
@@ -1870,21 +1590,19 @@ export function Reservations({
                         {/* Actions: Open & More */}
                         <td className="whitespace-nowrap px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            <button
+                            <Button variant="secondary"
                               type="button"
                               onClick={() => setOpenId(r.id)}
-                              className="rounded-md border border-border bg-surface px-3.5 py-1 text-label font-semibold text-ink hover:bg-page shadow-xs transition-colors cursor-pointer"
                             >
                               Open
-                            </button>
-                            <button
+                            </Button>
+                            <IconButton variant="ghost"
                               type="button"
                               onClick={() => setOpenId(r.id)}
                               title="More options"
-                              className="flex h-7 w-7 items-center justify-center rounded-md text-ink-muted hover:bg-muted-surface hover:text-ink-secondary transition-colors cursor-pointer"
                             >
                               <Lucide.MoreVertical size={15} />
-                            </button>
+                            </IconButton>
                           </div>
                         </td>
                       </tr>
@@ -1897,13 +1615,13 @@ export function Reservations({
                 <div className="py-12 text-center">
                   <Lucide.CalendarX size={36} className="mx-auto text-ink-disabled mb-2" />
                   <p className="text-label text-ink-secondary">No reservations match the selected filters.</p>
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={clearAllFilters}
-                    className="mt-3 text-label font-semibold text-[var(--color-primary)] hover:underline cursor-pointer"
+                    className="mt-3 hover:underline cursor-pointer"
                   >
                     Clear all filters
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -1919,59 +1637,59 @@ export function Reservations({
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5 text-ink-secondary">
                   <span>Rows per page</span>
-                  <select
+                  <SelectField
                     value={pageSize}
                     onChange={(e) => {
                       setPageSize(Number(e.target.value));
                       setPage(0);
                     }}
-                    className="rounded-md border border-border bg-surface px-2 py-1 text-label text-ink font-semibold focus:border-[var(--color-primary)] focus:outline-none"
+                    className="w-auto"
                   >
                     <option value={10}>10</option>
                     <option value={25}>25</option>
                     <option value={50}>50</option>
-                  </select>
+                  </SelectField>
                 </div>
 
                 {/* Page Navigation */}
                 <div className="flex items-center gap-1">
                   {/* Prev Button */}
-                  <button
+                  <IconButton variant="ghost"
                     type="button"
                     disabled={safePage === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
-                    className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-ink-secondary hover:bg-page disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    className="disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <Lucide.ChevronLeft size={14} />
-                  </button>
+                  </IconButton>
 
                   {/* Page Number Buttons */}
                   {Array.from({ length: Math.min(5, pages) }, (_, i) => {
                     const isCurrent = safePage === i;
                     return (
-                      <button
+                      <Button variant="secondary"
                         key={i}
                         type="button"
                         onClick={() => setPage(i)}
-                        className={`flex h-8 w-8 items-center justify-center rounded-md text-label font-bold transition-all cursor-pointer ${isCurrent
-                          ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                          : 'border border-border bg-surface text-ink hover:bg-page'
-                          }`}
+                        className={`flex w-8 items-center justify-center transition-all cursor-pointer ${isCurrent
+ ? 'bg-[var(--color-primary)] text-white shadow-xs'
+ : 'border border-border bg-surface text-ink hover:bg-page'
+ }`}
                       >
                         {i + 1}
-                      </button>
+                      </Button>
                     );
                   })}
 
                   {/* Next Button */}
-                  <button
+                  <IconButton variant="ghost"
                     type="button"
                     disabled={safePage >= pages - 1}
                     onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
-                    className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-ink-secondary hover:bg-page disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    className="disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <Lucide.ChevronRight size={14} />
-                  </button>
+                  </IconButton>
                 </div>
               </div>
             </div>

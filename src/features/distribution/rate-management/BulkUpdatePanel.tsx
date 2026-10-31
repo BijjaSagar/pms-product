@@ -1,3 +1,4 @@
+import { Button, Checkbox, TextField } from '../../../components/primitives';
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { inputClass } from '../../../utils/styling';
@@ -52,13 +53,13 @@ export function BulkUpdatePanel({ startDate, endDate, onApply }: Props) {
             To date<input type="date" value={rangeEnd} onChange={(event) => setRangeEnd(event.target.value)} className={inputClass('text-label')} required />
           </label>
           <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">
-            Rate adjustment (%)<span className="relative"><input type="number" min={-100} max={500} step={1} value={adjustment} onChange={(event) => setAdjustment(event.target.value)} className={`${inputClass('pr-9')} text-label`} /><span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted">%</span></span>
+            Rate adjustment (%)<span className="relative"><TextField type="number" min={-100} max={500} step={1} value={adjustment} onChange={(event) => setAdjustment(event.target.value)} className={`${inputClass('')}`} /><span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted">%</span></span>
           </label>
           <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">
-            Minimum stay override <span className="relative"><input type="number" min={1} max={30} value={minStay} onChange={(event) => setMinStay(event.target.value)} placeholder="No change" className={`${inputClass('pr-14')} text-label`} /><span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted">nights</span></span>
+            Minimum stay override <span className="relative"><TextField type="number" min={1} max={30} value={minStay} onChange={(event) => setMinStay(event.target.value)} placeholder="No change" className={`${inputClass('')}`} /><span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted">nights</span></span>
           </label>
           <label className="flex items-center gap-2.5 rounded-control border p-3 text-label font-medium text-ink sm:col-span-2" style={{ borderColor: 'var(--color-border)' }}>
-            <input type="checkbox" checked={weekendsOnly} onChange={(event) => setWeekendsOnly(event.target.checked)} className="h-4 w-4 accent-primary" />
+            <Checkbox type="checkbox" checked={weekendsOnly} onChange={(event) => setWeekendsOnly(event.target.checked)} />
             Apply to weekends only
           </label>
           {error && <p className="text-label font-medium text-danger-text sm:col-span-2" role="alert">{error}</p>}
@@ -69,9 +70,9 @@ export function BulkUpdatePanel({ startDate, endDate, onApply }: Props) {
             <h3 className="mt-3 text-body font-semibold text-ink">Preview before applying</h3>
             <p className="mt-1 text-label leading-relaxed text-ink-secondary">The percentage is applied to rates in the selected period. Weekend-only mode skips weekdays.</p>
           </div>
-          <button type="submit" className="pms-btn-primary min-h-[42px] w-full px-4 py-2 text-label">
+          <Button variant="primary" type="submit" className="w-full">
             <Lucide.Check size={15} /> Apply update
-          </button>
+          </Button>
         </aside>
       </form>
       <div className="flex items-start gap-2 border-t px-4 py-3 text-label text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>

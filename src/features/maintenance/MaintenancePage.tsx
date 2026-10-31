@@ -14,6 +14,7 @@ import { loadRoomInventory } from '../../lib/api/loaders';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { useAuth } from '../../features/auth/AuthContext';
+import { Button, TextField } from '../../components/primitives';
 
 function priorityTone(p: string): BadgeTone {
   if (p === 'Urgent' || p === 'High') return 'danger';
@@ -150,23 +151,23 @@ export function Maintenance() {
         <div className="flex items-start gap-3">
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => resource.refresh()}
-            className="flex items-center gap-1.5 text-label font-semibold px-3 py-1.5 rounded-xl border border-border bg-surface text-ink hover:bg-page shadow-2xs cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 cursor-pointer transition-colors"
             title="Refresh tickets"
           >
             <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
             <span>Refresh</span>
-          </button>
-          <button
+          </Button>
+          <Button variant="primary"
             type="button"
             onClick={() => setCreating(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
+            className="flex items-center gap-1.5 cursor-pointer transition-all"
           >
             <Lucide.Plus size={15} strokeWidth={2.4} />
             <span>New Work Order</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -184,14 +185,14 @@ export function Maintenance() {
             </span>
           }
           action={
-            <button
+            <Button variant="primary"
               type="button"
               onClick={() => setCreating(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-label font-semibold rounded-xl bg-[var(--color-primary)] text-white hover:opacity-95 shadow-xs cursor-pointer transition-all"
+              className="flex items-center gap-1.5 cursor-pointer transition-all"
             >
               <Lucide.Plus size={14} strokeWidth={2.4} />
               <span>New request</span>
-            </button>
+            </Button>
           }
         />
         {resource.error ? (
@@ -204,12 +205,12 @@ export function Maintenance() {
         <div className="mb-4 grid grid-cols-1 gap-2.5 md:grid-cols-3">
           <div className="relative">
             <Lucide.Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
-            <input
+            <TextField
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Ticket ID, room or issue…"
               aria-label="Search work orders"
-              className={`${inputClass()} pl-9 w-full text-label`}
+              className={`${inputClass()} w-full`}
             />
           </div>
           <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by status">
@@ -219,13 +220,12 @@ export function Maintenance() {
               </FilterChip>
             ))}
           </div>
-          <button
+          <Button variant="secondary"
             type="button"
-            className="pms-btn-ghost px-3 py-2 text-label font-semibold"
             onClick={() => { setQ(''); setStatus('All'); }}
           >
             Reset
-          </button>
+          </Button>
         </div>
 
         <TableContainer>
@@ -366,44 +366,44 @@ export function Maintenance() {
             </div>
             <div className="mt-2 flex flex-wrap gap-2.5">
               {open.backendStatus === 'OPEN' || open.backendStatus === 'ASSIGNED' || open.backendStatus === 'REOPENED' ? (
-                <button
+                <Button variant="primary"
                   type="button"
-                  className="pms-btn-primary flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5"
+                  className="flex-1 flex items-center justify-center gap-1.5"
                   onClick={() => void transition(open, 'start')}
                 >
                   <Lucide.Play size={15} />
                   <span>Start work</span>
-                </button>
+                </Button>
               ) : null}
               {open.backendStatus === 'IN_PROGRESS' ? (
-                <button
+                <Button variant="primary"
                   type="button"
-                  className="pms-btn-primary flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5"
+                  className="flex-1 flex items-center justify-center gap-1.5"
                   onClick={() => void transition(open, 'resolve')}
                 >
                   <Lucide.CheckCircle2 size={15} />
                   <span>Mark resolved</span>
-                </button>
+                </Button>
               ) : null}
               {open.backendStatus === 'RESOLVED' ? (
-                <button
+                <Button variant="secondary"
                   type="button"
-                  className="pms-btn-ghost flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5"
+                  className="flex-1 flex items-center justify-center gap-1.5"
                   onClick={() => void transition(open, 'close')}
                 >
                   <Lucide.Archive size={15} />
                   <span>Close ticket</span>
-                </button>
+                </Button>
               ) : null}
               {['RESOLVED', 'CLOSED'].includes(open.backendStatus ?? '') ? (
-                <button
+                <Button variant="secondary"
                   type="button"
-                  className="pms-btn-ghost flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5"
+                  className="flex-1 flex items-center justify-center gap-1.5"
                   onClick={() => void transition(open, 'reopen')}
                 >
                   <Lucide.RotateCcw size={15} />
                   <span>Reopen ticket</span>
-                </button>
+                </Button>
               ) : null}
             </div>
           </div>
@@ -451,20 +451,19 @@ export function Maintenance() {
             </select>
           </Field>
           <div className="flex items-end gap-2 sm:pt-6">
-            <button
+            <Button variant="secondary"
               type="button"
-              className="pms-btn-ghost flex-1 px-4 py-2.5"
+              className="flex-1"
               onClick={() => setCreating(false)}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button variant="primary"
               type="button"
-              className="pms-btn-primary flex-[2] px-4 py-2.5 font-semibold"
               onClick={create}
             >
               Create work order
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>

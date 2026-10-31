@@ -4,6 +4,7 @@ import * as Lucide from 'lucide-react';
 import { toast } from '../../utils/toast';
 import { TONE_VARS } from '../../theme/tone';
 import type { Tone } from '../../theme/tone';
+import { Button, IconButton, ListItem } from '../../components/primitives';
 
 type StatusType =
   | 'Available'
@@ -448,12 +449,12 @@ export function StatusTimeline() {
           {STATUS_PILLS.map((pill) => {
             const isFilterActive = selectedStatus === pill.id;
             return (
-              <button
+              <Button variant="secondary"
                 key={pill.id}
                 type="button"
                 onClick={() => setSelectedStatus(isFilterActive ? null : pill.id)}
-                className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-label font-bold whitespace-nowrap transition-all shadow-2xs ${isFilterActive ? 'ring-2 ring-primary ring-offset-1 scale-105' : 'hover:opacity-90'
-                  }`}
+                className={`flex items-center gap-2 whitespace-nowrap transition-all shadow-2xs ${isFilterActive ? 'ring-2 ring-primary ring-offset-1 scale-105' : 'hover:opacity-90'
+ }`}
                 style={{
                   background: pill.bg,
                   color: pill.color,
@@ -465,7 +466,7 @@ export function StatusTimeline() {
                   style={{ background: pill.dot }}
                 />
                 <span>{pill.label}</span>
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -473,28 +474,28 @@ export function StatusTimeline() {
         {/* Date Controls */}
         <div className="flex items-center gap-2 flex-wrap shrink-0">
           {/* Date Selector Button */}
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => toast('Date picker dialog', { tone: 'info' })}
-            className="flex items-center gap-2 rounded-md border px-3 py-1.5 text-label font-medium text-ink shadow-2xs hover:bg-ink/[0.03] transition-colors"
+            className="flex items-center gap-2 transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
             <Lucide.Calendar size={15} className="text-ink-secondary" />
             <span>{currentDate}</span>
-          </button>
+          </Button>
 
           {/* Today Button */}
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => {
               setCurrentDate('Oct 16, 2026');
               toast('Jumped to Today', { tone: 'success' });
             }}
-            className="rounded-md border px-3 py-1.5 text-label font-medium text-primary shadow-2xs hover:bg-ink/[0.03] transition-colors"
+            className="transition-colors"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
           >
             Today
-          </button>
+          </Button>
 
 
         </div>
@@ -539,10 +540,10 @@ export function StatusTimeline() {
               return (
                 <div key={floorNum} className="border-b last:border-b-0" style={{ borderColor: 'var(--color-border)' }}>
                   {/* Floor Accordion Button */}
-                  <button
+                  <ListItem
                     type="button"
                     onClick={() => toggleFloor(floorNum)}
-                    className="flex w-full items-center gap-2 px-4 py-2.5 text-left font-bold text-label transition-colors hover:bg-ink/[0.02]"
+                    className="flex w-full items-center gap-2 text-left font-bold text-label transition-colors hover:bg-ink/[0.02]"
                     style={{
                       background: 'color-mix(in srgb, var(--color-primary) 6%, var(--color-surface))',
                       color: 'var(--color-primary)',
@@ -558,7 +559,7 @@ export function StatusTimeline() {
                     <span className="text-label font-medium text-ink-muted ml-1">
                       ({floorRooms.length} rooms)
                     </span>
-                  </button>
+                  </ListItem>
 
                   {/* Floor Rooms Rows */}
                   {isExpanded &&
@@ -742,14 +743,14 @@ export function StatusTimeline() {
                   </div>
                 </div>
 
-                <button
+                <IconButton variant="ghost"
                   type="button"
                   onClick={() => setSelectedRoomModal(null)}
-                  className="rounded-md p-1.5 text-ink-muted hover:text-ink hover:bg-ink/[0.05] transition-colors"
+                  className="transition-colors"
                   aria-label="Close dialog"
                 >
                   <Lucide.X size={19} />
-                </button>
+                </IconButton>
               </div>
 
               {/* Modal Body */}
@@ -770,12 +771,12 @@ export function StatusTimeline() {
                     ].map((opt) => {
                       const isCurrent = (selectedRoomModal.event?.type ?? 'Available') === opt.type;
                       return (
-                        <button
+                        <Button variant="secondary"
                           key={opt.type}
                           type="button"
                           onClick={() => updateRoomStatus(selectedRoomModal.number, opt.type)}
-                          className={`flex items-center gap-1.5 p-2 rounded-md border text-label font-bold transition-all ${isCurrent ? 'ring-2 ring-primary ring-offset-1 shadow-xs' : 'hover:scale-[1.02]'
-                            }`}
+                          className={`flex items-center gap-1.5 border transition-all ${isCurrent ? 'ring-2 ring-primary ring-offset-1 shadow-xs' : 'hover:scale-[1.02]'
+ }`}
                           style={{
                             background: opt.bg,
                             color: opt.color,
@@ -784,7 +785,7 @@ export function StatusTimeline() {
                         >
                           <opt.icon size={14} strokeWidth={2.4} />
                           <span className="truncate">{opt.label}</span>
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -859,24 +860,23 @@ export function StatusTimeline() {
                   background: 'color-mix(in srgb, var(--color-muted-surface) 30%, var(--color-surface))',
                 }}
               >
-                <button
+                <Button variant="secondary"
                   type="button"
                   onClick={() => setSelectedRoomModal(null)}
-                  className="rounded-md border px-4 py-2 text-label font-bold text-ink hover:bg-ink/[0.04] transition-colors"
+                  className="transition-colors"
                   style={{ borderColor: 'var(--color-border)' }}
                 >
                   Close
-                </button>
-                <button
+                </Button>
+                <Button variant="primary"
                   type="button"
                   onClick={() => {
                     updateRoomStatus(selectedRoomModal.number, 'Inspected');
                     setSelectedRoomModal(null);
                   }}
-                  className="pms-btn-primary px-4 py-2 text-label font-bold rounded-md shadow-xs"
                 >
                   Mark Inspected & Ready
-                </button>
+                </Button>
               </div>
             </div>
           </div>,
