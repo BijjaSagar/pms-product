@@ -42,7 +42,7 @@ function nextDayIso(iso: string): string {
 
 // Shared form classes. Inputs use the theme's pms-input so focus rings, hover
 // and radius match the rest of the app; 16px text on phones stops iOS zooming.
-const labelClass = "block text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink tracking-wide mb-1.5";
+const labelClass = "block text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-medium text-ink-muted tracking-wide mb-1.5";
 const fieldClass =
   "pms-input w-full min-h-[34px] md:min-h-[32px] px-2.5 py-1 text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-semibold";
 const selectClass = `${fieldClass} cursor-pointer`;
@@ -1463,7 +1463,7 @@ export function NewReservation({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 @md:grid-cols-2 gap-3 pt-1">
+                <div className="grid grid-cols-2 gap-3 pt-1">
                   <div>
                     <label htmlFor="res-check-in-time" className={labelClass}>
                       Check-in Time
@@ -1534,7 +1534,7 @@ export function NewReservation({
                   </label>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 pt-1 @md:grid-cols-2">
+                <div className="grid grid-cols-2 gap-3 pt-1 @md:grid-cols-4">
                 {samePlanAllRooms && (
                   <div className="min-w-0">
                     <label htmlFor="res-rate-plan" className={labelClass}>
