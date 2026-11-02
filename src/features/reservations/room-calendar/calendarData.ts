@@ -87,6 +87,12 @@ export function formatCalendarDate(isoDate: string): {
   };
 }
 
+/** Signed whole days from `from` to `to`. Unlike countNights this is not clamped, so a same-day offset is 0. */
+export function daysBetween(from: string, to: string): number {
+  const ms = new Date(`${to}T00:00:00Z`).getTime() - new Date(`${from}T00:00:00Z`).getTime();
+  return Math.round(ms / (1000 * 60 * 60 * 24));
+}
+
 /* ----------------------------------------------------------------- rooms */
 
 const STORE_STATUS_TO_CALENDAR: Record<string, RoomOperationalStatus> = {
