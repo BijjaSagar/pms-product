@@ -59,7 +59,6 @@ const SEARCH_KEYWORDS: Record<ViewId, string[]> = {
   'room-overview': ['rooms', 'beds', 'room matrix', 'floor plan', 'available rooms', 'room status', 'grid', 'inventory', 'room list', 'room numbers'],
   'room-types': ['categories', 'suites', 'deluxe', 'rates', 'pricing', 'amenities', 'bedding', 'room category'],
   'status-board': ['grid', 'live board', 'room board', 'occupancy board', 'status grid'],
-  maintenance: ['repairs', 'broken', 'leak', 'ac', 'plumbing', 'work order', 'issue', 'ticket', 'fix', 'engineer'],
   folios: ['billing', 'charges', 'invoice', 'guest bill', 'account', 'tab', 'ledger', 'balance', 'guest folio'],
   payments: ['cash', 'card', 'credit', 'payment ledger', 'transactions', 'receipt', 'settlement', 'refund'],
   invoices: ['tax invoice', 'bills', 'printable bill', 'pdf invoice', 'corporate billing', 'receipts'],
@@ -1151,13 +1150,12 @@ export function Header({
 
                     <div>
                       <p className="px-2 py-1 text-label font-bold uppercase tracking-wider text-ink-muted">
-                        Rooms, Maintenance & Billing
+                        Rooms & Billing
                       </p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1">
                         {[
                           { id: 'room-overview' as const, label: 'Room Matrix', icon: Lucide.BedDouble },
                           { id: 'status-board' as const, label: 'Status Board', icon: Lucide.LayoutGrid },
-                          { id: 'maintenance' as const, label: 'Maintenance', icon: Lucide.Wrench },
                           { id: 'folios' as const, label: 'Folios & Billing', icon: Lucide.ReceiptText },
                           { id: 'invoices' as const, label: 'Invoices', icon: Lucide.FileText },
                         ].map((item) => (

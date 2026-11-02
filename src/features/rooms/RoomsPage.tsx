@@ -1,11 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import type { HkStatus, HousekeepingTask, MaintenanceRequest, Room, RoomStatus } from '../../types';
-import { Avatar, Badge, Card, CardTitle } from '../../components/ui';
+import { Avatar, Badge } from '../../components/ui';
 import { roomTone } from '../../utils/status';
 import type { BadgeTone } from '../../utils/status';
-import { FilterChip } from '../../components/controls';
-import { inputClass } from '../../utils/styling';
 import { Drawer, PromptDialog } from '../../components/overlays';
 import { toast } from '../../utils/toast';
 import { inventoryApi, operationsApi } from '../../lib/api/pms';
@@ -16,9 +14,7 @@ import { displayApiError } from '../../lib/api/client';
 import { formatCurrency } from '../../lib/api/format';
 import { useAuth } from '../../features/auth/AuthContext';
 import { StatusTimeline } from './StatusTimeline';
-import { Button, SelectField, TextField } from '../../components/primitives';
-
-const STATUS_FILTERS: ('All' | RoomStatus)[] = ['All', 'Available', 'Occupied', 'Dirty', 'Inspected', 'Out-of-service'];
+import { Button } from '../../components/primitives';
 
 function hkTone(hk: HkStatus): BadgeTone {
   if (hk === 'Clean') return 'success';
@@ -158,11 +154,9 @@ function RoomDetail({
 }
 
 export function Rooms({
-  initialQuery,
   focusId,
-  initialViewMode = 'timeline',
+  initialViewMode = 'grid',
 }: {
-  initialQuery?: string;
   focusId?: string;
   initialViewMode?: 'grid' | 'timeline';
 } = {}) {
@@ -193,41 +187,10 @@ export function Rooms({
   // Grid vs Timeline — mirrors the Reservations page view switcher.
   const [viewMode, setViewMode] = useState<'grid' | 'timeline'>(initialViewMode);
 
-  const [q, setQ] = useState(initialQuery ?? '');
-  const [status, setStatus] = useState<('All' | RoomStatus)>('All');
-  const [type, setType] = useState('All');
-  const [floor, setFloor] = useState('All');
-  const [hk, setHk] = useState('All');
   const [openNo, setOpenNo] = useState<string | null>(focusId ?? null);
 
   // Status prompt modal state
   const [statusPrompt, setStatusPrompt] = useState<{ room: Room; targetStatus: RoomStatus } | null>(null);
-
-  const types = useMemo(() => ['All', ...Array.from(new Set(all.map((r) => r.type)))], [all]);
-  const floorOptions = useMemo(
-    () => ['All', ...Array.from(new Set(all.map((r) => r.floor))).sort((a, b) => a - b).map(String)],
-    [all],
-  );
-
-  const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return all.filter(
-      (r) =>
-        (status === 'All' || r.status === status) &&
-        (type === 'All' || r.type === type) &&
-        (floor === 'All' || r.floor === Number(floor)) &&
-        (hk === 'All' || r.hk === hk) &&
-        (!needle || r.number.includes(needle) || (r.guest ?? '').toLowerCase().includes(needle)),
-    );
-  }, [all, q, status, type, floor, hk]);
-
-  const clear = () => {
-    setQ('');
-    setStatus('All');
-    setType('All');
-    setFloor('All');
-    setHk('All');
-  };
 
   const openRoom = all.find((r) => r.number === openNo) ?? null;
 
@@ -293,78 +256,16 @@ export function Rooms({
         <StatusTimeline />
       ) : (
         <>
-          {/* ================= GRID VIEW: ROOM DIRECTORY ================= */}
-          <Card>
-            <CardTitle
-              icon={Lucide.BedDouble}
-              iconBg="bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20"
-              title="Room Directory"
-              badge={
-                <span className="flex items-center gap-1 rounded-full bg-info-bg px-2 py-0.5 text-micro font-bold text-info-text">
-                  {all.length} Rooms
-                </span>
-              }
-            />
-            {resource.error ? (
-              <div className="mb-3 flex items-center gap-2 rounded-xl bg-danger-bg p-4 text-body text-danger-text">
-                <Lucide.AlertCircle size={18} />
-                <span>Could not load room inventory: {resource.error}</span>
-              </div>
-            ) : null}
-
-            <div className="grid grid-cols-1 gap-2.5 md:grid-cols-4">
-              <div className="relative">
-                <Lucide.Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
-                <TextField
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Room number or guest name…"
-                  aria-label="Search rooms"
-                  className={`${inputClass()} w-full`}
-                />
-              </div>
-              <SelectField
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                aria-label="Filter by room type"
-                className={`${inputClass()}`}
-              >
-                {types.map((t) => (
-                  <option key={t} value={t}>{t === 'All' ? 'All room types' : t}</option>
-                ))}
-              </SelectField>
-              <SelectField
-                value={floor}
-                onChange={(e) => setFloor(e.target.value)}
-                aria-label="Filter by floor"
-                className={`${inputClass()}`}
-              >
-                {floorOptions.map((f) => (
-                  <option key={f} value={f}>{f === 'All' ? 'All floors' : f === '0' ? 'Ground / Unassigned' : `Floor ${f}`}</option>
-                ))}
-              </SelectField>
-
+          {resource.error ? (
+            <div className="mb-3 flex items-center gap-2 rounded-xl bg-danger-bg p-4 text-body text-danger-text">
+              <Lucide.AlertCircle size={18} />
+              <span>Could not load room inventory: {resource.error}</span>
             </div>
-
-            <div className="mt-3 flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by room status">
-              {STATUS_FILTERS.map((s) => (
-                <FilterChip key={s} active={status === s} onClick={() => setStatus(s)}>
-                  {s}
-                </FilterChip>
-              ))}
-              <Button variant="link"
-                type="button"
-                onClick={clear}
-                className="ml-auto hover:underline"
-              >
-                Reset filters
-              </Button>
-            </div>
-          </Card>
+          ) : null}
 
           {/* Room Grid */}
           <div className="pms-stagger grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {filtered.map((room) => (
+            {all.map((room) => (
               <article
                 key={room.number}
                 className="pms-card pms-card-hover p-3.5 sm:p-4 flex flex-col justify-between transition-all duration-200"
@@ -408,22 +309,6 @@ export function Rooms({
               </article>
             ))}
           </div>
-
-          {filtered.length === 0 ? (
-            <Card>
-              <div className="py-12 text-center">
-                <Lucide.DoorClosed size={40} className="mx-auto text-ink-muted mb-2 opacity-40" />
-                <p className="pms-helper">No rooms match these filters.</p>
-                <Button variant="link"
-                  type="button"
-                  onClick={clear}
-                  className="mt-2 hover:underline"
-                >
-                  Clear all filters
-                </Button>
-              </div>
-            </Card>
-          ) : null}
 
           {/* Room Drawer */}
           <Drawer

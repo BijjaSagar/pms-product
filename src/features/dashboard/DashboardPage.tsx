@@ -89,21 +89,6 @@ const DEMO_TIMELINE: ActivityItem[] = [
     actionTone: 'text-ink bg-page hover:bg-muted-surface border-border',
     target: { view: 'room-overview' } as NavTarget,
   },
-  {
-    id: 't-5',
-    time: '03:00 PM',
-    type: 'in-house',
-    icon: Lucide.Wrench,
-    iconBg: 'bg-danger-bg text-danger-text border border-danger-border',
-    title: 'AC Thermostat Calibration',
-    subtitle: 'Reported by Guest • Priority Urgent',
-    room: 'Room 305',
-    status: 'High Priority',
-    statusTone: 'bg-danger-bg text-danger-text border-danger-border/60',
-    actionLabel: 'Assign Tech',
-    actionTone: 'text-danger-text bg-danger-bg/80 hover:bg-danger-bg border-danger-border',
-    target: { view: 'maintenance' } as NavTarget,
-  },
 ];
 
 const DEMO_PENDING_CHECKINS = [
@@ -1239,19 +1224,12 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
                       </span>
-                      4 Actions
+                      3 Actions
                     </span>
                   </div>
                   <p className="text-label text-ink-muted mt-0.5">Operational follow-ups & alerts</p>
                 </div>
               </div>
-              <Button variant="link"
-                type="button"
-                onClick={() => go({ view: 'maintenance' })}
-              >
-                <span>View all</span>
-                <Lucide.ArrowRight size={13} />
-              </Button>
             </div>
 
             {/* Tasks List */}
@@ -1275,29 +1253,6 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                     className="cursor-pointer transition-colors"
                   >
                     Release
-                  </Button>
-                </div>
-              </div>
-
-              {/* Task 2 */}
-              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-border/60 bg-surface hover:bg-page/60 transition-colors">
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-danger-text mt-1.5 flex-none" />
-                  <div className="min-w-0">
-                    <p className="text-label font-bold text-ink leading-tight">2 maintenance requests</p>
-                    <p className="text-label text-ink-muted mt-0.5 truncate">AC thermostat in 305 · TV issue in 118</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-danger-bg px-2 py-0.5 text-label font-bold text-danger-text">
-                    Urgent
-                  </span>
-                  <Button variant="secondary"
-                    type="button"
-                    onClick={() => go({ view: 'maintenance' })}
-                    className="cursor-pointer transition-colors text-danger-text hover:text-danger-text bg-danger-bg hover:bg-danger-bg"
-                  >
-                    Assign
                   </Button>
                 </div>
               </div>
@@ -1350,17 +1305,6 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-label text-ink-secondary">
-            <span className="text-label text-ink-muted">5 active tickets · 2 high priority</span>
-            <Button variant="link"
-              type="button"
-              onClick={() => go({ view: 'maintenance' })}
-            >
-              <span>Task manager</span>
-              <Lucide.ArrowRight size={12} />
-            </Button>
-          </div>
         </div>
 
       </div>
