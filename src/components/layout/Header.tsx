@@ -92,7 +92,7 @@ function useDismiss(onDismiss: () => void) {
 }
 
 export function Header({
-  currentView: _currentView,
+  currentView,
   onMenu,
   onOpenThemes,
   onGo,
@@ -104,7 +104,14 @@ export function Header({
 }) {
   const { me, can, logout, switchProperty } = useAuth();
   const [panel, setPanel] = useState<'none' | 'notices' | 'profile'>('none');
-  const [glanceOpen, setGlanceOpen] = useState(false);
+  const [prevView, setPrevView] = useState(currentView);
+  const [glanceOpen, setGlanceOpen] = useState(currentView === 'dashboard');
+
+  if (currentView !== prevView) {
+    setPrevView(currentView);
+    setGlanceOpen(currentView === 'dashboard');
+  }
+
   const [readNotices, setReadNotices] = useState<string[]>([]);
   const [dismissedNotices, setDismissedNotices] = useState<string[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -370,7 +377,7 @@ export function Header({
           boxShadow: 'var(--shadow-sm)',
         }}
       >
-        <div className="flex h-16 w-full items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 w-full items-center justify-between gap-3 pl-2.5 pr-4 sm:pl-3 sm:pr-6 lg:pl-2.5 lg:pr-8">
           {/* ================= LEFT GROUP: Mobile menu toggle ================= */}
           <div className="flex items-center gap-2 lg:hidden">
             <IconButton variant="ghost"
@@ -390,8 +397,7 @@ export function Header({
 
           {/* ================= HORIZONTAL SLIDING KPI DRAWER ================= */}
           <div className="flex items-center gap-2 min-w-0">
-            <IconButton
-              variant="secondary"
+            <button
               type="button"
               onClick={() => {
                 setGlanceOpen((open) => !open);
@@ -400,20 +406,20 @@ export function Header({
               aria-label={glanceOpen ? 'Collapse KPIs' : 'Display KPIs'}
               aria-expanded={glanceOpen}
               title={glanceOpen ? 'Collapse KPIs' : 'Display KPIs'}
-              className={`flex-none transition-all cursor-pointer ${
+              className={`flex h-8 w-8 sm:h-9 sm:w-9 flex-none items-center justify-center rounded-full border transition-all cursor-pointer shadow-xs active:scale-95 ${
                 glanceOpen
-                  ? '!border-[var(--color-primary)] !bg-primary/10 !text-primary shadow-xs'
-                  : 'text-ink-secondary hover:text-ink hover:border-ink-muted active:scale-95'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-surface text-ink hover:bg-page hover:border-ink-muted'
               }`}
             >
               <Lucide.ChevronRight
-                size={18}
-                strokeWidth={2.5}
+                size={16}
+                strokeWidth={2.4}
                 className={`transition-transform duration-300 ease-in-out ${
                   glanceOpen ? 'rotate-180 text-primary' : 'text-ink'
                 }`}
               />
-            </IconButton>
+            </button>
 
             {/* Sliding KPI Strip Container */}
             <div

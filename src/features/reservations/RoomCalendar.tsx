@@ -8,14 +8,14 @@ import { BUSINESS_DATE, addDaysToIso, countNights, formatCalendarDate, loadCalen
 import { validateReservationMove } from './room-calendar/validation';
 import { ReservationChangeDialog } from './room-calendar/ReservationChangeDialog';
 import { ReservationDetailModal } from './room-calendar/ReservationDetailModal';
-import { Badge } from '../../components/ui';
-import { Button, IconButton, TextField } from '../../components/primitives';
+import { IconButton, TextField } from '../../components/primitives';
 import { type ReservationFilters } from './ReservationFilterBar';
 
 // ================= ROOM CALENDAR TAPE CHART COMPONENT =================
 const COL_WIDTH = 114; // keep in sync with the rendered date cells and drag calculations
 const ROW_HEIGHT = 54; // keep in sync with the rendered room rows and drag calculations
 const ROOM_COL_WIDTH = 110; // width of the sticky room allotment column in pixels
+const VIEW_HORIZON_DAYS = 14; // days shown on the timeline
 
 const RESERVATION_BAR_TONES: Record<
   CalendarReservationStatus,
@@ -76,7 +76,6 @@ export function RoomCalendar({
 }) {
   // Calendar base anchor date synced with the canonical PMS BUSINESS_DATE
   const [baseDate, setBaseDate] = useState(BUSINESS_DATE);
-  const [viewHorizonDays, setViewHorizonDays] = useState<7 | 14 | 30>(14);
 
   // Master Data synchronized with central PMS store
   const [rooms] = useState<CalendarRoom[]>(loadCalendarRooms);
@@ -99,11 +98,11 @@ export function RoomCalendar({
     const list: string[] = [];
     // Start from baseDate - 2 days to give immediate past context
     const startOffset = -2;
-    for (let i = 0; i < viewHorizonDays; i++) {
+    for (let i = 0; i < VIEW_HORIZON_DAYS; i++) {
       list.push(addDaysToIso(baseDate, startOffset + i));
     }
     return list;
-  }, [baseDate, viewHorizonDays]);
+  }, [baseDate]);
 
   // Filtered Rooms
   const filteredRooms = useMemo(() => {
@@ -125,11 +124,6 @@ export function RoomCalendar({
   // Date Navigation
   const stepDate = (days: number) => {
     setBaseDate((prev) => addDaysToIso(prev, days));
-  };
-
-  const jumpToToday = () => {
-    setBaseDate(BUSINESS_DATE);
-    toast.info('Jumped to Today', { detail: `Calendar anchored on ${BUSINESS_DATE}` });
   };
 
   /**
@@ -176,23 +170,6 @@ export function RoomCalendar({
       detail: `Room ${room.number} · ${checkIn} → ${checkOut}`,
     });
   };
-
-  // Occupancy metrics for the current visible horizon
-  const stats = useMemo(() => {
-    const totalRoomsCount = rooms.length;
-    const todayIso = baseDate;
-    const occupiedToday = reservations.filter(
-      (r) =>
-        r.status !== 'Cancelled' &&
-        r.checkInDate <= todayIso &&
-        todayIso < r.checkOutDate
-    ).length;
-    const oooCount = rooms.filter((r) => r.status === 'Out-of-Order').length;
-    const availableToday = Math.max(0, totalRoomsCount - occupiedToday - oooCount);
-    const occupancyRate = Math.round((occupiedToday / (totalRoomsCount - oooCount)) * 100) || 0;
-
-    return { totalRoomsCount, occupiedToday, availableToday, oooCount, occupancyRate };
-  }, [rooms, reservations, baseDate]);
 
   // ================= DRAG & DROP LOGIC =================
 
@@ -522,38 +499,6 @@ export function RoomCalendar({
               </IconButton>
             </div>
 
-            <Button variant="secondary"
-              type="button"
-              onClick={jumpToToday}
-              className="transition-colors cursor-pointer"
-            >
-              Today
-            </Button>
-
-            {/* Horizon Switcher (7 / 14 / 30 Days) */}
-            <div className="flex items-center rounded-xl border border-border bg-page p-1 text-label font-semibold shadow-2xs" role="group" aria-label="Calendar range">
-              {([7, 14, 30] as const).map((days) => (
-                <Button
-                  key={days}
-                  variant="text"
-                  type="button"
-                  onClick={() => setViewHorizonDays(days)}
-                  aria-pressed={viewHorizonDays === days}
-                  className={`rounded-lg px-3 py-1 cursor-pointer ${viewHorizonDays === days ? 'bg-surface text-ink shadow-2xs' : 'text-ink-secondary hover:text-ink'}`}
-                >
-                  {days} Days
-                </Button>
-              ))}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-
-              <Badge tone="neutral" size="sm">Rooms <span className="tabular-nums">{stats.totalRoomsCount}</span></Badge>
-              <Badge tone="success" size="sm">Available <span className="tabular-nums">{stats.availableToday}</span></Badge>
-              <Badge tone="info" size="sm">Occupied <span className="tabular-nums">{stats.occupiedToday} · {stats.occupancyRate}%</span></Badge>
-              {stats.oooCount > 0 && (
-                <Badge tone="danger" size="sm">Out of order <span className="tabular-nums">{stats.oooCount}</span></Badge>
-              )}
-            </div>
           </div>
 
         </div>
