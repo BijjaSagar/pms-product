@@ -12,7 +12,6 @@ export const NAV_ICONS: Record<ViewId, Lucide.LucideIcon> = {
   'room-overview': Lucide.BedDouble,
   'room-types': Lucide.Layers,
   'status-board': Lucide.LayoutGrid,
-  maintenance: Lucide.Wrench,
   folios: Lucide.ReceiptText,
   invoices: Lucide.FileText,
   payments: Lucide.CreditCard,
@@ -28,7 +27,7 @@ export const NAV_ICONS: Record<ViewId, Lucide.LucideIcon> = {
 export const SECTION_ICONS: Record<string, Lucide.LucideIcon> = {
   Overview: Lucide.LayoutDashboard,
   'Front Office': Lucide.CalendarDays,
-  'Rooms & Maintenance': Lucide.BedDouble,
+  Rooms: Lucide.BedDouble,
   'Rates & Distribution': Lucide.SlidersHorizontal,
   Finance: Lucide.ReceiptText,
   Analytics: Lucide.BarChart3,

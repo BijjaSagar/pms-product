@@ -8,7 +8,6 @@ import { BUSINESS_DATE, addDaysToIso, countNights, formatCalendarDate, loadCalen
 import { validateReservationMove } from './room-calendar/validation';
 import { ReservationChangeDialog } from './room-calendar/ReservationChangeDialog';
 import { ReservationDetailModal } from './room-calendar/ReservationDetailModal';
-import { IconButton, TextField } from '../../components/primitives';
 import { type ReservationFilters } from './ReservationFilterBar';
 
 // ================= ROOM CALENDAR TAPE CHART COMPONENT =================
@@ -74,8 +73,8 @@ export function RoomCalendar({
   onReservationUpdated?: () => void;
   filters: ReservationFilters;
 }) {
-  // Calendar base anchor date synced with the canonical PMS BUSINESS_DATE
-  const [baseDate, setBaseDate] = useState(BUSINESS_DATE);
+  // The timeline always starts from the PMS business date; there is no date navigation.
+  const baseDate = BUSINESS_DATE;
 
   // Master Data synchronized with central PMS store
   const [rooms] = useState<CalendarRoom[]>(loadCalendarRooms);
@@ -120,11 +119,6 @@ export function RoomCalendar({
       return matchType && matchSearch;
     });
   }, [rooms, filters.roomType, filters.q, reservations]);
-
-  // Date Navigation
-  const stepDate = (days: number) => {
-    setBaseDate((prev) => addDaysToIso(prev, days));
-  };
 
   /**
    * Clicking a free cell on the room rack starts a new reservation pre-filled
@@ -441,72 +435,7 @@ export function RoomCalendar({
 
   return (
     <div className="w-full flex flex-col gap-4 text-ink font-sans select-none">
-      {/* ================= 1. ROOM CALENDAR TOOLBAR ================= */}
-      <section className="pms-card flex flex-col gap-4 p-3.5 sm:p-4" aria-label="Room calendar controls">
-
-        {/* Top Row: Date Step & View Horizon & Master Actions */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
-
-          {/* Left: Date Stepper & Today */}
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <div className="flex items-center rounded-xl border border-border bg-page p-1 shadow-2xs">
-              <IconButton variant="ghost"
-                type="button"
-                onClick={() => stepDate(-7)}
-                title="Previous Week (-7 days)"
-                aria-label="Previous week"
-              >
-                <Lucide.ChevronsLeft size={16} />
-              </IconButton>
-              <IconButton variant="ghost"
-                type="button"
-                onClick={() => stepDate(-1)}
-                title="Previous Day (-1 day)"
-                aria-label="Previous day"
-              >
-                <Lucide.ChevronLeft size={16} />
-              </IconButton>
-
-              <label className="relative flex min-h-[34px] md:min-h-[32px] cursor-pointer items-center gap-2 rounded-xl border border-border/80 bg-surface px-3 text-label font-semibold text-ink shadow-2xs focus-within:ring-2 focus-within:ring-[var(--color-primary)]/25">
-                <Lucide.Calendar size={14} className="text-[var(--color-primary)]" />
-                <span>
-                  {formatCalendarDate(baseDate).month} {formatCalendarDate(baseDate).dayNum}, {formatCalendarDate(baseDate).year}
-                </span>
-                <TextField
-                  type="date"
-                  value={baseDate}
-                  onChange={(e) => e.target.value && setBaseDate(e.target.value)}
-                  aria-label="Choose calendar date"
-                  className="absolute inset-0 w-full cursor-pointer opacity-0"
-                />
-              </label>
-
-              <IconButton variant="ghost"
-                type="button"
-                onClick={() => stepDate(1)}
-                title="Next Day (+1 day)"
-                aria-label="Next day"
-              >
-                <Lucide.ChevronRight size={16} />
-              </IconButton>
-              <IconButton variant="ghost"
-                type="button"
-                onClick={() => stepDate(7)}
-                title="Next Week (+7 days)"
-                aria-label="Next week"
-              >
-                <Lucide.ChevronsRight size={16} />
-              </IconButton>
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      {/* ================= 3. MASTER INTERACTIVE ROOM RACK GRID ================= */}
+      {/* ================= MASTER INTERACTIVE ROOM RACK GRID ================= */}
       <section className="pms-card overflow-hidden" aria-label="Room reservation timeline">
 
         {/* Header Row: Room Label Column + Date Columns */}

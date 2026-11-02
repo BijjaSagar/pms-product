@@ -251,12 +251,6 @@ export const operationsApi = {
   unblockTask: async (id: string) => store.unblockTask(id),
   cancelTask: async (id: string, reason: string) => store.cancelTask(id, reason),
   maintenanceTickets: async () => store.maintenanceTickets(),
-  createTicket: async (body: Record<string, unknown>) => store.createTicket(body),
-  assignTicket: async (id: string, assignedToId: string | null) => store.assignTicket(id, assignedToId),
-  startTicket: async (id: string) => store.startTicket(id),
-  resolveTicket: async (id: string, resolution: string) => store.resolveTicket(id, resolution),
-  closeTicket: async (id: string, reason?: string) => store.closeTicket(id, reason),
-  reopenTicket: async (id: string, reason: string) => store.reopenTicket(id, reason),
 };
 
 export const reportsApi = {

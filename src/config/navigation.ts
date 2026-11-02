@@ -7,7 +7,6 @@ export type ViewId =
   | 'room-overview'
   | 'room-types'
   | 'status-board'
-  | 'maintenance'
   | 'folios'
   | 'payments'
   | 'invoices'
@@ -62,10 +61,9 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    title: 'Rooms & Maintenance',
+    title: 'Rooms',
     items: [
       { id: 'room-overview', label: 'Room Overview', hint: 'Grid & timeline' },
-      { id: 'maintenance', label: 'Maintenance', hint: 'Requests & work orders' },
     ],
   },
   {
@@ -128,7 +126,6 @@ export const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
   'room-overview': 'room.read',
   'room-types': 'room.read',
   'status-board': 'room.read',
-  maintenance: 'maintenance.read',
   folios: 'folio.read',
   payments: 'payment.read',
   invoices: 'invoice.read',

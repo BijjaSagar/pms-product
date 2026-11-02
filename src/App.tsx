@@ -35,7 +35,6 @@ const RateManagement = lazy(() => import('./features/distribution/RateManagement
 const ChannelManager = lazy(() => import('./features/distribution/ChannelManagerPage').then((m) => ({ default: m.ChannelManager })));
 const Guests = lazy(() => import('./features/guests/GuestsPage').then((m) => ({ default: m.Guests })));
 const Rooms = lazy(() => import('./features/rooms/RoomsPage').then((m) => ({ default: m.Rooms })));
-const Maintenance = lazy(() => import('./features/maintenance/MaintenancePage').then((m) => ({ default: m.Maintenance })));
 const Billing = lazy(() => import('./features/finance/BillingPage').then((m) => ({ default: m.Billing })));
 const Payments = lazy(() => import('./features/finance/PaymentsPage').then((m) => ({ default: m.Payments })));
 const Invoices = lazy(() => import('./features/finance/InvoicesPage').then((m) => ({ default: m.Invoices })));
@@ -110,21 +109,11 @@ function Shell() {
       case 'guests':
         return <Guests initialQuery={target.query} focusId={target.focusId} go={go} />;
       case 'room-overview':
-        // Timeline is the default landing view; a deep link that targets a
-        // specific room needs the grid so the detail drawer can open.
-        return (
-          <Rooms
-            initialViewMode={target.focusId ? 'grid' : 'timeline'}
-            initialQuery={target.query}
-            focusId={target.focusId}
-          />
-        );
+        return <Rooms initialViewMode="grid" focusId={target.focusId} />;
       case 'room-types':
         return <Settings initialTab="room-settings" onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'status-board':
         return <Rooms initialViewMode="timeline" />;
-      case 'maintenance':
-        return <Maintenance />;
       case 'folios':
         return <Billing />;
       case 'payments':
