@@ -92,7 +92,7 @@ function useDismiss(onDismiss: () => void) {
 }
 
 export function Header({
-  currentView,
+  currentView: _currentView,
   onMenu,
   onOpenThemes,
   onGo,
@@ -128,7 +128,14 @@ export function Header({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const closePanels = () => setPanel('none');
   const dismissRef = useDismiss(closePanels);
-  const glanceDismissRef = useDismiss(() => setGlanceOpen(false));
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && glanceOpen) setGlanceOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [glanceOpen]);
 
   // Every figure comes from the store (see the effect below). Nothing is invented:
   // until the data arrives, and when it is genuinely zero, the value is 0.
@@ -356,7 +363,6 @@ export function Header({
   return (
     <>
       <header
-        ref={glanceDismissRef}
         className="relative z-30 flex-none border-b backdrop-blur-xl transition-all"
         style={{
           background: 'color-mix(in srgb, var(--color-surface) 88%, transparent)',
@@ -382,25 +388,50 @@ export function Header({
             </IconButton>
           </div>
 
-          {currentView === 'dashboard' && (
-            <TodayGlance items={glanceItems} onGo={onGo} className="hidden lg:flex flex-none" />
-          )}
+          {/* ================= HORIZONTAL SLIDING KPI DRAWER ================= */}
+          <div className="flex items-center gap-2 min-w-0">
+            <IconButton
+              variant="secondary"
+              type="button"
+              onClick={() => {
+                setGlanceOpen((open) => !open);
+                setPanel('none');
+              }}
+              aria-label={glanceOpen ? 'Collapse KPIs' : 'Display KPIs'}
+              aria-expanded={glanceOpen}
+              title={glanceOpen ? 'Collapse KPIs' : 'Display KPIs'}
+              className={`flex-none transition-all cursor-pointer ${
+                glanceOpen
+                  ? '!border-[var(--color-primary)] !bg-primary/10 !text-primary shadow-xs'
+                  : 'text-ink-secondary hover:text-ink hover:border-ink-muted active:scale-95'
+              }`}
+            >
+              <Lucide.ChevronRight
+                size={18}
+                strokeWidth={2.5}
+                className={`transition-transform duration-300 ease-in-out ${
+                  glanceOpen ? 'rotate-180 text-primary' : 'text-ink'
+                }`}
+              />
+            </IconButton>
 
-          {currentView !== 'dashboard' && (
-            <div className="relative flex-none">
-              <Button variant="secondary"
-                type="button"
-                onClick={() => setGlanceOpen((open) => !open)}
-                aria-label={glanceOpen ? 'Close today at a glance' : 'Show today at a glance'}
-                aria-expanded={glanceOpen}
-                className="flex items-center gap-1.5 border border-border bg-surface text-ink shadow-xs transition-colors hover:bg-page"
-                title="Today at a glance"
-              >
-                <span className="hidden sm:inline">Today</span>
-                <Lucide.ChevronDown size={15} className={`transition-transform ${glanceOpen ? 'rotate-180' : ''}`} />
-              </Button>
+            {/* Sliding KPI Strip Container */}
+            <div
+              className="overflow-hidden transition-all duration-300 ease-in-out min-w-0"
+              style={{
+                maxWidth: glanceOpen ? '1400px' : '0px',
+                opacity: glanceOpen ? 1 : 0,
+                pointerEvents: glanceOpen ? 'auto' : 'none',
+              }}
+            >
+              <TodayGlance
+                items={glanceItems}
+                layout="strip"
+                onGo={onGo}
+                className="flex-none"
+              />
             </div>
-          )}
+          </div>
 
           {/* ================= RIGHT GROUP: Actions, Alerts, Themes, Profile ================= */}
           <div className="flex items-center gap-2 sm:gap-2.5 ml-auto flex-none">
@@ -420,7 +451,10 @@ export function Header({
             <div className="relative flex-none" ref={panel === 'notices' ? dismissRef : undefined}>
               <IconButton variant="ghost"
                 type="button"
-                onClick={() => setPanel(panel === 'notices' ? 'none' : 'notices')}
+                onClick={() => {
+                  setPanel(panel === 'notices' ? 'none' : 'notices');
+                  setGlanceOpen(false);
+                }}
                 aria-label={`Notifications, ${unreadCount} unread`}
                 aria-expanded={panel === 'notices'}
                 className="group relative flex items-center justify-center border transition-all hover:bg-ink/[0.03] cursor-pointer flex-none"
@@ -696,7 +730,10 @@ export function Header({
             <div className="relative" ref={panel === 'profile' ? dismissRef : undefined}>
               <button
                 type="button"
-                onClick={() => setPanel(panel === 'profile' ? 'none' : 'profile')}
+                onClick={() => {
+                  setPanel(panel === 'profile' ? 'none' : 'profile');
+                  setGlanceOpen(false);
+                }}
                 aria-label="Open user profile menu"
                 aria-expanded={panel === 'profile'}
                 className="group flex h-10 w-10 items-center justify-center rounded-full border transition-all hover:shadow-xs cursor-pointer flex-none"
@@ -843,25 +880,7 @@ export function Header({
           </div>
         </div>
 
-        {currentView !== 'dashboard' && glanceOpen && (
-          <div
-            className="pms-animate-pop absolute inset-x-3 top-full z-50 mt-2 overflow-hidden rounded-3xl border border-border bg-surface shadow-2xl sm:inset-x-5 lg:inset-x-8"
-            role="dialog"
-            aria-label="Today at a glance"
-          >
-            <div className="h-1 bg-gradient-to-r from-primary via-primary-hover to-dark-accent" />
-            <div className="p-4 sm:p-6">
-              <TodayGlance
-                items={glanceItems}
-                layout="grid"
-                onGo={(target) => {
-                  setGlanceOpen(false);
-                  onGo(target);
-                }}
-              />
-            </div>
-          </div>
-        )}
+
       </header>
 
       {/* ================= GLOBAL SEARCH & NAVIGATION MODAL (Ctrl+F) ================= */}
