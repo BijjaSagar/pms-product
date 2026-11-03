@@ -302,8 +302,9 @@ export function Billing() {
 
 
   // Filter transactions
+  const guestTransactions = currentGuest?.transactions;
   const filteredTransactions = useMemo(() => {
-    return (currentGuest?.transactions ?? []).filter((tx) => {
+    return (guestTransactions ?? []).filter((tx) => {
       // Category filter
       if (categoryFilter !== 'All') {
         if (categoryFilter === 'Room charges' && tx.category !== 'room') return false;
@@ -322,7 +323,7 @@ export function Billing() {
       }
       return true;
     });
-  }, [currentGuest?.transactions, categoryFilter, searchQuery]);
+  }, [guestTransactions, categoryFilter, searchQuery]);
 
   // Toggle selection
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {

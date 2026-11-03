@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import { ApiError } from '../../lib/api/client';
 import { authApi } from '../../lib/api/pms';
 import type { AuthMe } from '../../lib/api/pms';
@@ -18,44 +18,37 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<AuthMe | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
+    if (!me) return;
     setError(null);
     try {
       setMe(await authApi.me());
     } catch (cause) {
       if (cause instanceof ApiError && cause.status === 401) setMe(null);
       else setError(cause instanceof Error ? cause.message : 'Could not load your session.');
+    }
+  }, [me]);
+
+  const login = useCallback(async (email: string, password: string) => {
+    setError(null);
+    setLoading(true);
+    try {
+      await authApi.login(email, password);
+      setMe(await authApi.me());
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not sign in to your session.');
+      throw cause;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    let active = true;
-    authApi.me().then((session) => {
-      if (active) { setMe(session); setError(null); }
-    }).catch((cause: unknown) => {
-      if (!active) return;
-      if (cause instanceof ApiError && cause.status === 401) setMe(null);
-      else setError(cause instanceof Error ? cause.message : 'Could not load your session.');
-    }).finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, []);
-
-  const login = useCallback(async (email: string, password: string) => {
-    setError(null);
-    await authApi.login(email, password);
-    setMe(await authApi.me());
-  }, []);
-
   const logout = useCallback(async () => {
     await authApi.logout();
-    // Static build: there is no login screen, so "signing out" simply reloads
-    // the fixed demo session rather than dropping the user.
-    setMe(await authApi.me());
+    setMe(null);
   }, []);
 
   const switchProperty = useCallback(async (propertyId: string) => {
