@@ -310,8 +310,6 @@ export function NewReservation({
   >("UPI / QR");
   const [collectRef, setCollectRef] = useState("");
   const [copiedCode, setCopiedCode] = useState(false);
-  const [issueModalOpen, setIssueModalOpen] = useState(false);
-  const [issueText, setIssueText] = useState("");
   const [savingReservation, setSavingReservation] = useState(false);
 
   // Confirmation state
@@ -1117,20 +1115,7 @@ export function NewReservation({
                     >
                       ₹{outstanding.toLocaleString("en-IN")}.00
                     </span>
-                    {outstanding > 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setCollectAmount(String(outstanding));
-                          setCollectModalOpen(true);
-                        }}
-                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-warning-text hover:bg-warning-bg"
-                        title="e-Collect payment"
-                        aria-label="e-Collect payment"
-                      >
-                        <Lucide.Banknote size={14} />
-                      </button>
-                    ) : (
+                    {outstanding <= 0 && (
                       <Lucide.Check
                         size={14}
                         className="text-success-text shrink-0"
@@ -1887,18 +1872,6 @@ export function NewReservation({
                       </h2>
                     </div>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCollectAmount(String(outstanding));
-                      setCollectModalOpen(true);
-                    }}
-                    className="flex flex-none items-center gap-1.5 rounded-xl bg-warning-text px-3 py-1.5 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-white shadow-xs transition-all hover:bg-warning-text cursor-pointer"
-                  >
-                    <Lucide.Banknote size={13} />
-                    <span>Collect Payment</span>
-                  </button>
                 </div>
 
                 <BillingRoutingFields
@@ -1983,13 +1956,6 @@ export function NewReservation({
                     </span>
                     <span className="shrink-0 text-right font-semibold font-mono text-ink">
                       ₹{roomCharges.toLocaleString("en-IN")}.00
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-ink-secondary">
-                    <span className="min-w-0 flex-1">Meal plan supplements</span>
-                    <span className="shrink-0 text-right font-semibold font-mono text-ink">
-                      ₹{mealPlanCharges.toLocaleString("en-IN")}.00
                     </span>
                   </div>
 
@@ -2160,26 +2126,35 @@ export function NewReservation({
       {/* ================= FLOATING ACTION DOCK (BOTTOM BAR) ================= */}
       <div className="sticky bottom-3 z-30 mx-auto w-full max-w-4xl">
         <div className="backdrop-blur-md bg-surface/95 rounded-2xl border border-border/90 p-3 md:px-4 shadow-lg flex flex-wrap items-center justify-between gap-2 md:gap-3">
-          {/* Left: Report an issue */}
-          <button
-            type="button"
-            onClick={() => setIssueModalOpen(true)}
-            aria-label="Report issue"
-            className="flex items-center gap-1.5 px-3 min-h-[34px] md:min-h-[32px] py-1 rounded-xl border border-danger-border bg-danger-bg/70 hover:bg-danger-bg/80 text-danger-text text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold transition-colors cursor-pointer"
-          >
-            <Lucide.AlertCircle size={14} />
-            <span className="hidden md:inline">Report Issue</span>
-          </button>
-
-          {/* Center: Live Total Ticker */}
-          <div className="hidden md:flex items-center gap-2 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold px-3 py-1.5 rounded-xl bg-page border border-border/60">
-            <span className="text-ink-secondary">
-              {requirements.length} Room(s) · {nightsCount} Night(s)
-            </span>
-            <span className="h-3 w-[1px] bg-ink-disabled" />
-            <span className="font-mono text-ink">
-              ₹{totalBill.toLocaleString("en-IN")}.00
-            </span>
+          {/* Center: Document actions */}
+          <div className="flex items-center gap-1.5 md:gap-2">
+            <button
+              type="button"
+              aria-label="Email"
+              title="Email"
+              className="flex items-center gap-1.5 rounded-xl border border-border bg-surface px-2.5 min-h-[34px] md:min-h-[32px] py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink transition-colors hover:bg-page cursor-pointer md:px-3.5"
+            >
+              <Lucide.Mail size={14} className="text-ink-secondary" />
+              <span className="hidden md:inline">Email</span>
+            </button>
+            <button
+              type="button"
+              aria-label="Print"
+              title="Print"
+              className="flex items-center gap-1.5 rounded-xl border border-border bg-surface px-2.5 min-h-[34px] md:min-h-[32px] py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink transition-colors hover:bg-page cursor-pointer md:px-3.5"
+            >
+              <Lucide.Printer size={14} className="text-ink-secondary" />
+              <span className="hidden md:inline">Print</span>
+            </button>
+            <button
+              type="button"
+              aria-label="More"
+              title="More"
+              className="flex items-center gap-1.5 rounded-xl border border-border bg-surface px-2.5 min-h-[34px] md:min-h-[32px] py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink transition-colors hover:bg-page cursor-pointer md:px-3.5"
+            >
+              <Lucide.MoreHorizontal size={14} className="text-ink-secondary" />
+              <span className="hidden md:inline">More</span>
+            </button>
           </div>
 
           {/* Right: Actions */}
@@ -2291,42 +2266,6 @@ export function NewReservation({
                 />
               </div>
             </div>
-      </Modal>
-
-      {/* ================= REPORT ISSUE MODAL ================= */}
-      <Modal
-        open={issueModalOpen}
-        onClose={() => setIssueModalOpen(false)}
-        title="Report Reservation Issue"
-        subtitle="Escalate an allotment, rate, or sync issue"
-        footer={
-          <>
-            <button type="button" onClick={() => setIssueModalOpen(false)} className="pms-btn-ghost">
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                toast.success("Issue Submitted", {
-                  detail: "Escalated to IT & Duty Manager.",
-                });
-                setIssueModalOpen(false);
-                setIssueText("");
-              }}
-              className="pms-btn-danger"
-            >
-              Submit Ticket
-            </button>
-          </>
-        }
-      >
-        <textarea
-              rows={3}
-              value={issueText}
-              onChange={(e) => setIssueText(e.target.value)}
-              placeholder="Describe the issue (e.g. rate mismatch on OTA, room allocation conflict)..."
-              className={textareaClass}
-            />
       </Modal>
 
       {guestModalOpen && (

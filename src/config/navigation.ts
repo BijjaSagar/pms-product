@@ -63,7 +63,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: 'Rooms',
     items: [
-      { id: 'room-overview', label: 'Room Overview', hint: 'Grid & timeline' },
+      { id: 'room-overview', label: 'Room Overview', hint: 'Housekeeping and Maintenance' },
     ],
   },
   {
