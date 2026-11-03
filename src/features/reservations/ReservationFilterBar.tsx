@@ -11,7 +11,7 @@ import {
   type ReservationFilters,
 } from './reservationFilters';
 
-export type ReservationViewMode = 'list' | 'calendar';
+type ReservationViewMode = 'list' | 'calendar';
 
 const VIEW_OPTIONS = [
   { id: 'calendar', label: 'Calendar', Icon: Lucide.CalendarRange },

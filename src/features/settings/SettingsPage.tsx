@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
-import { propertyApi, adminApi, inventoryApi } from '../../lib/api/pms';
+import { propertyApi, adminApi, inventoryApi, settingsApi } from '../../lib/api/pms';
+import { clockDisplay, clockTo24, zoneLabelOf, zoneOf } from '../../lib/api/propertyMapping';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { toast } from '../../utils/toast';
 import { displayApiError } from '../../lib/api/client';
@@ -33,6 +34,41 @@ interface AmenityItem {
   checked: boolean;
 }
 
+/*
+ * Property settings that have no column in the backend. Each is kept as a setting under its key,
+ * and a value that was never saved reads as the empty value here.
+ */
+const SETTING_FALLBACKS: Record<string, unknown> = {
+  'address.line2': '',
+  'contact.phone': '',
+  'contact.email': '',
+  'contact.website': '',
+  'contact.frontDeskPhone': '',
+  'contact.reservationsEmail': '',
+  'contact.generalEmail': '',
+  'contact.emergencyPhone': '',
+  'property.type': '',
+  'property.starRating': '',
+  'property.description': '',
+  'property.amenities': [],
+  'ops.dateFormat': 'DD/MM/YYYY',
+  'invoice.prefix': 'INV-',
+  'policy.cancellation': '',
+  'policy.noShow': '',
+  'policy.child': '',
+};
+
+async function readSettings(): Promise<Record<string, unknown>> {
+  const entries = await Promise.all(
+    Object.entries(SETTING_FALLBACKS).map(async ([key, fallback]) => [key, await settingsApi.get(key, fallback)] as const),
+  );
+  return Object.fromEntries(entries);
+}
+
+function saveSettings(values: Record<string, unknown>): Promise<void[]> {
+  return Promise.all(Object.entries(values).map(([key, value]) => settingsApi.set(key, value)));
+}
+
 const EMPTY_ROOM_TYPE: RoomType = {
   id: '',
   name: '',
@@ -47,18 +83,37 @@ const EMPTY_ROOM_TYPE: RoomType = {
   active: true,
 };
 
+/* The operational preferences the room settings tab edits: stored settings, plus the property's hold time. */
+async function loadRoomPreferences(readSettingValues: boolean, readProperty: boolean) {
+  const [inventory, turnaround, keycards, property] = await Promise.all([
+    loadRoomInventory(),
+    readSettingValues ? settingsApi.get<number | null>('ops.turnaroundMinutes', null) : Promise.resolve(null),
+    readSettingValues ? settingsApi.get<number | null>('ops.keycardsPerRoom', null) : Promise.resolve(null),
+    readProperty ? propertyApi.current() : Promise.resolve(null),
+  ]);
+  return { ...inventory, turnaround, keycards, property };
+}
+
 function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
-  const resource = useApiResource(() => loadRoomInventory());
+  const { can } = useAuth();
+  const resource = useApiResource(useCallback(() => loadRoomPreferences(can('config.manage'), can('property.read')), [can]));
   const types: RoomType[] = resource.data?.roomTypes ?? [];
   const [editing, setEditing] = useState<RoomType | null>(null);
   const [amenText, setAmenText] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Operational preferences state
-  const [turnaroundMinutes, setTurnaroundMinutes] = useState('30');
-  const [keycardsPerRoom, setKeycardsPerRoom] = useState('2');
-  const [autoReleaseHoldMinutes, setAutoReleaseHoldMinutes] = useState('15');
+  // Operational preferences, filled from the backend once when they arrive
+  const [turnaroundMinutes, setTurnaroundMinutes] = useState('');
+  const [keycardsPerRoom, setKeycardsPerRoom] = useState('');
+  const [autoReleaseHoldMinutes, setAutoReleaseHoldMinutes] = useState('');
   const [savingPrefs, setSavingPrefs] = useState(false);
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
+  if (resource.data && !prefsLoaded) {
+    setPrefsLoaded(true);
+    setTurnaroundMinutes(resource.data.turnaround === null ? '' : String(resource.data.turnaround));
+    setKeycardsPerRoom(resource.data.keycards === null ? '' : String(resource.data.keycards));
+    setAutoReleaseHoldMinutes(resource.data.property?.holdMinutes == null ? '' : String(resource.data.property.holdMinutes));
+  }
 
   const openAdd = () => {
     setEditing({ ...EMPTY_ROOM_TYPE, id: `RT-NEW-${types.length + 1}` });
@@ -117,12 +172,25 @@ function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
     }
   };
 
-  const handleSavePreferences = () => {
+  const handleSavePreferences = async () => {
+    const turnaround = Number(turnaroundMinutes);
+    const keycards = Number(keycardsPerRoom);
+    const hold = Number(autoReleaseHoldMinutes);
+    if (!Number.isInteger(turnaround) || !Number.isInteger(keycards) || !Number.isInteger(hold) || hold < 1) {
+      toast('Enter whole numbers for the room rules', { tone: 'warning' });
+      return;
+    }
     setSavingPrefs(true);
-    setTimeout(() => {
-      setSavingPrefs(false);
+    try {
+      await saveSettings({ 'ops.turnaroundMinutes': turnaround, 'ops.keycardsPerRoom': keycards });
+      await propertyApi.update({ holdMinutes: hold });
+      resource.refresh();
       toast('Room operational rules updated', { tone: 'success' });
-    }, 350);
+    } catch (err) {
+      toast('Could not save room operational rules', { detail: displayApiError(err), tone: 'danger' });
+    } finally {
+      setSavingPrefs(false);
+    }
   };
 
   const totalRooms = types.reduce((s, t) => s + t.count, 0);
@@ -499,23 +567,23 @@ export function Settings({
   onOpenThemes?: () => void;
   initialTab?: SettingsTab;
 }) {
-  const { me, can } = useAuth();
+  const { can } = useAuth();
   const { preset, setPreset } = useTheme();
 
-  // Load active property & taxes
+  // The property, the settings the backend keeps as key and value pairs, and the rooms that make up the property
   const loadSettings = useCallback(async () => {
-    const [properties, taxRules] = await Promise.all([
-      can('property.read') ? propertyApi.list() : Promise.resolve([]),
+    const [property, taxRules, rooms, stored] = await Promise.all([
+      can('property.read') ? propertyApi.current() : Promise.resolve(null),
       can('invoice.read') ? adminApi.taxRules() : Promise.resolve([]),
+      can('room.read') ? inventoryApi.rooms() : Promise.resolve([]),
+      can('config.manage') ? readSettings() : Promise.resolve(SETTING_FALLBACKS),
     ]);
-    return {
-      property: properties.find((p) => p.id === me?.activePropertyId) ?? null,
-      taxRules,
-    };
-  }, [can, me?.activePropertyId]);
+    return { property, taxRules, rooms, stored };
+  }, [can]);
 
   const resource = useApiResource(loadSettings);
-  const property = resource.data?.property;
+  const property = resource.data?.property ?? null;
+  const stored = resource.data?.stored ?? SETTING_FALLBACKS;
   const currencyCode = property?.currencyCode ?? 'INR';
 
   const [activeTab, setActiveTab] = useState<SettingsTab>(
@@ -523,130 +591,169 @@ export function Settings({
   );
   const [saving, setSaving] = useState(false);
 
-  // Basic Information State
-  const [propertyName, setPropertyName] = useState('The Grand Horizon Hotel');
-  const [propertyCode, setPropertyCode] = useState('TGH');
-  const [propertyType, setPropertyType] = useState('Hotel');
-  const [starRating, setStarRating] = useState('4');
-  const [addressLine1, setAddressLine1] = useState('123 Beach Road');
-  const [addressLine2, setAddressLine2] = useState('Marine Drive');
-  const [city, setCity] = useState('Mumbai');
-  const [stateProvince, setStateProvince] = useState('Maharashtra');
-  const [country, setCountry] = useState('India');
-  const [postalCode, setPostalCode] = useState('400020');
-  const [phone, setPhone] = useState('+91 22 1234 5678');
-  const [email, setEmail] = useState('info@grandhorizon.in');
-  const [website, setWebsite] = useState('https://www.grandhorizon.in');
+  // Basic information
+  const [propertyName, setPropertyName] = useState('');
+  const [propertyCode, setPropertyCode] = useState('');
+  const [propertyType, setPropertyType] = useState('');
+  const [starRating, setStarRating] = useState('');
+  const [addressLine1, setAddressLine1] = useState('');
+  const [addressLine2, setAddressLine2] = useState('');
+  const [city, setCity] = useState('');
+  const [stateProvince, setStateProvince] = useState('');
+  const [country, setCountry] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [website, setWebsite] = useState('');
 
-  // Contact Information State
-  const [frontDeskPhone, setFrontDeskPhone] = useState('+91 22 1234 5678');
-  const [reservationsEmail, setReservationsEmail] = useState('reservations@grandhorizon.in');
-  const [generalEmail, setGeneralEmail] = useState('info@grandhorizon.in');
-  const [emergencyPhone, setEmergencyPhone] = useState('+91 98765 43210');
+  // Contact information
+  const [frontDeskPhone, setFrontDeskPhone] = useState('');
+  const [reservationsEmail, setReservationsEmail] = useState('');
+  const [generalEmail, setGeneralEmail] = useState('');
+  const [emergencyPhone, setEmergencyPhone] = useState('');
 
-  // Operational Settings State
-  const [timeZone, setTimeZone] = useState('(GMT+05:30) India Standard Time');
+  // Operational settings
+  const [timeZone, setTimeZone] = useState('');
   const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
-  const [checkInTime, setCheckInTime] = useState('02:00 PM');
-  const [checkOutTime, setCheckOutTime] = useState('12:00 PM');
-  const [currency, setCurrency] = useState('INR - Indian Rupee (₹)');
-  const [floors, setFloors] = useState('5');
-  const [totalRooms, setTotalRooms] = useState('50');
+  const [checkInTime, setCheckInTime] = useState('');
+  const [checkOutTime, setCheckOutTime] = useState('');
+  const [currency, setCurrency] = useState('');
+  const [floors, setFloors] = useState('');
+  const [totalRooms, setTotalRooms] = useState('');
 
-  // Property Description State
-  const [description, setDescription] = useState(
-    'The Grand Horizon Hotel is a premium 4-star hotel located in the heart of Mumbai, offering modern amenities, elegant rooms, and exceptional hospitality. Experience comfort, convenience, and luxury with stunning city and sea views.'
-  );
+  // Property description
+  const [description, setDescription] = useState('');
 
-  // Amenities & Facilities State
-  const [amenities, setAmenities] = useState<AmenityItem[]>([
-    { id: 'wifi', label: 'Free WiFi', checked: true },
-    { id: 'pool', label: 'Swimming Pool', checked: true },
-    { id: 'restaurant', label: 'Restaurant', checked: true },
-    { id: 'fitness', label: 'Fitness Center', checked: true },
-    { id: 'spa', label: 'Spa & Wellness', checked: true },
-    { id: 'bar', label: 'Bar/Lounge', checked: true },
-    { id: 'business', label: 'Business Center', checked: true },
-    { id: 'parking', label: 'Parking', checked: true },
-    { id: 'airport', label: 'Airport Transfer', checked: false },
-    { id: 'frontdesk', label: '24/7 Front Desk', checked: true },
-    { id: 'roomservice', label: 'Room Service', checked: true },
-    { id: 'pets', label: 'Pet Friendly', checked: false },
-  ]);
+  // Amenities & facilities
+  const [amenities, setAmenities] = useState<AmenityItem[]>([]);
 
-  // Sync initial API data when loaded
+  // Policies and invoice details
+  const [cancellationPolicy, setCancellationPolicy] = useState('');
+  const [noShowPolicy, setNoShowPolicy] = useState('');
+  const [childPolicy, setChildPolicy] = useState('');
+  const [invoicePrefix, setInvoicePrefix] = useState('');
+  const [gstin, setGstin] = useState('');
+
+  // Fill the form from what the backend holds, once, when it first arrives
   const [hasInitialized, setHasInitialized] = useState(false);
-  if (property && !hasInitialized) {
-    if (property.name) setPropertyName(property.name);
-    if (property.addressLine1) setAddressLine1(property.addressLine1);
-    if (property.city) setCity(property.city);
-    if (property.currencyCode) setCurrency(`${property.currencyCode}`);
-    if (property.timezone) setTimeZone(property.timezone);
-    if (property.checkInTime) setCheckInTime(property.checkInTime);
-    if (property.checkOutTime) setCheckOutTime(property.checkOutTime);
+  if (resource.data && !hasInitialized) {
     setHasInitialized(true);
+    const rooms = resource.data.rooms;
+    if (property) {
+      setPropertyName(property.name);
+      setPropertyCode(property.code);
+      setAddressLine1(property.addressLine1 ?? '');
+      setCity(property.city ?? '');
+      setStateProvince(property.state ?? '');
+      setPostalCode(property.postalCode ?? '');
+      setCountry(property.countryCode ?? '');
+      setCurrency(property.currencyCode);
+      setTimeZone(zoneLabelOf(property.timezone));
+      setCheckInTime(property.checkInTime ? clockDisplay(property.checkInTime) : '');
+      setCheckOutTime(property.checkOutTime ? clockDisplay(property.checkOutTime) : '');
+    }
+    setAddressLine2(String(stored['address.line2'] ?? ''));
+    setPhone(String(stored['contact.phone'] ?? ''));
+    setEmail(String(stored['contact.email'] ?? ''));
+    setWebsite(String(stored['contact.website'] ?? ''));
+    setPropertyType(String(stored['property.type'] ?? ''));
+    setStarRating(String(stored['property.starRating'] ?? ''));
+    setFrontDeskPhone(String(stored['contact.frontDeskPhone'] ?? ''));
+    setReservationsEmail(String(stored['contact.reservationsEmail'] ?? ''));
+    setGeneralEmail(String(stored['contact.generalEmail'] ?? ''));
+    setEmergencyPhone(String(stored['contact.emergencyPhone'] ?? ''));
+    setDateFormat(String(stored['ops.dateFormat'] ?? 'DD/MM/YYYY'));
+    setDescription(String(stored['property.description'] ?? ''));
+    setAmenities(Array.isArray(stored['property.amenities']) ? (stored['property.amenities'] as AmenityItem[]) : []);
+    setCancellationPolicy(String(stored['policy.cancellation'] ?? ''));
+    setNoShowPolicy(String(stored['policy.noShow'] ?? ''));
+    setChildPolicy(String(stored['policy.child'] ?? ''));
+    setInvoicePrefix(String(stored['invoice.prefix'] ?? 'INV-'));
+    setGstin(property?.gstin ?? '');
+    setTotalRooms(String(rooms.length));
+    setFloors(String(new Set(rooms.map((room) => room.floor)).size));
   }
 
   // Active Tax rule
   const activeTax = resource.data?.taxRules.find((rule) => rule.isActive);
-  const [taxRate, setTaxRate] = useState<number>(Number(activeTax?.ratePercent ?? 12));
+  const [taxRate, setTaxRate] = useState<number>(Number(activeTax?.ratePercent ?? 0));
 
-  // Save handler for backend-wired fields
-  const handleSaveBasic = async () => {
-    if (!me?.activePropertyId) {
-      toast('Basic information saved locally', { tone: 'success' });
-      return;
-    }
+  /** Runs one save, with the same success and failure messages for every section. */
+  const runSave = async (what: string, save: () => Promise<unknown>) => {
     setSaving(true);
     try {
-      await propertyApi.update(me.activePropertyId, {
-        name: propertyName,
-        addressLine1,
-        city,
-      });
+      await save();
       resource.refresh();
-      toast('Basic Information saved successfully', { tone: 'success' });
+      toast(`${what} saved successfully`, { tone: 'success' });
     } catch (err) {
-      toast('Could not save basic information', { detail: displayApiError(err), tone: 'danger' });
+      toast(`Could not save ${what.toLowerCase()}`, { detail: displayApiError(err), tone: 'danger' });
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSaveContact = () => {
-    toast('Contact Information updated successfully', { tone: 'success' });
-  };
+  const handleSaveBasic = () =>
+    runSave('Basic information', async () => {
+      await propertyApi.update({ name: propertyName, addressLine1, city, state: stateProvince, postalCode });
+      await saveSettings({
+        'address.line2': addressLine2,
+        'contact.phone': phone,
+        'contact.email': email,
+        'contact.website': website,
+        'property.type': propertyType,
+        'property.starRating': starRating,
+      });
+    });
 
-  const handleSaveOperations = async () => {
-    if (!me?.activePropertyId) {
-      toast('Operational Settings saved locally', { tone: 'success' });
+  const handleSaveContact = () =>
+    runSave('Contact information', () =>
+      saveSettings({
+        'contact.frontDeskPhone': frontDeskPhone,
+        'contact.reservationsEmail': reservationsEmail,
+        'contact.generalEmail': generalEmail,
+        'contact.emergencyPhone': emergencyPhone,
+      }),
+    );
+
+  const handleSaveOperations = () => {
+    const checkIn = clockTo24(checkInTime);
+    const checkOut = clockTo24(checkOutTime);
+    if (!checkIn || !checkOut) {
+      toast('Enter the times as 02:00 PM or 14:00', { tone: 'warning' });
       return;
     }
-    setSaving(true);
-    try {
-      const code = currency.split(' ')[0] ?? 'INR';
-      await propertyApi.update(me.activePropertyId, {
-        currencyCode: code,
-        timezone: timeZone,
-        checkInTime,
-        checkOutTime,
+    return runSave('Operational settings', async () => {
+      await propertyApi.update({
+        currencyCode: currency.split(' ')[0] ?? 'INR',
+        timezone: zoneOf(timeZone),
+        checkInTime: checkIn,
+        checkOutTime: checkOut,
       });
-      resource.refresh();
-      toast('Operational settings saved successfully', { tone: 'success' });
-    } catch (err) {
-      toast('Could not save operational settings', { detail: displayApiError(err), tone: 'danger' });
-    } finally {
-      setSaving(false);
-    }
+      await saveSettings({ 'ops.dateFormat': dateFormat });
+    });
   };
 
-  const handleSaveDescription = () => {
-    toast('Property description updated', { tone: 'success' });
-  };
+  const handleSaveDescription = () =>
+    runSave('Property description', () => saveSettings({ 'property.description': description }));
 
-  const handleSaveAmenities = () => {
-    toast('Amenities & facilities updated', { tone: 'success' });
-  };
+  const handleSaveAmenities = () =>
+    runSave('Amenities & facilities', () => saveSettings({ 'property.amenities': amenities }));
+
+  const handleSavePolicies = () =>
+    runSave('Policies', () =>
+      saveSettings({
+        'policy.cancellation': cancellationPolicy,
+        'policy.noShow': noShowPolicy,
+        'policy.child': childPolicy,
+      }),
+    );
+
+  const handleSaveInvoiceDetails = () =>
+    runSave('Invoice details', async () => {
+      await propertyApi.update({ gstin });
+      await saveSettings({ 'invoice.prefix': invoicePrefix });
+    });
+
 
   const toggleAmenity = (id: string) => {
     setAmenities((prev) =>
@@ -1252,7 +1359,7 @@ export function Settings({
                     <TextField
                       type="number"
                       value={floors}
-                      onChange={(e) => setFloors(e.target.value)}
+                      readOnly
                       className="w-full focus:outline-none focus:ring-2"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
@@ -1263,7 +1370,7 @@ export function Settings({
                     <TextField
                       type="number"
                       value={totalRooms}
-                      onChange={(e) => setTotalRooms(e.target.value)}
+                      readOnly
                       className="w-full focus:outline-none focus:ring-2"
                       style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                     />
@@ -1511,7 +1618,8 @@ export function Settings({
               <div>
                 <label className="block text-label font-medium text-ink mb-1.5">Cancellation Policy</label>
                 <TextField
-                  defaultValue="Free cancellation until 48h before arrival; first night charged thereafter."
+                  value={cancellationPolicy}
+                  onChange={(e) => setCancellationPolicy(e.target.value)}
                   className="w-full"
                   style={{ borderColor: 'var(--color-border)' }}
                 />
@@ -1519,7 +1627,8 @@ export function Settings({
               <div>
                 <label className="block text-label font-medium text-ink mb-1.5">No-show Policy</label>
                 <TextField
-                  defaultValue="First night charged to the primary payment method on file."
+                  value={noShowPolicy}
+                  onChange={(e) => setNoShowPolicy(e.target.value)}
                   className="w-full"
                   style={{ borderColor: 'var(--color-border)' }}
                 />
@@ -1527,14 +1636,15 @@ export function Settings({
               <div>
                 <label className="block text-label font-medium text-ink mb-1.5">Child & Extra Bed Policy</label>
                 <TextField
-                  defaultValue="Children under 6 stay complimentary using existing bedding."
+                  value={childPolicy}
+                  onChange={(e) => setChildPolicy(e.target.value)}
                   className="w-full"
                   style={{ borderColor: 'var(--color-border)' }}
                 />
               </div>
               <Button variant="primary"
                 type="button"
-                onClick={() => toast('Policies saved', { tone: 'success' })}
+                onClick={handleSavePolicies}
                 className="mt-2 w-fit"
               >
                 Save Policies
@@ -1623,15 +1733,15 @@ export function Settings({
             <div className="flex flex-col gap-3">
               <div>
                 <label className="block text-label font-medium text-ink mb-1.5">Invoice Prefix</label>
-                <TextField defaultValue="INV-2026-" className="w-full font-mono" style={{ borderColor: 'var(--color-border)' }} />
+                <TextField value={invoicePrefix} onChange={(e) => setInvoicePrefix(e.target.value)} className="w-full font-mono" style={{ borderColor: 'var(--color-border)' }} />
               </div>
               <div>
                 <label className="block text-label font-medium text-ink mb-1.5">Tax Registration / GSTIN</label>
-                <TextField defaultValue="27AAAAA0000A1Z5" className="w-full font-mono" style={{ borderColor: 'var(--color-border)' }} />
+                <TextField value={gstin} onChange={(e) => setGstin(e.target.value)} className="w-full font-mono" style={{ borderColor: 'var(--color-border)' }} />
               </div>
               <Button variant="primary"
                 type="button"
-                onClick={() => toast('Invoice details saved', { tone: 'success' })}
+                onClick={handleSaveInvoiceDetails}
                 className="w-fit"
               >
                 Save Invoice Details

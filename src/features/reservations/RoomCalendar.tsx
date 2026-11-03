@@ -1,19 +1,17 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { toast } from '../../utils/toast';
 import type { NavTarget } from '../../config/navigation';
-import { store } from '../../data/store';
 import { IconButton } from '../../components/primitives';
 import type { CalendarReservation, CalendarRoom, DragState, ProposedReservationChange, ReservationStatus as CalendarReservationStatus } from './room-calendar/types';
+import { useBusinessDate } from '../../lib/api/businessDate';
 import {
-  BUSINESS_DATE,
   addDaysToIso,
   countNights,
   daysBetween,
   formatCalendarDate,
   loadCalendarDayEvents,
-  loadCalendarRooms,
-  loadSyncedReservations,
+  loadCalendarState,
 } from './room-calendar/calendarData';
 import { validateReservationMove } from './room-calendar/validation';
 import { ReservationChangeDialog } from './room-calendar/ReservationChangeDialog';
@@ -26,7 +24,8 @@ import { DayNoteModal } from './day-log/DayNoteModal';
 import { DayEnquiriesModal } from './day-log/DayEnquiriesModal';
 import { RoomCellMenu } from './room-calendar/RoomCellMenu';
 import { RoomEnquiryDialog } from './room-calendar/RoomEnquiryDialog';
-import { dayLogApi, holdApi, type DayLogSummaryRow } from '../../lib/api/pms';
+import { dayLogApi, frontDeskApi, holdApi, reservationApi, type DayLogSummaryRow } from '../../lib/api/pms';
+import { displayApiError } from '../../lib/api/client';
 
 // ================= ROOM CALENDAR: 10-DAY VIEW =================
 const DAYS_IN_VIEW = 10;
@@ -239,7 +238,8 @@ export function RoomCalendar({
 }) {
   // The window starts on the range's first night, or the business date when no range is set;
   // the arrows move it by a full window. Changing the range resets the window to its start.
-  const windowAnchor = filters.from || BUSINESS_DATE;
+  const businessDate = useBusinessDate();
+  const windowAnchor = filters.from || businessDate;
   const [startOffset, setStartOffset] = useState(0);
   const [anchorSeen, setAnchorSeen] = useState(windowAnchor);
   if (anchorSeen !== windowAnchor) {
@@ -253,10 +253,34 @@ export function RoomCalendar({
   const firstDay = days[0];
   const horizonEnd = addDaysToIso(days[DAYS_IN_VIEW - 1], 1);
 
-  // Master data synchronized with the central PMS store
-  const [rooms] = useState<CalendarRoom[]>(loadCalendarRooms);
-  const [reservations, setReservations] = useState<CalendarReservation[]>(() => loadSyncedReservations());
+  // Rooms and reservations, read from the backend
+  const [rooms, setRooms] = useState<CalendarRoom[]>([]);
+  const [reservations, setReservations] = useState<CalendarReservation[]>([]);
   const [dayEvents] = useState(loadCalendarDayEvents);
+  const reloadCalendar = useCallback(async () => {
+    try {
+      const state = await loadCalendarState();
+      setRooms(state.rooms);
+      setReservations(state.reservations);
+    } catch (error) {
+      toast.error('Calendar not loaded', { detail: displayApiError(error) });
+    }
+  }, []);
+  useEffect(() => {
+    let active = true;
+    loadCalendarState()
+      .then((state) => {
+        if (!active) return;
+        setRooms(state.rooms);
+        setReservations(state.reservations);
+      })
+      .catch((error: unknown) => {
+        if (active) toast.error('Calendar not loaded', { detail: displayApiError(error) });
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Day notes and enquiries: summary drives the header icons, the date opens the day log
   const [dayLog, setDayLog] = useState<Record<string, DayLogSummaryRow>>({});
@@ -593,40 +617,20 @@ export function RoomCalendar({
     setIsSavingChange(true);
     await new Promise((resolve) => setTimeout(resolve, 350));
 
-    const { reservation, proposedRoom, proposedCheckIn, proposedCheckOut, proposedNights, proposedTotal } =
-      pendingChange;
+    const { reservation, proposedRoom, proposedCheckIn, proposedCheckOut } = pendingChange;
     const backendId = reservation.backendId ?? reservation.id;
 
     try {
-      store.updateReservation(backendId, {
-        roomId: proposedRoom.id,
-        roomNumber: proposedRoom.number,
-        checkInDate: proposedCheckIn,
-        checkOutDate: proposedCheckOut,
-        nights: proposedNights,
-        totalAmount: String(proposedTotal),
-      });
-      store.assignRoom(backendId, proposedRoom.id, reservation.roomLineId);
-    } catch {
-      // In-memory store only; the local state below still updates the view
+      await reservationApi.update(backendId, { checkInDate: proposedCheckIn, checkOutDate: proposedCheckOut });
+      if (proposedRoom.id !== reservation.roomId) {
+        await reservationApi.assignRoom(backendId, proposedRoom.id);
+      }
+    } catch (error) {
+      setIsSavingChange(false);
+      toast.error('Change not saved', { detail: displayApiError(error) });
+      return;
     }
-
-    setReservations((prev) =>
-      prev.map((r) =>
-        r.backendId === backendId
-          ? {
-            ...r,
-            ...(r.id === reservation.id
-              ? { roomId: proposedRoom.id, roomNumber: proposedRoom.number, roomType: proposedRoom.type }
-              : {}),
-            checkInDate: proposedCheckIn,
-            checkOutDate: proposedCheckOut,
-            nights: proposedNights,
-            totalAmount: proposedNights * r.nightlyRate,
-          }
-          : r
-      )
-    );
+    await reloadCalendar();
 
     setIsSavingChange(false);
     setPendingChange(null);
@@ -637,17 +641,17 @@ export function RoomCalendar({
     });
   };
 
-  const handleStatusUpdate = (resId: string, newStatus: CalendarReservationStatus) => {
+  const handleStatusUpdate = async (resId: string, newStatus: CalendarReservationStatus) => {
     const selected = reservations.find((reservation) => reservation.id === resId);
     const backendId = selected?.backendId ?? resId;
-    setReservations((prev) => prev.map((r) => (r.backendId === backendId ? { ...r, status: newStatus } : r)));
     try {
-      if (newStatus === 'Checked-in') store.checkIn(backendId);
-      else if (newStatus === 'Checked-out') store.checkOut(backendId);
-      else if (newStatus === 'Cancelled') store.cancelReservation(backendId, 'Cancelled via calendar');
-    } catch {
-      // The store rejects some transitions; the local state already reflects the choice
+      if (newStatus === 'Checked-in') await frontDeskApi.checkIn(backendId);
+      else if (newStatus === 'Checked-out') await frontDeskApi.checkOut(backendId);
+      else if (newStatus === 'Cancelled') await reservationApi.cancel(backendId, 'Cancelled via calendar');
+    } catch (error) {
+      toast.error('Status not changed', { detail: displayApiError(error) });
     }
+    await reloadCalendar();
     onReservationUpdated?.();
   };
 
@@ -720,7 +724,7 @@ export function RoomCalendar({
                   Room
                 </div>
                 {days.map((dateStr) => {
-                  const isToday = dateStr === BUSINESS_DATE;
+                  const isToday = dateStr === businessDate;
                   const info = formatCalendarDate(dateStr);
                   const isWeekend = info.isWeekend;
                   const log = dayLog[dateStr];
@@ -872,7 +876,7 @@ export function RoomCalendar({
                     <div className="relative flex h-full" style={{ width: `${canvasWidth}px` }}>
                       {/* Day cells: click a free one to start a booking */}
                       {days.map((dateStr) => {
-                        const isToday = dateStr === BUSINESS_DATE;
+                        const isToday = dateStr === businessDate;
                         const info = formatCalendarDate(dateStr);
                         const isBooked = isRoomBookedOn(room, dateStr, reservations);
                         const canCreate = !isBooked && !isOOO;

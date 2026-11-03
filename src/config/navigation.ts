@@ -26,7 +26,7 @@ export interface NavItem {
   hint: string;
 }
 
-export interface NavSection {
+interface NavSection {
   title: string;
   items: NavItem[];
 }
@@ -105,17 +105,13 @@ export function sectionOf(view: ViewId): string {
   return found ? found.title : '';
 }
 
-export function labelOf(view: ViewId): string {
-  const found = NAV_ITEMS.find((i) => i.id === view);
-  return found ? found.label : view;
-}
 
 /**
  * Permission that gates each view. The backend API is the real enforcement
  * boundary; this only decides what the shell shows. A view with no entry is
  * visible to every authenticated user.
  */
-export const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
+const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
   dashboard: 'dashboard.read',
   reservations: 'reservation.read',
   'room-calendar': 'reservation.read',

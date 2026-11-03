@@ -3,452 +3,150 @@ import * as Lucide from 'lucide-react';
 import type { NavTarget } from '../../config/navigation';
 import { folioApi, frontDeskApi, operationsApi, reportsApi, reservationApi } from '../../lib/api/pms';
 import { paymentFromApi, reservationFromApi } from '../../lib/api/adapters';
+import { displayApiError } from '../../lib/api/client';
+import { formatBusinessDate, useBusinessDate } from '../../lib/api/businessDate';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { useAuth } from '../../features/auth/AuthContext';
-import type { PaymentRow, ReservationRow, StayRow } from '../../lib/api/pms';
+import { inventoryApi, type PaymentRow, type ReservationRow, type RoomRow, type StayRow } from '../../lib/api/pms';
 import { toast } from '../../utils/toast';
 import { Avatar, Badge, TableActionBtn, TableContainer } from '../../components/ui';
 import { Button } from '../../components/primitives';
+import { buildTimeline } from './timeline';
 
-// ================= DEMO FALLBACK DATA MATCHING REFERENCE IMAGE =================
 
-interface ActivityItem {
-  id: string;
-  time: string;
-  type: 'arrival' | 'departure' | 'in-house';
-  icon: Lucide.LucideIcon;
-  iconBg: string;
-  title: string;
-  subtitle: string;
-  room?: string;
-  status: string;
-  statusTone: string;
-  actionLabel: string;
-  actionTone: string;
-  target: NavTarget;
-}
 
-const DEMO_TIMELINE: ActivityItem[] = [
-  {
-    id: 't-1',
-    time: '10:00 AM',
-    type: 'arrival',
-    icon: Lucide.DoorOpen,
-    iconBg: 'bg-success-bg text-success-text border border-success-border',
-    title: 'Rohan Singh',
-    subtitle: 'RSV-DM-0013 • Deluxe King',
-    room: 'Room 201',
-    status: 'Arriving',
-    statusTone: 'bg-success-bg text-success-text border-success-border/60',
-    actionLabel: 'View booking',
-    actionTone: 'text-success-text bg-success-bg/80 hover:bg-success-bg border-success-border',
-    target: { view: 'reservations' },
-  },
-  {
-    id: 't-2',
-    time: '11:30 AM',
-    type: 'arrival',
-    icon: Lucide.Sparkles,
-    iconBg: 'bg-primary/10 text-primary border border-primary/30',
-    title: 'Priya Mehta',
-    subtitle: 'RSV-DM-0014 • VIP Welcome Amenity',
-    room: 'Room 302',
-    status: 'VIP Elite',
-    statusTone: 'bg-primary/10 text-primary border-primary/30',
-    actionLabel: 'View booking',
-    actionTone: 'text-primary bg-primary/10 hover:bg-primary/10 border-primary/30',
-    target: { view: 'reservations' },
-  },
-  {
-    id: 't-3',
-    time: '12:00 PM',
-    type: 'departure',
-    icon: Lucide.DoorClosed,
-    iconBg: 'bg-warning-bg text-warning-text border border-warning-border',
-    title: 'Rahul Lal',
-    subtitle: 'RSV-DM-0010 • Folio Settled',
-    room: 'Room 103',
-    status: 'Due Out',
-    statusTone: 'bg-warning-bg text-warning-text border-warning-border/60',
-    actionLabel: 'Open folio',
-    actionTone: 'text-warning-text bg-warning-bg/80 hover:bg-warning-bg border-warning-border',
-    target: { view: 'folios' },
-  },
-  {
-    id: 't-4',
-    time: '02:00 PM',
-    type: 'in-house',
-    icon: Lucide.Sparkles,
-    iconBg: 'bg-info-bg text-info-text border border-info-border',
-    title: 'Deep Cleaning & Sanitization',
-    subtitle: 'Assigned: Anita S. • Due 02:45 PM',
-    room: 'Room 204',
-    status: 'Cleaning',
-    statusTone: 'bg-info-bg text-info-text border-info-border/60',
-    actionLabel: 'Mark Done',
-    actionTone: 'text-ink bg-page hover:bg-muted-surface border-border',
-    target: { view: 'room-overview' } as NavTarget,
-  },
-];
-
-const DEMO_PENDING_CHECKINS = [
-  {
-    id: 'RSV-DM-0013',
-    bookingCode: 'RSV-DM-0013',
-    guest: 'Rohan Singh',
-    isVip: false,
-    room: '201',
-    roomType: 'Deluxe King',
-    roomReady: true,
-    eta: '10:00 AM',
-    dates: 'Oct 14 – 16',
-    nights: 2,
-    total: 12980,
-    balance: 0,
-    status: 'Guaranteed',
-  },
-  {
-    id: 'RSV-DM-0014',
-    bookingCode: 'RSV-DM-0014',
-    guest: 'Priya Mehta',
-    isVip: true,
-    vipTier: 'VIP Elite',
-    room: '302',
-    roomType: 'Executive Suite',
-    roomReady: true,
-    eta: '11:30 AM',
-    dates: 'Oct 14 – 17',
-    nights: 3,
-    total: 25600,
-    balance: 0,
-    status: 'Confirmed',
-  },
-  {
-    id: 'RSV-DM-0018',
-    bookingCode: 'RSV-DM-0018',
-    guest: 'Kavita Nair',
-    isVip: false,
-    room: '205',
-    roomType: 'Deluxe Queen',
-    roomReady: false,
-    eta: '01:15 PM',
-    dates: 'Oct 14 – 15',
-    nights: 1,
-    total: 6490,
-    balance: 6490,
-    status: 'Pending Deposit',
-  },
-  {
-    id: 'RSV-DM-0019',
-    bookingCode: 'RSV-DM-0019',
-    guest: 'Arjun Verma',
-    isVip: false,
-    room: 'Unassigned',
-    roomType: 'Superior Twin',
-    roomReady: false,
-    eta: '03:00 PM',
-    dates: 'Oct 14 – 18',
-    nights: 4,
-    total: 21800,
-    balance: 0,
-    status: 'Guaranteed',
-  },
-  {
-    id: 'RSV-DM-0020',
-    bookingCode: 'RSV-DM-0020',
-    guest: 'Sameer Sen',
-    isVip: true,
-    vipTier: 'VIP Diamond',
-    room: '404',
-    roomType: 'Presidential Suite',
-    roomReady: true,
-    eta: '04:30 PM',
-    dates: 'Oct 14 – 16',
-    nights: 2,
-    total: 38400,
-    balance: 10000,
-    status: 'Confirmed',
-  },
-];
-
-const DEMO_PENDING_CHECKOUTS = [
-  {
-    id: 'RSV-DM-0010',
-    bookingCode: 'RSV-DM-0010',
-    guest: 'Rahul Lal',
-    room: '103',
-    roomType: 'Standard Queen',
-    outTime: '11:00 AM',
-    isLateCheckout: false,
-    dates: 'Oct 12 – 14',
-    nights: 2,
-    folioBalance: 0,
-    status: 'Due Out' as const,
-  },
-  {
-    id: 'RSV-DM-0008',
-    bookingCode: 'RSV-DM-0008',
-    guest: 'Aditya Nanda',
-    room: '202',
-    roomType: 'Deluxe King',
-    outTime: '11:30 AM',
-    isLateCheckout: false,
-    dates: 'Oct 11 – 14',
-    nights: 3,
-    folioBalance: 1850,
-    status: 'Due Out' as const,
-  },
-  {
-    id: 'RSV-DM-0006',
-    bookingCode: 'RSV-DM-0006',
-    guest: 'Sunita Menon',
-    room: '305',
-    roomType: 'Executive Suite',
-    outTime: '02:00 PM',
-    isLateCheckout: true,
-    dates: 'Oct 10 – 14',
-    nights: 4,
-    folioBalance: 0,
-    status: 'Late Checkout' as const,
-  },
-  {
-    id: 'RSV-DM-0005',
-    bookingCode: 'RSV-DM-0005',
-    guest: 'Manish Gupta',
-    room: '107',
-    roomType: 'Superior Twin',
-    outTime: '12:00 PM',
-    isLateCheckout: false,
-    dates: 'Oct 13 – 14',
-    nights: 1,
-    folioBalance: 4200,
-    status: 'Due Out' as const,
-  },
-  {
-    id: 'RSV-DM-0004',
-    bookingCode: 'RSV-DM-0004',
-    guest: 'Elena Reddy',
-    room: '401',
-    roomType: 'Deluxe King',
-    outTime: '11:00 AM',
-    isLateCheckout: false,
-    dates: 'Oct 12 – 14',
-    nights: 2,
-    folioBalance: 0,
-    status: 'Inspected' as const,
-  },
-];
-
-const DEMO_RESERVATIONS = [
-  {
-    id: 'RSV-DM-0013',
-    guest: 'Rohan Singh',
-    dates: 'Oct 14 – Oct 16',
-    room: '201',
-    status: 'Confirmed',
-    total: 12980,
-  },
-  {
-    id: 'RSV-DM-0014',
-    guest: 'Priya Mehta',
-    dates: 'Oct 14 – Oct 17',
-    room: '2 Rooms',
-    status: 'Confirmed',
-    total: 25600,
-  },
-  {
-    id: 'RSV-DM-0015',
-    guest: 'Harsh Ali',
-    dates: 'Oct 15 – Oct 17',
-    room: '305',
-    status: 'Pending',
-    total: 8450,
-  },
-  {
-    id: 'RSV-DM-0016',
-    guest: 'Elena Reddy',
-    dates: 'Oct 13 – Oct 14',
-    room: '103',
-    status: 'Checked-out',
-    total: 6490,
-  },
-  {
-    id: 'RSV-DM-0017',
-    guest: 'Vikram Rao',
-    dates: 'Oct 15 – Oct 18',
-    room: '404',
-    status: 'Confirmed',
-    total: 18700,
-  },
-];
-
-const DEMO_PAYMENTS = [
-  {
-    date: 'Oct 14, 10:22',
-    ref: 'PAY-00045',
-    guest: 'Rohan Singh',
-    method: 'Card',
-    amount: 8850,
-    status: 'Paid',
-  },
-  {
-    date: 'Oct 14, 09:10',
-    ref: 'PAY-00044',
-    guest: 'Priya Mehta',
-    method: 'UPI',
-    amount: 12000,
-    status: 'Paid',
-  },
-  {
-    date: 'Oct 13, 08:45',
-    ref: 'PAY-00043',
-    guest: 'Rahul Lal',
-    method: 'Card',
-    amount: 4720,
-    status: 'Paid',
-  },
-  {
-    date: 'Oct 13, 06:30',
-    ref: 'PAY-00042',
-    guest: 'Aditya Nanda',
-    method: 'Cash',
-    amount: 9440,
-    status: 'Paid',
-  },
-  {
-    date: 'Oct 12, 05:18',
-    ref: 'PAY-00041',
-    guest: 'Neha Kapoor',
-    method: 'Card',
-    amount: 14160,
-    status: 'Paid',
-  },
-];
-
+/* One shared empty list, so a missing panel does not hand the memos a new array on every render. */
+const NO_ROWS: never[] = [];
+const NO_ROOM_STATUSES = new Map<string, string>();
+/** Rooms a guest can be given on arrival: vacant, and clean or inspected. */
+const READY_ROOM_STATUSES = ['VACANT_CLEAN', 'INSPECTED'];
 
 export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
   const { me, can } = useAuth();
+  const businessDate = useBusinessDate();
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   const [timelineTab, setTimelineTab] = useState<'all' | 'arrivals' | 'departures' | 'in-house'>('all');
 
   const loadDashboard = useCallback(async () => {
-    try {
-      const [daily, housekeeping] = await Promise.all([
-        reportsApi.dailyFlash().catch(() => null),
-        operationsApi.housekeepingSummary().catch(() => null),
-      ]);
-      const permissions = {
-        reservations: can('reservation.read'),
-        finance: can('report.read.financial'),
-        payments: can('payment.read'),
-      };
-      const [reservationPage, arrivalResult, departureResult, revenue, payments] = await Promise.all([
-        permissions.reservations ? reservationApi.list('', undefined, 1, 5).catch(() => ({ data: [] })) : Promise.resolve({ data: [] as ReservationRow[] }),
-        permissions.reservations ? frontDeskApi.arrivals().catch(() => ({ data: [] })) : Promise.resolve({ data: [] as StayRow[] }),
-        permissions.reservations ? frontDeskApi.departures().catch(() => ({ data: [] })) : Promise.resolve({ data: [] as StayRow[] }),
-        permissions.finance ? reportsApi.revenue(daily?.businessDate ?? '', daily?.businessDate ?? '').catch(() => null) : Promise.resolve(null),
-        permissions.payments ? folioApi.listPayments().catch(() => []) : Promise.resolve([] as PaymentRow[]),
-      ]);
-      return {
-        daily,
-        housekeeping,
-        reservations: reservationPage.data.map(reservationFromApi),
-        arrivals: arrivalResult.data,
-        departures: departureResult.data,
-        revenue,
-        payments: payments.map(paymentFromApi),
-      };
-    } catch {
-      return null;
-    }
+    // A failed panel shows its own error and empty content; the rest of the dashboard still loads.
+    const panel = <T,>(what: string, load: () => Promise<T>, empty: T): Promise<T> =>
+      load().catch((error: unknown) => {
+        toast.error(`${what} not loaded`, { detail: displayApiError(error) });
+        return empty;
+      });
+    const daily = await panel('Daily flash', () => reportsApi.dailyFlash(), null);
+    const permissions = {
+      reservations: can('reservation.read'),
+      finance: can('report.read.financial'),
+      payments: can('payment.read'),
+    };
+    const [housekeeping, roomRows, reservationPage, arrivalResult, departureResult, inHouseResult, revenue, payments] = await Promise.all([
+      panel('Housekeeping summary', () => operationsApi.housekeepingSummary(), null),
+      can('room.read') ? panel('Rooms', () => inventoryApi.rooms(), [] as RoomRow[]) : Promise.resolve([] as RoomRow[]),
+      permissions.reservations ? panel('Reservations', () => reservationApi.list('', undefined, 1, 5), { data: [] as ReservationRow[], page: 1, pageSize: 5, hasMore: false }) : Promise.resolve({ data: [] as ReservationRow[], page: 1, pageSize: 5, hasMore: false }),
+      permissions.reservations ? panel('Arrivals', () => frontDeskApi.arrivals(), { businessDate: '', data: [] as StayRow[] }) : Promise.resolve({ businessDate: '', data: [] as StayRow[] }),
+      permissions.reservations ? panel('Departures', () => frontDeskApi.departures(), { businessDate: '', data: [] as StayRow[] }) : Promise.resolve({ businessDate: '', data: [] as StayRow[] }),
+      permissions.reservations ? panel('In-house guests', () => frontDeskApi.inHouse(), { businessDate: '', data: [] as StayRow[] }) : Promise.resolve({ businessDate: '', data: [] as StayRow[] }),
+      permissions.finance && daily ? panel('Revenue', () => reportsApi.revenue(daily.businessDate, daily.businessDate), null) : Promise.resolve(null),
+      permissions.payments ? panel('Payments', () => folioApi.listPayments(), [] as PaymentRow[]) : Promise.resolve([] as PaymentRow[]),
+    ]);
+    return {
+      daily,
+      housekeeping,
+      roomStatusByNumber: new Map(roomRows.map((room) => [room.roomNumber, room.status])),
+      reservations: reservationPage.data.map(reservationFromApi),
+      arrivals: arrivalResult.data,
+      departures: departureResult.data,
+      inHouse: inHouseResult.data,
+      revenue,
+      payments: payments.map(paymentFromApi),
+    };
   }, [can]);
 
   const resource = useApiResource(loadDashboard);
 
-  // Filtered timeline items
-  const filteredTimeline = useMemo(() => {
-    if (timelineTab === 'arrivals') return DEMO_TIMELINE.filter((i) => i.type === 'arrival');
-    if (timelineTab === 'departures') return DEMO_TIMELINE.filter((i) => i.type === 'departure');
-    if (timelineTab === 'in-house') return DEMO_TIMELINE.filter((i) => i.type === 'in-house');
-    return DEMO_TIMELINE;
-  }, [timelineTab]);
-
-  const arrivals = resource.data?.arrivals;
-  const departures = resource.data?.departures;
-  const reservations = resource.data?.reservations;
-  const payments = resource.data?.payments;
+  const arrivals = resource.data?.arrivals ?? NO_ROWS;
+  const departures = resource.data?.departures ?? NO_ROWS;
+  const inHouse = resource.data?.inHouse ?? NO_ROWS;
+  const reservations = resource.data?.reservations ?? NO_ROWS;
+  const payments = resource.data?.payments ?? NO_ROWS;
+  const roomStatusByNumber = resource.data?.roomStatusByNumber ?? NO_ROOM_STATUSES;
   const roomReadiness = resource.data?.housekeeping?.rooms;
   const readyRooms = roomReadiness?.ready ?? 0;
   const totalRoomCount = roomReadiness?.total ?? 0;
   const readyPct = totalRoomCount > 0 ? Math.round((readyRooms / totalRoomCount) * 100) : 0;
 
-  const pendingCheckins = useMemo(() => {
-    if (arrivals && arrivals.length > 0) {
-      return arrivals.slice(0, 5).map((a) => ({
+  const timeline = useMemo(() => buildTimeline(arrivals, departures, inHouse), [arrivals, departures, inHouse]);
+  const filteredTimeline = useMemo(
+    () => (timelineTab === 'all' ? timeline : timeline.filter((item) => item.type === timelineTab)),
+    [timeline, timelineTab],
+  );
+
+  const pendingCheckins = useMemo(
+    () =>
+      arrivals.slice(0, 5).map((a) => ({
         id: a.id,
         bookingCode: a.bookingCode || a.id,
-        guest: a.guestName || 'Registered Guest',
+        guest: a.guestName || 'Guest',
         isVip: false,
         vipTier: undefined as string | undefined,
         room: a.roomNumber || 'Unassigned',
-        roomType: a.roomTypeName || 'Standard Room',
-        roomReady: a.roomReady ?? true,
-        eta: '12:00 PM',
+        roomType: a.roomTypeName || '—',
+        roomReady: READY_ROOM_STATUSES.includes(roomStatusByNumber.get(a.roomNumber ?? '') ?? ''),
+        eta: '—',
         dates: `${a.checkInDate} – ${a.checkOutDate}`,
-        nights: a.nights ?? 1,
-        total: parseFloat(a.totalAmount || '0') || 7500,
+        nights: a.nights ?? 0,
+        total: parseFloat(a.totalAmount || '0') || 0,
         balance: parseFloat(a.balance || '0') || 0,
         status: (a.status as 'Confirmed' | 'Pending' | 'Checked-in' | 'Checked-out' | 'Cancelled' | 'No-show') || 'Confirmed',
-      }));
-    }
-    return DEMO_PENDING_CHECKINS;
-  }, [arrivals]);
+      })),
+    [arrivals, roomStatusByNumber],
+  );
 
-  const pendingCheckouts = useMemo(() => {
-    if (departures && departures.length > 0) {
-      return departures.slice(0, 5).map((d) => ({
+  const pendingCheckouts = useMemo(
+    () =>
+      departures.slice(0, 5).map((d) => ({
         id: d.id,
         bookingCode: d.bookingCode || d.id,
-        guest: d.guestName || 'In-House Guest',
-        room: d.roomNumber || '101',
-        roomType: d.roomTypeName || 'Standard Room',
-        outTime: '11:00 AM',
+        guest: d.guestName || 'Guest',
+        room: d.roomNumber || 'Unassigned',
+        roomType: d.roomTypeName || '—',
+        outTime: '—',
         isLateCheckout: false,
         dates: `${d.checkInDate} – ${d.checkOutDate}`,
-        nights: d.nights ?? 1,
+        nights: d.nights ?? 0,
         folioBalance: parseFloat(d.balance || '0') || 0,
-        status: 'Due Out' as const,
-      }));
-    }
-    return DEMO_PENDING_CHECKOUTS;
-  }, [departures]);
+        status: 'Due Out' as 'Due Out' | 'Late Checkout' | 'Inspected',
+      })),
+    [departures],
+  );
 
-  const recentReservations = useMemo(() => {
-    if (reservations && reservations.length > 0) {
-      return reservations.slice(0, 5).map((r) => ({
+  const recentReservations = useMemo(
+    () =>
+      reservations.slice(0, 5).map((r) => ({
         id: r.bookingCode || r.id,
         guest: r.guest,
         dates: `${r.checkIn} – ${r.checkOut}`,
         room: r.room || 'Unassigned',
         status: r.status,
         total: r.total,
-      }));
-    }
-    return DEMO_RESERVATIONS;
-  }, [reservations]);
+      })),
+    [reservations],
+  );
 
-  const recentPayments = useMemo(() => {
-    if (payments && payments.length > 0) {
-      return payments.slice(0, 5).map((p) => ({
+  const recentPayments = useMemo(
+    () =>
+      payments.slice(0, 5).map((p) => ({
         date: p.date,
         ref: p.ref,
         guest: p.guest,
         method: p.method,
         amount: p.amount,
         status: p.status,
-      }));
-    }
-    return DEMO_PAYMENTS;
-  }, [payments]);
+      })),
+    [payments],
+  );
 
 
   return (
@@ -462,10 +160,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           </div>
           <div>
             <h1 className="text-disp3 font-bold tracking-tight text-ink leading-tight">
-              Good morning, {me?.user.fullName ? me.user.fullName.split(' ')[0] : 'Admin'}
+              {greeting}, {me?.user.fullName ? me.user.fullName.split(' ')[0] : 'there'}
             </h1>
             <p className="text-label text-ink-secondary mt-1 font-normal">
-              Here&apos;s what&apos;s happening at your hotel today <span className="text-ink-muted">•</span> October 14, 2026
+              Here&apos;s what&apos;s happening at your hotel today <span className="text-ink-muted">•</span> {formatBusinessDate(businessDate)}
             </p>
           </div>
         </div>
@@ -511,10 +209,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             {/* Filter Tabs (Segmented Control) */}
             <div className="flex items-center gap-1 p-1 rounded-xl bg-muted-surface/80 mb-4 overflow-x-auto no-scrollbar">
               {[
-                { key: 'all' as const, label: 'All (5)' },
-                { key: 'arrivals' as const, label: 'Arrivals (2)' },
-                { key: 'departures' as const, label: 'Departures (1)' },
-                { key: 'in-house' as const, label: 'In-House (2)' },
+                { key: 'all' as const, label: `All (${timeline.length})` },
+                { key: 'arrivals' as const, label: `Arrivals (${timeline.filter((item) => item.type === 'arrival').length})` },
+                { key: 'departures' as const, label: `Departures (${timeline.filter((item) => item.type === 'departure').length})` },
+                { key: 'in-house' as const, label: `In-House (${timeline.filter((item) => item.type === 'in-house').length})` },
               ].map((tab) => (
                 <Button variant="secondary"
                   key={tab.key}
@@ -572,11 +270,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                           <Button variant="secondary"
                             type="button"
                             onClick={() => {
-                              if (item.actionLabel === 'Mark Done' || item.actionLabel === 'Mark Clean') {
-                                toast('Housekeeping task updated', { detail: 'Room 204 marked clean.', tone: 'success' });
-                              } else {
-                                go(item.target);
-                              }
+                              go(item.target);
                             }}
                             className={`flex-none border shadow-2xs transition-all cursor-pointer hover:shadow-xs active:scale-95 flex items-center gap-1 ${item.actionTone}`}
                           >
@@ -607,7 +301,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             <div className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-success-text" />
               <span className="text-label text-ink-secondary font-medium">
-                Showing {filteredTimeline.slice(0, 5).length} of 5 operational activities
+                Showing {filteredTimeline.slice(0, 5).length} of {filteredTimeline.length} operational activities
               </span>
             </div>
             <Button variant="link"
@@ -701,7 +395,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                             </span>
                             <span className={`inline-flex items-center gap-1 text-label font-medium ${r.roomReady ? 'text-success-text' : 'text-warning-text'}`}>
                               <span className={`h-1.5 w-1.5 rounded-full ${r.roomReady ? 'bg-success-text' : 'bg-warning-text'}`} />
-                              {r.roomReady ? 'Ready' : 'Cleaning'}
+                              {r.roomReady ? 'Ready' : 'Not ready'}
                             </span>
                           </div>
                           <span className="text-label text-ink-secondary block mt-0.5">{r.roomType}</span>
@@ -1224,7 +918,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
                       </span>
-                      3 Actions
+                      {totalRoomCount - readyRooms} Actions
                     </span>
                   </div>
                   <p className="text-label text-ink-muted mt-0.5">Operational follow-ups & alerts</p>
@@ -1232,74 +926,15 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
               </div>
             </div>
 
-            {/* Tasks List */}
+            {/* Room readiness from the housekeeping summary */}
             <div className="flex flex-col gap-2.5">
-              {/* Task 1 */}
-              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-border/60 bg-surface hover:bg-page/60 transition-colors">
+              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-border/60 bg-surface">
                 <div className="flex items-start gap-2.5 min-w-0">
                   <span className="h-2 w-2 rounded-full bg-warning-text mt-1.5 flex-none" />
                   <div className="min-w-0">
-                    <p className="text-label font-bold text-ink leading-tight">4 rooms pending inspection</p>
-                    <p className="text-label text-ink-muted mt-0.5 truncate">Rooms 204, 305, 408, 501 · Ready for release</p>
+                    <p className="text-label font-bold text-ink leading-tight">{totalRoomCount - readyRooms} rooms not ready for guests</p>
+                    <p className="text-label text-ink-muted mt-0.5 truncate">{readyRooms} of {totalRoomCount} rooms ready</p>
                   </div>
-                </div>
-                <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-warning-bg px-2 py-0.5 text-label font-bold text-warning-text">
-                    High
-                  </span>
-                  <Button variant="secondary"
-                    type="button"
-                    onClick={() => toast('Inspection alert sent', { detail: 'Floor supervisor notified.', tone: 'info' })}
-                    className="cursor-pointer transition-colors"
-                  >
-                    Release
-                  </Button>
-                </div>
-              </div>
-
-              {/* Task 3 */}
-              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-border/60 bg-surface hover:bg-page/60 transition-colors">
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-warning-text mt-1.5 flex-none" />
-                  <div className="min-w-0">
-                    <p className="text-label font-bold text-ink leading-tight">3 late check-out requests</p>
-                    <p className="text-label text-ink-muted mt-0.5 truncate">101 (1:00 PM), 305 (2:00 PM), 501 (1:30 PM)</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-warning-bg px-2 py-0.5 text-label font-bold text-warning-text">
-                    Attention
-                  </span>
-                  <Button variant="secondary"
-                    type="button"
-                    onClick={() => go({ view: 'folios' })}
-                    className="cursor-pointer transition-colors"
-                  >
-                    Review
-                  </Button>
-                </div>
-              </div>
-
-              {/* Task 4 */}
-              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-border/60 bg-surface hover:bg-page/60 transition-colors">
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-info-text mt-1.5 flex-none" />
-                  <div className="min-w-0">
-                    <p className="text-label font-bold text-ink leading-tight">1 VIP arrival today</p>
-                    <p className="text-label text-ink-muted mt-0.5 truncate">Amelia Hart · Deluxe Suite 204 · Amenity set</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-[var(--color-muted-surface)] px-2 py-0.5 text-label font-bold text-[var(--color-primary)]">
-                    VIP Elite
-                  </span>
-                  <Button variant="secondary"
-                    type="button"
-                    onClick={() => go({ view: 'arrivals-departures' })}
-                    className="cursor-pointer transition-colors"
-                  >
-                    Prepare
-                  </Button>
                 </div>
               </div>
             </div>

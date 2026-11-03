@@ -1,10 +1,10 @@
-import type { GuestRow, PropertyRow, RoomTypeRow, TaxRuleRow, UserRow } from '../lib/api/pms';
+import type { GuestRow, RoomTypeRow, TaxRuleRow, UserRow } from '../lib/api/pms';
 
 /** The single fixed business date the entire static demo revolves around. */
 export const BUSINESS_DATE = '2026-10-17';
 export const TAX_RATE = 0.12;
 
-export const PROPERTY: PropertyRow = {
+export const PROPERTY = {
   id: 'prop-1',
   name: 'The Grand Horizon Hotel',
   slug: 'grand-horizon',
@@ -17,7 +17,7 @@ export const PROPERTY: PropertyRow = {
   city: 'Mumbai',
 };
 
-export interface PermissionDef {
+interface PermissionDef {
   key: string;
   resource: string;
   action: string;
@@ -77,7 +77,7 @@ export const ALL_PERMISSIONS: string[] = PERMISSION_CATALOG.map((p) => p.key);
 
 type RoleKey = 'owner' | 'admin' | 'manager' | 'front_desk' | 'housekeeping' | 'maintenance' | 'accountant';
 
-export interface RoleDef {
+interface RoleDef {
   id: string;
   key: RoleKey;
   name: string;
@@ -173,7 +173,7 @@ export const ROOM_TYPES: RoomTypeRow[] = [
   { id: 'suite', code: 'STE', name: 'Panorama Suite', description: 'Top-floor suite with panoramic views.', maxAdults: 2, maxChildren: 2, baseRate: '12000.00', amenities: ['Panoramic view', 'King bed', 'Butler service', 'Dining area', '68 m²'], isActive: true },
 ];
 
-export interface FloorPlan {
+interface FloorPlan {
   floor: string;
   wing: string;
   typeId: string;

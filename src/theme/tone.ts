@@ -13,7 +13,7 @@ export type Tone = 'success' | 'info' | 'warning' | 'danger' | 'neutral';
 
 export const TONES: readonly Tone[] = ['success', 'info', 'warning', 'danger', 'neutral'];
 
-export interface ToneClassSet {
+interface ToneClassSet {
   /** Tinted badge: background + readable text + border. */
   badge: string;
   /** Solid accent surface with readable foreground. */
@@ -78,7 +78,7 @@ export const TONE_CLASSES: Record<Tone, ToneClassSet> = {
   },
 };
 
-export interface ToneVars {
+interface ToneVars {
   text: string;
   bg: string;
   border: string;

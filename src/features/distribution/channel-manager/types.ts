@@ -1,6 +1,6 @@
-export type ChannelStatus = 'connected' | 'error' | 'paused';
+type ChannelStatus = 'connected' | 'error' | 'paused';
 export type ChannelTabId = 'inventory' | 'rates' | 'restrictions' | 'mapping' | 'promotions';
-export type BookingStatus = 'Confirmed' | 'Pending' | 'Cancelled';
+type BookingStatus = 'Confirmed' | 'Pending' | 'Cancelled';
 
 export interface Channel {
   id: string;

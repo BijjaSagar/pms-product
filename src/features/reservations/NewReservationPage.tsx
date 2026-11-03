@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import * as Lucide from "lucide-react";
 import type { NavDraft, NavTarget } from "../../config/navigation";
 import { toast } from "../../utils/toast";
@@ -11,7 +11,9 @@ import type {
 import { useApiResource } from "../../lib/api/useApiResource";
 import { guestFromApi } from "../../lib/api/adapters";
 import type { Guest } from "../../types";
-import { BUSINESS_DATE, GUESTS, TAX_RATE } from "../../data/catalog";
+import { TAX_RATE } from "../../data/catalog";
+import { useBusinessDate } from "../../lib/api/businessDate";
+import { displayApiError } from "../../lib/api/client";
 import { AddGuestModal } from "./new-reservation/AddGuestModal";
 import { GuestActivityLog } from "./new-reservation/GuestActivityLog";
 import { BillingRoutingFields } from "./new-reservation/BillingRoutingFields";
@@ -32,9 +34,17 @@ import type {
   RoomRequirement,
 } from "./new-reservation/types";
 
-/* The form opens on the store's first guest, so its defaults match the seeded data. */
-const DEFAULT_GUEST = GUESTS[0];
-const DEFAULT_GUEST_NAME = `${DEFAULT_GUEST.firstName} ${DEFAULT_GUEST.lastName}`;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-/i;
+
+/** The backend's id for a line's room category. Lines can start on a demo category id, so the name decides. */
+function resolveTypeId(requirement: RoomRequirement, roomTypes: RoomCategoryOption[]): string {
+  return roomTypes.find((type) => type.name === requirement.category)?.id ?? requirement.roomTypeId;
+}
+
+/** Identifies one quote: the line, its category, the stay and the guests. A change needs a new quote. */
+function quoteKeyFor(requirement: RoomRequirement, roomTypes: RoomCategoryOption[], checkIn: string, checkOut: string): string {
+  return [requirement.id, resolveTypeId(requirement, roomTypes), checkIn, checkOut, requirement.adults, requirement.children].join("|");
+}
 
 /** ISO date (YYYY-MM-DD) for the day after the given ISO date. */
 function nextDayIso(iso: string): string {
@@ -61,6 +71,7 @@ export function NewReservation({
   initialDraft?: NavDraft;
 }) {
   const [activeTab, setActiveTab] = useState<"general" | "outlet">("general");
+  const businessDate = useBusinessDate();
 
   // Prefill from the room calendar (room + night clicked on the rack).
   const draftRoomTypeName = initialDraft?.roomType ?? "";
@@ -69,7 +80,7 @@ export function NewReservation({
       (category) =>
         category.name.toLowerCase() === draftRoomTypeName.toLowerCase(),
     ) ?? FALLBACK_ROOM_CATEGORIES[1];
-  const initialCheckIn = initialDraft?.checkIn ?? BUSINESS_DATE;
+  const initialCheckIn = initialDraft?.checkIn ?? businessDate;
   const initialCheckOut =
     initialDraft?.checkOut ?? nextDayIso(initialCheckIn);
 
@@ -167,7 +178,7 @@ export function NewReservation({
       mealPlan: "EP",
       billingRoute: "Default",
       occupants: [
-        { id: "occupant-primary", name: DEFAULT_GUEST_NAME, role: "Primary guest" },
+        { id: "occupant-primary", name: "Primary guest", role: "Primary guest" },
       ],
     },
   ]);
@@ -176,7 +187,7 @@ export function NewReservation({
   // availability. The calendar's room types are display-only and can differ
   // from inventory types, so the room number is the source of truth. Deriving
   // this keeps the prefill without writing state from an effect.
-  const requirements = useMemo(() => {
+  const linkedRequirements = useMemo(() => {
     const lookup = new Map<string, { roomId: string; typeId: string }>();
     for (const [typeId, rooms] of Object.entries(availableRoomsByType)) {
       for (const option of rooms) {
@@ -205,6 +216,48 @@ export function NewReservation({
     });
   }, [roomRequirements, availableRoomsByType, roomTypes]);
 
+  // Room rates are the backend's quote for each line's type, stay and guests, not the room type's base rate.
+  const [quotedRates, setQuotedRates] = useState<Record<string, number>>({});
+  // The backend taxes rooms at its own rate, which can differ from the catalogue's; the quote carries it.
+  const [quotedTaxRate, setQuotedTaxRate] = useState<number | null>(null);
+  const requirements = useMemo(
+    () =>
+      linkedRequirements.map((requirement) => {
+        const rate = quotedRates[quoteKeyFor(requirement, roomTypes, checkInDate, checkOutDate)];
+        return rate === undefined ? requirement : { ...requirement, rate };
+      }),
+    [linkedRequirements, quotedRates, roomTypes, checkInDate, checkOutDate],
+  );
+  useEffect(() => {
+    if (!checkInDate || !checkOutDate || checkOutDate <= checkInDate) return;
+    let active = true;
+    for (const requirement of linkedRequirements) {
+      const typeId = resolveTypeId(requirement, roomTypes);
+      if (!UUID_PATTERN.test(typeId)) continue;
+      const key = quoteKeyFor(requirement, roomTypes, checkInDate, checkOutDate);
+      reservationApi
+        .quote({
+          checkIn: checkInDate,
+          checkOut: checkOutDate,
+          roomTypeId: typeId,
+          adults: requirement.adults,
+          children: requirement.children,
+        })
+        .then((quote) => {
+          if (active && quote.available && quote.nights > 0) {
+            setQuotedRates((previous) => ({ ...previous, [key]: Number(quote.roomAmount) / quote.nights }));
+            if (Number(quote.roomAmount) > 0) setQuotedTaxRate(Number(quote.taxAmount) / Number(quote.roomAmount));
+          }
+        })
+        .catch((error: unknown) => {
+          if (active) toast.error("Price not quoted", { detail: displayApiError(error) });
+        });
+    }
+    return () => {
+      active = false;
+    };
+  }, [linkedRequirements, roomTypes, checkInDate, checkOutDate]);
+
   // Billing Preferences
   const [billingPreferences, setBillingPreferences] =
     useState<BillingPreferences>({
@@ -221,10 +274,10 @@ export function NewReservation({
   const [guestQuery, setGuestQuery] = useState("");
   const [guestModalOpen, setGuestModalOpen] = useState(false);
   // Opens on the first seeded guest, who is a real directory record (so the Activity Log has data)
-  const [guestName, setGuestName] = useState(DEFAULT_GUEST_NAME);
-  const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(DEFAULT_GUEST.id);
-  const [guestContact, setGuestContact] = useState(DEFAULT_GUEST.phone ?? "");
-  const [guestEmail, setGuestEmail] = useState(DEFAULT_GUEST.email ?? "");
+  const [guestName, setGuestName] = useState("");
+  const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(null);
+  const [guestContact, setGuestContact] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
   const trimmedGuestQuery = guestQuery.trim();
   const loadGuestMatches = useCallback(
     async () =>
@@ -361,12 +414,13 @@ export function NewReservation({
     [posAddons],
   );
   const bookingSubtotal = roomCharges + mealPlanCharges + addonSubtotal;
+  const taxRate = quotedTaxRate ?? TAX_RATE;
   const subTotal = Math.max(0, bookingSubtotal - discountAmount);
-  const taxAmount = Math.round(subTotal * TAX_RATE);
+  const taxAmount = Math.round(subTotal * taxRate);
   const totalBill = subTotal + taxAmount;
   const totalPaid = paymentsList.reduce((acc, p) => acc + p.amount, 0);
   const outstanding = Math.max(0, totalBill - totalPaid);
-  const roomTax = Math.round((roomCharges + mealPlanCharges) * TAX_RATE);
+  const roomTax = Math.round((roomCharges + mealPlanCharges) * taxRate);
 
   const totalsByRoute = useMemo(() => {
     const totals: Record<string, number> = {};
@@ -406,7 +460,7 @@ export function NewReservation({
       (sum, amount) => sum + amount,
       0,
     );
-    const tax = Math.round(netSubtotal * TAX_RATE);
+    const tax = Math.round(netSubtotal * taxRate);
     const entries = Object.entries(totals);
     const split = entries.map(
       ([route, amount]) =>
@@ -432,6 +486,7 @@ export function NewReservation({
     billingPreferences,
     nightsCount,
     discountAmount,
+    taxRate,
   ]);
 
   const formatDisplayDate = (dStr: string) => {
@@ -638,7 +693,12 @@ export function NewReservation({
     // Rooms left on Auto-assign take the first free room of their category that no other line has taken
     const takenRoomIds = new Set(roomIds);
     const resolvedRequirements: RoomRequirement[] = [];
-    for (const room of requirements) {
+    // A line can start on a demo category id; the backend knows the same category by its own id.
+    const backendRequirements = requirements.map((room) => ({
+      ...room,
+      roomTypeId: resolveTypeId(room, roomTypes),
+    }));
+    for (const room of backendRequirements) {
       if (room.roomId) {
         resolvedRequirements.push(room);
         continue;
@@ -816,7 +876,7 @@ export function NewReservation({
 
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-success-bg border border-success-border text-success-text text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold mb-3 uppercase tracking-wider">
             <Lucide.ShieldCheck size={14} />
-            Folio Verified & Confirmed
+            Reservation Confirmed
           </div>
 
           <h2 className="text-[20px] md:max-[1023px]:text-[18px] lg:max-[1439px]:text-[18px] min-[1440px]:text-[18px] font-extrabold tracking-tight text-ink">
@@ -831,9 +891,10 @@ export function NewReservation({
             </p>
           )}
           <p className="max-w-lg mx-auto text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] text-ink-secondary mt-2">
-            Reservation successfully saved for{" "}
+            Reservation saved for{" "}
             <strong className="text-ink">{confirmedBooking.guest}</strong>. Room
-            lines, billing routes, add-ons, and payments are saved to the PMS.
+            lines, add-ons and payments are posted to the folio. Room charges
+            post at night audit.
           </p>
 
           {/* Quick Summary Grid */}
@@ -2002,7 +2063,7 @@ export function NewReservation({
                   </div>
 
                   <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-ink-secondary">
-                    <span className="min-w-0 flex-1">Goods & Services Tax (GST {TAX_RATE * 100}%)</span>
+                    <span className="min-w-0 flex-1">Goods & Services Tax (GST {Math.round(taxRate * 1000) / 10}%)</span>
                     <span className="shrink-0 text-right font-semibold font-mono text-ink">
                       ₹{taxAmount.toLocaleString("en-IN")}.00
                     </span>

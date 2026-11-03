@@ -334,9 +334,9 @@ export function LoginPage() {
       {/* ================= 3. BOTTOM FOOTER BAR ================= */}
       <footer className="relative z-10 flex flex-none flex-col sm:flex-row items-center justify-between gap-1 text-center sm:text-left text-micro text-ink-muted">
         <p className="tnum">
-          TriponX Hotel PMS · Single-Page Static Demo · Business Date: 2026-10-17
+          TriponX Hotel PMS
         </p>
-        <p>© 2026 TriponX Systems. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} TriponX Systems. All rights reserved.</p>
       </footer>
 
       {/* Theme Swatcher Drawer */}

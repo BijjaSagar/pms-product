@@ -1,7 +1,8 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
-import { ApiError } from '../../lib/api/client';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { ApiError, displayApiError } from '../../lib/api/client';
 import { authApi } from '../../lib/api/pms';
 import type { AuthMe } from '../../lib/api/pms';
+import { toast } from '../../utils/toast';
 
 interface AuthContextValue {
   me: AuthMe | null;
@@ -10,7 +11,6 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   switchProperty: (propertyId: string) => Promise<void>;
-  reload: () => Promise<void>;
   can: (permission: string) => boolean;
 }
 
@@ -18,19 +18,30 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<AuthMe | null>(null);
-  const [loading, setLoading] = useState(false);
+  // A stored token means we are still deciding whether the session is valid, so show the loading state, not the login form.
+  const [loading, setLoading] = useState(() => authApi.hasSession());
   const [error, setError] = useState<string | null>(null);
 
-  const reload = useCallback(async () => {
-    if (!me) return;
-    setError(null);
-    try {
-      setMe(await authApi.me());
-    } catch (cause) {
-      if (cause instanceof ApiError && cause.status === 401) setMe(null);
-      else setError(cause instanceof Error ? cause.message : 'Could not load your session.');
-    }
-  }, [me]);
+  useEffect(() => {
+    if (!authApi.hasSession()) return;
+    let active = true;
+    authApi.me()
+      .then((restored) => {
+        if (active) setMe(restored);
+      })
+      .catch((cause: unknown) => {
+        // 401 means the stored session is gone; the login form is the right answer. Anything else keeps the token so a later load can retry.
+        if (active && !(cause instanceof ApiError && cause.status === 401)) {
+          toast('Could not restore your session', { detail: displayApiError(cause), tone: 'danger' });
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     setError(null);
@@ -63,9 +74,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     logout,
     switchProperty,
-    reload,
     can: (permission) => me?.permissions.includes(permission) ?? false,
-  }), [me, loading, error, login, logout, switchProperty, reload]);
+  }), [me, loading, error, login, logout, switchProperty]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
