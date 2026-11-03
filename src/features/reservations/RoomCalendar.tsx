@@ -20,12 +20,15 @@ import { ReservationDetailModal } from './room-calendar/ReservationDetailModal';
 import type { ReservationFilters } from './reservationFilters';
 import { matchesStatusFilter } from './reservationStatusFilters';
 import { stayOverlapsRange } from './reservationDateRange';
+import { DayLogButton } from './day-log/DayLogButton';
+import { DayNoteModal } from './day-log/DayNoteModal';
+import { DayEnquiriesModal } from './day-log/DayEnquiriesModal';
+import { dayLogApi, type DayLogSummaryRow } from '../../lib/api/pms';
 
 // ================= ROOM CALENDAR: 10-DAY VIEW =================
 const DAYS_IN_VIEW = 10;
 const ROOM_COL_WIDTH = 108; // sticky room column
 const MIN_DAY_WIDTH = 84; // below this width the view scrolls sideways instead of shrinking
-const HEADER_HEIGHT = 60;
 const AVAIL_ROW_HEIGHT = 32;
 const ROW_HEIGHT = 56; // drag maths uses this to map vertical movement to rooms
 const BAR_INSET = 3; // gap between a booking bar and the day lines it spans
@@ -228,6 +231,23 @@ export function RoomCalendar({
   // Master data synchronized with the central PMS store
   const [rooms] = useState<CalendarRoom[]>(loadCalendarRooms);
   const [reservations, setReservations] = useState<CalendarReservation[]>(() => loadSyncedReservations());
+
+  // Day notes and enquiries: summary drives the header icons, the date opens the day log
+  const [dayLog, setDayLog] = useState<Record<string, DayLogSummaryRow>>({});
+  const [dayLogVersion, setDayLogVersion] = useState(0);
+  const [openLog, setOpenLog] = useState<{ date: string; kind: 'note' | 'enquiries' } | null>(null);
+  useEffect(() => {
+    let active = true;
+    dayLogApi
+      .summary(days)
+      .then((summary) => {
+        if (active) setDayLog(summary);
+      })
+      .catch(() => toast.error('Could not load day notes'));
+    return () => {
+      active = false;
+    };
+  }, [days, dayLogVersion]);
 
   // Detail modal & change confirmation
   const [activeReservation, setActiveReservation] = useState<CalendarReservation | null>(null);
@@ -590,73 +610,89 @@ export function RoomCalendar({
           <div className="relative min-w-max" style={{ width: `${gridWidth}px` }}>
             {/* Dates and the per-day availability row share one sticky block, so they stay visible while scrolling */}
             <div className="sticky top-0 z-30 bg-surface">
-            <div
-              className="flex border-b border-border bg-surface"
-              style={{ height: `${HEADER_HEIGHT}px` }}
-            >
-              <div
-                className="sticky left-0 z-40 flex shrink-0 items-center border-r border-border bg-page px-3 text-micro font-bold uppercase tracking-wider text-ink-secondary"
-                style={{ width: `${ROOM_COL_WIDTH}px` }}
-              >
-                Room
+              <div className="flex border-b border-border bg-surface">
+                <div
+                  className="sticky left-0 z-40 flex shrink-0 items-end border-r border-border bg-page px-3 pb-2 text-micro font-bold uppercase tracking-wider text-ink-secondary"
+                  style={{ width: `${ROOM_COL_WIDTH}px` }}
+                >
+                  Room
+                </div>
+                {days.map((dateStr) => {
+                  const isToday = dateStr === BUSINESS_DATE;
+                  const info = formatCalendarDate(dateStr);
+                  const isWeekend = info.isWeekend;
+                  const log = dayLog[dateStr];
+                  const enquiryCount = log?.enquiryCount ?? 0;
+                  return (
+                    <div
+                      key={dateStr}
+                      className="flex shrink-0 flex-col items-center gap-1.5 border-r border-border px-1 py-2.5"
+                      style={{
+                        width: `${dayWidth}px`,
+                        background: isToday
+                          ? 'color-mix(in srgb, var(--color-primary) 9%, var(--color-surface))'
+                          : isWeekend
+                            ? 'color-mix(in srgb, var(--color-muted-surface) 60%, var(--color-surface))'
+                            : 'var(--color-surface)',
+                        boxShadow: isToday ? 'inset 0 -2px 0 var(--color-primary)' : undefined,
+                      }}
+                    >
+                      <span
+                        className={`text-micro font-semibold uppercase leading-none tracking-wider ${isToday ? 'text-[var(--color-primary)]' : 'text-ink-secondary'}`}
+                      >
+                        {info.weekday}
+                      </span>
+                      <div className="flex w-full items-center justify-between">
+                        <DayLogButton
+                          icon={<Lucide.StickyNote size={11} aria-hidden="true" />}
+                          label={`${log?.hasNote ? 'Note written' : 'No note'} for ${dateStr}`}
+                          filled={Boolean(log?.hasNote)}
+                          tone="warning"
+                          onClick={() => setOpenLog({ date: dateStr, kind: 'note' })}
+                        />
+                        <span
+                          className={`tnum flex h-7 w-7 items-center justify-center rounded-full text-body font-bold leading-none ${isToday ? 'bg-[var(--color-primary)] text-white' : 'text-ink'}`}
+                        >
+                          {info.dayNum}
+                        </span>
+                        <DayLogButton
+                          icon={<Lucide.MessageSquareText size={11} aria-hidden="true" />}
+                          label={`${enquiryCount} enquir${enquiryCount === 1 ? 'y' : 'ies'} for ${dateStr}`}
+                          filled={enquiryCount > 0}
+                          tone="info"
+                          onClick={() => setOpenLog({ date: dateStr, kind: 'enquiries' })}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              {days.map((dateStr) => {
-                const isToday = dateStr === BUSINESS_DATE;
-                const info = formatCalendarDate(dateStr);
-                return (
+              <div className="flex border-b border-border bg-surface" style={{ height: `${AVAIL_ROW_HEIGHT}px` }}>
+                <div
+                  className="sticky left-0 z-40 flex shrink-0 items-center border-r border-border bg-page px-3 text-micro font-bold uppercase tracking-wider text-ink-secondary"
+                  style={{ width: `${ROOM_COL_WIDTH}px` }}
+                >
+                  Total
+                </div>
+                {availability.map(({ dateStr, free, total }) => (
                   <div
                     key={dateStr}
-                    className="flex shrink-0 flex-col items-center justify-center gap-1 border-r border-border"
-                    style={{
-                      width: `${dayWidth}px`,
-                      background: isToday
-                        ? 'color-mix(in srgb, var(--color-primary) 9%, var(--color-surface))'
-                        : info.isWeekend
-                          ? 'color-mix(in srgb, var(--color-muted-surface) 60%, var(--color-surface))'
-                          : 'var(--color-surface)',
-                      boxShadow: isToday ? 'inset 0 -2px 0 var(--color-primary)' : undefined,
-                    }}
+                    className="flex shrink-0 items-center justify-center border-r border-border"
+                    style={{ width: `${dayWidth}px` }}
                   >
-                    <span
-                      className={`text-micro font-semibold uppercase tracking-wider ${isToday ? 'text-[var(--color-primary)]' : 'text-ink-secondary'}`}
-                    >
-                      {info.weekday}
-                    </span>
-                    <span
-                      className={`tnum flex h-7 w-7 items-center justify-center rounded-full text-body font-bold leading-none ${isToday ? 'bg-[var(--color-primary)] text-white' : 'text-ink'}`}
-                    >
-                      {info.dayNum}
-                    </span>
+                    {free === 0 ? (
+                      <span className="rounded-full bg-danger-bg px-2 py-0.5 text-micro font-bold text-danger-text">All Sold</span>
+                    ) : (
+                      <span
+                        className="tnum rounded-full bg-success-bg px-2 py-0.5 text-micro font-bold text-success-text"
+                        title={`${free} of ${total} rooms free`}
+                      >
+                        {free} AVL
+                      </span>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-            <div className="flex border-b border-border bg-surface" style={{ height: `${AVAIL_ROW_HEIGHT}px` }}>
-              <div
-                className="sticky left-0 z-40 flex shrink-0 items-center border-r border-border bg-page px-3 text-micro font-bold uppercase tracking-wider text-ink-secondary"
-                style={{ width: `${ROOM_COL_WIDTH}px` }}
-              >
-                Total
+                ))}
               </div>
-              {availability.map(({ dateStr, free, total }) => (
-                <div
-                  key={dateStr}
-                  className="flex shrink-0 items-center justify-center border-r border-border"
-                  style={{ width: `${dayWidth}px` }}
-                >
-                  {free === 0 ? (
-                    <span className="rounded-full bg-danger-bg px-2 py-0.5 text-micro font-bold text-danger-text">All Sold</span>
-                  ) : (
-                    <span
-                      className="tnum rounded-full bg-success-bg px-2 py-0.5 text-micro font-bold text-success-text"
-                      title={`${free} of ${total} rooms free`}
-                    >
-                      {free} AVL
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
             </div>
 
             {/* Rooms */}
@@ -792,6 +828,23 @@ export function RoomCalendar({
           </div>
         </div>
       </section>
+
+      {openLog?.kind === 'note' && (
+        <DayNoteModal
+          key={`note-${openLog.date}`}
+          date={openLog.date}
+          onClose={() => setOpenLog(null)}
+          onChanged={() => setDayLogVersion((v) => v + 1)}
+        />
+      )}
+      {openLog?.kind === 'enquiries' && (
+        <DayEnquiriesModal
+          key={`enquiries-${openLog.date}`}
+          date={openLog.date}
+          onClose={() => setOpenLog(null)}
+          onChanged={() => setDayLogVersion((v) => v + 1)}
+        />
+      )}
 
       <ReservationChangeDialog
         change={pendingChange}

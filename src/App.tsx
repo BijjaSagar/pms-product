@@ -42,6 +42,7 @@ const NightAudit = lazy(() => import('./features/finance/NightAuditPage').then((
 const Reports = lazy(() => import('./features/analytics/ReportsPage').then((m) => ({ default: m.Reports })));
 const Staff = lazy(() => import('./features/staff/StaffPage').then((m) => ({ default: m.Staff })));
 const Settings = lazy(() => import('./features/settings/SettingsPage').then((m) => ({ default: m.Settings })));
+const LoginPage = lazy(() => import('./features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
 
 function PageFallback() {
   return (
@@ -223,14 +224,18 @@ function AuthenticatedApp() {
   }, [themeScope, loadedThemeProperty, preset]);
 
   if (loading) {
-    return <main className="flex min-h-screen items-center justify-center" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}><p className="pms-helper">Connecting to TriponX…</p></main>;
+    return (
+      <main className="flex h-dvh items-center justify-center" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
+        <p className="pms-helper">Connecting to TriponX…</p>
+      </main>
+    );
   }
 
   if (!me) {
     return (
-      <main className="flex min-h-screen items-center justify-center" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
-        <p className="pms-helper">Preparing your workspace…</p>
-      </main>
+      <Suspense fallback={<PageFallback />}>
+        <LoginPage />
+      </Suspense>
     );
   }
 

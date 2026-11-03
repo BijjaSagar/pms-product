@@ -19,6 +19,8 @@ import type {
   AuditEventsResult,
   AuthMe,
   AvailabilityResult,
+  DayEnquiryRow,
+  DayLogSummaryRow,
   DailyFlashRow,
   FolioBalanceRow,
   FolioDetailRow,
@@ -84,6 +86,10 @@ interface NightAuditState {
   finalSummary?: NightAuditRow['finalSummary'];
 }
 const nightAudits = new Map<string, NightAuditState>();
+
+// Day log: one note per date (empty text clears it) and any number of enquiries per date.
+const dayNotes = new Map<string, string>();
+const dayEnquiries: DayEnquiryRow[] = [];
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const byRoomNumber = (roomNumber: string | null | undefined): RoomRow | undefined =>
@@ -1109,8 +1115,30 @@ export const store = {
     if (propertyId) activePropertyId = propertyId;
   },
 
+  /* day log */
+  dayNote: (date: string): string | null => dayNotes.get(date) ?? null,
+  saveDayNote(date: string, text: string) {
+    const trimmed = text.trim();
+    if (trimmed) dayNotes.set(date, trimmed);
+    else dayNotes.delete(date);
+  },
+  dayEnquiries: (date: string): DayEnquiryRow[] =>
+    dayEnquiries.filter((e) => e.date === date).map((e) => ({ ...e })),
+  removeDayEnquiry(id: string) {
+    const index = dayEnquiries.findIndex((e) => e.id === id);
+    if (index !== -1) dayEnquiries.splice(index, 1);
+  },
+  dayLogSummary(dates: string[]): Record<string, DayLogSummaryRow> {
+    return Object.fromEntries(
+      dates.map((date) => [
+        date,
+        { hasNote: dayNotes.has(date), enquiryCount: dayEnquiries.filter((e) => e.date === date).length },
+      ]),
+    );
+  },
+
   /* properties */
-  properties: (): PropertyRow[] => [clone(PROPERTY)],
+  properties:(): PropertyRow[] => [clone(PROPERTY)],
   updateProperty(id: string, body: Record<string, unknown>) {
     if (id !== PROPERTY.id) return;
     Object.assign(PROPERTY, body);
