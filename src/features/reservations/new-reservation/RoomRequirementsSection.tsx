@@ -7,6 +7,7 @@ interface Props {
   requirements: RoomRequirement[];
   roomTypes: RoomCategoryOption[];
   availableRoomsByType: Record<string, AvailabilityRow[]>;
+  allRoomsByType: Record<string, { id: string; roomNumber: string; status: string }[]>;
   samePlanAllRooms: boolean;
   overridePrice: boolean;
   roomCharges: number;
@@ -24,6 +25,7 @@ export function RoomRequirementsSection({
   requirements,
   roomTypes,
   availableRoomsByType,
+  allRoomsByType,
   samePlanAllRooms,
   overridePrice,
   roomCharges,
@@ -55,7 +57,8 @@ export function RoomRequirementsSection({
           const roomType = roomTypes.find((item) => item.id === room.roomTypeId);
           const available = availableRoomsByType[room.roomTypeId] ?? [];
           const selectedElsewhere = new Set(requirements.filter((item) => item.id !== room.id && item.roomNo).map((item) => item.roomNo));
-          const roomChoices = available.filter((option) => !selectedElsewhere.has(option.roomNumber));
+          const freeRoomNumbers = new Set(available.map((option) => option.roomNumber));
+          const roomChoices = (allRoomsByType[room.roomTypeId] ?? []).filter((option) => !selectedElsewhere.has(option.roomNumber));
 
           return (
             <article key={room.id} className="rounded-2xl border border-border/90 bg-page/40 p-4 transition-all hover:border-ink-disabled">
@@ -91,8 +94,12 @@ export function RoomRequirementsSection({
                       const option = roomChoices.find((item) => item.roomNumber === event.target.value);
                       onUpdateRoom(room.id, { roomNo: event.target.value, roomId: option?.id ?? null });
                     }} className="w-full rounded-xl border border-border bg-surface text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-semibold normal-case text-ink min-h-[34px] md:min-h-[32px] px-2.5 py-1">
-                      <option value="">Assign later</option>
-                      {roomChoices.map((option) => <option key={option.id} value={option.roomNumber}>Room {option.roomNumber}{option.floor ? ` · Floor ${option.floor}` : ''}</option>)}
+                      <option value="">Auto</option>
+                      {roomChoices.map((option) => (
+                        <option key={option.id} value={option.roomNumber} disabled={!freeRoomNumbers.has(option.roomNumber)}>
+                          {option.roomNumber}
+                        </option>
+                      ))}
                     </select>
                   </label>
                 </div>
@@ -114,7 +121,7 @@ export function RoomRequirementsSection({
                   </div>
                 )}
 
-                {room.roomNo && !roomChoices.some((choice) => choice.roomNumber === room.roomNo) && <p className="text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-semibold text-warning-text" role="status">Room {room.roomNo} is no longer available for these dates.</p>}
+                {room.roomNo && !freeRoomNumbers.has(room.roomNo) &&<p className="text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-semibold text-warning-text" role="status">Room {room.roomNo} is no longer available for these dates.</p>}
               </div>
             </article>
           );

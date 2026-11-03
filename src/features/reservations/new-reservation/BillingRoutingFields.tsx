@@ -9,15 +9,11 @@ interface Props {
 
 const BILLING_ROUTES = ['To Guest', 'To Company'] as const;
 
-export function BillingPreferencesSection({ preferences, totalsByRoute, onChange }: Props) {
+/** Who pays for the room and for extras, shown inside the Payments section. */
+export function BillingRoutingFields({ preferences, totalsByRoute, onChange }: Props) {
   const needsCompany = preferences.billToCompany || preferences.roomBillTo === 'To Company' || preferences.extrasBillTo === 'To Company';
   return (
-    <section className="min-w-0 bg-surface rounded-3xl border border-border/80 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
-      <div className="flex items-center gap-2.5 border-b border-divider pb-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] shadow-xs shadow-primary/20">3</span>
-        <h2 className="text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-bold text-ink-secondary tracking-tight">Billing Preferences</h2>
-      </div>
-
+    <div className="flex flex-col gap-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-3">
           <label className="flex flex-col gap-1.5 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold tracking-wider text-ink">Room bill
@@ -61,6 +57,6 @@ export function BillingPreferencesSection({ preferences, totalsByRoute, onChange
           {Object.entries(totalsByRoute).map(([route, amount]) => <div key={route} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-ink-secondary"><span className="min-w-0 flex-1">{route}</span><span className="shrink-0 text-right font-mono font-semibold text-ink">₹{amount.toLocaleString('en-IN')}.00</span></div>)}
         </div>
       </div>
-    </section>
+    </div>
   );
 }

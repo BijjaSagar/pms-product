@@ -47,6 +47,8 @@ export interface RoomRow {
 export interface GuestRow {
   id: string; firstName: string; lastName: string; email: string | null; phone: string | null;
   companyName?: string | null; city?: string | null; countryCode?: string | null; masked?: boolean;
+  nationality?: string | null; dateOfBirth?: string | null; gender?: string | null; address?: string | null;
+  state?: string | null; country?: string | null;
   preferences?: string | null; internalNotes?: string | null; stayCount?: number; lastStayAt?: string | null;
 }
 export interface ReservationRoomRow {
@@ -289,6 +291,7 @@ export const reportsApi = {
 
 export const auditApi = {
   list: async (limit = 20) => store.auditEvents(limit),
+  forGuest: async (guestId: string, limit = 15) => store.guestAuditEvents(guestId, limit),
   export: () => '/audit-log/export.csv',
 };
 
