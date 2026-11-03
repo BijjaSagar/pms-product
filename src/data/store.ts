@@ -36,7 +36,6 @@ import type {
   OccupancyReportRow,
   PageResult,
   PaymentRow,
-  PropertyRow,
   ReservationBillingPreferencesRow,
   ReservationChargeRow,
   ReservationPendingPaymentRow,
@@ -67,7 +66,6 @@ const invoices: InvoiceRow[] = [];
 let activePropertyId = PROPERTY.id;
 let guestSeq = 1023;
 let bookingSeq = 9100;
-let ticketSeq = 118;
 let invoiceSeq = 4000;
 
 interface Hold {
@@ -1166,12 +1164,6 @@ export const store = {
     );
   },
 
-  /* properties */
-  properties:(): PropertyRow[] => [clone(PROPERTY)],
-  updateProperty(id: string, body: Record<string, unknown>) {
-    if (id !== PROPERTY.id) return;
-    Object.assign(PROPERTY, body);
-  },
 
   /* room types */
   roomTypes: (): RoomTypeRow[] => clone(ROOM_TYPES),
@@ -1214,6 +1206,7 @@ export const store = {
     const roomNumber = String(body.roomNumber ?? nextId('room'));
     const room: RoomRow = {
       id: `room-${roomNumber}`,
+      version: 0,
       roomNumber,
       roomTypeId: type.id,
       roomTypeCode: type.code,
@@ -1456,144 +1449,8 @@ export const store = {
   },
 
   /* housekeeping */
-  housekeepingTasks: (scope?: string): HousekeepingTaskRow[] => {
-    if (scope === 'open') return clone(tasks.filter((t) => !['READY', 'CANCELLED'].includes(t.status)));
-    return clone(tasks);
-  },
-  housekeepingSummary: () => {
-    const byStatus: Record<string, number> = {};
-    tasks.forEach((t) => {
-      byStatus[t.status] = (byStatus[t.status] ?? 0) + 1;
-    });
-    return { byStatus, rooms: roomsSummary() };
-  },
-  createTask(body: Record<string, unknown>): { id: string; status: string; roomNumber: string } {
-    const room = rooms.find((r) => r.id === String(body.roomId));
-    const task: HousekeepingTaskRow = {
-      id: nextId('hk'),
-      type: String(body.type ?? 'CHECKOUT_CLEAN'),
-      status: 'TODO',
-      priority: String(body.priority ?? 'NORMAL'),
-      roomId: room?.id ?? String(body.roomId ?? ''),
-      roomNumber: room?.roomNumber ?? (body.roomNumber as string) ?? null,
-      roomTypeName: room?.roomTypeName ?? null,
-      assignedToId: (body.assignedToId as string) ?? null,
-      assigneeName: users.find((u) => u.userId === body.assignedToId)?.fullName ?? null,
-      dueAt: (body.dueAt as string) ?? `${BUSINESS_DATE}T14:00:00Z`,
-      startedAt: null,
-      completedAt: null,
-      inspectedAt: null,
-      notes: (body.notes as string) ?? null,
-      blockedReason: null,
-      createdAt: new Date().toISOString(),
-    };
-    tasks.unshift(task);
-    return { id: task.id, status: task.status, roomNumber: task.roomNumber ?? '' };
-  },
-  assignTask(id: string, assignedToId: string | null) {
-    const task = tasks.find((t) => t.id === id);
-    if (!task) return;
-    task.assignedToId = assignedToId;
-    task.assigneeName = users.find((u) => u.userId === assignedToId)?.fullName ?? null;
-  },
-  startTask(id: string) {
-    const task = tasks.find((t) => t.id === id);
-    if (!task) return;
-    task.status = 'IN_PROGRESS';
-    task.startedAt = new Date().toISOString();
-  },
-  completeTask(id: string, notes?: string) {
-    const task = tasks.find((t) => t.id === id);
-    if (!task) return;
-    task.status = 'CLEANED';
-    task.completedAt = new Date().toISOString();
-    if (notes) task.notes = notes;
-  },
-  requestInspection(id: string) {
-    const task = tasks.find((t) => t.id === id);
-    if (task) task.status = 'INSPECTION_REQUIRED';
-  },
-  inspectTask(id: string, result: 'pass' | 'fail', _notes?: string) {
-    const task = tasks.find((t) => t.id === id);
-    if (!task) return;
-    if (result === 'pass') {
-      task.status = 'READY';
-      task.inspectedAt = new Date().toISOString();
-      const room = rooms.find((r) => r.id === task.roomId);
-      if (room && room.status !== 'OUT_OF_ORDER') room.status = 'INSPECTED';
-    } else {
-      task.status = 'TODO';
-    }
-  },
-  blockTask(id: string, reason: string) {
-    const task = tasks.find((t) => t.id === id);
-    if (!task) return;
-    task.status = 'BLOCKED';
-    task.blockedReason = reason;
-  },
-  unblockTask(id: string) {
-    const task = tasks.find((t) => t.id === id);
-    if (!task) return;
-    task.status = 'TODO';
-    task.blockedReason = null;
-  },
-  cancelTask(id: string, _reason: string) {
-    const task = tasks.find((t) => t.id === id);
-    if (task) task.status = 'CANCELLED';
-  },
 
   /* maintenance */
-  maintenanceTickets: (): MaintenanceTicketRow[] => clone(tickets),
-  createTicket(body: Record<string, unknown>): { id: string; ticketNo: string; status: string } {
-    ticketSeq += 1;
-    const room = rooms.find((r) => r.id === String(body.roomId));
-    const ticket: MaintenanceTicketRow = {
-      id: nextId('mx'),
-      ticketNo: `WO-${ticketSeq}`,
-      title: String(body.title ?? 'Maintenance request'),
-      description: String(body.description ?? ''),
-      category: String(body.category ?? 'OTHER'),
-      priority: String(body.priority ?? 'NORMAL'),
-      status: 'OPEN',
-      roomId: room?.id ?? (body.roomId as string) ?? null,
-      roomNumber: room?.roomNumber ?? (body.roomNumber as string) ?? null,
-      assignedToId: (body.assignedToId as string) ?? null,
-      assigneeName: users.find((u) => u.userId === body.assignedToId)?.fullName ?? null,
-      reportedByName: users.find((u) => u.userId === CURRENT_USER_ID)?.fullName ?? null,
-      resolution: null,
-      createdAt: new Date().toISOString(),
-    };
-    tickets.unshift(ticket);
-    return { id: ticket.id, ticketNo: ticket.ticketNo, status: ticket.status };
-  },
-  assignTicket(id: string, assignedToId: string | null) {
-    const ticket = tickets.find((t) => t.id === id);
-    if (!ticket) return;
-    ticket.assignedToId = assignedToId;
-    ticket.assigneeName = users.find((u) => u.userId === assignedToId)?.fullName ?? null;
-    if (ticket.status === 'OPEN') ticket.status = 'ASSIGNED';
-  },
-  startTicket(id: string) {
-    const ticket = tickets.find((t) => t.id === id);
-    if (ticket) ticket.status = 'IN_PROGRESS';
-  },
-  resolveTicket(id: string, resolution: string) {
-    const ticket = tickets.find((t) => t.id === id);
-    if (!ticket) return;
-    ticket.status = 'RESOLVED';
-    ticket.resolution = resolution;
-  },
-  closeTicket(id: string, _reason?: string) {
-    const ticket = tickets.find((t) => t.id === id);
-    if (ticket) ticket.status = 'CLOSED';
-  },
-  reopenTicket(id: string, _reason: string) {
-    const ticket = tickets.find((t) => t.id === id);
-    if (ticket) {
-      ticket.status = 'OPEN';
-      ticket.resolution = null;
-    }
-  },
 
   /* reports */
   dailyFlash: (date?: string): DailyFlashRow => dailyFlash(date ?? BUSINESS_DATE),

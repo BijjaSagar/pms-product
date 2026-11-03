@@ -20,7 +20,7 @@ export const ROOM_STATUS_FILTERS: readonly RoomStatus[] = [
 ];
 
 /* The fields the filters read, so the grid and the timeline share one set of rules. */
-export interface RoomFilterSubject {
+interface RoomFilterSubject {
   number: string;
   type: string;
   status: string;

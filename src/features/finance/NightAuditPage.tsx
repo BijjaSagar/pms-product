@@ -2,7 +2,7 @@ import { Button } from '../../components/primitives';
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import type { NavTarget } from '../../config/navigation';
-import { toast } from '../../utils';
+import { toast } from '../../utils/toast';
 import { Modal } from '../../components/overlays';
 
 interface NightAuditProps {

@@ -82,8 +82,8 @@ export function Staff() {
   const save = async () => {
     try {
       if (isNew) {
-        const invited = await adminApi.invite({ email: email.trim(), fullName: fullName.trim(), roleKey, propertyId: me?.activePropertyId ?? undefined });
-        toast('Invitation created', { detail: `Share this link with ${invited.email}: ${window.location.origin}${invited.acceptUrl}`, tone: 'success' });
+        const invited = await adminApi.invite({ email: email.trim(), fullName: fullName.trim(), roleKey });
+        toast('Invitation sent', { detail: `An invitation email was sent to ${invited.email}.`, tone: 'success' });
       } else if (editing) {
         const original = rows.find((row) => row.userId === editing.userId);
         if (can('user.update') && editing.fullName.trim() && editing.fullName !== original?.fullName) await adminApi.updateUser(editing.userId, { fullName: editing.fullName.trim() });
@@ -106,8 +106,8 @@ export function Staff() {
     if (!editing) return;
     try {
       if (action === 'reissue') {
-        const result = await adminApi.reissueInvite(editing.userId);
-        toast('Invitation reissued', { detail: `Share this link: ${window.location.origin}${result.acceptUrl}`, tone: 'success' });
+        await adminApi.reissueInvite(editing.userId);
+        toast('Invitation reissued', { tone: 'success' });
       } else {
         await adminApi.cancelInvite(editing.userId);
         toast('Invitation cancelled', { detail: editing.email, tone: 'success' });

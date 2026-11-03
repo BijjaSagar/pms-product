@@ -1,7 +1,7 @@
 export type BillingRoute = 'To Guest' | 'To Company' | 'To Travel Agent' | 'Direct Settlement' | 'Default';
-export type OccupantRole = 'Primary guest' | 'Family member' | 'Driver' | 'Other';
+type OccupantRole = 'Primary guest' | 'Family member' | 'Driver' | 'Other';
 
-export interface RoomOccupant {
+interface RoomOccupant {
   id: string;
   name: string;
   role: OccupantRole;

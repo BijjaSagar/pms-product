@@ -3,14 +3,14 @@ import * as Lucide from 'lucide-react';
 import { Modal } from '../../components/overlays';
 import { toast } from '../../utils/toast';
 import { folioApi, frontDeskApi, type FolioDetailRow, type StayRow } from '../../lib/api/pms';
-import { BUSINESS_DATE, GUESTS } from '../../data/catalog';
+import { formatBusinessDate, useBusinessDate } from '../../lib/api/businessDate';
 import { addDays, nightsBetween } from '../../data/model';
 import { useApiResource } from '../../lib/api/useApiResource';
-import { formatINR, formatNumber } from '../../utils';
+import { formatINR, formatNumber } from '../../utils/currency';
 import { Button, Checkbox, IconButton, ListItem, SelectField, TextField } from '../../components/primitives';
 
 // Types
-export interface BillingTransaction {
+interface BillingTransaction {
   id: string;
   date: string;
   time: string;
@@ -27,7 +27,7 @@ export interface BillingTransaction {
   isVoided?: boolean;
 }
 
-export interface GuestBillingData {
+interface GuestBillingData {
   id: string;
   guestId: string;
   name: string;
@@ -84,6 +84,8 @@ const ITEM_CATEGORY: Record<string, BillingTransaction['category']> = {
   POS: 'food',
   MINIBAR: 'minibar',
   LAUNDRY: 'service',
+  SERVICE: 'service',
+  INCIDENTAL: 'other',
   DISCOUNT: 'other',
 };
 
@@ -92,6 +94,8 @@ const ITEM_ICON: Record<string, BillingTransaction['iconType']> = {
   POS: 'dinner',
   MINIBAR: 'minibar',
   LAUNDRY: 'other',
+  SERVICE: 'other',
+  INCIDENTAL: 'other',
   DISCOUNT: 'other',
 };
 
@@ -118,8 +122,7 @@ function formatDateTime(iso: string): { date: string; time: string } {
 }
 
 function billingGuestFromStore(stay: StayRow, folio: FolioDetailRow): GuestBillingData {
-  const guest = GUESTS.find((g) => g.id === (stay.primaryGuestId || stay.guestId));
-  const name = stay.guestName || (guest ? `${guest.firstName} ${guest.lastName}` : 'Guest');
+  const name = stay.guestName || 'Guest';
   const initials = name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
   const checkIn = String(stay.checkInDate).slice(0, 10);
   const checkOut = String(stay.checkOutDate).slice(0, 10);
@@ -173,12 +176,12 @@ function billingGuestFromStore(stay: StayRow, folio: FolioDetailRow): GuestBilli
   const { balance } = folio;
   return {
     id: stay.id,
-    guestId: guest?.id ?? stay.guestId ?? '',
+    guestId: stay.guestId ?? '',
     name,
     avatarInitials: initials,
     status: 'In-house',
-    phone: guest?.phone ?? '',
-    email: guest?.email ?? '',
+    phone: '',
+    email: '',
     stayDates: `${formatLongDate(checkIn)} → ${formatLongDate(checkOut)} (${nights} night${nights === 1 ? '' : 's'})`,
     fromDate: checkIn,
     toDate: checkOut,
@@ -254,9 +257,10 @@ export function Billing() {
   >('Guest Folio');
 
   // Table filters
+  const businessDate = useBusinessDate();
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
-  const [fromDate, setFromDate] = useState<string>(toDisplayDate(addDays(BUSINESS_DATE, -4)));
-  const [toDate, setToDate] = useState<string>(toDisplayDate(BUSINESS_DATE));
+  const [fromDate, setFromDate] = useState<string>(toDisplayDate(addDays(businessDate, -4)));
+  const [toDate, setToDate] = useState<string>(toDisplayDate(businessDate));
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -408,7 +412,6 @@ export function Billing() {
     try {
       if (currentGuest.backendFolioId) {
         await folioApi.postItem(currentGuest.backendFolioId, {
-          type: 'INCIDENTAL',
           description: postChargeData.title,
           quantity: '1',
           unitAmount: num.toFixed(2),
@@ -416,7 +419,7 @@ export function Billing() {
       }
 
       const now = new Date();
-      const dateStr = `${now.getDate()} Oct ${now.getFullYear()}`;
+      const dateStr = `${now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`;
       const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       let iconType: BillingTransaction['iconType'] = 'other';
@@ -486,7 +489,7 @@ export function Billing() {
       }
 
       const now = new Date();
-      const dateStr = `${now.getDate()} Oct ${now.getFullYear()}`;
+      const dateStr = `${now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`;
       const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       const newPayment = {
@@ -620,7 +623,7 @@ export function Billing() {
     }
 
     const now = new Date();
-    const dateStr = `${now.getDate()} Oct ${now.getFullYear()}`;
+    const dateStr = `${now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`;
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const ref = `PAY-SETTLE-${Math.floor(1000 + Math.random() * 9000)}`;
 
@@ -1061,7 +1064,7 @@ export function Billing() {
                 style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
               >
                 <span className="font-bold text-ink">Active filters:</span>
-                <span className="text-ink-secondary">Showing charges for stay period 13-10-2026 to 17-10-2026.</span>
+                <span className="text-ink-secondary">{`Showing charges for stay period ${fromDate} to ${toDate}.`}</span>
                 <Button variant="link"
                   type="button"
                   onClick={() => {
@@ -1680,7 +1683,7 @@ export function Billing() {
               </div>
               <div className="text-right">
                 <p className="font-bold font-sans">Statement Date</p>
-                <p className="text-ink-muted">17 Oct 2026</p>
+                <p className="text-ink-muted">{formatBusinessDate(businessDate)}</p>
               </div>
             </div>
 
@@ -1963,7 +1966,7 @@ export function Billing() {
         open={invoiceModalOpen}
         onClose={() => setInvoiceModalOpen(false)}
         title="Tax Invoice"
-        subtitle={`Invoice # INV-2026-${currentGuest.roomNumber}-01`}
+        subtitle={`Invoice # INV-${businessDate.slice(0, 4)}-${currentGuest.roomNumber}-01`}
         footer={
           <div className="flex items-center justify-end gap-2.5 w-full">
             <Button variant="secondary"
@@ -1997,7 +2000,7 @@ export function Billing() {
                 <span className="px-2.5 py-0.5 rounded-full text-micro font-bold bg-success-bg text-success-text">
                   ORIGINAL FOR RECIPIENT
                 </span>
-                <p className="font-mono text-ink font-bold mt-1">INV-2026-{currentGuest.roomNumber}-01</p>
+                <p className="font-mono text-ink font-bold mt-1">INV-{businessDate.slice(0, 4)}-{currentGuest.roomNumber}-01</p>
               </div>
             </div>
 
