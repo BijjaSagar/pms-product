@@ -287,7 +287,14 @@ export const dayLogApi = {
   note: async (date: string) => store.dayNote(date),
   saveNote: async (date: string, text: string) => store.saveDayNote(date, text),
   enquiries: async (date: string) => store.dayEnquiries(date),
+  addEnquiry: async (row: Omit<DayEnquiryRow, 'id'>) => store.addDayEnquiry(row),
   removeEnquiry: async (id: string) => store.removeDayEnquiry(id),
+};
+
+/** Room-night holds taken from the calendar; the store lapses each hold after its timeout. */
+export const holdApi = {
+  acquire: async (roomId: string, checkIn: string, checkOut: string): Promise<HoldResult> =>
+    store.acquireHold(roomId, checkIn, checkOut),
 };
 
 export const propertyApi = {

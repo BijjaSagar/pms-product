@@ -1,6 +1,7 @@
 import type { CalendarReservation, CalendarRoom, RoomOperationalStatus, RoomType, ReservationStatus } from './types';
 import { BUSINESS_DATE, GUESTS } from '../../../data/catalog';
 import { store } from '../../../data/store';
+import { CALENDAR_DAY_EVENTS, type CalendarDayEvent } from '../../../data/calendarEvents';
 
 export { BUSINESS_DATE };
 
@@ -123,6 +124,15 @@ export function loadCalendarRooms(): CalendarRoom[] {
       } satisfies CalendarRoom;
     })
     .sort((a, b) => a.number.localeCompare(b.number));
+}
+
+/** Holidays and events grouped by ISO date, so the calendar can read each day's row in one lookup. */
+export function loadCalendarDayEvents(): Record<string, CalendarDayEvent[]> {
+  const byDate: Record<string, CalendarDayEvent[]> = {};
+  for (const event of CALENDAR_DAY_EVENTS) {
+    (byDate[event.date] ??= []).push(event);
+  }
+  return byDate;
 }
 
 /* ---------------------------------------------------------- reservations */

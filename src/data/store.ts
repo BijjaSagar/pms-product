@@ -1148,6 +1148,11 @@ export const store = {
   },
   dayEnquiries: (date: string): DayEnquiryRow[] =>
     dayEnquiries.filter((e) => e.date === date).map((e) => ({ ...e })),
+  addDayEnquiry(input: Omit<DayEnquiryRow, 'id'>): DayEnquiryRow {
+    const row: DayEnquiryRow = { id: nextId('enq'), ...input };
+    dayEnquiries.push(row);
+    return { ...row };
+  },
   removeDayEnquiry(id: string) {
     const index = dayEnquiries.findIndex((e) => e.id === id);
     if (index !== -1) dayEnquiries.splice(index, 1);
