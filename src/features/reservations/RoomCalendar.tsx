@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { toast } from '../../utils/toast';
 import type { NavTarget } from '../../config/navigation';
@@ -113,6 +113,27 @@ function isRoomBookedOn(room: CalendarRoom, dateStr: string, reservations: Calen
       res.status !== 'No-show' &&
       res.checkInDate <= dateStr &&
       dateStr < res.checkOutDate
+  );
+}
+
+/** Sellable rooms per night for a set of rooms; out-of-order rooms are left out of the count. */
+function nightlyAvailability(roomList: CalendarRoom[], days: string[], reservations: CalendarReservation[]) {
+  const sellable = roomList.filter((r) => r.status !== 'Out-of-Order');
+  return days.map((dateStr) => ({
+    dateStr,
+    free: sellable.filter((r) => !isRoomBookedOn(r, dateStr, reservations)).length,
+    total: sellable.length,
+  }));
+}
+
+function AvailabilityPill({ free, total }: { free: number; total: number }) {
+  if (free === 0) {
+    return <span className="rounded-full bg-danger-bg px-2 py-0.5 text-micro font-bold text-danger-text">All Sold</span>;
+  }
+  return (
+    <span className="tnum rounded-full bg-success-bg px-2 py-0.5 text-micro font-bold text-success-text" title={`${free} of ${total} rooms free`}>
+      {free} AVL
+    </span>
   );
 }
 
@@ -274,6 +295,25 @@ export function RoomCalendar({
   const canvasWidth = DAYS_IN_VIEW * dayWidth;
   const gridWidth = ROOM_COL_WIDTH + canvasWidth;
 
+  // Categories start expanded; collapsing one hides its room rows but keeps its AVL line
+  const [collapsedTypes, setCollapsedTypes] = useState<Set<CalendarRoom['type']>>(() => new Set());
+  const toggleType = (type: CalendarRoom['type']) =>
+    setCollapsedTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) next.delete(type);
+      else next.add(type);
+      return next;
+    });
+
+  // Categories keep the order they first appear in; rooms are sorted by category, then by number
+  const typeOrder = useMemo(() => {
+    const order = new Map<CalendarRoom['type'], number>();
+    rooms.forEach((r) => {
+      if (!order.has(r.type)) order.set(r.type, order.size);
+    });
+    return order;
+  }, [rooms]);
+
   const filteredRooms = useMemo(() => {
     const needle = filters.q.trim().toLowerCase();
     return rooms.filter((r) => {
@@ -287,18 +327,28 @@ export function RoomCalendar({
             (res.guestName.toLowerCase().includes(needle) || res.id.toLowerCase().includes(needle))
         );
       return matchType && matchSearch;
-    });
-  }, [rooms, filters.roomType, filters.q, reservations]);
+    }).sort((a, b) => (typeOrder.get(a.type) ?? 0) - (typeOrder.get(b.type) ?? 0) || a.number.localeCompare(b.number));
+  }, [rooms, typeOrder, filters.roomType, filters.q, reservations]);
 
-  // Sellable rooms per night; out-of-order rooms are left out of the total
-  const availability = useMemo(() => {
-    const sellable = rooms.filter((r) => r.status !== 'Out-of-Order');
-    return days.map((dateStr) => ({
-      dateStr,
-      free: sellable.filter((r) => !isRoomBookedOn(r, dateStr, reservations)).length,
-      total: sellable.length,
-    }));
-  }, [days, rooms, reservations]);
+  // Rows a drag can land on: the rooms of expanded categories, in the order they are drawn
+  const visibleRooms = useMemo(
+    () => filteredRooms.filter((r) => !collapsedTypes.has(r.type)),
+    [filteredRooms, collapsedTypes]
+  );
+
+  const availability = useMemo(() => nightlyAvailability(rooms, days, reservations), [days, rooms, reservations]);
+
+  // Each category's AVL counts all of its rooms, like the Total line counts all rooms
+  const categoryAvailability = useMemo(
+    () =>
+      new Map(
+        [...typeOrder.keys()].map((type) => [
+          type,
+          nightlyAvailability(rooms.filter((r) => r.type === type), days, reservations),
+        ])
+      ),
+    [days, rooms, reservations, typeOrder]
+  );
 
   /**
    * Clicking a free day cell starts a new reservation pre-filled with that room
@@ -398,10 +448,10 @@ export function RoomCalendar({
       let proposedRoomId = dragState.originRoomId;
       if (dragState.dragType === 'move') {
         const rowsShift = Math.round(deltaY / ROW_HEIGHT);
-        const currentIdx = filteredRooms.findIndex((r) => r.id === dragState.originRoomId);
+        const currentIdx = visibleRooms.findIndex((r) => r.id === dragState.originRoomId);
         if (currentIdx !== -1) {
-          const targetIdx = Math.max(0, Math.min(filteredRooms.length - 1, currentIdx + rowsShift));
-          proposedRoomId = filteredRooms[targetIdx].id;
+          const targetIdx = Math.max(0, Math.min(visibleRooms.length - 1, currentIdx + rowsShift));
+          proposedRoomId = visibleRooms[targetIdx].id;
         }
       }
 
@@ -509,7 +559,7 @@ export function RoomCalendar({
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
-  }, [dragState, reservations, filteredRooms, rooms, dayWidth]);
+  }, [dragState, reservations, visibleRooms, rooms, dayWidth]);
 
   // Apply the confirmed change and sync it back to the PMS store
   const handleConfirmChange = async (notifyGuest: boolean) => {
@@ -680,16 +730,7 @@ export function RoomCalendar({
                     className="flex shrink-0 items-center justify-center border-r border-border"
                     style={{ width: `${dayWidth}px` }}
                   >
-                    {free === 0 ? (
-                      <span className="rounded-full bg-danger-bg px-2 py-0.5 text-micro font-bold text-danger-text">All Sold</span>
-                    ) : (
-                      <span
-                        className="tnum rounded-full bg-success-bg px-2 py-0.5 text-micro font-bold text-success-text"
-                        title={`${free} of ${total} rooms free`}
-                      >
-                        {free} AVL
-                      </span>
-                    )}
+                    <AvailabilityPill free={free} total={total} />
                   </div>
                 ))}
               </div>
@@ -705,7 +746,11 @@ export function RoomCalendar({
                 <span className="text-label text-ink-secondary">Try a different room type, floor, or search.</span>
               </div>
             ) : (
-              filteredRooms.map((room) => {
+              filteredRooms.map((room, index) => {
+                const startsCategory = index === 0 || filteredRooms[index - 1].type !== room.type;
+                const isCollapsed = collapsedTypes.has(room.type);
+                // Collapsed category: only its header line is drawn
+                if (isCollapsed && !startsCategory) return null;
                 const isOOO = room.status === 'Out-of-Order';
                 const isTargetRow = dragState?.isDragging && dragState?.proposedRoomId === room.id;
                 const roomReservations = reservations.filter(
@@ -717,8 +762,37 @@ export function RoomCalendar({
                 );
 
                 return (
+                  <Fragment key={room.id}>
+                  {startsCategory && (
+                    <div className="flex border-b border-border bg-surface" style={{ height: `${AVAIL_ROW_HEIGHT}px` }}>
+                      <div
+                        className="sticky left-0 z-40 shrink-0 border-r border-border bg-page"
+                        style={{ width: `${ROOM_COL_WIDTH}px` }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleType(room.type)}
+                          aria-expanded={!isCollapsed}
+                          title={`${isCollapsed ? 'Expand' : 'Collapse'} ${room.type} rooms`}
+                          className="flex h-full w-full items-center gap-1 px-2 text-left text-micro font-bold uppercase tracking-wider text-ink hover:bg-page/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+                        >
+                          {isCollapsed ? <Lucide.ChevronRight size={12} aria-hidden="true" /> : <Lucide.ChevronDown size={12} aria-hidden="true" />}
+                          <span className="min-w-0 truncate">{room.type}</span>
+                        </button>
+                      </div>
+                      {(categoryAvailability.get(room.type) ?? []).map(({ dateStr, free, total }) => (
+                        <div
+                          key={dateStr}
+                          className="flex shrink-0 items-center justify-center border-r border-border"
+                          style={{ width: `${dayWidth}px` }}
+                        >
+                          <AvailabilityPill free={free} total={total} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {!isCollapsed && (
                   <div
-                    key={room.id}
                     className={`relative flex border-b border-border/80 transition-colors ${isTargetRow
                       ? dragState?.isValid
                         ? 'bg-[var(--color-muted-surface)] ring-1 ring-inset ring-[var(--color-primary)]/40'
@@ -822,6 +896,8 @@ export function RoomCalendar({
                       )}
                     </div>
                   </div>
+                  )}
+                  </Fragment>
                 );
               })
             )}

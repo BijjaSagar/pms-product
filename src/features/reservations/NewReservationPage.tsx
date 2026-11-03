@@ -9,8 +9,12 @@ import type {
   ReservationRoomRow,
 } from "../../lib/api/pms";
 import { useApiResource } from "../../lib/api/useApiResource";
+import { guestFromApi } from "../../lib/api/adapters";
+import type { Guest } from "../../types";
 import { BUSINESS_DATE, GUESTS, TAX_RATE } from "../../data/catalog";
-import { BillingPreferencesSection } from "./new-reservation/BillingPreferencesSection";
+import { AddGuestModal } from "./new-reservation/AddGuestModal";
+import { GuestActivityLog } from "./new-reservation/GuestActivityLog";
+import { BillingRoutingFields } from "./new-reservation/BillingRoutingFields";
 import { OutletPOSSection } from "./new-reservation/OutletPOSSection";
 import { RoomRequirementsSection } from "./new-reservation/RoomRequirementsSection";
 import {
@@ -100,6 +104,7 @@ export function NewReservation({
           ] as const,
       ),
     );
+    const allRooms = await inventoryApi.rooms();
     return {
       roomTypes: roomTypes.map((roomType) => ({
         id: roomType.id,
@@ -115,6 +120,15 @@ export function NewReservation({
           availability.available,
         ]),
       ),
+      // Every room of each category, so the dropdown can show the rooms that are not free for these dates too
+      allRoomsByType: Object.fromEntries(
+        roomTypes.map((roomType) => [
+          roomType.id,
+          allRooms
+            .filter((room) => room.roomTypeId === roomType.id)
+            .map((room) => ({ id: room.id, roomNumber: room.roomNumber, status: room.status })),
+        ]),
+      ),
     };
   }, [checkInDate, checkOutDate]);
   const inventoryResource = useApiResource(loadInventory, [
@@ -125,6 +139,10 @@ export function NewReservation({
     inventoryResource.data?.roomTypes ?? FALLBACK_ROOM_CATEGORIES;
   const availableRoomsByType = useMemo(
     () => inventoryResource.data?.availableRoomsByType ?? {},
+    [inventoryResource.data],
+  );
+  const allRoomsByType = useMemo(
+    () => inventoryResource.data?.allRoomsByType ?? {},
     [inventoryResource.data],
   );
 
@@ -199,14 +217,55 @@ export function NewReservation({
     });
   const [posAddons, setPosAddons] = useState<OutletAddonLine[]>([]);
 
-  // Guest Details
-  const [guestSalutation, setGuestSalutation] = useState("Mr.");
+  // Guest: either picked from the guest directory, or typed in as a new guest
+  const [guestQuery, setGuestQuery] = useState("");
+  const [guestModalOpen, setGuestModalOpen] = useState(false);
+  // Opens on the first seeded guest, who is a real directory record (so the Activity Log has data)
   const [guestName, setGuestName] = useState(DEFAULT_GUEST_NAME);
-  const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(null);
+  const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(DEFAULT_GUEST.id);
   const [guestContact, setGuestContact] = useState(DEFAULT_GUEST.phone ?? "");
   const [guestEmail, setGuestEmail] = useState(DEFAULT_GUEST.email ?? "");
-  const [guestIdType, setGuestIdType] = useState("Aadhaar Card");
-  const [guestIdNumber, setGuestIdNumber] = useState("");
+  const trimmedGuestQuery = guestQuery.trim();
+  const loadGuestMatches = useCallback(
+    async () =>
+      trimmedGuestQuery
+        ? (await guestApi.list(trimmedGuestQuery, 1, 6)).data.map(guestFromApi)
+        : [],
+    [trimmedGuestQuery]
+  );
+  const guestMatches = useApiResource(loadGuestMatches, [trimmedGuestQuery]);
+
+  // The primary guest is also the first occupant of the first room
+  const syncPrimaryOccupantName = (name: string) =>
+    setRequirements((previous) =>
+      previous.map((room, index) =>
+        index === 0
+          ? {
+            ...room,
+            occupants: room.occupants.map((occupant, occupantIndex) =>
+              occupantIndex === 0 ? { ...occupant, name } : occupant
+            ),
+          }
+          : room
+      )
+    );
+
+  const selectGuest = (guest: Guest) => {
+    setPrimaryGuestId(guest.id);
+    setGuestName(guest.name);
+    setGuestContact(guest.phone);
+    setGuestEmail(guest.email);
+    syncPrimaryOccupantName(guest.name);
+    setGuestQuery("");
+  };
+
+  const clearGuest = () => {
+    setPrimaryGuestId(null);
+    setGuestName("");
+    setGuestContact("");
+    setGuestEmail("");
+    syncPrimaryOccupantName("");
+  };
   const [specialRequests, setSpecialRequests] = useState(
     "",
   );
@@ -578,6 +637,26 @@ export function NewReservation({
       });
       return;
     }
+    // Rooms left on Auto-assign take the first free room of their category that no other line has taken
+    const takenRoomIds = new Set(roomIds);
+    const resolvedRequirements: RoomRequirement[] = [];
+    for (const room of requirements) {
+      if (room.roomId) {
+        resolvedRequirements.push(room);
+        continue;
+      }
+      const free = (availableRoomsByType[room.roomTypeId] ?? []).find(
+        (option) => !takenRoomIds.has(option.id),
+      );
+      if (!free) {
+        toast.error("No Room Available", {
+          detail: `No free ${room.category} room is left for Room ${room.roomIndex}. Pick a room number or change its category.`,
+        });
+        return;
+      }
+      takenRoomIds.add(free.id);
+      resolvedRequirements.push({ ...room, roomId: free.id, roomNo: free.roomNumber });
+    }
     setSavingReservation(true);
     try {
       let guestId = primaryGuestId;
@@ -594,7 +673,7 @@ export function NewReservation({
         setPrimaryGuestId(guestId);
       }
 
-      const persistedRooms: ReservationRoomRow[] = requirements.map((room) => {
+      const persistedRooms: ReservationRoomRow[] = resolvedRequirements.map((room) => {
         const mealSurcharge =
           MEAL_PLANS.find((plan) => plan.code === room.mealPlan)?.surcharge ??
           0;
@@ -627,9 +706,9 @@ export function NewReservation({
       });
       const persistedAddons = posAddons.map((addon) => {
         const room =
-          requirements.find(
+          resolvedRequirements.find(
             (candidate) => candidate.id === addon.roomRequirementId,
-          ) ?? requirements[0];
+          ) ?? resolvedRequirements[0];
         const route = billingPreferences.noPost
           ? "Direct Settlement"
           : addon.billingRoute === "Default"
@@ -1523,15 +1602,6 @@ export function NewReservation({
                       Same Plan for All Rooms
                     </span>
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 rounded border-border text-[var(--color-primary)] focus:ring-[var(--color-primary)]/20"
-                    />
-                    <span className="text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-semibold text-ink">
-                      Pay at Hotel
-                    </span>
-                  </label>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-1 @md:grid-cols-4">
@@ -1655,6 +1725,7 @@ export function NewReservation({
                 requirements={requirements}
                 roomTypes={roomTypes}
                 availableRoomsByType={availableRoomsByType}
+                allRoomsByType={allRoomsByType}
                 samePlanAllRooms={samePlanAllRooms}
                 overridePrice={overridePrice}
                 roomCharges={roomCharges}
@@ -1676,27 +1747,16 @@ export function NewReservation({
               />
 
 
-              <BillingPreferencesSection
-                preferences={billingPreferences}
-                totalsByRoute={totalsByRoute}
-                onChange={(updates) =>
-                  setBillingPreferences((previous) => ({
-                    ...previous,
-                    ...updates,
-                  }))
-                }
-              />
-
-              {/* SECTION 4: GUEST DETAILS & PROFILE SEARCH */}
+              {/* SECTION 3: GUEST DETAILS & PROFILE SEARCH */}
               <section className="min-w-0 bg-surface rounded-2xl md:rounded-3xl border border-border/80 p-4 md:p-5 min-[1440px]:p-6 shadow-xs flex flex-col gap-4">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider pb-3">
                   <div className="flex min-w-0 items-center gap-2.5">
                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] shadow-xs shadow-primary/20">
-                      4
+                      3
                     </span>
                     <div>
                       <h2 className="text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-bold text-ink-secondary tracking-tight">
-                        Guest Information & Verification
+                        Guest Reservation Card
                       </h2>
                     </div>
                   </div>
@@ -1706,134 +1766,98 @@ export function NewReservation({
                   </span>
                 </div>
 
-                {/* Form fields */}
-                <div className="grid grid-cols-1 gap-3 @md:grid-cols-2 @2xl:grid-cols-4">
-                  <div className="md:col-span-1">
-                    <label htmlFor="res-salutation" className={labelClass}>
-                      Salutation
-                    </label>
-                    <select id="res-salutation"
-                      value={guestSalutation}
-                      onChange={(e) => setGuestSalutation(e.target.value)}
-                      className={selectClass}
-                    >
-                      <option value="Mr.">Mr.</option>
-                      <option value="Ms.">Ms.</option>
-                      <option value="Mrs.">Mrs.</option>
-                      <option value="Dr.">Dr.</option>
-                    </select>
-                  </div>
-
-                  <div className="md:col-span-1 @2xl:col-span-3">
-                    <label htmlFor="res-full-legal-name" className={labelClass}>
-                      Full Legal Name{" "}
-                      <span className="text-danger-text">*</span>
-                    </label>
-                    <input id="res-full-legal-name"
-                      type="text"
-                      value={guestName}
-                      onChange={(e) => {
-                        setGuestName(e.target.value);
-                        setPrimaryGuestId(null);
-                        setRequirements((previous) =>
-                          previous.map((room, index) =>
-                            index === 0
-                              ? {
-                                ...room,
-                                occupants: room.occupants.map(
-                                  (occupant, occupantIndex) =>
-                                    occupantIndex === 0
-                                      ? { ...occupant, name: e.target.value }
-                                      : occupant,
-                                ),
-                              }
-                              : room,
-                          ),
-                        );
-                      }}
-                      placeholder="e.g. Rohan Sharma"
-                      className={fieldClass}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 @md:grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="res-phone-number" className={labelClass}>
-                      Phone Number <span className="text-danger-text">*</span>
-                    </label>
-                    <div className="relative">
-                      <input id="res-phone-number"
-                        type="text"
-                        value={guestContact}
-                        onChange={(e) => {
-                          setGuestContact(e.target.value);
-                          setPrimaryGuestId(null);
-                        }}
-                        placeholder="e.g. +91 88829 51951"
-                        className={`${fieldClass} pr-9`}
-                      />
-                      <Lucide.Phone
-                        size={13}
-                        className="text-ink-muted absolute right-3 top-1/2 -translate-y-1/2"
-                      />
+                {primaryGuestId ? (
+                  <div className="flex items-center gap-2">
+                    <div className="min-w-0 flex-1 rounded-xl border border-border/80 bg-surface px-3 py-2.5">
+                      <p className="truncate text-[12px] font-bold text-ink">{guestName}</p>
+                      <p className="tnum truncate text-[12px] text-ink-secondary">
+                        {[guestContact, guestEmail].filter(Boolean).join(" · ") || "No contact details"}
+                      </p>
                     </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="res-email-address" className={labelClass}>
-                      Email Address
-                    </label>
-                    <div className="relative">
-                      <input id="res-email-address"
-                        type="email"
-                        value={guestEmail}
-                        onChange={(e) => {
-                          setGuestEmail(e.target.value);
-                          setPrimaryGuestId(null);
-                        }}
-                        placeholder="e.g. guest@example.com"
-                        className={`${fieldClass} pr-9`}
-                      />
-                      <Lucide.Mail
-                        size={13}
-                        className="text-ink-muted absolute right-3 top-1/2 -translate-y-1/2"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* ID Verification Row */}
-                <div className="grid grid-cols-1 @md:grid-cols-2 gap-3 pt-1 border-t border-divider">
-                  <div>
-                    <label htmlFor="res-identity-document" className={labelClass}>
-                      Identity Document
-                    </label>
-                    <select id="res-identity-document"
-                      value={guestIdType}
-                      onChange={(e) => setGuestIdType(e.target.value)}
-                      className={selectClass}
+                    <button
+                      type="button"
+                      onClick={clearGuest}
+                      aria-label="Remove Guest"
+                      title="Remove Guest"
+                      className="flex h-9 w-9 flex-none items-center justify-center rounded-xl border border-border text-ink-secondary hover:bg-surface cursor-pointer"
                     >
-                      <option value="Aadhaar Card">Aadhaar Card</option>
-                      <option value="Passport">Passport</option>
-                      <option value="Driving License">Driving License</option>
-                      <option value="Voter ID">Voter ID</option>
-                    </select>
+                      <Lucide.X size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGuestModalOpen(true)}
+                      aria-label="Add more Guest"
+                      title="Add more Guest"
+                      className="flex h-9 w-9 flex-none items-center justify-center rounded-xl border border-dashed border-[var(--color-primary)]/50 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 cursor-pointer"
+                    >
+                      <Lucide.Plus size={14} />
+                    </button>
                   </div>
-
-                  <div>
-                    <label htmlFor="res-document-number" className={labelClass}>
-                      Document Number
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="res-guest-search" className={labelClass}>
+                      Find Guest
                     </label>
-                    <input id="res-document-number"
-                      type="text"
-                      value={guestIdNumber}
-                      onChange={(e) => setGuestIdNumber(e.target.value)}
-                      placeholder="e.g. 9842 1290 8731"
-                      className={fieldClass}
-                    />
+                    <div className="flex items-center gap-2">
+                      <div className="relative min-w-0 flex-1">
+                        <input id="res-guest-search"
+                          type="search"
+                          value={guestQuery}
+                          onChange={(e) => setGuestQuery(e.target.value)}
+                          placeholder="Type a Guest's name or phone number"
+                          className={iconFieldClass}
+                        />
+                        <Lucide.Search
+                          size={13}
+                          className="text-ink-muted absolute left-3 top-1/2 -translate-y-1/2"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setGuestModalOpen(true)}
+                        aria-label="Add more Guest"
+                        title="Add more Guest"
+                        className="flex h-9 w-9 flex-none items-center justify-center rounded-xl border border-dashed border-[var(--color-primary)]/50 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 cursor-pointer"
+                      >
+                        <Lucide.Plus size={14} />
+                      </button>
+                    </div>
+
+                    {trimmedGuestQuery && (
+                      <ul className="flex flex-col divide-y divide-divider overflow-hidden rounded-xl border border-border/80">
+                        {guestMatches.loading ? (
+                          <li className="px-3 py-2 text-[12px] text-ink-secondary">Searching Guests…</li>
+                        ) : guestMatches.error ? (
+                          <li role="alert" className="px-3 py-2 text-[12px] text-danger-text">
+                            Could not search Guests: {guestMatches.error}
+                          </li>
+                        ) : guestMatches.data && guestMatches.data.length > 0 ? (
+                          guestMatches.data.map((guest) => (
+                            <li key={guest.id}>
+                              <button
+                                type="button"
+                                onClick={() => selectGuest(guest)}
+                                className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-page cursor-pointer"
+                              >
+                                <span className="min-w-0">
+                                  <span className="block truncate text-[13px] font-semibold text-ink">{guest.name}</span>
+                                  <span className="block truncate text-[12px] text-ink-secondary">
+                                    {[guest.phone, guest.email].filter(Boolean).join(" · ") || "No contact details"}
+                                  </span>
+                                </span>
+                                <span className="tnum flex-none text-[11px] font-mono text-ink-secondary">{guest.id}</span>
+                              </button>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="px-3 py-2 text-[12px] text-ink-secondary">
+                            No Guest matches "{trimmedGuestQuery}". Add them as a new Guest below.
+                          </li>
+                        )}
+                      </ul>
+                    )}
                   </div>
-                </div>
+                )}
 
                 {/* Special Requests */}
                 <div>
@@ -1850,12 +1874,12 @@ export function NewReservation({
                 </div>
               </section>
 
-              {/* SECTION 5: PAYMENTS & SUMMARY BREAKDOWN */}
+              {/* SECTION 4: PAYMENTS & SUMMARY BREAKDOWN */}
               <section className="min-w-0 bg-surface rounded-2xl md:rounded-3xl border border-border/80 p-4 md:p-5 min-[1440px]:p-6 shadow-xs flex flex-col gap-4">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider pb-3">
                   <div className="flex min-w-0 items-center gap-2.5">
                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] shadow-xs shadow-primary/20">
-                      5
+                      4
                     </span>
                     <div>
                       <h2 className="text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-bold text-ink-secondary tracking-tight">
@@ -1876,6 +1900,17 @@ export function NewReservation({
                     <span>Collect Payment</span>
                   </button>
                 </div>
+
+                <BillingRoutingFields
+                  preferences={billingPreferences}
+                  totalsByRoute={totalsByRoute}
+                  onChange={(updates) =>
+                    setBillingPreferences((previous) => ({
+                      ...previous,
+                      ...updates,
+                    }))
+                  }
+                />
 
                 {/* Payments Recorded List */}
                 {paymentsList.length > 0 ? (
@@ -1914,6 +1949,16 @@ export function NewReservation({
                     deposit.
                   </div>
                 )}
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded border-border text-[var(--color-primary)] focus:ring-[var(--color-primary)]/20"
+                  />
+                  <span className="text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-semibold text-ink">
+                    Pay at Hotel
+                  </span>
+                </label>
 
                 {/* Payment Notes */}
                 <div>
@@ -2107,6 +2152,8 @@ export function NewReservation({
               </button>
             </div>
           </div>
+
+          <GuestActivityLog guestId={primaryGuestId} />
         </div>
       </div>
 
@@ -2281,6 +2328,16 @@ export function NewReservation({
               className={textareaClass}
             />
       </Modal>
+
+      {guestModalOpen && (
+        <AddGuestModal
+          onClose={() => setGuestModalOpen(false)}
+          onCreated={(guest) => {
+            selectGuest(guest);
+            setGuestModalOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }

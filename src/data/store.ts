@@ -542,7 +542,30 @@ const auditEvents: AuditEventRow[] = [
   { id: 'aud-10', action: 'auth.login', resourceType: 'session', resourceId: null, outcome: 'SUCCESS', reason: null, actorName: 'Anaya Sharma', createdAt: `${BUSINESS_DATE} 07:42` },
   { id: 'aud-11', action: 'invoice.issue', resourceType: 'invoice', resourceId: 'inv-1', outcome: 'SUCCESS', reason: null, actorName: 'Meera Joshi', createdAt: `${addDays(BUSINESS_DATE, -1)} 18:30` },
   { id: 'aud-12', action: 'reservation.cancel', resourceType: 'reservation', resourceId: 'res-1041', outcome: 'SUCCESS', reason: 'Guest travel plans changed', actorName: 'Vikram Rao', createdAt: `${addDays(BUSINESS_DATE, -1)} 12:10` },
+  // Sample history for guest g-1023 (Aarav Iyer), used to preview the Activity Log panel
+  { id: 'aud-d1', action: 'guest.create', resourceType: 'guest', resourceId: 'g-1023', outcome: 'SUCCESS', reason: null, actorName: 'Vikram Rao', createdAt: `${addDays(BUSINESS_DATE, -180)} 10:14` },
+  { id: 'aud-d2', action: 'stay.check-in', resourceType: 'reservation', resourceId: 'g-1023', outcome: 'SUCCESS', reason: null, actorName: 'Neha Gupta', createdAt: `${addDays(BUSINESS_DATE, -60)} 14:03` },
+  { id: 'aud-d3', action: 'folio.payment', resourceType: 'folio', resourceId: 'g-1023', outcome: 'SUCCESS', reason: 'Advance deposit ₹5,000 via UPI', actorName: 'Ramu Yadav', createdAt: `${addDays(BUSINESS_DATE, -31)} 18:45` },
+  { id: 'aud-d4', action: 'guest.update', resourceType: 'guest', resourceId: 'g-1023', outcome: 'SUCCESS', reason: 'Preferences: high floor, king bed, late check-out', actorName: 'Neha Gupta', createdAt: `${addDays(BUSINESS_DATE, -12)} 11:20` },
+  { id: 'aud-d5', action: 'invoice.issue', resourceType: 'invoice', resourceId: 'g-1023', outcome: 'SUCCESS', reason: null, actorName: 'Meera Joshi', createdAt: `${addDays(BUSINESS_DATE, -2)} 09:05` },
+  { id: 'aud-d6', action: 'guest.update', resourceType: 'guest', resourceId: 'g-1023', outcome: 'SUCCESS', reason: 'Phone number changed', actorName: 'Anaya Sharma', createdAt: `${addDays(BUSINESS_DATE, -1)} 16:40` },
 ];
+
+/** Records an action taken in this session, attributed to the current user. */
+function recordAudit(action: string, resourceType: string, resourceId: string) {
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  auditEvents.unshift({
+    id: `aud-s${auditEvents.length + 1}`,
+    action,
+    resourceType,
+    resourceId,
+    outcome: 'SUCCESS',
+    reason: null,
+    actorName: users.find((u) => u.userId === CURRENT_USER_ID)?.fullName ?? null,
+    createdAt: `${BUSINESS_DATE} ${time}`,
+  });
+}
 
 /* ------------------------------------------------------------------- store */
 
@@ -699,6 +722,7 @@ function createReservation(body: Record<string, unknown>): { id: string; booking
     paid,
   };
   reservations.unshift(reservation);
+  recordAudit('reservation.create', 'reservation', id);
   return { id, bookingCode };
 }
 
@@ -1263,12 +1287,19 @@ export const store = {
       companyName: (body.companyName as string) ?? null,
       city: (body.city as string) ?? null,
       countryCode: (body.countryCode as string) ?? null,
+      nationality: (body.nationality as string) ?? null,
+      dateOfBirth: (body.dateOfBirth as string) ?? null,
+      gender: (body.gender as string) ?? null,
+      address: (body.address as string) ?? null,
+      state: (body.state as string) ?? null,
+      country: (body.country as string) ?? null,
       preferences: (body.preferences as string) ?? null,
       internalNotes: null,
       stayCount: 0,
       lastStayAt: null,
     };
     guests.unshift(guest);
+    recordAudit('guest.create', 'guest', guest.id);
     return clone(guest);
   },
   updateGuest(id: string, body: Record<string, unknown>): GuestRow | undefined {
@@ -1571,6 +1602,13 @@ export const store = {
   auditEvents(limit: number): AuditEventsResult {
     const rows = auditEvents.slice(0, limit);
     return { total: auditEvents.length, returned: rows.length, limit, rows: clone(rows) };
+  },
+  /* events on the guest record and on that guest's reservations, newest first */
+  guestAuditEvents(guestId: string, limit: number): AuditEventsResult {
+    const reservationIds = new Set(reservations.filter((r) => r.primaryGuestId === guestId).map((r) => r.id));
+    const matching = auditEvents.filter((e) => e.resourceId === guestId || (e.resourceId !== null && reservationIds.has(e.resourceId)));
+    const rows = matching.slice(0, limit);
+    return { total: matching.length, returned: rows.length, limit, rows: clone(rows) };
   },
 
   /* night audit */
