@@ -15,12 +15,28 @@ import { formatCurrency } from '../../lib/api/format';
 import { useAuth } from '../../features/auth/AuthContext';
 import { StatusTimeline } from './StatusTimeline';
 import { Button } from '../../components/primitives';
+import { RoomFilterBar, type RoomViewMode } from './RoomFilterBar';
+import { EMPTY_ROOM_FILTERS, filterRooms, type RoomFilters } from './roomFilters';
 
 function hkTone(hk: HkStatus): BadgeTone {
   if (hk === 'Clean') return 'success';
   if (hk === 'Inspected') return 'success';
   if (hk === 'Cleaning') return 'info';
   return 'warning';
+}
+
+/* What the card says about the room right now: the guest, the block reason, or that it is free to sell. */
+function roomSummary(room: Room): { Icon: Lucide.LucideIcon; text: string } {
+  if (room.guest) {
+    return {
+      Icon: Lucide.User,
+      text: room.checkIn ? `${room.guest} · ${room.checkIn} → ${room.checkOut}` : room.guest,
+    };
+  }
+  if (room.status === 'Out-of-service') {
+    return { Icon: Lucide.Ban, text: room.oosReason || 'Maintenance in progress' };
+  }
+  return { Icon: Lucide.Sparkles, text: 'Ready to allocate' };
 }
 
 function RoomDetail({
@@ -185,7 +201,11 @@ export function Rooms({
   const mxTickets = useMemo(() => resource.data?.mxTickets ?? [], [resource.data?.mxTickets]);
 
   // Grid vs Timeline — mirrors the Reservations page view switcher.
-  const [viewMode, setViewMode] = useState<'grid' | 'timeline'>(initialViewMode);
+  const [viewMode, setViewMode] = useState<RoomViewMode>(initialViewMode);
+  const [filters, setFilters] = useState<RoomFilters>(EMPTY_ROOM_FILTERS);
+  const visibleRooms = useMemo(() => filterRooms(all, filters), [all, filters]);
+  const roomTypes = useMemo(() => Array.from(new Set(all.map((room) => room.type))).sort(), [all]);
+  const roomTypeNames = useMemo(() => Object.fromEntries(all.map((room) => [room.number, room.type])), [all]);
 
   const [openNo, setOpenNo] = useState<string | null>(focusId ?? null);
 
@@ -212,48 +232,17 @@ export function Rooms({
 
   return (
     <div className="flex flex-col gap-4 pms-animate-fade-in pb-8">
-      {/* ================= PAGE HEADER & VIEW SWITCHER ================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-start gap-3">
-        </div>
-
-        {/* View Switcher: Grid vs Timeline */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div
-            className="flex items-center p-1 rounded-xl border border-border bg-surface shadow-2xs"
-            role="group"
-            aria-label="Room board view"
-          >
-            <Button variant="secondary"
-              type="button"
-              onClick={() => setViewMode('grid')}
-              aria-pressed={viewMode === 'grid'}
-              className={`flex items-center gap-1.5 transition-all cursor-pointer ${viewMode === 'grid'
- ? 'bg-[var(--color-primary)] text-white shadow-xs'
- : 'text-ink-secondary hover:text-ink'
- }`}
-            >
-              <Lucide.LayoutGrid size={14} />
-              <span>Grid</span>
-            </Button>
-            <Button variant="secondary"
-              type="button"
-              onClick={() => setViewMode('timeline')}
-              aria-pressed={viewMode === 'timeline'}
-              className={`flex items-center gap-1.5 transition-all cursor-pointer ${viewMode === 'timeline'
- ? 'bg-[var(--color-primary)] text-white shadow-xs'
- : 'text-ink-secondary hover:text-ink'
- }`}
-            >
-              <Lucide.CalendarRange size={14} />
-              <span>Timeline</span>
-            </Button>
-          </div>
-        </div>
-      </div>
+      <RoomFilterBar
+        filters={filters}
+        onChange={(patch) => setFilters((previous) => ({ ...previous, ...patch }))}
+        onClear={() => setFilters(EMPTY_ROOM_FILTERS)}
+        roomTypes={roomTypes}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
 
       {viewMode === 'timeline' ? (
-        <StatusTimeline />
+        <StatusTimeline filters={filters} roomTypeNames={roomTypeNames} />
       ) : (
         <>
           {resource.error ? (
@@ -263,51 +252,56 @@ export function Rooms({
             </div>
           ) : null}
 
+          {visibleRooms.length === 0 ? (
+            <div className="flex min-h-52 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border px-6 py-10 text-center" role="status">
+              <Lucide.SearchX size={22} className="text-ink-muted" aria-hidden="true" />
+              <p className="text-body font-semibold text-ink">No rooms match these filters</p>
+              <Button variant="secondary" type="button" onClick={() => setFilters(EMPTY_ROOM_FILTERS)}>
+                Clear all filters
+              </Button>
+            </div>
+          ) : null}
+
           {/* Room Grid */}
           <div className="pms-stagger grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {all.map((room) => (
-              <article
-                key={room.number}
-                className="pms-card pms-card-hover p-3.5 sm:p-4 flex flex-col justify-between transition-all duration-200"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="tnum text-disp2 font-bold leading-none text-ink">Room {room.number}</p>
-                      <p className="mt-1 text-label text-ink-secondary">
-                        {room.type} · Floor {room.floor} · <span className="tnum font-semibold text-ink">{formatCurrency(room.rate, currencyCode)}</span>
-                      </p>
+            {visibleRooms.map((room) => {
+              const summary = roomSummary(room);
+              return (
+                <article
+                  key={room.number}
+                  className="pms-card pms-card-hover group relative flex flex-col gap-4 p-4 focus-within:ring-2 focus-within:ring-primary"
+                >
+                  {/* The whole card opens the room; the button stretches over it so the content stays plain text. */}
+                  <button
+                    type="button"
+                    onClick={() => setOpenNo(room.number)}
+                    aria-label={`Open room ${room.number}`}
+                    className="absolute inset-0 z-[1] cursor-pointer rounded-[inherit] focus-visible:outline-none"
+                  />
+
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="tnum text-title font-bold leading-tight text-ink">Room {room.number}</p>
+                      <p className="mt-1 truncate text-label text-ink-secondary">{room.type}</p>
                     </div>
-                    <span className="flex flex-col items-end gap-1">
-                      <Badge tone={roomTone(room.status)}>{room.status}</Badge>
-                    </span>
+                    <Badge tone={roomTone(room.status)}>{room.status}</Badge>
                   </div>
-                  <p className="tnum mt-3 min-h-[20px] text-label text-ink-secondary">
-                    {room.guest
-                      ? `Guest: ${room.guest}${room.checkIn ? ` · ${room.checkIn} → ${room.checkOut}` : ''}`
-                      : room.status === 'Out-of-service'
-                        ? `Blocked: ${room.oosReason || 'Maintenance in progress'}`
-                        : 'Ready to allocate'}
+
+                  <div className="flex flex-col gap-2 text-label">
+                    <p className="text-ink-secondary">Floor {room.floor}</p>
+                    <p className="tnum">
+                      <span className="font-bold text-ink">{formatCurrency(room.rate, currencyCode)}</span>
+                      <span className="text-ink-muted"> per night</span>
+                    </p>
+                  </div>
+
+                  <p className="mt-auto flex items-start gap-2 text-label text-ink-secondary">
+                    <summary.Icon size={14} aria-hidden="true" className="mt-0.5 shrink-0 text-ink-muted" />
+                    <span className="min-w-0 break-words">{summary.text}</span>
                   </p>
-                </div>
-                <div className="mt-4 flex gap-2 pt-2 border-t" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                  <Button variant="secondary"
-                    type="button"
-                    className="flex-1"
-                    onClick={() => setOpenNo(room.number)}
-                  >
-                    Details
-                  </Button>
-                  <Button variant="primary"
-                    type="button"
-                    className="flex-1"
-                    onClick={() => setOpenNo(room.number)}
-                  >
-                    Manage
-                  </Button>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
 
           {/* Room Drawer */}

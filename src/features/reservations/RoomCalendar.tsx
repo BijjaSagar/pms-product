@@ -17,13 +17,16 @@ import {
 import { validateReservationMove } from './room-calendar/validation';
 import { ReservationChangeDialog } from './room-calendar/ReservationChangeDialog';
 import { ReservationDetailModal } from './room-calendar/ReservationDetailModal';
-import type { ReservationFilters } from './ReservationFilterBar';
+import type { ReservationFilters } from './reservationFilters';
+import { matchesStatusFilter } from './reservationStatusFilters';
+import { stayOverlapsRange } from './reservationDateRange';
 
 // ================= ROOM CALENDAR: 10-DAY VIEW =================
 const DAYS_IN_VIEW = 10;
 const ROOM_COL_WIDTH = 108; // sticky room column
 const MIN_DAY_WIDTH = 84; // below this width the view scrolls sideways instead of shrinking
 const HEADER_HEIGHT = 60;
+const AVAIL_ROW_HEIGHT = 32;
 const ROW_HEIGHT = 56; // drag maths uses this to map vertical movement to rooms
 const BAR_INSET = 3; // gap between a booking bar and the day lines it spans
 
@@ -96,6 +99,18 @@ function barGeometry(
     startedBefore,
     endsAfter,
   };
+}
+
+/** A room is held on a night when a live booking covers it; cancelled and no-show bookings leave it free. */
+function isRoomBookedOn(room: CalendarRoom, dateStr: string, reservations: CalendarReservation[]): boolean {
+  return reservations.some(
+    (res) =>
+      (res.roomId === room.id || res.roomNumber === room.number) &&
+      res.status !== 'Cancelled' &&
+      res.status !== 'No-show' &&
+      res.checkInDate <= dateStr &&
+      dateStr < res.checkOutDate
+  );
 }
 
 function ResizeHandle({ side, onPointerDown }: { side: 'start' | 'end'; onPointerDown: (e: React.PointerEvent) => void }) {
@@ -194,11 +209,18 @@ export function RoomCalendar({
   onReservationUpdated?: () => void;
   filters: ReservationFilters;
 }) {
-  // The window starts on the business date; the arrows move it by a full window
+  // The window starts on the range's first night, or the business date when no range is set;
+  // the arrows move it by a full window. Changing the range resets the window to its start.
+  const windowAnchor = filters.from || BUSINESS_DATE;
   const [startOffset, setStartOffset] = useState(0);
+  const [anchorSeen, setAnchorSeen] = useState(windowAnchor);
+  if (anchorSeen !== windowAnchor) {
+    setAnchorSeen(windowAnchor);
+    setStartOffset(0);
+  }
   const days = useMemo(
-    () => Array.from({ length: DAYS_IN_VIEW }, (_, i) => addDaysToIso(BUSINESS_DATE, startOffset + i)),
-    [startOffset]
+    () => Array.from({ length: DAYS_IN_VIEW }, (_, i) => addDaysToIso(windowAnchor, startOffset + i)),
+    [windowAnchor, startOffset]
   );
   const firstDay = days[0];
   const horizonEnd = addDaysToIso(days[DAYS_IN_VIEW - 1], 1);
@@ -247,6 +269,16 @@ export function RoomCalendar({
       return matchType && matchSearch;
     });
   }, [rooms, filters.roomType, filters.q, reservations]);
+
+  // Sellable rooms per night; out-of-order rooms are left out of the total
+  const availability = useMemo(() => {
+    const sellable = rooms.filter((r) => r.status !== 'Out-of-Order');
+    return days.map((dateStr) => ({
+      dateStr,
+      free: sellable.filter((r) => !isRoomBookedOn(r, dateStr, reservations)).length,
+      total: sellable.length,
+    }));
+  }, [days, rooms, reservations]);
 
   /**
    * Clicking a free day cell starts a new reservation pre-filled with that room
@@ -556,9 +588,10 @@ export function RoomCalendar({
         {/* The only scroller. Vertical scrolling stays inside the card; the header sticks to its top. */}
         <div ref={gridContainerRef} className="relative max-h-[72vh] overflow-auto">
           <div className="relative min-w-max" style={{ width: `${gridWidth}px` }}>
-            {/* Header */}
+            {/* Dates and the per-day availability row share one sticky block, so they stay visible while scrolling */}
+            <div className="sticky top-0 z-30 bg-surface">
             <div
-              className="sticky top-0 z-30 flex border-b border-border bg-surface"
+              className="flex border-b border-border bg-surface"
               style={{ height: `${HEADER_HEIGHT}px` }}
             >
               <div
@@ -598,6 +631,33 @@ export function RoomCalendar({
                 );
               })}
             </div>
+            <div className="flex border-b border-border bg-surface" style={{ height: `${AVAIL_ROW_HEIGHT}px` }}>
+              <div
+                className="sticky left-0 z-40 flex shrink-0 items-center border-r border-border bg-page px-3 text-micro font-bold uppercase tracking-wider text-ink-secondary"
+                style={{ width: `${ROOM_COL_WIDTH}px` }}
+              >
+                Total
+              </div>
+              {availability.map(({ dateStr, free, total }) => (
+                <div
+                  key={dateStr}
+                  className="flex shrink-0 items-center justify-center border-r border-border"
+                  style={{ width: `${dayWidth}px` }}
+                >
+                  {free === 0 ? (
+                    <span className="rounded-full bg-danger-bg px-2 py-0.5 text-micro font-bold text-danger-text">All Sold</span>
+                  ) : (
+                    <span
+                      className="tnum rounded-full bg-success-bg px-2 py-0.5 text-micro font-bold text-success-text"
+                      title={`${free} of ${total} rooms free`}
+                    >
+                      {free} AVL
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+            </div>
 
             {/* Rooms */}
             {filteredRooms.length === 0 ? (
@@ -615,8 +675,9 @@ export function RoomCalendar({
                 const roomReservations = reservations.filter(
                   (res) =>
                     (res.roomId === room.id || res.roomNumber === room.number) &&
-                    (filters.status === 'All' || res.status === filters.status) &&
-                    (filters.source === 'All' || res.bookingSource === filters.source)
+                    matchesStatusFilter(res.status, filters.status) &&
+                    (filters.source === 'All' || res.bookingSource === filters.source) &&
+                    stayOverlapsRange(res.checkInDate, res.checkOutDate, filters.from, filters.to)
                 );
 
                 return (
@@ -651,14 +712,7 @@ export function RoomCalendar({
                       {days.map((dateStr) => {
                         const isToday = dateStr === BUSINESS_DATE;
                         const info = formatCalendarDate(dateStr);
-                        const isBooked = reservations.some(
-                          (res) =>
-                            (res.roomId === room.id || res.roomNumber === room.number) &&
-                            res.status !== 'Cancelled' &&
-                            res.status !== 'No-show' &&
-                            res.checkInDate <= dateStr &&
-                            dateStr < res.checkOutDate
-                        );
+                        const isBooked = isRoomBookedOn(room, dateStr, reservations);
                         const canCreate = !isBooked && !isOOO;
                         return (
                           <div

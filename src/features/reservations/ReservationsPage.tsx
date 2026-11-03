@@ -10,7 +10,10 @@ import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import type { ReservationStatus } from '../../types';
 import { Button, Checkbox, IconButton, SelectField } from '../../components/primitives';
-import { ReservationFilterBar, EMPTY_RESERVATION_FILTERS, type ReservationFilters } from './ReservationFilterBar';
+import { ReservationFilterBar } from './ReservationFilterBar';
+import { EMPTY_RESERVATION_FILTERS, type ReservationFilters } from './reservationFilters';
+import { matchesStatusFilter } from './reservationStatusFilters';
+import { stayOverlapsRange } from './reservationDateRange';
 import { RoomCalendar } from './RoomCalendar';
 import { ReservationDrawer, StatusPill } from './ReservationDrawer';
 
@@ -53,11 +56,12 @@ export function Reservations({
         r.guest.toLowerCase().includes(needle) ||
         r.id.toLowerCase().includes(needle) ||
         (r.roomNumber && r.roomNumber.toLowerCase().includes(needle));
-      const matchStatus = filters.status === 'All' || r.status === filters.status;
+      const matchStatus = matchesStatusFilter(r.status, filters.status);
       const matchSource = filters.source === 'All' || r.channel.toLowerCase() === filters.source.toLowerCase();
       const matchRoom = filters.roomType === 'All' || r.roomType.toLowerCase() === filters.roomType.toLowerCase();
+      const matchDates = stayOverlapsRange(r.checkInIso ?? '', r.checkOutIso ?? '', filters.from, filters.to);
 
-      return matchSearch && matchStatus && matchSource && matchRoom;
+      return matchSearch && matchStatus && matchSource && matchRoom && matchDates;
     });
 
     return [...list].sort((a, b) =>
@@ -154,36 +158,13 @@ export function Reservations({
         </div>
       )}
 
-      {/* ================= 1. PAGE HEADER ================= */}
-      <header className="flex flex-wrap items-center justify-end gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex items-center gap-1 rounded-xl border border-border bg-surface p-1 shadow-2xs" role="group" aria-label="View">
-            {(
-              [
-                { id: 'calendar', label: 'Calendar', Icon: Lucide.CalendarRange },
-                { id: 'list', label: 'List', Icon: Lucide.List },
-              ] as const
-            ).map(({ id, label, Icon }) => {
-              const active = viewMode === id;
-              return (
-                <Button
-                  key={id}
-                  variant="text"
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => setViewMode(id)}
-                  icon={<Icon size={14} />}
-                  className={`rounded-lg px-3 py-1 cursor-pointer ${active ? '!bg-[var(--color-primary)] !text-white shadow-xs' : 'text-ink-secondary hover:text-ink'}`}
-                >
-                  {label}
-                </Button>
-              );
-            })}
-          </div>
-        </div>
-      </header>
-
-      <ReservationFilterBar filters={filters} onChange={updateFilters} onClear={clearAllFilters} />
+      <ReservationFilterBar
+        filters={filters}
+        onChange={updateFilters}
+        onClear={clearAllFilters}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
 
       {viewMode === 'calendar' ? (
         <RoomCalendar go={go} onReservationUpdated={() => resource.refresh()} filters={filters} />
