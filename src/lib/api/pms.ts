@@ -1,5 +1,6 @@
 import { store } from '../../data/store';
 import type { ThemeKey } from '../../types';
+import { ApiError } from './client';
 
 export interface PropertyMembership {
   id: string;
@@ -155,10 +156,97 @@ export interface NightAuditRow {
   exceptionCount?: number; advisoryOnly?: boolean;
 }
 
+/*
+ * Authentication is the one part of this app that talks to the real backend
+ * (pms-backend). Everything else still reads the in-memory demo store.
+ */
+const API_BASE_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1';
+const ACCESS_TOKEN_KEY = 'pms.accessToken';
+const REFRESH_TOKEN_KEY = 'pms.refreshToken';
+
+interface BackendUser { id: string; email: string; fullName: string; status: string }
+interface BackendLoginResult { accessToken: string; refreshToken: string; user: BackendUser }
+interface BackendErrorBody { error?: { code?: string; message?: string } }
+
+// sessionStorage can throw in private windows or when site data is blocked.
+function readAccessToken(): string | null {
+  try { return sessionStorage.getItem(ACCESS_TOKEN_KEY); } catch { return null; }
+}
+
+function saveTokens(accessToken: string, refreshToken: string): void {
+  try {
+    sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    sessionStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  } catch { /* the token still lives for this page; it just won't survive a reload */ }
+}
+
+function clearTokens(): void {
+  try {
+    sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+    sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+  } catch { /* nothing stored, nothing to clear */ }
+}
+
+/** Calls the backend and turns its `{ error: { code, message } }` envelope into an ApiError. */
+async function backendRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, init);
+  } catch {
+    throw new ApiError('Cannot reach the server. Check that the backend is running.', 0, 'NETWORK_ERROR');
+  }
+  if (response.status === 204) return undefined as T;
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = (body as BackendErrorBody | null)?.error;
+    throw new ApiError(error?.message ?? `Request failed with status ${response.status}.`, response.status, error?.code);
+  }
+  return body as T;
+}
+
 export const authApi = {
-  login: async (_email: string, _password: string) => store.session(),
-  me: async () => store.session(),
-  logout: async () => undefined,
+  /** POST /auth/login with email and password; stores the returned tokens. */
+  login: async (email: string, password: string): Promise<void> => {
+    clearTokens();
+    const result = await backendRequest<BackendLoginResult>('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    saveTokens(result.accessToken, result.refreshToken);
+  },
+
+  /**
+   * GET /auth/me for the signed-in user's identity. Property memberships and
+   * permissions still come from the demo store, because the rest of the app
+   * runs on demo data whose property ids and permission names differ from the backend's.
+   */
+  me: async (): Promise<AuthMe> => {
+    const token = readAccessToken();
+    if (!token) throw new ApiError('You are not signed in.', 401, 'UNAUTHENTICATED');
+    const { user } = await backendRequest<{ user: BackendUser }>('/auth/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const demo = store.session();
+    return {
+      ...demo,
+      user: { ...demo.user, id: user.id, email: user.email, fullName: user.fullName, status: user.status },
+    };
+  },
+
+  /** POST /auth/logout to end the session on the server, then forget the tokens. */
+  logout: async (): Promise<void> => {
+    const token = readAccessToken();
+    try {
+      if (token) await backendRequest<void>('/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+    } catch {
+      // Signing out must always work locally. If the server call fails (expired
+      // token, server down), the server session simply expires on its own.
+    } finally {
+      clearTokens();
+    }
+  },
+
   switchProperty: async (propertyId: string) => store.switchProperty(propertyId),
 };
 

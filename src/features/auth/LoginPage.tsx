@@ -6,12 +6,13 @@ import { THEME_PRESETS } from '../../theme/presets';
 import { ThemeSwatcher } from '../../theme/ThemeSwatcher';
 import { Checkbox, FieldLabel } from '../../components/primitives';
 import { toast } from '../../utils/toast';
+import { displayApiError } from '../../lib/api/client';
 
 export function LoginPage() {
   const { login } = useAuth();
   const { preset } = useTheme();
-  const [email, setEmail] = useState('anaya.sharma@triponx.com');
-  const [password, setPassword] = useState('hotelpms2026');
+  const [email, setEmail] = useState('admin@pms.local');
+  const [password, setPassword] = useState('Password@123');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,9 +27,9 @@ export function LoginPage() {
         detail: 'Welcome to Grand Horizon Hotel PMS workspace.',
         tone: 'success',
       });
-    } catch {
+    } catch (cause) {
       toast('Sign in failed', {
-        detail: 'Could not sign in to demo session.',
+        detail: displayApiError(cause),
         tone: 'danger',
       });
     } finally {
@@ -45,9 +46,9 @@ export function LoginPage() {
         detail: 'Welcome to Grand Horizon Hotel PMS workspace.',
         tone: 'success',
       });
-    } catch {
+    } catch (cause) {
       toast('Sign in failed', {
-        detail: 'Could not sign in to demo session.',
+        detail: displayApiError(cause),
         tone: 'danger',
       });
     } finally {
@@ -205,7 +206,7 @@ export function LoginPage() {
                 Sign In to Workspace
               </h1>
               <p className="mt-1 text-label text-ink-muted">
-                Static demo session: enter any email and password to proceed.
+                Sign in with your PMS account. Demo users use the password Password@123.
               </p>
             </header>
 
@@ -312,14 +313,14 @@ export function LoginPage() {
                 <span className="text-micro font-medium text-ink-muted">Quick login:</span>
                 <button
                   type="button"
-                  onClick={() => void handleQuickDemo('anaya.sharma@triponx.com')}
+                  onClick={() => void handleQuickDemo('gm@pms.local')}
                   className="rounded-md border border-border bg-page px-2 py-0.5 text-micro font-semibold text-ink hover:bg-hover-surface cursor-pointer transition-colors"
                 >
                   General Manager
                 </button>
                 <button
                   type="button"
-                  onClick={() => void handleQuickDemo('vikram.rao@triponx.com')}
+                  onClick={() => void handleQuickDemo('fde@pms.local')}
                   className="rounded-md border border-border bg-page px-2 py-0.5 text-micro font-semibold text-ink hover:bg-hover-surface cursor-pointer transition-colors"
                 >
                   Front Desk
