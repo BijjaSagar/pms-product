@@ -235,7 +235,7 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
                 <th className="text-label font-semibold">COMPANY</th>
                 <th className="text-label font-semibold">TIER</th>
                 <th className="text-right text-label font-semibold">STAYS</th>
-                <th className="text-right text-label font-semibold">BALANCE</th>
+                <th className="text-right text-label font-semibold">BOOKINGS</th>
                 <th className="text-label font-semibold">LAST VISIT</th>
                 <th className="text-right text-label font-semibold">ACTIONS</th>
               </tr>
@@ -269,7 +269,7 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
                     {g.stays}
                   </td>
                   <td className="tnum text-right font-bold text-ink text-label">
-                    {g.balance > 0 ? formatCurrency(g.balance, 'INR') : '—'}
+                    {g.stays}
                   </td>
                   <td>
                     <span className="text-ink-secondary text-label">{g.lastVisit}</span>
