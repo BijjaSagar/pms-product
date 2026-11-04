@@ -1459,35 +1459,6 @@
           ]
         },
         {
-          "name": "List lost items",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/properties/{{propertyId}}/lost-items",
-            "description": "GET /properties/{{propertyId}}/lost-items"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('not a server error', () => pm.expect(pm.response.code).to.be.below(500));",
-                  "const safe = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
-                  "const get = (o, path) => path.split(\".\").reduce((a, k) => (a == null ? undefined : a[k]), o);",
-                  "const setTokens = (j, access, refresh) => { if (j && j.accessToken) { pm.collectionVariables.set(access, j.accessToken); if (j.refreshToken) pm.collectionVariables.set(refresh, j.refreshToken); } };",
-                  "{ const v = get(safe(), 'data.0.id'); if (v !== undefined && v !== null) pm.collectionVariables.set('lostItemId', v); }"
-                ]
-              }
-            }
-          ]
-        },
-        {
           "name": "List guest requests",
           "request": {
             "method": "GET",
@@ -4221,44 +4192,6 @@
           ]
         },
         {
-          "name": "Walk-in",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/properties/{{propertyId}}/walk-ins",
-            "description": "POST /properties/{{propertyId}}/walk-ins",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"arrivalDate\": \"{{d0}}\",\n  \"departureDate\": \"{{d1}}\",\n  \"roomTypeId\": \"{{roomTypeId}}\",\n  \"ratePlanId\": \"{{ratePlanId}}\",\n  \"adults\": 1,\n  \"children\": 0,\n  \"source\": \"WALK_IN\",\n  \"primaryGuest\": {\n    \"firstName\": \"Walk\",\n    \"lastName\": \"In\",\n    \"phone\": \"+919800000002\"\n  },\n  \"idDocument\": {\n    \"type\": \"AADHAAR\",\n    \"reference\": \"XXXX-XXXX-0001\"\n  },\n  \"nationality\": \"IN\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('not a server error', () => pm.expect(pm.response.code).to.be.below(500));"
-                ]
-              }
-            }
-          ]
-        },
-        {
           "name": "Room move",
           "request": {
             "method": "POST",
@@ -4657,111 +4590,6 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"priority\": \"HIGH\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('not a server error', () => pm.expect(pm.response.code).to.be.below(500));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "List lost items",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/properties/{{propertyId}}/lost-items",
-            "description": "GET /properties/{{propertyId}}/lost-items"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('not a server error', () => pm.expect(pm.response.code).to.be.below(500));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Log lost item",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/properties/{{propertyId}}/lost-items",
-            "description": "POST /properties/{{propertyId}}/lost-items",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"roomId\": \"{{roomId}}\",\n  \"description\": \"Black sunglasses\",\n  \"foundLocation\": \"Pool deck\",\n  \"foundAt\": \"{{today}}T10:00:00+05:30\",\n  \"storageLocation\": \"Shelf B1\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('not a server error', () => pm.expect(pm.response.code).to.be.below(500));",
-                  "const safe = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
-                  "const get = (o, path) => path.split(\".\").reduce((a, k) => (a == null ? undefined : a[k]), o);",
-                  "const setTokens = (j, access, refresh) => { if (j && j.accessToken) { pm.collectionVariables.set(access, j.accessToken); if (j.refreshToken) pm.collectionVariables.set(refresh, j.refreshToken); } };",
-                  "{ const v = get(safe(), 'id'); if (v !== undefined && v !== null) pm.collectionVariables.set('newLostItemId', v); }"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Update lost item",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/properties/{{propertyId}}/lost-items/{{lostItemId}}",
-            "description": "PATCH /properties/{{propertyId}}/lost-items/{{lostItemId}}",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"disposition\": \"CLAIMED\",\n  \"claimantName\": \"Guest Name\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
