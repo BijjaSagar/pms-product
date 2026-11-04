@@ -1,7 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Header, Sidebar } from './components/layout';
 import type { NavTarget } from './config/navigation';
-import { viewPermission } from './config/navigation';
+import { homeView, viewPermission } from './config/navigation';
 import { ThemeSwatcher } from './theme/ThemeSwatcher';
 import { AppCrashFallback, ErrorBoundary, PanelCrashFallback } from './components/ErrorBoundary';
 import { ForbiddenPage, NotFoundPage } from './components/ErrorPages';
@@ -62,7 +62,7 @@ function PageFallback() {
 
 function Shell() {
   const { me, can } = useAuth();
-  const [target, setTarget] = useState<NavTarget>({ view: 'dashboard' });
+  const [target, setTarget] = useState<NavTarget>(() => ({ view: homeView(can) }));
   const [navOpen, setNavOpen] = useState(false);
   const [swatcherOpen, setSwatcherOpen] = useState(false);
   const { preset } = useTheme();
@@ -74,9 +74,10 @@ function Shell() {
   }, [view, target.focusId]);
 
   const go = useCallback((t: NavTarget) => {
-    setTarget(t);
+    // The logo and the error pages send people to the dashboard, which not every role holds.
+    setTarget(t.view === 'dashboard' ? { ...t, view: homeView(can) } : t);
     setNavOpen(false);
-  }, []);
+  }, [can]);
 
   const page = useMemo(() => {
     // Presentation-level guard. The API still enforces every permission; this
@@ -185,7 +186,6 @@ function Shell() {
       >
         <ThemeSwatcher open={swatcherOpen} onClose={() => setSwatcherOpen(false)} />
       </ErrorBoundary>
-      <Toaster />
     </div>
   );
 }
@@ -267,6 +267,8 @@ function App() {
       <AuthProvider>
         <AuthenticatedApp />
       </AuthProvider>
+      {/* Outside the signed-in layout, so messages also show on the login and connecting screens. */}
+      <Toaster />
     </ThemeProvider>
   );
 }

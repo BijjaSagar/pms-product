@@ -49,9 +49,10 @@ const FRONTEND_TO_BACKEND: Record<string, string[]> = {
   'user.deactivate': ['user.deactivate'],
   'role.read': ['role.read'],
   'role.assign': ['user.assign_role'],
-  'role.manage': ['role.update'],
   'theme.update': ['property.update'],
   'config.manage': ['config.manage'],
+  'rate.read': ['rate.read'],
+  'channel.read': ['channel.read'],
 };
 
 /** Turns the backend's permission codes for one property into the frontend's keys. */
@@ -62,7 +63,7 @@ export function toFrontendPermissions(backendCodes: readonly string[]): string[]
     .map(([key]) => key);
 }
 
-/** "HOTEL_ADMIN" -> "Hotel Admin", for the role badge in the header. */
+/** "SUPER_ADMIN" -> "Super Admin", for the role badge in the header. */
 export function roleLabel(roleCode: string): string {
   return roleCode
     .toLowerCase()

@@ -329,10 +329,6 @@
       "value": ""
     },
     {
-      "key": "customRoleId",
-      "value": ""
-    },
-    {
       "key": "newRoomTypeId",
       "value": ""
     },
@@ -2300,49 +2296,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('not a server error', () => pm.expect(pm.response.code).to.be.below(500));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Create custom role",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/roles",
-            "description": "POST /roles",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Test Role\",\n  \"description\": \"Read-only front desk\",\n  \"permissions\": [\n    {\n      \"code\": \"reservation.read\"\n    },\n    {\n      \"code\": \"folio.read\"\n    }\n  ]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
                   "pm.test('not a server error', () => pm.expect(pm.response.code).to.be.below(500));",
-                  "const safe = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
-                  "const get = (o, path) => path.split(\".\").reduce((a, k) => (a == null ? undefined : a[k]), o);",
-                  "const setTokens = (j, access, refresh) => { if (j && j.accessToken) { pm.collectionVariables.set(access, j.accessToken); if (j.refreshToken) pm.collectionVariables.set(refresh, j.refreshToken); } };",
-                  "{ const v = get(safe(), 'id'); if (v !== undefined && v !== null) pm.collectionVariables.set('customRoleId', v); }"
+                  "{ let j = {}; try { j = pm.response.json(); } catch (e) {} const v = j.data && j.data[0] && j.data[0].id; if (v) pm.collectionVariables.set('roleId', v); }"
                 ]
               }
             }
@@ -2358,71 +2313,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/roles/{{customRoleId}}",
-            "description": "GET /roles/{{customRoleId}}"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('not a server error', () => pm.expect(pm.response.code).to.be.below(500));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Update role",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/roles/{{customRoleId}}",
-            "description": "PATCH /roles/{{customRoleId}}",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"description\": \"Read-only front desk, updated\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('not a server error', () => pm.expect(pm.response.code).to.be.below(500));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Delete role",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/roles/{{customRoleId}}",
-            "description": "DELETE /roles/{{customRoleId}}"
+            "url": "{{baseUrl}}/roles/{{roleId}}",
+            "description": "GET /roles/{{roleId}}"
           },
           "event": [
             {
