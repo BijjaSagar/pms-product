@@ -26,16 +26,14 @@ type StaffRow = {
 
 function roleBadge(role: string) {
   const r = (role || '').toLowerCase();
-  if (r.includes('admin') || r.includes('owner')) {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-label font-semibold bg-info-bg text-info-text">Admin</span>;
-  }
-  if (r.includes('editor') || r.includes('desk') || r.includes('front')) {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-label font-semibold bg-primary/10 text-primary">{role || 'Editor'}</span>;
-  }
-  if (r.includes('manager')) {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-label font-semibold bg-success-bg text-success-text">{role}</span>;
-  }
-  return <span className="inline-flex items-center px-3 py-1 rounded-full text-label font-semibold bg-muted-surface text-ink">{role || 'Viewer'}</span>;
+  const tone = r.includes('admin')
+    ? 'bg-info-bg text-info-text'
+    : r.includes('manager')
+      ? 'bg-success-bg text-success-text'
+      : r.includes('frontdesk')
+        ? 'bg-primary/10 text-primary'
+        : 'bg-muted-surface text-ink';
+  return <span className={`inline-flex items-center px-3 py-1 rounded-full text-label font-semibold ${tone}`}>{role || 'Staff'}</span>;
 }
 
 function statusBadge(status: StaffRow['status']) {
@@ -66,7 +64,7 @@ export function Staff() {
   const [editing, setEditing] = useState<StaffRow | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [email, setEmail] = useState('');
-  const [roleKey, setRoleKey] = useState('FRONT_DESK');
+  const [roleKey, setRoleKey] = useState('FRONTDESK');
   const [fullName, setFullName] = useState('');
 
   const roles = resource.data?.roles ?? [];
@@ -161,7 +159,7 @@ export function Staff() {
                 setIsNew(true);
                 setEmail('');
                 setFullName('');
-                setRoleKey(roles[0]?.key ?? 'FRONT_DESK');
+                setRoleKey('FRONTDESK');
               }}
             >
               <Lucide.UserPlus size={15} strokeWidth={2.4} />
@@ -203,7 +201,7 @@ export function Staff() {
                   setIsNew(true);
                   setFullName('');
                   setEmail('');
-                  setRoleKey(roles[0]?.key ?? 'FRONT_DESK');
+                  setRoleKey('FRONTDESK');
                 }}
                 className="flex items-center gap-1.5 cursor-pointer transition-all"
               >
@@ -334,7 +332,7 @@ export function Staff() {
         </div>
       </Card>
       {resource.data?.matrix ? <Card>
-        <CardTitle title="Permission matrix" subtitle="System roles are read-only; the backend refuses runtime edits to seeded roles" />
+        <CardTitle title="Permission matrix" subtitle="The five roles are fixed, so this list is read-only" />
         <div className="flex flex-col gap-3">
           {resource.data.matrix.resources.map((group) => (
             <div key={group.resource}>
@@ -351,12 +349,12 @@ export function Staff() {
         </div>
       </Card> : null}
       {roles.length ? <Card>
-        <CardTitle title="Role catalogue" subtitle="Role permissions are managed in the backend" />
+        <CardTitle title="Role catalogue" subtitle="Admin, Manager, Frontdesk, Housekeeping and Auditor" />
         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
           {roles.map((role: RoleRow) => <div key={role.id} className="rounded-control border p-3 sm:p-3.5" style={{ borderColor: 'var(--color-border)' }}>
             <div className="flex items-center justify-between gap-2"><span className="text-body font-semibold text-ink">{role.name}</span><Badge tone={role.isActive ? 'success' : 'neutral'}>{role.memberCount} members</Badge></div>
             <p className="text-label text-ink-secondary mt-1">{role.description ?? role.key}</p>
-            <p className="mt-1 text-label text-ink-secondary">{role.permissions.length} permissions{role.isSystem ? ' · system role' : ''}</p>
+            <p className="mt-1 text-label text-ink-secondary">{role.permissions.length} permissions</p>
           </div>)}
         </div>
       </Card> : null}

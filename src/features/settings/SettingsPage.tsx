@@ -1706,7 +1706,7 @@ export function Settings({
               </div>
               <Button variant="primary"
                 type="button"
-                disabled={saving || !can('role.manage')}
+                disabled={saving || !can('config.manage')}
                 onClick={async () => {
                   setSaving(true);
                   try {

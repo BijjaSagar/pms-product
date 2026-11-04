@@ -874,12 +874,12 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   <span className="h-2 w-2 rounded-full bg-primary flex-none" />
                   <div className="min-w-0">
                     <p className="text-label font-bold text-ink truncate">Room 304 · Executive Suite</p>
-                    <p className="text-label text-ink-muted">VIP arrival 02:00 PM · Needs supervisor inspection</p>
+                    <p className="text-label text-ink-muted">VIP arrival 02:00 PM · Needs inspection</p>
                   </div>
                 </div>
                 <Button variant="secondary"
                   type="button"
-                  onClick={() => toast('Inspection queued', { detail: 'Supervisor alerted for Room 304.', tone: 'info' })}
+                  onClick={() => toast('Inspection queued', { detail: 'Housekeeping alerted for Room 304.', tone: 'info' })}
                   className="flex-none cursor-pointer transition-colors"
                 >
                   Inspect

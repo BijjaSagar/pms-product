@@ -15,6 +15,11 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+const RESTORE_RETRY_MS = 3_000;
+
+function isTemporaryFailure(cause: unknown): boolean {
+  return cause instanceof ApiError && (cause.status === 0 || cause.status === 429 || cause.status >= 500);
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<AuthMe | null>(null);
@@ -22,24 +27,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(() => authApi.hasSession());
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => authApi.onSessionEnded(() => {
+    setMe(null);
+    toast('Your session has ended', { detail: 'Please sign in again.', tone: 'warning' });
+  }), []);
+
+  useEffect(() => authApi.onOtherTabChange((signedIn) => {
+    if (!signedIn) {
+      setMe(null);
+      return;
+    }
+    authApi.me().then(setMe).catch((cause: unknown) => {
+      toast('Could not restore your session', { detail: displayApiError(cause), tone: 'danger' });
+    });
+  }), []);
+
   useEffect(() => {
     if (!authApi.hasSession()) return;
     let active = true;
-    authApi.me()
-      .then((restored) => {
-        if (active) setMe(restored);
-      })
-      .catch((cause: unknown) => {
-        // 401 means the stored session is gone; the login form is the right answer. Anything else keeps the token so a later load can retry.
-        if (active && !(cause instanceof ApiError && cause.status === 401)) {
-          toast('Could not restore your session', { detail: displayApiError(cause), tone: 'danger' });
-        }
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    let warned = false;
+    const restore = () => {
+      authApi.me()
+        .then((restored) => {
+          if (!active) return;
+          setMe(restored);
+          setLoading(false);
+        })
+        .catch((cause: unknown) => {
+          if (!active) return;
+          // A PC that has just started may not be online yet. The login is still good, so wait for the server rather than show the login form.
+          if (isTemporaryFailure(cause)) {
+            if (!warned) toast('Waiting for the server', { detail: 'You are still signed in. Trying again…', tone: 'warning' });
+            warned = true;
+            retryTimer = setTimeout(restore, RESTORE_RETRY_MS);
+            return;
+          }
+          // 401 means the stored session is gone; the login form is the right answer.
+          if (!(cause instanceof ApiError && cause.status === 401)) {
+            toast('Could not restore your session', { detail: displayApiError(cause), tone: 'danger' });
+          }
+          setLoading(false);
+        });
+    };
+    restore();
     return () => {
       active = false;
+      clearTimeout(retryTimer);
     };
   }, []);
 

@@ -211,9 +211,15 @@ export interface NightAuditRow {
 const API_BASE_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1';
 const ACCESS_TOKEN_KEY = 'pms.accessToken';
 const REFRESH_TOKEN_KEY = 'pms.refreshToken';
+const ACCESS_EXPIRES_AT_KEY = 'pms.accessTokenExpiresAt';
+const RENEW_BEFORE_EXPIRY_MS = 60_000;
+const RENEW_RETRY_MS = 30_000;
+const RENEWAL_LOCK = 'pms.session-renewal';
+const RENEWAL_LOCK_HOLD_MS = 250;
 
 interface BackendUser { id: string; email: string; fullName: string; status: string }
-interface BackendLoginResult { accessToken: string; refreshToken: string; user: BackendUser }
+interface BackendTokens { accessToken: string; refreshToken: string; expiresIn: number }
+interface BackendLoginResult extends BackendTokens { user: BackendUser }
 interface BackendGrant { roles: string[]; permissions: string[] }
 interface BackendMe {
   user: BackendUser;
@@ -228,25 +234,157 @@ interface BackendErrorBody { error?: { code?: string; message?: string } }
  */
 let backendPropertyId: string | null = null;
 
-// sessionStorage can throw in private windows or when site data is blocked.
+// localStorage keeps the login after the tab closes or the PC shuts down, until the user logs out.
+// It can throw in private windows or when site data is blocked.
 function readAccessToken(): string | null {
-  try { return sessionStorage.getItem(ACCESS_TOKEN_KEY); } catch { return null; }
+  try { return localStorage.getItem(ACCESS_TOKEN_KEY); } catch { return null; }
 }
 
-function saveTokens(accessToken: string, refreshToken: string): void {
+function readRefreshToken(): string | null {
+  try { return localStorage.getItem(REFRESH_TOKEN_KEY); } catch { return null; }
+}
+
+// Counted from this browser's clock and the server's expiresIn, so a wrong PC clock can't cause a renewal loop.
+function readAccessExpiresAt(): number {
+  try { return Number(localStorage.getItem(ACCESS_EXPIRES_AT_KEY)); } catch { return 0; }
+}
+
+function saveTokens({ accessToken, refreshToken, expiresIn }: BackendTokens): void {
   try {
-    sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    sessionStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-  } catch { /* the token still lives for this page; it just won't survive a reload */ }
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    localStorage.setItem(ACCESS_EXPIRES_AT_KEY, String(Date.now() + expiresIn * 1000));
+    // Last, because other tabs react to this key and read the other two.
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+  } catch { /* with storage blocked, the user signs in again after a reload */ }
+}
+
+let renewalTimer: ReturnType<typeof setTimeout> | undefined;
+let renewalInFlight: Promise<void> | null = null;
+/** True once a session is in use on screen. A session still being restored is not renewed in the background. */
+let renewalActive = false;
+let wakeListenersAdded = false;
+const sessionEndedListeners = new Set<() => void>();
+
+function stopRenewal(): void {
+  renewalActive = false;
+  clearTimeout(renewalTimer);
+}
+
+function forgetSessionState(): void {
+  backendPropertyId = null;
+  setBusinessDate('');
+  stopRenewal();
 }
 
 function clearTokens(): void {
-  backendPropertyId = null;
-  setBusinessDate('');
+  forgetSessionState();
   try {
-    sessionStorage.removeItem(ACCESS_TOKEN_KEY);
-    sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(ACCESS_EXPIRES_AT_KEY);
   } catch { /* nothing stored, nothing to clear */ }
+}
+
+/** The backend refused this session (revoked or reused), so the user has to sign in again. */
+function endSession(): void {
+  const wasInUse = renewalActive;
+  clearTokens();
+  if (wasInUse) sessionEndedListeners.forEach((listener) => listener());
+}
+
+function scheduleRenewal(delayMs: number): void {
+  clearTimeout(renewalTimer);
+  if (renewalActive) renewalTimer = setTimeout(renewInBackground, delayMs);
+}
+
+function scheduleNextRenewal(): void {
+  scheduleRenewal(Math.max(readAccessExpiresAt() - RENEW_BEFORE_EXPIRY_MS - Date.now(), 0));
+}
+
+function renewInBackground(): void {
+  // A failure is already handled inside renewSession: it retries, or ends the session.
+  renewSession().catch(() => undefined);
+}
+
+/** Lets one tab at a time renew. The lock is released by itself if a tab closes while holding it. */
+function withRenewalLock<T>(work: () => Promise<T>): Promise<T> {
+  return 'locks' in navigator ? navigator.locks.request(RENEWAL_LOCK, work) : work();
+}
+
+/**
+ * Swaps the refresh token for a new pair. Tabs share one token, and the backend treats a token used
+ * twice as stolen and ends the session, so calls in this tab share one renewal and tabs take turns.
+ */
+function renewSession(): Promise<void> {
+  if (renewalInFlight) return renewalInFlight;
+  const tokenWhenAsked = readAccessToken();
+  const attempt = withRenewalLock(async () => {
+    if (readAccessToken() !== tokenWhenAsked) {
+      // Another tab renewed while this one waited for its turn.
+      scheduleNextRenewal();
+      return;
+    }
+    const refreshToken = readRefreshToken();
+    if (!refreshToken) {
+      endSession();
+      throw new ApiError('You are not signed in.', 401, 'UNAUTHENTICATED');
+    }
+    try {
+      const tokens = await backendRequest<BackendTokens>('/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+      // Signed out or signed in again while this ran, so its answer is about a session that is gone.
+      if (readRefreshToken() !== refreshToken) return;
+      saveTokens(tokens);
+      scheduleNextRenewal();
+      // Browsers pass localStorage writes to other tabs with a short delay. Keep the lock until they
+      // arrive, or the next tab could read the old token, and using it twice ends the session.
+      await new Promise((resolve) => setTimeout(resolve, RENEWAL_LOCK_HOLD_MS));
+    } catch (cause) {
+      if (readRefreshToken() === refreshToken) {
+        // Only the backend saying no ends the session. Being offline or a server error is retried.
+        if (cause instanceof ApiError && cause.status === 401) endSession();
+        else scheduleRenewal(RENEW_RETRY_MS);
+      }
+      throw cause;
+    }
+  }).finally(() => {
+    renewalInFlight = null;
+  });
+  renewalInFlight = attempt;
+  return attempt;
+}
+
+/** Keeps the session alive while a tab is open. Timers stop while a laptop sleeps, so waking up checks too. */
+function startRenewal(): void {
+  renewalActive = true;
+  scheduleNextRenewal();
+  if (wakeListenersAdded) return;
+  wakeListenersAdded = true;
+  const renewIfDue = () => {
+    if (renewalActive && Date.now() >= readAccessExpiresAt() - RENEW_BEFORE_EXPIRY_MS) renewInBackground();
+  };
+  document.addEventListener('visibilitychange', renewIfDue);
+  window.addEventListener('focus', renewIfDue);
+  window.addEventListener('online', renewIfDue);
+}
+
+/** Runs a request with the access token. If it has expired, renews it and tries once more. */
+async function withAccessToken<T>(send: (token: string) => Promise<T>): Promise<T> {
+  const token = readAccessToken();
+  if (!token) throw new ApiError('You are not signed in.', 401, 'UNAUTHENTICATED');
+  try {
+    return await send(token);
+  } catch (cause) {
+    if (!(cause instanceof ApiError && cause.status === 401)) throw cause;
+    // Another request or tab may have renewed the token while this one was on its way.
+    if (readAccessToken() === token) await renewSession();
+    const renewed = readAccessToken();
+    if (!renewed) throw cause;
+    return send(renewed);
+  }
 }
 
 /** Calls the backend and turns its `{ error: { code, message } }` envelope into an ApiError. */
@@ -279,10 +417,8 @@ function authedRequest<T>(
   body?: unknown,
   extraHeaders: Record<string, string> = {},
 ): Promise<T> {
-  const token = readAccessToken();
-  if (!token) throw new ApiError('You are not signed in.', 401, 'UNAUTHENTICATED');
   const hasBody = body !== undefined;
-  return backendRequest<T>(path, {
+  return withAccessToken((token) => backendRequest<T>(path, {
     method,
     headers: {
       Authorization: `Bearer ${token}`,
@@ -290,7 +426,7 @@ function authedRequest<T>(
       ...extraHeaders,
     },
     ...(hasBody ? { body: JSON.stringify(body) } : {}),
-  });
+  }));
 }
 
 export const authApi = {
@@ -302,11 +438,35 @@ export const authApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    saveTokens(result.accessToken, result.refreshToken);
+    saveTokens(result);
   },
 
   /** True when a token is stored, so the session can be restored on load. */
   hasSession: (): boolean => readAccessToken() !== null,
+
+  /** Calls back when the backend ends a session in use, not when the user logs out. Returns the unsubscribe. */
+  onSessionEnded: (listener: () => void): (() => void) => {
+    sessionEndedListeners.add(listener);
+    return () => sessionEndedListeners.delete(listener);
+  },
+
+  /** Calls back when another tab signs in or out, because tabs share one login. Returns the unsubscribe. */
+  onOtherTabChange: (listener: (signedIn: boolean) => void): (() => void) => {
+    const onStorage = (event: StorageEvent) => {
+      // A null key means all of this site's storage was cleared.
+      if (event.key !== null && event.key !== ACCESS_TOKEN_KEY) return;
+      if (!readAccessToken()) {
+        forgetSessionState();
+        listener(false);
+      } else if (renewalActive) {
+        scheduleNextRenewal();
+      } else {
+        listener(true);
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  },
 
   /**
    * GET /auth/me for the signed-in user. Identity, role and permissions come from
@@ -314,18 +474,17 @@ export const authApi = {
    * ids differ from the backend's, so the active property is the store's.
    */
   me: async (): Promise<AuthMe> => {
-    const token = readAccessToken();
-    if (!token) throw new ApiError('You are not signed in.', 401, 'UNAUTHENTICATED');
     let body: BackendMe;
     try {
-      body = await backendRequest<BackendMe>('/auth/me', {
+      body = await withAccessToken((token) => backendRequest<BackendMe>('/auth/me', {
         headers: { Authorization: `Bearer ${token}` },
-      });
+      }));
     } catch (cause) {
-      // An expired or revoked token can never succeed again, so drop it.
-      if (cause instanceof ApiError && cause.status === 401) clearTokens();
+      // Refused even after renewing, so this session can never succeed again.
+      if (cause instanceof ApiError && cause.status === 401) endSession();
       throw cause;
     }
+    if (readAccessToken()) startRenewal();
     const { user } = body;
     backendPropertyId = body.properties[0]?.id ?? null;
     setBusinessDate(body.properties[0]?.businessDate ?? '');
@@ -351,12 +510,16 @@ export const authApi = {
 
   /** POST /auth/logout to end the session on the server, then forget the tokens. */
   logout: async (): Promise<void> => {
-    const token = readAccessToken();
+    stopRenewal();
     try {
-      if (token) await backendRequest<void>('/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+      // A renewal finishing after the logout would add a live token to the ended session, so let it finish first.
+      await renewalInFlight?.catch(() => undefined);
+      if (readAccessToken()) {
+        await withAccessToken((token) => backendRequest<void>('/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }));
+      }
     } catch {
-      // Signing out must always work locally. If the server call fails (expired
-      // token, server down), the server session simply expires on its own.
+      // Signing out must always work locally, even with the server down. This browser
+      // forgets the tokens either way, so nobody here can use that session again.
     } finally {
       clearTokens();
     }
@@ -427,9 +590,11 @@ export const holdApi = {
 
 /** The ETag the backend sends with a record, for If-Match on the next change to it. */
 async function etagOf(path: string): Promise<string> {
-  const token = readAccessToken();
-  if (!token) throw new ApiError('You are not signed in.', 401, 'UNAUTHENTICATED');
-  const response = await fetch(`${API_BASE_URL}${path}`, { headers: { Authorization: `Bearer ${token}` } });
+  const response = await withAccessToken(async (token) => {
+    const sent = await fetch(`${API_BASE_URL}${path}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (sent.status === 401) throw new ApiError('You are not signed in.', 401, 'UNAUTHENTICATED');
+    return sent;
+  });
   const etag = response.headers.get('ETag');
   if (!etag) throw new ApiError('The server did not send a version for this record.', 502, 'NO_ETAG');
   return etag;
@@ -903,7 +1068,7 @@ interface BackendUserSummary { id: string; email: string; fullName: string; stat
 interface BackendUserDetail extends BackendUserSummary {
   propertyRoles: Array<{ propertyId: string; roleId: string; roleCode: string; roleName: string }>;
 }
-interface BackendRole { id: string; code: string; name: string; description: string | null; isEditable: boolean; permissions: Array<{ code: string }> }
+interface BackendRole { id: string; code: string; name: string; description: string | null; isEditable: boolean; permissions: Array<{ code: string }>; impliedPermissions: string[] }
 interface BackendPermission { code: string; module: string; description: string }
 
 /** The staff member as the staff screen lists them: their role at the signed-in property, or null if they have none there. */
@@ -931,6 +1096,11 @@ async function staffOfProperty(): Promise<UserRow[]> {
   const list = await authedRequest<{ data: BackendUserSummary[] }>('GET', '/users?limit=200');
   const details = await Promise.all(list.data.map((user) => authedRequest<BackendUserDetail>('GET', `/users/${user.id}`)));
   return details.map(userRowOf).filter((row): row is UserRow => row !== null);
+}
+
+/** Everything a role can do, including what its grants imply, so the matrix matches what the backend allows. */
+function heldCodes(role: BackendRole): string[] {
+  return [...role.permissions.map((item) => item.code), ...role.impliedPermissions];
 }
 
 async function rolesOfTenant(): Promise<BackendRole[]> {
@@ -985,7 +1155,7 @@ export const adminApi = {
       description: role.description,
       isSystem: !role.isEditable,
       isActive: true,
-      permissions: role.permissions.map((item) => item.code),
+      permissions: heldCodes(role),
       memberCount: staff.filter((member) => member.roleKey === role.code).length,
     }));
   },
@@ -994,7 +1164,7 @@ export const adminApi = {
     const [roles, catalog] = await Promise.all([rolesOfTenant(), authedRequest<{ data: BackendPermission[] }>('GET', '/permissions')]);
     const byModule = new Map<string, RoleMatrix['resources'][number]['permissions']>();
     for (const permission of catalog.data) {
-      const holders = roles.filter((role) => role.permissions.some((item) => item.code === permission.code)).map((role) => role.code);
+      const holders = roles.filter((role) => heldCodes(role).includes(permission.code)).map((role) => role.code);
       const list = byModule.get(permission.module) ?? [];
       list.push({ key: permission.code, action: permission.code.split('.').slice(1).join('.'), description: permission.description, roles: holders });
       byModule.set(permission.module, list);
