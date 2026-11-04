@@ -186,7 +186,6 @@ function Shell() {
       >
         <ThemeSwatcher open={swatcherOpen} onClose={() => setSwatcherOpen(false)} />
       </ErrorBoundary>
-      <Toaster />
     </div>
   );
 }
@@ -268,6 +267,8 @@ function App() {
       <AuthProvider>
         <AuthenticatedApp />
       </AuthProvider>
+      {/* Outside the signed-in layout, so messages also show on the login and connecting screens. */}
+      <Toaster />
     </ThemeProvider>
   );
 }
