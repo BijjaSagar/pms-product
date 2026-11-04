@@ -83,6 +83,7 @@ export interface GuestRow {
   companyName?: string | null; city?: string | null; countryCode?: string | null; masked?: boolean;
   nationality?: string | null; dateOfBirth?: string | null; gender?: string | null; address?: string | null;
   state?: string | null; country?: string | null;
+  vipLevel?: string | null;
   preferences?: string | null; internalNotes?: string | null; stayCount?: number; lastStayAt?: string | null;
 }
 export interface ReservationRoomRow {
@@ -512,7 +513,7 @@ async function versionHeader(path: string): Promise<Record<string, string>> {
 /** Only the guest fields the backend accepts. The guest form sends more than the backend stores. */
 const guestFields = (body: Record<string, unknown>): Record<string, unknown> => {
   const picked: Record<string, unknown> = {};
-  for (const key of ['title', 'firstName', 'lastName', 'email', 'phone', 'nationality', 'dateOfBirth', 'vipLevel', 'preferences']) {
+  for (const key of ['title', 'firstName', 'lastName', 'email', 'phone', 'nationality', 'dateOfBirth', 'vipLevel', 'preferences', 'companyName', 'gender', 'address', 'city', 'state', 'country', 'internalNotes']) {
     if (body[key] !== undefined) picked[key] = body[key];
   }
   return picked;
@@ -556,7 +557,12 @@ interface BookingLine {
   children?: number;
 }
 
-const BOOKING_SOURCES = ['DIRECT', 'PHONE', 'EMAIL', 'WALK_IN', 'OTA', 'CORPORATE', 'WEB', 'GROUP'];
+const BOOKING_SOURCES = ['DIRECT', 'PHONE', 'EMAIL', 'WALK_IN', 'OTA', 'CORPORATE', 'WEBSITE', 'GROUP', 'AGENT', 'GDS', 'META', 'BOOKING_ENGINE'];
+
+/* The booking form's source labels, mapped to the backend's source values. */
+const SOURCE_BY_LABEL: Record<string, string> = {
+  Direct: 'DIRECT', OTA: 'OTA', Agent: 'AGENT', GDS: 'GDS', Corp: 'CORPORATE', Corporate: 'CORPORATE', 'Booking Engine': 'BOOKING_ENGINE', Meta: 'META',
+};
 
 export const reservationApi = {
   list: async (search = '', status?: string, page = 1, pageSize = 100): Promise<PageResult<ReservationRow>> => {
@@ -578,7 +584,8 @@ export const reservationApi = {
     const lines = (body.roomLines as BookingLine[] | undefined) ?? [];
     if (lines.length === 0) throw new ApiError('Add at least one room to the booking.', 422, 'NO_ROOMS');
     const ratePlanId = await barRatePlanId();
-    const source = BOOKING_SOURCES.includes(String(body.source)) ? body.source : 'DIRECT';
+    const label = String(body.source);
+    const source = SOURCE_BY_LABEL[label] ?? (BOOKING_SOURCES.includes(label) ? label : 'DIRECT');
     const holdOnly = body.status === 'DRAFT' || undefined;
     let first: BackendReservation | null = null;
     for (const line of lines) {
@@ -593,6 +600,9 @@ export const reservationApi = {
           adults: line.adults ?? body.adults ?? 1,
           children: line.children ?? 0,
           source,
+          sourceDetail: typeof body.sourceType === 'string' && body.sourceType ? body.sourceType : undefined,
+          externalReferenceId: typeof body.externalReferenceId === 'string' && body.externalReferenceId ? body.externalReferenceId : undefined,
+          internalNotes: typeof body.internalNotes === 'string' && body.internalNotes ? body.internalNotes : undefined,
           primaryGuestId: body.primaryGuestId,
           roomId: line.roomId ?? undefined,
           holdId: line.holdId ?? undefined,
@@ -952,7 +962,9 @@ export const adminApi = {
     await authedRequest('PATCH', `/users/${id}`, body);
   },
   /** Gives the person one role at the property. Their roles at other properties are kept. */
-  setRole: async (id: string, propertyId: string, roleKey: string): Promise<void> => {
+  setRole: async (id: string, roleKey: string): Promise<void> => {
+    const propertyId = backendPropertyId;
+    if (!propertyId) throw new ApiError('You are not signed in.', 401, 'UNAUTHENTICATED');
     const [user, roles] = await Promise.all([authedRequest<BackendUserDetail>('GET', `/users/${id}`), rolesOfTenant()]);
     const role = roles.find((item) => item.code === roleKey);
     if (!role) throw new ApiError('That role does not exist.', 422, 'UNKNOWN_ROLE');

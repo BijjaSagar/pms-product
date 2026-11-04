@@ -51,6 +51,7 @@ const FRONTEND_TO_BACKEND: Record<string, string[]> = {
   'role.assign': ['user.assign_role'],
   'role.manage': ['role.update'],
   'theme.update': ['property.update'],
+  'config.manage': ['config.manage'],
 };
 
 /** Turns the backend's permission codes for one property into the frontend's keys. */

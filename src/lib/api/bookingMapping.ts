@@ -31,6 +31,11 @@ export interface BackendReservation {
   primaryGuestId: string;
   primaryGuest: { firstName: string; lastName: string };
   specialRequests: string | null;
+  /** What has been paid so far, net of refunds, as a decimal string. */
+  paid: string;
+  sourceDetail: string | null;
+  externalReferenceId: string | null;
+  internalNotes: string | null;
   version: number;
   holdExpiresAt: string | null;
   createdAt: string;
@@ -47,6 +52,15 @@ export interface BackendGuest {
   dateOfBirth: string | null;
   vipLevel: string | null;
   preferences: string | null;
+  companyName: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  gender: string | null;
+  internalNotes: string | null;
+  stayCount: number;
+  lastStayAt: string | null;
   version: number;
 }
 
@@ -93,7 +107,9 @@ export function reservationRowFromBackend(reservation: BackendReservation): Rese
       },
     ],
     specialRequests: reservation.specialRequests,
-    paid: 0,
+    externalReferenceId: reservation.externalReferenceId,
+    internalNotes: reservation.internalNotes,
+    paid: Number(reservation.paid),
     createdAt: reservation.createdAt,
   };
 }
@@ -126,5 +142,15 @@ export function guestRowFromBackend(guest: BackendGuest): GuestRow {
     nationality: guest.nationality,
     dateOfBirth: guest.dateOfBirth,
     preferences: guest.preferences,
+    vipLevel: guest.vipLevel,
+    companyName: guest.companyName,
+    address: guest.address,
+    city: guest.city,
+    state: guest.state,
+    country: guest.country,
+    gender: guest.gender,
+    internalNotes: guest.internalNotes,
+    stayCount: guest.stayCount,
+    lastStayAt: guest.lastStayAt,
   };
 }

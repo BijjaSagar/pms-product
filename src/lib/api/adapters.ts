@@ -33,7 +33,7 @@ const shortDate = (value: unknown): string => {
 };
 
 export const apiReservationStatus = (value: string): ReservationStatus => ({
-  DRAFT: 'Pending', CONFIRMED: 'Confirmed', CHECKED_IN: 'Checked-in',
+  DRAFT: 'Pending', HOLD: 'Pending', CONFIRMED: 'Confirmed', CHECKED_IN: 'Checked-in',
   CHECKED_OUT: 'Checked-out', CANCELLED: 'Cancelled', NO_SHOW: 'No-show',
 }[value] ?? 'Pending') as ReservationStatus;
 
@@ -134,6 +134,13 @@ export function roomTypeFromApi(row: RoomTypeRow, rooms: RoomRow[]): RoomType {
   };
 }
 
+/* The backend's VIP level as the screen's guest tier. Guests with no level are new until they have stayed. */
+function tierOf(row: GuestRow): Guest['tier'] {
+  if (row.vipLevel === 'PLATINUM' || row.vipLevel === 'VIP') return 'VIP';
+  if (row.vipLevel === 'GOLD') return 'Gold';
+  return Number(row.stayCount ?? 0) === 0 ? 'New' : 'Regular';
+}
+
 export function guestFromApi(row: GuestRow): Guest {
   const name = `${row.firstName ?? ''} ${row.lastName ?? ''}`.trim() || 'Guest';
   return {
@@ -142,7 +149,7 @@ export function guestFromApi(row: GuestRow): Guest {
     email: row.email ?? '',
     phone: row.phone ?? '',
     company: row.companyName ?? null,
-    tier: 'Regular',
+    tier: tierOf(row),
     category: 'Leisure',
     stays: Number(row.stayCount ?? 0),
     spent: 0,

@@ -33,6 +33,8 @@ export interface BackendPayment {
   currency: string;
   status: string;
   reference: string | null;
+  /** The total refunded against this payment, from refunds that were processed. */
+  refundedAmount?: string;
   createdAt: string;
 }
 
@@ -79,6 +81,13 @@ function folioItemsFromBackend(transactions: BackendTransaction[]): FolioItemRow
     }));
 }
 
+/** A captured payment reads as paid, and as refunded once refunds have gone through. */
+function paymentStatusOf(payment: BackendPayment): string {
+  const refunded = Number(payment.refundedAmount ?? 0);
+  if (refunded > 0) return refunded >= Number(payment.amount) ? 'REFUNDED' : 'PARTIALLY_REFUNDED';
+  return payment.status === 'CAPTURED' ? 'SUCCEEDED' : payment.status;
+}
+
 export function paymentRowFromBackend(
   payment: BackendPayment,
   methodKindById: Map<string, string>,
@@ -91,9 +100,9 @@ export function paymentRowFromBackend(
     amount: payment.amount,
     currencyCode: payment.currency,
     method: methodKindById.get(payment.paymentMethodId) ?? 'CASH',
-    status: payment.status === 'CAPTURED' ? 'SUCCEEDED' : payment.status,
+    status: paymentStatusOf(payment),
     reference: payment.reference,
-    refundedAmount: '0.00',
+    refundedAmount: payment.refundedAmount ?? '0.00',
     recordedAt: payment.createdAt,
     guestName: null,
   };
