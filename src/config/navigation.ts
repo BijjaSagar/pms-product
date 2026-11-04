@@ -116,16 +116,16 @@ const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
   reservations: 'reservation.read',
   'room-calendar': 'reservation.read',
   'new-reservation': 'reservation.create',
-  'rate-management': 'reservation.read',
-  'channel-manager': 'reservation.read',
+  'rate-management': 'rate.read',
+  'channel-manager': 'channel.read',
   guests: 'guest.read',
   'room-overview': 'room.read',
-  'room-types': 'room.read',
+  'room-types': 'theme.update',
   'status-board': 'room.read',
   folios: 'folio.read',
   payments: 'payment.read',
   invoices: 'invoice.read',
-  'night-audit': 'folio.read',
+  'night-audit': 'night-audit.read',
   reports: 'report.read.operations',
   'occupancy-report': 'report.read.operations',
   'revenue-report': 'report.read.financial',
@@ -136,4 +136,13 @@ const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
 
 export function viewPermission(view: ViewId): string | undefined {
   return VIEW_PERMISSION[view];
+}
+
+/** Where a person lands: the first screen they may open, as not every role holds the dashboard. */
+export function homeView(can: (permission: string) => boolean): ViewId {
+  const first = NAV_ITEMS.find((item) => {
+    const permission = viewPermission(item.id);
+    return !permission || can(permission);
+  });
+  return first?.id ?? 'dashboard';
 }

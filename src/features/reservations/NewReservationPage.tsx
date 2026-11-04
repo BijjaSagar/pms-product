@@ -1515,7 +1515,7 @@ export function NewReservation({
                           <option value="Web Portal">
                             Web Portal / Engine
                           </option>
-                          <option value="Front Desk">Front Desk Agent</option>
+                          <option value="Front Desk">Frontdesk</option>
                         </select>
                       </>
                     )}

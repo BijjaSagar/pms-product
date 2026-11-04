@@ -903,7 +903,7 @@ interface BackendUserSummary { id: string; email: string; fullName: string; stat
 interface BackendUserDetail extends BackendUserSummary {
   propertyRoles: Array<{ propertyId: string; roleId: string; roleCode: string; roleName: string }>;
 }
-interface BackendRole { id: string; code: string; name: string; description: string | null; isEditable: boolean; permissions: Array<{ code: string }> }
+interface BackendRole { id: string; code: string; name: string; description: string | null; isEditable: boolean; permissions: Array<{ code: string }>; impliedPermissions: string[] }
 interface BackendPermission { code: string; module: string; description: string }
 
 /** The staff member as the staff screen lists them: their role at the signed-in property, or null if they have none there. */
@@ -931,6 +931,11 @@ async function staffOfProperty(): Promise<UserRow[]> {
   const list = await authedRequest<{ data: BackendUserSummary[] }>('GET', '/users?limit=200');
   const details = await Promise.all(list.data.map((user) => authedRequest<BackendUserDetail>('GET', `/users/${user.id}`)));
   return details.map(userRowOf).filter((row): row is UserRow => row !== null);
+}
+
+/** Everything a role can do, including what its grants imply, so the matrix matches what the backend allows. */
+function heldCodes(role: BackendRole): string[] {
+  return [...role.permissions.map((item) => item.code), ...role.impliedPermissions];
 }
 
 async function rolesOfTenant(): Promise<BackendRole[]> {
@@ -985,7 +990,7 @@ export const adminApi = {
       description: role.description,
       isSystem: !role.isEditable,
       isActive: true,
-      permissions: role.permissions.map((item) => item.code),
+      permissions: heldCodes(role),
       memberCount: staff.filter((member) => member.roleKey === role.code).length,
     }));
   },
@@ -994,7 +999,7 @@ export const adminApi = {
     const [roles, catalog] = await Promise.all([rolesOfTenant(), authedRequest<{ data: BackendPermission[] }>('GET', '/permissions')]);
     const byModule = new Map<string, RoleMatrix['resources'][number]['permissions']>();
     for (const permission of catalog.data) {
-      const holders = roles.filter((role) => role.permissions.some((item) => item.code === permission.code)).map((role) => role.code);
+      const holders = roles.filter((role) => heldCodes(role).includes(permission.code)).map((role) => role.code);
       const list = byModule.get(permission.module) ?? [];
       list.push({ key: permission.code, action: permission.code.split('.').slice(1).join('.'), description: permission.description, roles: holders });
       byModule.set(permission.module, list);

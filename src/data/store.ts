@@ -103,9 +103,9 @@ function currentMembership() {
     id: 'mem-1',
     userId: CURRENT_USER_ID,
     propertyId: activePropertyId,
-    roleId: 'role-owner',
+    roleId: 'role-admin',
     isActive: true,
-    role: { id: 'role-owner', key: 'owner', name: 'Owner', description: 'Full access to every module.' },
+    role: { id: 'role-admin', key: 'ADMIN', name: 'Admin', description: 'Full access to every module.' },
     property: {
       id: PROPERTY.id,
       name: PROPERTY.name,
@@ -421,8 +421,8 @@ function housekeepingReport(from: string, to: string): HousekeepingReportRow {
 
 /* ------------------------------------------------- housekeeping & maintenance */
 
-const hkStaff = () => users.filter((u) => u.baseRoleKey === 'housekeeping');
-const mxStaff = () => users.filter((u) => u.baseRoleKey === 'maintenance');
+const hkStaff = () => users.filter((u) => u.baseRoleKey === 'HOUSEKEEPING' && !u.team);
+const mxStaff = () => users.filter((u) => u.team === 'maintenance');
 
 const tasks: HousekeepingTaskRow[] = (() => {
   const dirty = rooms.filter((r) => r.status === 'VACANT_DIRTY' || r.status === 'OCCUPIED_DIRTY');
@@ -1507,7 +1507,7 @@ export const store = {
   users: (): UserRow[] => users.map(userRow),
   invite(body: Record<string, unknown>): { email: string; inviteToken: string; acceptUrl: string } {
     const email = String(body.email ?? `member${users.length + 1}@grandhorizon.in`);
-    const roleKey = String(body.roleKey ?? 'front_desk');
+    const roleKey = String(body.roleKey ?? 'FRONTDESK');
     const token = nextId('invite');
     const user: InternalUser = {
       userId: nextId('u'),

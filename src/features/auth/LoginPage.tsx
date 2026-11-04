@@ -316,14 +316,14 @@ export function LoginPage() {
                   onClick={() => void handleQuickDemo('gm@pms.local')}
                   className="rounded-md border border-border bg-page px-2 py-0.5 text-micro font-semibold text-ink hover:bg-hover-surface cursor-pointer transition-colors"
                 >
-                  General Manager
+                  Manager
                 </button>
                 <button
                   type="button"
                   onClick={() => void handleQuickDemo('fde@pms.local')}
                   className="rounded-md border border-border bg-page px-2 py-0.5 text-micro font-semibold text-ink hover:bg-hover-surface cursor-pointer transition-colors"
                 >
-                  Front Desk
+                  Frontdesk
                 </button>
               </div>
             </form>
