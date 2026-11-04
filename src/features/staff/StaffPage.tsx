@@ -49,7 +49,7 @@ function statusBadge(status: StaffRow['status']) {
 }
 
 export function Staff() {
-  const { me, can } = useAuth();
+  const { can } = useAuth();
   const load = useCallback(async () => {
     const [staff, roles, matrix] = await Promise.all([
       adminApi.users(),
@@ -87,8 +87,8 @@ export function Staff() {
       } else if (editing) {
         const original = rows.find((row) => row.userId === editing.userId);
         if (can('user.update') && editing.fullName.trim() && editing.fullName !== original?.fullName) await adminApi.updateUser(editing.userId, { fullName: editing.fullName.trim() });
-        if (can('role.assign') && editing.roleKey !== original?.roleKey && me?.activePropertyId) {
-          await adminApi.setRole(editing.userId, me.activePropertyId, editing.roleKey);
+        if (can('role.assign') && editing.roleKey !== original?.roleKey) {
+          await adminApi.setRole(editing.userId, editing.roleKey);
         }
         if (can('user.deactivate') && editing.status !== original?.status && editing.status !== 'INVITED') {
           await adminApi.setUserStatus(editing.userId, editing.status);
