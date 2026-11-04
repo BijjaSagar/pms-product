@@ -61,7 +61,7 @@ export interface PropertyRow {
 }
 export interface RoomTypeRow {
   id: string; code: string; name: string; description?: string | null; maxAdults: number; maxChildren: number;
-  baseRate: string; amenities?: unknown; isActive: boolean;
+  baseOccupancy?: number; maxOccupancy?: number; bedConfiguration?: string | null; baseRate: string; amenities?: unknown; isActive: boolean;
 }
 export interface RoomRow {
   id: string; roomNumber: string; roomTypeId: string; roomTypeCode?: string | null; roomTypeName?: string | null;

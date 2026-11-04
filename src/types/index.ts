@@ -43,6 +43,8 @@ export interface RoomType {
   maxOccupancy: number;
   maxAdults?: number;
   maxChildren?: number;
+  baseOccupancy?: number;
+  code?: string;
   beds: string;
   baseRate: number;
   amenities: string[];
