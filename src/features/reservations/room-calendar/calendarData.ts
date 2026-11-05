@@ -1,51 +1,37 @@
-import type { CalendarReservation, CalendarRoom, RoomOperationalStatus, RoomType, ReservationStatus } from './types';
-import { BUSINESS_DATE, GUESTS } from '../../../data/catalog';
-import { store } from '../../../data/store';
+import type { CalendarReservation, CalendarRoom, RoomOperationalStatus, ReservationStatus } from './types';
+import { GUESTS } from '../../../data/catalog';
+import { store, UNASSIGNED_TYPE_NAME } from '../../../data/store';
 
-export { BUSINESS_DATE };
+/** Today's date (YYYY-MM-DD) in the user's local time zone. Call it when rendering, so it stays right past midnight. */
+export function todayIso(): string {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${now.getFullYear()}-${month}-${day}`;
+}
 
-/* Room types and their display settings. Names must match the store's room type names. */
-export const ROOM_TYPE_CONFIG: Record<
-  RoomType,
-  { baseRate: number; maxOccupancy: number; color: string; badgeBg: string }
-> = {
-  Standard: {
-    baseRate: 3500,
-    maxOccupancy: 2,
-    color: 'var(--color-info-text)',
-    badgeBg: 'bg-info-bg text-info-text border-info-border',
-  },
-  Deluxe: {
-    baseRate: 4500,
-    maxOccupancy: 3,
-    color: 'var(--color-primary)',
-    badgeBg: 'bg-primary/10 text-primary border-primary/30',
-  },
-  Superior: {
-    baseRate: 5500,
-    maxOccupancy: 3,
-    color: 'var(--color-success-text)',
-    badgeBg: 'bg-success-bg text-success-text border-success-border',
-  },
-  Executive: {
-    baseRate: 6500,
-    maxOccupancy: 4,
-    color: 'var(--color-warning-text)',
-    badgeBg: 'bg-warning-bg text-warning-text border-warning-border',
-  },
-  'Family Suite': {
-    baseRate: 8000,
-    maxOccupancy: 5,
-    color: 'var(--color-dark-accent)',
-    badgeBg: 'bg-muted-surface text-dark-accent border-soft',
-  },
-  'Panorama Suite': {
-    baseRate: 12000,
-    maxOccupancy: 4,
-    color: 'var(--color-danger-text)',
-    badgeBg: 'bg-danger-bg text-danger-text border-danger-border',
-  },
-};
+/* Display colours for room types. Types are configured per property, so a type's colours come from its name. */
+const TYPE_STYLES = [
+  { color: 'var(--color-info-text)', badgeBg: 'bg-info-bg text-info-text border-info-border' },
+  { color: 'var(--color-primary)', badgeBg: 'bg-primary/10 text-primary border-primary/30' },
+  { color: 'var(--color-success-text)', badgeBg: 'bg-success-bg text-success-text border-success-border' },
+  { color: 'var(--color-warning-text)', badgeBg: 'bg-warning-bg text-warning-text border-warning-border' },
+  { color: 'var(--color-dark-accent)', badgeBg: 'bg-muted-surface text-dark-accent border-soft' },
+  { color: 'var(--color-danger-text)', badgeBg: 'bg-danger-bg text-danger-text border-danger-border' },
+] as const;
+
+const UNASSIGNED_STYLE = {
+  color: 'var(--color-ink-muted)',
+  badgeBg: 'bg-muted-surface text-ink-secondary border-soft',
+} as const;
+
+/** Colours for a room type; the same name always gets the same colour. */
+export function roomTypeStyle(typeName: string): { color: string; badgeBg: string } {
+  if (typeName === UNASSIGNED_TYPE_NAME) return UNASSIGNED_STYLE;
+  let hash = 0;
+  for (const char of typeName) hash = (hash * 31 + char.codePointAt(0)!) >>> 0;
+  return TYPE_STYLES[hash % TYPE_STYLES.length];
+}
 
 /* Calendar date helpers */
 
@@ -108,20 +94,20 @@ const STORE_STATUS_TO_CALENDAR: Record<string, RoomOperationalStatus> = {
 export function loadCalendarRooms(): CalendarRoom[] {
   return store
     .rooms()
-    .map((room) => {
-      const type = room.roomTypeName as RoomType;
-      const config = ROOM_TYPE_CONFIG[type];
-      return {
-        id: room.id,
-        number: room.roomNumber,
-        floor: Number(room.floor),
-        type,
-        maxOccupancy: config?.maxOccupancy ?? 2,
-        baseRate: Number(room.baseRate),
-        status: STORE_STATUS_TO_CALENDAR[room.status] ?? 'Available',
-        outOfOrderReason: room.outOfOrderReason ?? undefined,
-      } satisfies CalendarRoom;
-    })
+    .map(
+      (room) =>
+        ({
+          id: room.id,
+          number: room.roomNumber,
+          floor: Number(room.floor),
+          type: room.roomTypeName ?? UNASSIGNED_TYPE_NAME,
+          maxOccupancy: room.maxOccupancy ?? 0,
+          baseRate: Number(room.baseRate),
+          status: STORE_STATUS_TO_CALENDAR[room.status] ?? 'Available',
+          outOfOrderReason: room.outOfOrderReason ?? undefined,
+          bookable: room.isActive,
+        }) satisfies CalendarRoom,
+    )
     .sort((a, b) => a.number.localeCompare(b.number));
 }
 

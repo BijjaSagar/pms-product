@@ -6,7 +6,7 @@ import { store } from '../../data/store';
 import { IconButton } from '../../components/primitives';
 import type { CalendarReservation, CalendarRoom, DragState, ProposedReservationChange, ReservationStatus as CalendarReservationStatus } from './room-calendar/types';
 import {
-  BUSINESS_DATE,
+  todayIso,
   addDaysToIso,
   countNights,
   daysBetween,
@@ -14,6 +14,7 @@ import {
   loadCalendarRooms,
   loadSyncedReservations,
 } from './room-calendar/calendarData';
+import { UNASSIGNED_TYPE_NAME } from '../../data/store';
 import { validateReservationMove } from './room-calendar/validation';
 import { ReservationChangeDialog } from './room-calendar/ReservationChangeDialog';
 import { ReservationDetailModal } from './room-calendar/ReservationDetailModal';
@@ -118,7 +119,7 @@ function isRoomBookedOn(room: CalendarRoom, dateStr: string, reservations: Calen
 
 /** Sellable rooms per night for a set of rooms; out-of-order rooms are left out of the count. */
 function nightlyAvailability(roomList: CalendarRoom[], days: string[], reservations: CalendarReservation[]) {
-  const sellable = roomList.filter((r) => r.status !== 'Out-of-Order');
+  const sellable = roomList.filter((r) => r.bookable && r.status !== 'Out-of-Order');
   return days.map((dateStr) => ({
     dateStr,
     free: sellable.filter((r) => !isRoomBookedOn(r, dateStr, reservations)).length,
@@ -233,9 +234,10 @@ export function RoomCalendar({
   onReservationUpdated?: () => void;
   filters: ReservationFilters;
 }) {
-  // The window starts on the range's first night, or the business date when no range is set;
+  // The window starts on the range's first night, or today when no range is set;
   // the arrows move it by a full window. Changing the range resets the window to its start.
-  const windowAnchor = filters.from || BUSINESS_DATE;
+  const today = todayIso();
+  const windowAnchor = filters.from || today;
   const [startOffset, setStartOffset] = useState(0);
   const [anchorSeen, setAnchorSeen] = useState(windowAnchor);
   if (anchorSeen !== windowAnchor) {
@@ -364,6 +366,16 @@ export function RoomCalendar({
         checkIn < res.checkOutDate
     );
     if (covered) return;
+
+    if (!room.bookable) {
+      toast.info('Room not bookable', {
+        detail:
+          room.type === UNASSIGNED_TYPE_NAME
+            ? `Room ${room.number} is not linked to a room yet. Link it in Room Settings > Floor Management.`
+            : `Room ${room.number} (${room.type}) cannot be booked: its room type is not active.`,
+      });
+      return;
+    }
 
     if (room.status === 'Out-of-Order') {
       toast.info('Room unavailable', { detail: `Room ${room.number} is out of order and cannot be booked.` });
@@ -660,6 +672,34 @@ export function RoomCalendar({
           <div className="relative min-w-max" style={{ width: `${gridWidth}px` }}>
             {/* Dates and the per-day availability row share one sticky block, so they stay visible while scrolling */}
             <div className="sticky top-0 z-30 bg-surface">
+              <div className="flex border-b border-border bg-surface" style={{ height: `${AVAIL_ROW_HEIGHT}px` }}>
+                <div
+                  className="sticky left-0 z-40 flex shrink-0 items-center border-r border-border bg-page px-3 text-micro font-bold uppercase tracking-wider text-ink-secondary"
+                  style={{ width: `${ROOM_COL_WIDTH}px` }}
+                >
+                  <span className="truncate">Holidays</span>
+                </div>
+                {days.map((dateStr) => {
+                  const events = dayLog[dateStr]?.events ?? [];
+                  const label = events.join(', ');
+                  return (
+                    <div
+                      key={dateStr}
+                      className="flex min-w-0 shrink-0 items-center justify-center border-r border-border px-1"
+                      style={{ width: `${dayWidth}px` }}
+                    >
+                      {events.length > 0 && (
+                        <span
+                          className="max-w-full truncate rounded-full bg-warning-bg px-2 py-0.5 text-micro font-semibold text-warning-text"
+                          title={label}
+                        >
+                          {label}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
               <div className="flex border-b border-border bg-surface">
                 <div
                   className="sticky left-0 z-40 flex shrink-0 items-end border-r border-border bg-page px-3 pb-2 text-micro font-bold uppercase tracking-wider text-ink-secondary"
@@ -668,7 +708,7 @@ export function RoomCalendar({
                   Room
                 </div>
                 {days.map((dateStr) => {
-                  const isToday = dateStr === BUSINESS_DATE;
+                  const isToday = dateStr === today;
                   const info = formatCalendarDate(dateStr);
                   const isWeekend = info.isWeekend;
                   const log = dayLog[dateStr];
@@ -751,7 +791,7 @@ export function RoomCalendar({
                 const isCollapsed = collapsedTypes.has(room.type);
                 // Collapsed category: only its header line is drawn
                 if (isCollapsed && !startsCategory) return null;
-                const isOOO = room.status === 'Out-of-Order';
+                const isOOO = room.status === 'Out-of-Order' || !room.bookable;
                 const isTargetRow = dragState?.isDragging && dragState?.proposedRoomId === room.id;
                 const roomReservations = reservations.filter(
                   (res) =>
@@ -766,7 +806,7 @@ export function RoomCalendar({
                   {startsCategory && (
                     <div className="flex border-b border-border bg-surface" style={{ height: `${AVAIL_ROW_HEIGHT}px` }}>
                       <div
-                        className="sticky left-0 z-40 shrink-0 border-r border-border bg-page"
+                        className="sticky left-0 z-20 shrink-0 border-r border-border bg-page"
                         style={{ width: `${ROOM_COL_WIDTH}px` }}
                       >
                         <button
@@ -814,13 +854,18 @@ export function RoomCalendar({
                             : 'var(--color-surface)',
                       }}
                     >
-                      <span className="text-label font-black tracking-tight text-ink">Rm {room.number}</span>
+                      <span className="text-label font-black tracking-tight text-ink">Room {room.number}</span>
+                      {!room.bookable && (
+                        <span className="ml-2 text-micro font-semibold text-ink-muted">
+                          {room.type === UNASSIGNED_TYPE_NAME ? 'Not linked' : 'Not bookable'}
+                        </span>
+                      )}
                     </div>
 
                     <div className="relative flex h-full" style={{ width: `${canvasWidth}px` }}>
                       {/* Day cells: click a free one to start a booking */}
                       {days.map((dateStr) => {
-                        const isToday = dateStr === BUSINESS_DATE;
+                        const isToday = dateStr === today;
                         const info = formatCalendarDate(dateStr);
                         const isBooked = isRoomBookedOn(room, dateStr, reservations);
                         const canCreate = !isBooked && !isOOO;

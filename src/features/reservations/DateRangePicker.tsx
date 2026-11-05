@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { Button, IconButton } from '../../components/primitives';
-import { BUSINESS_DATE } from './room-calendar/calendarData';
+import { todayIso } from './room-calendar/calendarData';
 import {
   addMonthsIso,
   formatMonthTitle,
@@ -23,7 +23,8 @@ export interface DateRange {
  */
 export function DateRangePicker({ from, to, onChange }: DateRange & { onChange: (range: DateRange) => void }) {
   const [open, setOpen] = useState(false);
-  const [viewMonth, setViewMonth] = useState(() => startOfMonthIso(from || BUSINESS_DATE));
+  const today = todayIso();
+  const [viewMonth, setViewMonth] = useState(() => startOfMonthIso(from || today));
   const [hovered, setHovered] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -47,7 +48,7 @@ export function DateRangePicker({ from, to, onChange }: DateRange & { onChange: 
   }, [open]);
 
   const toggle = () => {
-    if (!open) setViewMonth(startOfMonthIso(from || BUSINESS_DATE));
+    if (!open) setViewMonth(startOfMonthIso(from || today));
     setHovered(null);
     setOpen((value) => !value);
   };
@@ -115,7 +116,7 @@ export function DateRangePicker({ from, to, onChange }: DateRange & { onChange: 
               if (!day) return <span key={`blank-${index}`} />;
               const isEndpoint = day === from || day === previewEnd;
               const inRange = Boolean(rangeStart && rangeEnd && day >= rangeStart && day <= rangeEnd);
-              const isToday = day === BUSINESS_DATE;
+              const isToday = day === today;
               return (
                 <button
                   key={day}

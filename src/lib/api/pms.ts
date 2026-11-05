@@ -45,6 +45,10 @@ export interface RoomRow {
   id: string; roomNumber: string; roomTypeId: string; roomTypeCode?: string | null; roomTypeName?: string | null;
   floor?: string | null; status: string; isActive: boolean; notes?: string | null; wing?: string | null; baseRate?: string;
   outOfOrderReason?: string | null;
+  /** Most guests the room sleeps; set for rooms loaded from the real inventory. */
+  maxOccupancy?: number;
+  /** Bed setup of the room's bed type, e.g. "1 King Bed (180x200 cm)". */
+  bedSetup?: string | null;
 }
 export interface GuestRow {
   id: string; firstName: string; lastName: string; email: string | null; phone: string | null;
@@ -314,6 +318,8 @@ export interface DayEnquiryRow {
 export interface DayLogSummaryRow {
   hasNote: boolean;
   enquiryCount: number;
+  /** Holiday and event names falling on the date. */
+  events: string[];
 }
 
 /** Per-date notes and enquiries shown in the room calendar's date header. */
@@ -455,6 +461,116 @@ export const amenityApi = {
     apiRequest<AmenityDetails>(`/${propertyId}/amenities/${id}`, { method: 'PATCH', body }),
   remove: async (propertyId: string, id: string) =>
     apiRequest<void>(`/${propertyId}/amenities/${id}`, { method: 'DELETE' }),
+};
+
+/** A room offering of one property as the backend stores it (`/:propertyId/room-listings`). */
+export interface RoomDetails {
+  id: string;
+  propertyId: string;
+  roomTypeId: string;
+  roomType: { id: string; name: string };
+  /** Bed type: the room category whose bed setup the room uses. */
+  categoryId: string | null;
+  category: { id: string; name: string; bedSetup: string } | null;
+  name: string;
+  description: string | null;
+  /** Number of physical rooms of this offering. */
+  roomCount: number;
+  allowExtraBeds: boolean;
+  maxAdults: number;
+  maxChildren: number;
+  maxOccupancy: number;
+  bathrooms: number;
+  amenityIds: string[];
+}
+
+export interface RoomInput {
+  roomTypeId: string;
+  name: string;
+  description?: string;
+  roomCount: number;
+  categoryId?: string | null;
+  allowExtraBeds: boolean;
+  maxAdults: number;
+  maxChildren: number;
+  maxOccupancy: number;
+  bathrooms: number;
+  amenityIds: string[];
+}
+
+export const roomListingApi = {
+  list: async (propertyId: string) => apiRequest<RoomDetails[]>(`/${propertyId}/room-listings`),
+  create: async (propertyId: string, body: RoomInput) =>
+    apiRequest<RoomDetails>(`/${propertyId}/room-listings`, { method: 'POST', body }),
+  update: async (propertyId: string, id: string, body: Partial<RoomInput>) =>
+    apiRequest<RoomDetails>(`/${propertyId}/room-listings/${id}`, { method: 'PATCH', body }),
+  remove: async (propertyId: string, id: string) =>
+    apiRequest<void>(`/${propertyId}/room-listings/${id}`, { method: 'DELETE' }),
+};
+
+/** A property's floor plan (`/:propertyId/floor-plan`): floors that have rooms, with their boxes. */
+export interface FloorPlanDetails {
+  numberOfFloors: number | null;
+  floors: {
+    floor: number;
+    roomCount: number;
+    units: { position: number; roomNumber: string; roomId: string | null }[];
+  }[];
+}
+
+export interface FloorPlanInput {
+  numberOfFloors: number;
+  floors: { floor: number; roomCount: number; assignments: { position: number; roomId: string }[] }[];
+}
+
+export const floorPlanApi = {
+  get: async (propertyId: string) => apiRequest<FloorPlanDetails>(`/${propertyId}/floor-plan`),
+  save: async (propertyId: string, body: FloorPlanInput) =>
+    apiRequest<FloorPlanDetails>(`/${propertyId}/floor-plan`, { method: 'PUT', body }),
+};
+
+/** The bookable room inventory of one property (`/:propertyId/room-inventory`), read from its floor plan. */
+export interface InventoryListing {
+  /** Id of the room (Rooms table). */
+  id: string;
+  name: string;
+  roomTypeName: string;
+  /** The room type's nightly base rate. */
+  baseRate: string;
+  /** Status of the room's room type; only ACTIVE rooms can be booked. */
+  status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE';
+  bedSetup: string | null;
+  maxAdults: number;
+  maxChildren: number;
+  maxOccupancy: number;
+}
+
+export interface InventoryRoom {
+  roomNumber: string;
+  floor: number;
+  roomId: string | null;
+  roomName: string | null;
+  roomTypeId: string | null;
+  roomTypeName: string | null;
+  bedSetup: string | null;
+  maxAdults: number | null;
+  maxChildren: number | null;
+  maxOccupancy: number | null;
+  allowExtraBeds: boolean;
+  baseRate: string | null;
+  /** Linked to a room whose room type is active; only sellable rooms can be booked. */
+  sellable: boolean;
+}
+
+export interface RoomInventory {
+  /** The property's rooms (Rooms table), by name. */
+  listings: InventoryListing[];
+  /** Every physical room (floor-plan box). */
+  rooms: InventoryRoom[];
+}
+
+export const roomInventoryApi = {
+  get: async (propertyId: string) => apiRequest<RoomInventory>(`/${propertyId}/room-inventory`),
 };
 
 export const inventoryApi = {

@@ -2,7 +2,13 @@ import { useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { formatCurrency } from '../../../lib/api/format';
 import { roomTypeApi } from '../../../lib/api/pms';
-import type { RoomCategoryDetails, RoomTypeDetails, RoomTypeInput, RoomTypeStatus } from '../../../lib/api/pms';
+import type {
+  RoomCategoryDetails,
+  RoomDetails,
+  RoomTypeDetails,
+  RoomTypeInput,
+  RoomTypeStatus,
+} from '../../../lib/api/pms';
 import { displayApiError } from '../../../lib/api/client';
 import { toast } from '../../../utils/toast';
 import type { BadgeTone } from '../../../utils/status';
@@ -20,6 +26,8 @@ interface RoomTypesSectionProps {
   categories: RoomCategoryDetails[];
   /** The property's total number of rooms, when it has one; room types may not exceed it. */
   totalRooms: number | null;
+  /** The property's rooms; a room type cannot hold fewer rooms than are listed under it. */
+  rooms: RoomDetails[];
   currencyCode: string;
   loading: boolean;
   error: string | null;
@@ -83,6 +91,7 @@ export function RoomTypesSection({
   types,
   categories,
   totalRooms,
+  rooms,
   currencyCode,
   loading,
   error,
@@ -109,6 +118,10 @@ export function RoomTypesSection({
     .filter((t) => t.id !== editing?.id)
     .reduce((sum, t) => sum + t.roomCount, 0);
   const roomsAvailable = totalRooms ? totalRooms - allocatedElsewhere : null;
+  // Rooms already listed under the room type being edited; it cannot shrink below them.
+  const listedUnderType = rooms
+    .filter((r) => r.roomTypeId === editing?.id)
+    .reduce((sum, r) => sum + r.roomCount, 0);
   const unallocatedRooms = totalRooms ? totalRooms - totalInventoryRooms : null;
   const rates = types.map((t) => Number(t.baseRate));
   const lowestRate = rates.length > 0 ? Math.min(...rates) : 0;
@@ -137,6 +150,12 @@ export function RoomTypesSection({
     if (roomsAvailable !== null && editing.roomCount > roomsAvailable) {
       return toast('Too many rooms', {
         detail: `The property has ${totalRooms} rooms in total; only ${Math.max(roomsAvailable, 0)} are left to allocate.`,
+        tone: 'warning',
+      });
+    }
+    if (editing.roomCount < listedUnderType) {
+      return toast('Too few rooms', {
+        detail: `${listedUnderType} rooms are already listed under this room type; it cannot hold fewer.`,
         tone: 'warning',
       });
     }
@@ -392,15 +411,18 @@ export function RoomTypesSection({
 
             <Field
               label="Number of Rooms"
-              hint={
+              hint={[
                 roomsAvailable === null
                   ? 'Physical rooms of this type'
-                  : `Up to ${Math.max(roomsAvailable, 0)} more of the property's ${totalRooms} rooms can be allocated`
-              }
+                  : `At most ${Math.max(roomsAvailable, 0)} of the property's ${totalRooms} rooms`,
+                listedUnderType > 0 ? `at least ${listedUnderType} (already listed as rooms)` : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
             >
               <TextField
                 type="number"
-                min={0}
+                min={listedUnderType}
                 max={roomsAvailable === null ? undefined : Math.max(roomsAvailable, 0)}
                 value={editing.roomCount}
                 onChange={(e) => setEditing({ ...editing, roomCount: Number(e.target.value) })}

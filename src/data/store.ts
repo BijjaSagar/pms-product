@@ -1,4 +1,4 @@
-import { ALL_PERMISSIONS, BUSINESS_DATE, CURRENT_USER_ID, GUESTS, PERMISSION_CATALOG, PROPERTY, ROLE_DEFS, ROOM_TYPES, TAX_RATE, TAX_RULES, USERS, type InternalUser } from './catalog';
+import { ALL_PERMISSIONS, BUSINESS_DATE, CALENDAR_EVENTS, CURRENT_USER_ID, GUESTS, PERMISSION_CATALOG, PROPERTY, ROLE_DEFS, ROOM_TYPES, TAX_RATE, TAX_RULES, USERS, type InternalUser } from './catalog';
 import { buildSeedState } from './fixtures';
 import {
   addDays,
@@ -45,6 +45,7 @@ import type {
   RevenueReportRow,
   RoleMatrix,
   RoleRow,
+  RoomInventory,
   RoomRow,
   RoomTypeRow,
   StayList,
@@ -65,6 +66,8 @@ const taxRules: TaxRuleRow[] = [...TAX_RULES];
 const invoices: InvoiceRow[] = [];
 
 let activePropertyId = PROPERTY.id;
+/** True once the real room inventory has replaced the demo rooms, room types and reservations. */
+let inventoryLoaded = false;
 let guestSeq = 1023;
 let bookingSeq = 9100;
 let ticketSeq = 118;
@@ -77,6 +80,9 @@ interface Hold {
   checkOut: string;
   expiresAtMs: number;
 }
+/** Floor-plan boxes not yet linked to a room are listed under this pseudo category and cannot be booked. */
+export const UNASSIGNED_TYPE_ID = 'unassigned';
+export const UNASSIGNED_TYPE_NAME = 'Unassigned';
 const holds = new Map<string, Hold>();
 const HOLD_MS = 10 * 60 * 1000;
 
@@ -593,7 +599,8 @@ function createReservation(body: Record<string, unknown>): { id: string; booking
   const nights = nightsBetween(checkInDate, checkOutDate);
   const id = nextId('res');
   const requestedLines = Array.isArray(body.roomLines) ? body.roomLines as Array<Record<string, unknown>> : [];
-  const legacyType = ROOM_TYPES.find((t) => t.id === String(body.roomTypeId)) ?? ROOM_TYPES[1];
+  const legacyType = ROOM_TYPES.find((t) => t.id === String(body.roomTypeId)) ?? ROOM_TYPES[0];
+  if (!legacyType) throw new Error('This property has no room types yet.');
   const lines = (requestedLines.length ? requestedLines : [{
     roomTypeId: legacyType.id,
     roomId: body.roomId,
@@ -1161,7 +1168,11 @@ export const store = {
     return Object.fromEntries(
       dates.map((date) => [
         date,
-        { hasNote: dayNotes.has(date), enquiryCount: dayEnquiries.filter((e) => e.date === date).length },
+        {
+          hasNote: dayNotes.has(date),
+          enquiryCount: dayEnquiries.filter((e) => e.date === date).length,
+          events: CALENDAR_EVENTS.filter((e) => e.date === date).map((e) => e.name),
+        },
       ]),
     );
   },
@@ -1223,6 +1234,55 @@ export const store = {
     room.outOfOrderReason = null;
   },
   availability,
+
+  /**
+   * Replaces the demo rooms and room types with the property's real inventory (its floor-plan
+   * boxes). Boxes not linked to a sellable room stay in the list but cannot be booked. Room status
+   * and out-of-order reasons survive a reload, keyed by room number. The first load also drops the
+   * demo reservations, which point at demo rooms that no longer exist.
+   */
+  hydrateInventory(inventory: RoomInventory): void {
+    const previous = new Map(inventoryLoaded ? rooms.map((r) => [r.roomNumber, r]) : []);
+    // The bookable categories are the property's rooms (Rooms table); the room type only supplies the rate.
+    const types: RoomTypeRow[] = inventory.listings.map((room) => ({
+      id: room.id,
+      code: room.name.replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() || 'RM',
+      name: room.name,
+      description: room.bedSetup ?? '',
+      maxAdults: room.maxAdults,
+      maxChildren: room.maxChildren,
+      baseRate: room.baseRate,
+      amenities: [],
+      isActive: room.status === 'ACTIVE',
+    }));
+    const next: RoomRow[] = inventory.rooms.map((box) => {
+      const old = previous.get(box.roomNumber);
+      return {
+        id: `room-${box.roomNumber}`,
+        roomNumber: box.roomNumber,
+        roomTypeId: box.roomId ?? UNASSIGNED_TYPE_ID,
+        roomTypeCode: box.roomId ? null : 'UNA',
+        roomTypeName: box.roomName ?? UNASSIGNED_TYPE_NAME,
+        floor: String(box.floor),
+        wing: null,
+        status: old?.status ?? 'VACANT_CLEAN',
+        isActive: box.sellable,
+        notes: old?.notes ?? null,
+        baseRate: box.baseRate ?? '0.00',
+        outOfOrderReason: old?.outOfOrderReason ?? null,
+        maxOccupancy: box.maxOccupancy ?? undefined,
+        bedSetup: box.bedSetup,
+      };
+    });
+    ROOM_TYPES.splice(0, ROOM_TYPES.length, ...types);
+    rooms.splice(0, rooms.length, ...next);
+    if (!inventoryLoaded) {
+      reservations.length = 0;
+      folios.length = 0;
+      holds.clear();
+      inventoryLoaded = true;
+    }
+  },
 
   /* guests */
   listGuests(search: string, page: number, pageSize: number): PageResult<GuestRow> {
