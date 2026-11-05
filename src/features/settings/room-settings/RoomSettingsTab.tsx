@@ -4,6 +4,7 @@ import { useApiResource } from '../../../lib/api/useApiResource';
 import { displayApiError } from '../../../lib/api/client';
 import {
   amenityApi,
+  maintenanceReasonApi,
   floorPlanApi,
   propertyApi,
   roomCategoryApi,
@@ -12,6 +13,7 @@ import {
 } from '../../../lib/api/pms';
 import type {
   AmenityDetails,
+  MaintenanceReasonDetails,
   FloorPlanDetails,
   PropertyDetails,
   RoomCategoryDetails,
@@ -22,12 +24,9 @@ import { useAuth } from '../../auth/AuthContext';
 import { useInventory } from '../../inventory/inventoryContext';
 import { toast } from '../../../utils/toast';
 import { Button } from '../../../components/primitives';
-import type { FloorPlan, MaintenanceReasonItem, RoomSettingsSectionId } from './types';
+import type { FloorPlan, RoomSettingsSectionId } from './types';
 import { MAX_FLOORS, MAX_ROOMS_PER_FLOOR, boxKey, parseCount } from './floorPlan';
 import { FloorsSection } from './FloorsSection';
-import {
-  INITIAL_MAINTENANCE_REASONS,
-} from './initialData';
 import { RoomsSection } from './RoomsSection';
 import { RoomTypesSection } from './RoomTypesSection';
 import { CategoriesSection } from './CategoriesSection';
@@ -104,7 +103,11 @@ export function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
     [propertyId],
   );
   const rooms = roomResource.data ?? [];
-  const [maintenanceReasons, setMaintenanceReasons] = useState<MaintenanceReasonItem[]>(INITIAL_MAINTENANCE_REASONS);
+  const maintenanceReasonResource = useApiResource(
+    () => (propertyId ? maintenanceReasonApi.list(propertyId) : Promise.resolve<MaintenanceReasonDetails[]>([])),
+    [propertyId],
+  );
+  const maintenanceReasons = maintenanceReasonResource.data ?? [];
 
   // The saved floor plan comes from the backend. Unsaved edits are held here so they survive switching
   // sections; null means "nothing edited, show what is saved".
@@ -201,7 +204,7 @@ export function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
 
   const handleResetDefaults = () => {
     amenityResource.refresh();
-    setMaintenanceReasons(INITIAL_MAINTENANCE_REASONS);
+    maintenanceReasonResource.refresh();
     roomResource.refresh();
     roomTypeResource.refresh();
     categoryResource.refresh();
@@ -402,8 +405,11 @@ export function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
 
           {activeSection === 'maintenance-reasons' && (
             <MaintenanceReasonsSection
+              propertyId={propertyId ?? null}
               reasons={maintenanceReasons}
-              onChange={setMaintenanceReasons}
+              loading={maintenanceReasonResource.loading}
+              error={maintenanceReasonResource.error}
+              onRefresh={() => maintenanceReasonResource.refresh()}
             />
           )}
         </div>

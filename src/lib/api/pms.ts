@@ -463,6 +463,39 @@ export const amenityApi = {
     apiRequest<void>(`/${propertyId}/amenities/${id}`, { method: 'DELETE' }),
 };
 
+export type MaintenanceTradeCategory =
+  | 'HVAC' | 'PLUMBING' | 'RENOVATION' | 'ELECTRICAL' | 'HOUSEKEEPING' | 'SECURITY' | 'GENERAL';
+export type MaintenanceReasonPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+export type MaintenanceReasonStatus = 'ACTIVE' | 'INACTIVE';
+
+/** A maintenance reason of one property as the backend stores it (`/:propertyId/maintenance-reasons`). */
+export interface MaintenanceReasonDetails {
+  id: string;
+  propertyId: string;
+  reasonName: string;
+  tradeCategory: MaintenanceTradeCategory;
+  priority: MaintenanceReasonPriority;
+  status: MaintenanceReasonStatus;
+}
+
+export interface MaintenanceReasonInput {
+  reasonName: string;
+  tradeCategory: MaintenanceTradeCategory;
+  priority: MaintenanceReasonPriority;
+  status: MaintenanceReasonStatus;
+}
+
+export const maintenanceReasonApi = {
+  list: async (propertyId: string) =>
+    apiRequest<MaintenanceReasonDetails[]>(`/${propertyId}/maintenance-reasons`),
+  create: async (propertyId: string, body: MaintenanceReasonInput) =>
+    apiRequest<MaintenanceReasonDetails>(`/${propertyId}/maintenance-reasons`, { method: 'POST', body }),
+  update: async (propertyId: string, id: string, body: Partial<MaintenanceReasonInput>) =>
+    apiRequest<MaintenanceReasonDetails>(`/${propertyId}/maintenance-reasons/${id}`, { method: 'PATCH', body }),
+  remove: async (propertyId: string, id: string) =>
+    apiRequest<void>(`/${propertyId}/maintenance-reasons/${id}`, { method: 'DELETE' }),
+};
+
 /** A room offering of one property as the backend stores it (`/:propertyId/room-listings`). */
 export interface RoomDetails {
   id: string;
