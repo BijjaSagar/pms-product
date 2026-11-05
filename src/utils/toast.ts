@@ -2,13 +2,13 @@
  * Lightweight reactive toast notification store with rich actions and lifecycle control.
  */
 
-interface ToastAction {
+export interface ToastAction {
   label: string;
   onClick: () => void | Promise<void> | unknown;
   altText?: string;
 }
 
-interface ToastOptions {
+export interface ToastOptions {
   detail?: string;
   tone?: 'success' | 'info' | 'warning' | 'danger';
   duration?: number;
@@ -91,7 +91,7 @@ function createToast(title: string, opts?: ToastOptions): number {
   return id;
 }
 
-interface ToastCallable {
+export interface ToastCallable {
   (title: string, opts?: ToastOptions): number;
   success: (title: string, detailOrOpts?: string | Omit<ToastOptions, 'tone'>) => number;
   error: (title: string, detailOrOpts?: string | Omit<ToastOptions, 'tone'>) => number;

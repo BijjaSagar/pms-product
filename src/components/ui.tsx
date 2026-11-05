@@ -125,6 +125,35 @@ export function TableActionBtn({
   );
 }
 
+export function Sparkline({ points, width = 120, height = 36 }: { points: readonly number[]; width?: number; height?: number }) {
+  const max = Math.max(...points);
+  const min = Math.min(...points);
+  const span = max - min || 1;
+  const step = width / (points.length - 1);
+  const line = points
+    .map((p, i) => {
+      const x = i * step;
+      const y = height - 4 - ((p - min) / span) * (height - 8);
+      return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(' ');
+  const area = `${line} L${width.toFixed(1)},${height} L0,${height} Z`;
+  const gid = `spark-${Math.round(max)}-${points.length}`;
+  const lastY = height - 4 - ((points[points.length - 1] - min) / span) * (height - 8);
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true" className="overflow-visible">
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--color-primary)" stopOpacity="0.32" />
+          <stop offset="100%" stopColor="var(--color-primary)" stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#${gid})`} stroke="none" />
+      <path d={line} fill="none" stroke="var(--color-primary)" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 2px 4px color-mix(in srgb, var(--color-ink) 22%, transparent))' }} />
+      <circle cx={width} cy={lastY} r="3.5" fill="var(--color-primary)" stroke="var(--color-surface)" strokeWidth="1.5" />
+    </svg>
+  );
+}
 
 const AVATAR_PALETTES = [
   { bg: TONE_VARS.info.bg, text: TONE_VARS.info.text, border: TONE_VARS.info.border },

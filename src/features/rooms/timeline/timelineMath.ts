@@ -1,5 +1,6 @@
-import type { RoomStatus, TimelineEvent, TimelineStatus } from '../../../types';
+import type { RoomStatus } from '../../../types';
 import type { Tone } from '../../../theme/tone';
+import type { TimelineEvent, TimelineStatus } from '../../../data/roomTimeline';
 
 export const START_HOUR = 8;
 export const END_HOUR = 22;
@@ -12,7 +13,7 @@ export const TIME_TICKS = [8, 10, 12, 14, 16, 18, 20, 22].map((hour) => ({
   percent: ((hour - START_HOUR) / SPAN) * 100,
 }));
 
-function formatTick(hour: number): string {
+export function formatTick(hour: number): string {
   if (hour === 12) return '12 PM';
   return hour < 12 ? `${hour} AM` : `${hour - 12} PM`;
 }
@@ -58,23 +59,9 @@ const TIMELINE_ROOM_STATUS: Record<TimelineStatus, RoomStatus> = {
   Maintenance: 'Out-of-service',
 };
 
-/* The day's last segment is the room's status as the business date ends. */
-export function currentEvent(events: TimelineEvent[]): TimelineEvent | undefined {
-  return events[events.length - 1];
-}
-
 export function roomStatusOf(events: TimelineEvent[]): RoomStatus {
-  const current = currentEvent(events);
+  const current = events[0];
   return current ? TIMELINE_ROOM_STATUS[current.status] : 'Available';
-}
-
-/* The track shows START_HOUR to END_HOUR, so segments outside it are dropped and the rest trimmed. */
-export function clipToWindow(events: TimelineEvent[]): TimelineEvent[] {
-  return events.flatMap((event) => {
-    const startHour = Math.max(event.startHour, START_HOUR);
-    const endHour = Math.min(event.endHour, END_HOUR);
-    return endHour > startHour ? [{ ...event, startHour, endHour }] : [];
-  });
 }
 
 export function pluralRooms(count: number): string {

@@ -1,10 +1,10 @@
-import type { GuestRow, RoomTypeRow, TaxRuleRow, UserRow } from '../lib/api/pms';
+import type { GuestRow, PropertyRow, RoomTypeRow, TaxRuleRow, UserRow } from '../lib/api/pms';
 
 /** The single fixed business date the entire static demo revolves around. */
 export const BUSINESS_DATE = '2026-10-17';
 export const TAX_RATE = 0.12;
 
-export const PROPERTY = {
+export const PROPERTY: PropertyRow = {
   id: 'prop-1',
   name: 'The Grand Horizon Hotel',
   slug: 'grand-horizon',
@@ -17,7 +17,7 @@ export const PROPERTY = {
   city: 'Mumbai',
 };
 
-interface PermissionDef {
+export interface PermissionDef {
   key: string;
   resource: string;
   action: string;
@@ -69,16 +69,15 @@ export const PERMISSION_CATALOG: PermissionDef[] = [
   { key: 'user.deactivate', resource: 'Staff', action: 'deactivate', description: 'Disable staff members' },
   { key: 'role.read', resource: 'Roles', action: 'read', description: 'View roles and permissions' },
   { key: 'role.assign', resource: 'Roles', action: 'assign', description: 'Assign roles to staff' },
-  { key: 'rate.read', resource: 'Rates', action: 'read', description: 'View rates' },
-  { key: 'channel.read', resource: 'Channels', action: 'read', description: 'View the channel manager' },
+  { key: 'role.manage', resource: 'Roles', action: 'manage', description: 'Manage the role matrix' },
   { key: 'theme.update', resource: 'Appearance', action: 'update', description: 'Change the property appearance' },
 ];
 
 export const ALL_PERMISSIONS: string[] = PERMISSION_CATALOG.map((p) => p.key);
 
-type RoleKey = 'ADMIN' | 'MANAGER' | 'FRONTDESK' | 'HOUSEKEEPING' | 'AUDITOR';
+type RoleKey = 'owner' | 'admin' | 'manager' | 'front_desk' | 'housekeeping' | 'maintenance' | 'accountant';
 
-interface RoleDef {
+export interface RoleDef {
   id: string;
   key: RoleKey;
   name: string;
@@ -98,36 +97,45 @@ const FRONT_DESK_PERMS = [
 
 export const ROLE_DEFS: RoleDef[] = [
   {
-    id: 'role-admin', key: 'ADMIN', name: 'Admin', description: 'Full access to every module.',
+    id: 'role-owner', key: 'owner', name: 'Owner', description: 'Full access to every module.',
     isSystem: true, isActive: true, permissions: ALL_PERMISSIONS,
   },
   {
-    id: 'role-manager', key: 'MANAGER', name: 'Manager', description: 'Oversees front office, rooms and reporting.',
+    id: 'role-admin', key: 'admin', name: 'Administrator', description: 'Manages the property day to day.',
+    isSystem: true, isActive: true, permissions: ALL_PERMISSIONS.filter((p) => p !== 'role.manage'),
+  },
+  {
+    id: 'role-manager', key: 'manager', name: 'General Manager', description: 'Oversees front office, rooms and reporting.',
     isSystem: true, isActive: true,
     permissions: [
       ...FRONT_DESK_PERMS,
       'reservation.cancel', 'housekeeping.assign', 'housekeeping.complete',
       'maintenance.read', 'maintenance.create', 'maintenance.assign', 'maintenance.resolve',
-      'payment.refund', 'invoice.issue', 'night-audit.read', 'rate.read', 'channel.read',
-      'report.read.financial', 'report.export', 'audit-log.read',
+      'payment.refund', 'invoice.issue', 'night-audit.read', 'night-audit.run',
+      'report.read.financial', 'report.export', 'audit-log.read', 'user.read', 'role.read', 'property.update', 'theme.update',
     ],
   },
   {
-    id: 'role-frontdesk', key: 'FRONTDESK', name: 'Frontdesk', description: 'Handles arrivals, departures and guest requests.',
-    isSystem: true, isActive: true, permissions: [...FRONT_DESK_PERMS, 'reservation.cancel', 'rate.read'],
+    id: 'role-front-desk', key: 'front_desk', name: 'Front Desk Agent', description: 'Handles arrivals, departures and guest requests.',
+    isSystem: true, isActive: true, permissions: [...FRONT_DESK_PERMS, 'reservation.cancel', 'housekeeping.complete'],
   },
   {
-    id: 'role-housekeeping', key: 'HOUSEKEEPING', name: 'Housekeeping', description: 'Cleans and inspects rooms, and reports faults.',
+    id: 'role-housekeeping', key: 'housekeeping', name: 'Housekeeping Attendant', description: 'Cleans and inspects rooms.',
     isSystem: true, isActive: true,
-    permissions: ['room.read', 'housekeeping.read', 'housekeeping.complete', 'maintenance.create'],
+    permissions: ['dashboard.read', 'room.read', 'housekeeping.read', 'housekeeping.complete', 'maintenance.read', 'maintenance.create'],
   },
   {
-    id: 'role-auditor', key: 'AUDITOR', name: 'Auditor', description: 'Closes the day and owns invoices and financial reporting.',
+    id: 'role-maintenance', key: 'maintenance', name: 'Maintenance Technician', description: 'Resolves room and facility faults.',
+    isSystem: true, isActive: true,
+    permissions: ['dashboard.read', 'room.read', 'housekeeping.read', 'maintenance.read', 'maintenance.create', 'maintenance.resolve'],
+  },
+  {
+    id: 'role-accountant', key: 'accountant', name: 'Accountant', description: 'Owns folios, payments, invoices and financial reporting.',
     isSystem: true, isActive: true,
     permissions: [
-      'dashboard.read', 'reservation.read', 'guest.read', 'room.read', 'folio.read', 'payment.read',
-      'invoice.read', 'invoice.issue', 'night-audit.read', 'night-audit.run', 'night-audit.approve',
-      'rate.read', 'report.read.operations', 'report.read.financial', 'report.export', 'audit-log.read',
+      'dashboard.read', 'folio.read', 'folio.update', 'payment.read', 'payment.refund',
+      'invoice.read', 'invoice.issue', 'night-audit.read', 'report.read.operations',
+      'report.read.financial', 'report.export', 'audit-log.read', 'audit-log.export', 'property.read',
     ],
   },
 ];
@@ -135,20 +143,18 @@ export const ROLE_DEFS: RoleDef[] = [
 export interface InternalUser extends UserRow {
   /** Used to resolve a member's role for the current property. */
   baseRoleKey: RoleKey;
-  /** Maintenance is a team within Housekeeping, not a role of its own. */
-  team?: 'maintenance';
 }
 
 export const USERS: InternalUser[] = [
-  { userId: 'u-1', email: 'anaya@grandhorizon.in', fullName: 'Anaya Sharma', status: 'ACTIVE', lastLoginAt: `${BUSINESS_DATE} 07:42`, membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'ADMIN', roleName: 'Admin', baseRoleKey: 'ADMIN' },
-  { userId: 'u-2', email: 'rohan@grandhorizon.in', fullName: 'Rohan Mehta', status: 'ACTIVE', lastLoginAt: `${BUSINESS_DATE} 06:15`, membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'ADMIN', roleName: 'Admin', baseRoleKey: 'ADMIN' },
-  { userId: 'u-3', email: 'sara@grandhorizon.in', fullName: 'Sara Khan', status: 'ACTIVE', lastLoginAt: '2026-10-16 20:03', membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'MANAGER', roleName: 'Manager', baseRoleKey: 'MANAGER' },
-  { userId: 'u-4', email: 'vikram@grandhorizon.in', fullName: 'Vikram Rao', status: 'ACTIVE', lastLoginAt: `${BUSINESS_DATE} 05:58`, membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'FRONTDESK', roleName: 'Frontdesk', baseRoleKey: 'FRONTDESK' },
-  { userId: 'u-5', email: 'neha@grandhorizon.in', fullName: 'Neha Gupta', status: 'ACTIVE', lastLoginAt: '2026-10-16 22:31', membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'FRONTDESK', roleName: 'Frontdesk', baseRoleKey: 'FRONTDESK' },
-  { userId: 'u-6', email: 'anita@grandhorizon.in', fullName: 'Anita Desai', status: 'ACTIVE', lastLoginAt: `${BUSINESS_DATE} 06:40`, membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'HOUSEKEEPING', roleName: 'Housekeeping', baseRoleKey: 'HOUSEKEEPING' },
-  { userId: 'u-7', email: 'ramu@grandhorizon.in', fullName: 'Ramu Yadav', status: 'ACTIVE', lastLoginAt: '2026-10-16 18:12', membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'HOUSEKEEPING', roleName: 'Housekeeping', baseRoleKey: 'HOUSEKEEPING' },
-  { userId: 'u-8', email: 'joseph@grandhorizon.in', fullName: 'Joseph Fernandes', status: 'ACTIVE', lastLoginAt: '2026-10-16 16:47', membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'HOUSEKEEPING', roleName: 'Housekeeping', baseRoleKey: 'HOUSEKEEPING', team: 'maintenance' },
-  { userId: 'u-9', email: 'meera@grandhorizon.in', fullName: 'Meera Joshi', status: 'INVITED', lastLoginAt: null, membershipActive: false, invitePending: true, inviteExpired: false, propertyId: 'prop-1', roleKey: 'AUDITOR', roleName: 'Auditor', baseRoleKey: 'AUDITOR' },
+  { userId: 'u-1', email: 'anaya@grandhorizon.in', fullName: 'Anaya Sharma', status: 'ACTIVE', lastLoginAt: `${BUSINESS_DATE} 07:42`, membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'owner', roleName: 'Owner', baseRoleKey: 'owner' },
+  { userId: 'u-2', email: 'rohan@grandhorizon.in', fullName: 'Rohan Mehta', status: 'ACTIVE', lastLoginAt: `${BUSINESS_DATE} 06:15`, membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'admin', roleName: 'Administrator', baseRoleKey: 'admin' },
+  { userId: 'u-3', email: 'sara@grandhorizon.in', fullName: 'Sara Khan', status: 'ACTIVE', lastLoginAt: '2026-10-16 20:03', membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'manager', roleName: 'General Manager', baseRoleKey: 'manager' },
+  { userId: 'u-4', email: 'vikram@grandhorizon.in', fullName: 'Vikram Rao', status: 'ACTIVE', lastLoginAt: `${BUSINESS_DATE} 05:58`, membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'front_desk', roleName: 'Front Desk Agent', baseRoleKey: 'front_desk' },
+  { userId: 'u-5', email: 'neha@grandhorizon.in', fullName: 'Neha Gupta', status: 'ACTIVE', lastLoginAt: '2026-10-16 22:31', membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'front_desk', roleName: 'Front Desk Agent', baseRoleKey: 'front_desk' },
+  { userId: 'u-6', email: 'anita@grandhorizon.in', fullName: 'Anita Desai', status: 'ACTIVE', lastLoginAt: `${BUSINESS_DATE} 06:40`, membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'housekeeping', roleName: 'Housekeeping Attendant', baseRoleKey: 'housekeeping' },
+  { userId: 'u-7', email: 'ramu@grandhorizon.in', fullName: 'Ramu Yadav', status: 'ACTIVE', lastLoginAt: '2026-10-16 18:12', membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'housekeeping', roleName: 'Housekeeping Attendant', baseRoleKey: 'housekeeping' },
+  { userId: 'u-8', email: 'joseph@grandhorizon.in', fullName: 'Joseph Fernandes', status: 'ACTIVE', lastLoginAt: '2026-10-16 16:47', membershipActive: true, invitePending: false, inviteExpired: false, propertyId: 'prop-1', roleKey: 'maintenance', roleName: 'Maintenance Technician', baseRoleKey: 'maintenance' },
+  { userId: 'u-9', email: 'meera@grandhorizon.in', fullName: 'Meera Joshi', status: 'INVITED', lastLoginAt: null, membershipActive: false, invitePending: true, inviteExpired: false, propertyId: 'prop-1', roleKey: 'accountant', roleName: 'Accountant', baseRoleKey: 'accountant' },
 ];
 
 export const CURRENT_USER_ID = 'u-1';
@@ -167,7 +173,7 @@ export const ROOM_TYPES: RoomTypeRow[] = [
   { id: 'suite', code: 'STE', name: 'Panorama Suite', description: 'Top-floor suite with panoramic views.', maxAdults: 2, maxChildren: 2, baseRate: '12000.00', amenities: ['Panoramic view', 'King bed', 'Butler service', 'Dining area', '68 m²'], isActive: true },
 ];
 
-interface FloorPlan {
+export interface FloorPlan {
   floor: string;
   wing: string;
   typeId: string;

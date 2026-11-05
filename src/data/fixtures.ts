@@ -20,7 +20,6 @@ function buildRooms(): RoomRow[] {
       const roomNumber = String(plan.start + i);
       rooms.push({
         id: `room-${roomNumber}`,
-        version: 0,
         roomNumber,
         roomTypeId: type.id,
         roomTypeCode: type.code,

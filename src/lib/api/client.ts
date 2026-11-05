@@ -1,9 +1,10 @@
 import { store } from '../../data/store';
+import { clearAccessToken, getAccessToken } from './authToken';
 
 /**
- * This build runs entirely against an in-memory data store, so there is no
- * network transport. The helpers below are kept so the rest of the app (error
- * formatting, idempotency keys and file downloads) behaves exactly as before.
+ * Only authentication talks to the backend (`apiRequest`). Everything else
+ * still runs against the in-memory data store, so the remaining helpers (error
+ * formatting, idempotency keys and file downloads) behave exactly as before.
  */
 
 export class ApiError extends Error {
@@ -16,6 +17,56 @@ export class ApiError extends Error {
     this.status = status;
     this.code = code;
   }
+}
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '/api/v1';
+
+/** Nest error bodies are `{ statusCode, message: string | string[], error }`. */
+function errorMessage(body: unknown, fallback: string): string {
+  const message = (body as { message?: unknown } | null)?.message;
+  if (Array.isArray(message)) return message.join(', ');
+  return typeof message === 'string' && message ? message : fallback;
+}
+
+/** Empty (204) and non-JSON bodies, such as a proxy's HTML error page, read as null. */
+async function readJsonBody(response: Response): Promise<unknown> {
+  if (response.status === 204) return null;
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Calls the PMS backend with the stored bearer token. A 401 on an
+ * authenticated call means the session is gone, so the token is dropped.
+ */
+export async function apiRequest<T>(
+  path: string,
+  options: { method?: string; body?: unknown } = {},
+): Promise<T> {
+  const token = getAccessToken();
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method: options.method ?? 'GET',
+      headers: {
+        ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    });
+  } catch {
+    throw new ApiError('Could not reach the server. Check your connection and try again.', 0);
+  }
+
+  const body = await readJsonBody(response);
+  if (!response.ok) {
+    if (response.status === 401 && token) clearAccessToken();
+    throw new ApiError(errorMessage(body, 'The request could not be completed.'), response.status);
+  }
+  return body as T;
 }
 
 /** Generates a CSV for a report path and triggers a client-side download. */

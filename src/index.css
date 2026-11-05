@@ -446,6 +446,12 @@ textarea {
     background: var(--color-elevated);
   }
 
+  /* Screens set their own inline background, so dim the whole control. */
+  .pms-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   select.pms-input,
   textarea.pms-input {
     box-shadow: var(--shadow-xs);

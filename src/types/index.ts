@@ -29,11 +29,11 @@ export type HkStatus = 'Clean' | 'Dirty' | 'Cleaning' | 'Inspected';
 
 export type PaymentStatus = 'Paid' | 'Pending' | 'Overdue' | 'Failed' | 'Refunded' | 'Partially refunded';
 
-type FolioStatus = 'Open' | 'Settled' | 'Disputed';
+export type FolioStatus = 'Open' | 'Settled' | 'Disputed';
 
-type MaintenanceStatus = 'Open' | 'In progress' | 'Resolved';
+export type MaintenanceStatus = 'Open' | 'In progress' | 'Resolved';
 
-type MaintenancePriority = 'Urgent' | 'High' | 'Medium' | 'Low';
+export type MaintenancePriority = 'Urgent' | 'High' | 'Medium' | 'Low';
 
 export interface RoomType {
   id: string;
@@ -43,8 +43,6 @@ export interface RoomType {
   maxOccupancy: number;
   maxAdults?: number;
   maxChildren?: number;
-  baseOccupancy?: number;
-  code?: string;
   beds: string;
   baseRate: number;
   amenities: string[];
@@ -54,7 +52,6 @@ export interface RoomType {
 export interface Reservation {
   id: string;
   backendId?: string;
-  createdAt?: string;
   bookingCode?: string;
   currencyCode?: string;
   roomTypeId?: string;
@@ -160,14 +157,14 @@ export interface Invoice {
   method: string;
 }
 
-interface FolioCharge {
+export interface FolioCharge {
   backendId?: string;
   label: string;
   detail: string;
   amount: number;
 }
 
-interface FolioPayment {
+export interface FolioPayment {
   ref: string;
   method: string;
   amount: number;
@@ -227,39 +224,4 @@ export interface Notice {
   tone: 'warning' | 'info' | 'danger' | 'success';
   time: string;
   target: string;
-}
-
-export type TimelineStatus =
-  | 'Available'
-  | 'Occupied'
-  | 'Arriving'
-  | 'Departing'
-  | 'Dirty'
-  | 'Cleaning'
-  | 'Inspected'
-  | 'Out-of-service'
-  | 'Maintenance';
-
-export type TimelineIcon = 'luggage' | 'clock' | 'user';
-
-export interface TimelineEvent {
-  id: string;
-  status: TimelineStatus;
-  label: string;
-  subLabel?: string;
-  guestName?: string;
-  startHour: number;
-  endHour: number;
-  icon?: TimelineIcon;
-}
-
-export interface RoomTimelineRow {
-  backendId: string;
-  /* The room version the row was read at, sent back with a status change. */
-  version: number;
-  number: string;
-  /* Room type name as the backend returns it; the rooms page shows the inventory name instead. */
-  type: string;
-  floor: number;
-  events: TimelineEvent[];
 }

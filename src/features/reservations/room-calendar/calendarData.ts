@@ -1,6 +1,8 @@
 import type { CalendarReservation, CalendarRoom, RoomOperationalStatus, RoomType, ReservationStatus } from './types';
-import { inventoryApi, reservationApi } from '../../../lib/api/pms';
-import { CALENDAR_DAY_EVENTS, type CalendarDayEvent } from '../../../data/calendarEvents';
+import { BUSINESS_DATE, GUESTS } from '../../../data/catalog';
+import { store } from '../../../data/store';
+
+export { BUSINESS_DATE };
 
 /* Room types and their display settings. Names must match the store's room type names. */
 export const ROOM_TYPE_CONFIG: Record<
@@ -93,7 +95,7 @@ export function daysBetween(from: string, to: string): number {
 
 /* ----------------------------------------------------------------- rooms */
 
-const ROOM_STATUS_TO_CALENDAR: Record<string, RoomOperationalStatus> = {
+const STORE_STATUS_TO_CALENDAR: Record<string, RoomOperationalStatus> = {
   VACANT_CLEAN: 'Clean',
   INSPECTED: 'Inspected',
   VACANT_DIRTY: 'Dirty',
@@ -102,11 +104,10 @@ const ROOM_STATUS_TO_CALENDAR: Record<string, RoomOperationalStatus> = {
   OUT_OF_ORDER: 'Out-of-Order',
 };
 
-/** Every room the calendar shows, read from the backend. */
-async function loadCalendarRooms(): Promise<CalendarRoom[]> {
-  const [rooms, roomTypes] = await Promise.all([inventoryApi.rooms(), inventoryApi.roomTypes()]);
-  const rateByType = new Map(roomTypes.map((type) => [type.id, Number(type.baseRate)]));
-  return rooms
+/** Every room the calendar shows, read from the store (the single source of truth). */
+export function loadCalendarRooms(): CalendarRoom[] {
+  return store
+    .rooms()
     .map((room) => {
       const type = room.roomTypeName as RoomType;
       const config = ROOM_TYPE_CONFIG[type];
@@ -116,21 +117,12 @@ async function loadCalendarRooms(): Promise<CalendarRoom[]> {
         floor: Number(room.floor),
         type,
         maxOccupancy: config?.maxOccupancy ?? 2,
-        baseRate: rateByType.get(room.roomTypeId) ?? 0,
-        status: ROOM_STATUS_TO_CALENDAR[room.status] ?? 'Available',
+        baseRate: Number(room.baseRate),
+        status: STORE_STATUS_TO_CALENDAR[room.status] ?? 'Available',
         outOfOrderReason: room.outOfOrderReason ?? undefined,
       } satisfies CalendarRoom;
     })
     .sort((a, b) => a.number.localeCompare(b.number));
-}
-
-/** Holidays and events grouped by ISO date, so the calendar can read each day's row in one lookup. */
-export function loadCalendarDayEvents(): Record<string, CalendarDayEvent[]> {
-  const byDate: Record<string, CalendarDayEvent[]> = {};
-  for (const event of CALENDAR_DAY_EVENTS) {
-    (byDate[event.date] ??= []).push(event);
-  }
-  return byDate;
 }
 
 /* ---------------------------------------------------------- reservations */
@@ -143,22 +135,16 @@ const STATUS_MAP: Record<string, ReservationStatus> = {
   NO_SHOW: 'No-show',
   PENDING: 'Pending',
   DRAFT: 'Tentative',
-  HOLD: 'Tentative',
 };
-
-/** Both calendar sources, loaded together so the reservations can be placed on the rooms. */
-export async function loadCalendarState(): Promise<{ rooms: CalendarRoom[]; reservations: CalendarReservation[] }> {
-  const rooms = await loadCalendarRooms();
-  return { rooms, reservations: await loadSyncedReservations(rooms) };
-}
 
 /**
  * Store reservations placed on the calendar at the rooms and dates the store holds.
  * A room line without a room, or a room the calendar does not show, is left off the rack.
  */
-async function loadSyncedReservations(rooms: CalendarRoom[]): Promise<CalendarReservation[]> {
+export function loadSyncedReservations(): CalendarReservation[] {
+  const rooms = loadCalendarRooms();
   const roomsByNumber = new Map(rooms.map((room) => [room.number, room]));
-  const result = await reservationApi.list('', undefined, 1, 200);
+  const result = store.listReservations('', undefined, 1, 200);
 
   return result.data
     .filter((r) => r.status !== 'CANCELLED')
@@ -168,6 +154,7 @@ async function loadSyncedReservations(rooms: CalendarRoom[]): Promise<CalendarRe
         r.guest?.name ||
         (r.guest?.firstName ? `${r.guest.firstName} ${r.guest.lastName ?? ''}`.trim() : null) ||
         'Guest';
+      const guest = GUESTS.find((g) => g.id === (r.primaryGuestId || r.guest?.id));
       const checkInDate = String(r.checkInDate).slice(0, 10);
       const checkOutDate = String(r.checkOutDate).slice(0, 10);
       const nights = countNights(checkInDate, checkOutDate);
@@ -199,8 +186,8 @@ async function loadSyncedReservations(rooms: CalendarRoom[]): Promise<CalendarRe
           backendId: r.id,
           roomLineId: line.id.startsWith('legacy-') ? undefined : line.id,
           guestName,
-          guestEmail: '',
-          guestPhone: '',
+          guestEmail: guest?.email ?? '',
+          guestPhone: guest?.phone ?? '',
           roomId: room.id,
           roomNumber: room.number,
           roomType: room.type,

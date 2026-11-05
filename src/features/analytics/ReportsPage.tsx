@@ -49,7 +49,7 @@ const OCCUPANCY_CHART_DATA = [
   { day: '27 Oct', occ: 58, adr: 5300 },
 ];
 
-type AnalyticsTab = 'overview' | 'occupancy' | 'revenue' | 'movements' | 'audits';
+export type AnalyticsTab = 'overview' | 'occupancy' | 'revenue' | 'movements' | 'audits';
 
 const ANALYTICS_TABS: { id: AnalyticsTab; label: string; icon: Lucide.LucideIcon }[] = [
   { id: 'overview', label: 'Overview', icon: Lucide.LayoutDashboard },

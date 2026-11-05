@@ -1,7 +1,7 @@
 import { createContext } from 'react';
 import type { ThemePresetId } from './presets';
 
-interface ThemeContextValue {
+export interface ThemeContextValue {
   preset: ThemePresetId;
   setPreset: (preset: ThemePresetId) => void;
 }

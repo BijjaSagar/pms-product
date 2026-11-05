@@ -1,17 +1,18 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { toast } from '../../utils/toast';
 import type { NavTarget } from '../../config/navigation';
+import { store } from '../../data/store';
 import { IconButton } from '../../components/primitives';
 import type { CalendarReservation, CalendarRoom, DragState, ProposedReservationChange, ReservationStatus as CalendarReservationStatus } from './room-calendar/types';
-import { useBusinessDate } from '../../lib/api/businessDate';
 import {
+  BUSINESS_DATE,
   addDaysToIso,
   countNights,
   daysBetween,
   formatCalendarDate,
-  loadCalendarDayEvents,
-  loadCalendarState,
+  loadCalendarRooms,
+  loadSyncedReservations,
 } from './room-calendar/calendarData';
 import { validateReservationMove } from './room-calendar/validation';
 import { ReservationChangeDialog } from './room-calendar/ReservationChangeDialog';
@@ -22,17 +23,13 @@ import { stayOverlapsRange } from './reservationDateRange';
 import { DayLogButton } from './day-log/DayLogButton';
 import { DayNoteModal } from './day-log/DayNoteModal';
 import { DayEnquiriesModal } from './day-log/DayEnquiriesModal';
-import { RoomCellMenu } from './room-calendar/RoomCellMenu';
-import { RoomEnquiryDialog } from './room-calendar/RoomEnquiryDialog';
-import { dayLogApi, frontDeskApi, holdApi, reservationApi, type DayLogSummaryRow } from '../../lib/api/pms';
-import { displayApiError } from '../../lib/api/client';
+import { dayLogApi, type DayLogSummaryRow } from '../../lib/api/pms';
 
 // ================= ROOM CALENDAR: 10-DAY VIEW =================
 const DAYS_IN_VIEW = 10;
 const ROOM_COL_WIDTH = 108; // sticky room column
 const MIN_DAY_WIDTH = 84; // below this width the view scrolls sideways instead of shrinking
 const AVAIL_ROW_HEIGHT = 32;
-const EVENT_ROW_HEIGHT = 40;
 const ROW_HEIGHT = 56; // drag maths uses this to map vertical movement to rooms
 const BAR_INSET = 3; // gap between a booking bar and the day lines it spans
 
@@ -134,7 +131,7 @@ function AvailabilityPill({ free, total }: { free: number; total: number }) {
     return <span className="rounded-full bg-danger-bg px-2 py-0.5 text-micro font-bold text-danger-text">All Sold</span>;
   }
   return (
-    <span className="tnum rounded-full bg-neutral-bg px-2 py-0.5 text-micro font-bold text-neutral-text" title={`${free} of ${total} rooms free`}>
+    <span className="tnum rounded-full bg-success-bg px-2 py-0.5 text-micro font-bold text-success-text" title={`${free} of ${total} rooms free`}>
       {free} AVL
     </span>
   );
@@ -238,8 +235,7 @@ export function RoomCalendar({
 }) {
   // The window starts on the range's first night, or the business date when no range is set;
   // the arrows move it by a full window. Changing the range resets the window to its start.
-  const businessDate = useBusinessDate();
-  const windowAnchor = filters.from || businessDate;
+  const windowAnchor = filters.from || BUSINESS_DATE;
   const [startOffset, setStartOffset] = useState(0);
   const [anchorSeen, setAnchorSeen] = useState(windowAnchor);
   if (anchorSeen !== windowAnchor) {
@@ -253,43 +249,14 @@ export function RoomCalendar({
   const firstDay = days[0];
   const horizonEnd = addDaysToIso(days[DAYS_IN_VIEW - 1], 1);
 
-  // Rooms and reservations, read from the backend
-  const [rooms, setRooms] = useState<CalendarRoom[]>([]);
-  const [reservations, setReservations] = useState<CalendarReservation[]>([]);
-  const [dayEvents] = useState(loadCalendarDayEvents);
-  const reloadCalendar = useCallback(async () => {
-    try {
-      const state = await loadCalendarState();
-      setRooms(state.rooms);
-      setReservations(state.reservations);
-    } catch (error) {
-      toast.error('Calendar not loaded', { detail: displayApiError(error) });
-    }
-  }, []);
-  useEffect(() => {
-    let active = true;
-    loadCalendarState()
-      .then((state) => {
-        if (!active) return;
-        setRooms(state.rooms);
-        setReservations(state.reservations);
-      })
-      .catch((error: unknown) => {
-        if (active) toast.error('Calendar not loaded', { detail: displayApiError(error) });
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  // Master data synchronized with the central PMS store
+  const [rooms] = useState<CalendarRoom[]>(loadCalendarRooms);
+  const [reservations, setReservations] = useState<CalendarReservation[]>(() => loadSyncedReservations());
 
   // Day notes and enquiries: summary drives the header icons, the date opens the day log
   const [dayLog, setDayLog] = useState<Record<string, DayLogSummaryRow>>({});
   const [dayLogVersion, setDayLogVersion] = useState(0);
   const [openLog, setOpenLog] = useState<{ date: string; kind: 'note' | 'enquiries' } | null>(null);
-
-  // Right-click menu on a free room-night cell, and the enquiry form it can open
-  const [cellMenu, setCellMenu] = useState<{ room: CalendarRoom; date: string; x: number; y: number } | null>(null);
-  const [enquiryTarget, setEnquiryTarget] = useState<{ roomNumber: string; date: string } | null>(null);
   useEffect(() => {
     let active = true;
     dayLogApi
@@ -414,22 +381,6 @@ export function RoomCalendar({
       draft: { roomId: room.id, roomNumber: room.number, roomType: room.type, checkIn, checkOut },
     });
     toast.success('New reservation started', { detail: `Room ${room.number} · ${checkIn} → ${checkOut}` });
-  };
-
-  /** A click or right-click on a free cell opens the Hold / Enquire / Book menu at that point. */
-  const openCellMenu = (room: CalendarRoom, date: string, x: number, y: number) =>
-    setCellMenu({ room, date, x, y });
-
-  /** Holds the room for one night; the store lapses the hold after its timeout. */
-  const handleHold = async (room: CalendarRoom, checkIn: string) => {
-    const checkOut = addDaysToIso(checkIn, 1);
-    try {
-      const hold = await holdApi.acquire(room.id, checkIn, checkOut);
-      const until = new Date(hold.expiresAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-      toast.success('Room held', { detail: `Room ${room.number} · ${checkIn} held until ${until}` });
-    } catch {
-      toast.error('Room not held', { detail: `Room ${room.number} · ${checkIn}` });
-    }
   };
 
   // ================= DRAG & DROP =================
@@ -617,20 +568,40 @@ export function RoomCalendar({
     setIsSavingChange(true);
     await new Promise((resolve) => setTimeout(resolve, 350));
 
-    const { reservation, proposedRoom, proposedCheckIn, proposedCheckOut } = pendingChange;
+    const { reservation, proposedRoom, proposedCheckIn, proposedCheckOut, proposedNights, proposedTotal } =
+      pendingChange;
     const backendId = reservation.backendId ?? reservation.id;
 
     try {
-      await reservationApi.update(backendId, { checkInDate: proposedCheckIn, checkOutDate: proposedCheckOut });
-      if (proposedRoom.id !== reservation.roomId) {
-        await reservationApi.assignRoom(backendId, proposedRoom.id);
-      }
-    } catch (error) {
-      setIsSavingChange(false);
-      toast.error('Change not saved', { detail: displayApiError(error) });
-      return;
+      store.updateReservation(backendId, {
+        roomId: proposedRoom.id,
+        roomNumber: proposedRoom.number,
+        checkInDate: proposedCheckIn,
+        checkOutDate: proposedCheckOut,
+        nights: proposedNights,
+        totalAmount: String(proposedTotal),
+      });
+      store.assignRoom(backendId, proposedRoom.id, reservation.roomLineId);
+    } catch {
+      // In-memory store only; the local state below still updates the view
     }
-    await reloadCalendar();
+
+    setReservations((prev) =>
+      prev.map((r) =>
+        r.backendId === backendId
+          ? {
+            ...r,
+            ...(r.id === reservation.id
+              ? { roomId: proposedRoom.id, roomNumber: proposedRoom.number, roomType: proposedRoom.type }
+              : {}),
+            checkInDate: proposedCheckIn,
+            checkOutDate: proposedCheckOut,
+            nights: proposedNights,
+            totalAmount: proposedNights * r.nightlyRate,
+          }
+          : r
+      )
+    );
 
     setIsSavingChange(false);
     setPendingChange(null);
@@ -641,17 +612,17 @@ export function RoomCalendar({
     });
   };
 
-  const handleStatusUpdate = async (resId: string, newStatus: CalendarReservationStatus) => {
+  const handleStatusUpdate = (resId: string, newStatus: CalendarReservationStatus) => {
     const selected = reservations.find((reservation) => reservation.id === resId);
     const backendId = selected?.backendId ?? resId;
+    setReservations((prev) => prev.map((r) => (r.backendId === backendId ? { ...r, status: newStatus } : r)));
     try {
-      if (newStatus === 'Checked-in') await frontDeskApi.checkIn(backendId);
-      else if (newStatus === 'Checked-out') await frontDeskApi.checkOut(backendId);
-      else if (newStatus === 'Cancelled') await reservationApi.cancel(backendId, 'Cancelled via calendar');
-    } catch (error) {
-      toast.error('Status not changed', { detail: displayApiError(error) });
+      if (newStatus === 'Checked-in') store.checkIn(backendId);
+      else if (newStatus === 'Checked-out') store.checkOut(backendId);
+      else if (newStatus === 'Cancelled') store.cancelReservation(backendId, 'Cancelled via calendar');
+    } catch {
+      // The store rejects some transitions; the local state already reflects the choice
     }
-    await reloadCalendar();
     onReservationUpdated?.();
   };
 
@@ -688,34 +659,7 @@ export function RoomCalendar({
         <div ref={gridContainerRef} className="relative max-h-[72vh] overflow-auto">
           <div className="relative min-w-max" style={{ width: `${gridWidth}px` }}>
             {/* Dates and the per-day availability row share one sticky block, so they stay visible while scrolling */}
-            {/* Above the category rows' sticky labels (z-40), so scrolled rows slide under the header */}
-            <div className="sticky top-0 z-50 bg-surface">
-              {/* Holidays and events, one row for the whole window, above the dates */}
-              <div className="flex border-b border-border bg-surface" style={{ height: `${EVENT_ROW_HEIGHT}px` }}>
-                <div
-                  className="sticky left-0 z-40 flex shrink-0 items-center border-r border-border bg-page px-3 text-micro font-bold uppercase tracking-wider text-ink-secondary"
-                  style={{ width: `${ROOM_COL_WIDTH}px` }}
-                >
-                  Holiday / Events
-                </div>
-                {days.map((dateStr) => (
-                  <div
-                    key={dateStr}
-                    className="flex shrink-0 flex-col items-center justify-center gap-0.5 overflow-hidden border-r border-border px-1"
-                    style={{ width: `${dayWidth}px` }}
-                  >
-                    {(dayEvents[dateStr] ?? []).map((event) => (
-                      <span
-                        key={event.label}
-                        title={`${event.label} · ${dateStr}`}
-                        className={`max-w-full truncate rounded-md px-1.5 py-px text-micro font-semibold ${event.kind === 'holiday' ? 'bg-warning-bg text-warning-text' : 'bg-info-bg text-info-text'}`}
-                      >
-                        {event.label}
-                      </span>
-                    ))}
-                  </div>
-                ))}
-              </div>
+            <div className="sticky top-0 z-30 bg-surface">
               <div className="flex border-b border-border bg-surface">
                 <div
                   className="sticky left-0 z-40 flex shrink-0 items-end border-r border-border bg-page px-3 pb-2 text-micro font-bold uppercase tracking-wider text-ink-secondary"
@@ -724,7 +668,7 @@ export function RoomCalendar({
                   Room
                 </div>
                 {days.map((dateStr) => {
-                  const isToday = dateStr === businessDate;
+                  const isToday = dateStr === BUSINESS_DATE;
                   const info = formatCalendarDate(dateStr);
                   const isWeekend = info.isWeekend;
                   const log = dayLog[dateStr];
@@ -876,7 +820,7 @@ export function RoomCalendar({
                     <div className="relative flex h-full" style={{ width: `${canvasWidth}px` }}>
                       {/* Day cells: click a free one to start a booking */}
                       {days.map((dateStr) => {
-                        const isToday = dateStr === businessDate;
+                        const isToday = dateStr === BUSINESS_DATE;
                         const info = formatCalendarDate(dateStr);
                         const isBooked = isRoomBookedOn(room, dateStr, reservations);
                         const canCreate = !isBooked && !isOOO;
@@ -885,26 +829,13 @@ export function RoomCalendar({
                             key={dateStr}
                             role={canCreate ? 'button' : undefined}
                             tabIndex={canCreate ? 0 : undefined}
-                            aria-label={canCreate ? `Room ${room.number} on ${dateStr}: hold, enquire or book` : undefined}
-                            title={canCreate ? `Room ${room.number} · ${dateStr} · Hold, Enquire or Book` : undefined}
-                            onClick={
-                              canCreate
-                                ? (e) => openCellMenu(room, dateStr, e.clientX, e.clientY)
-                                : undefined
-                            }
-                            onContextMenu={
-                              canCreate
-                                ? (e) => {
-                                  e.preventDefault();
-                                  openCellMenu(room, dateStr, e.clientX, e.clientY);
-                                }
-                                : undefined
-                            }
+                            aria-label={canCreate ? `New reservation for room ${room.number} on ${dateStr}` : undefined}
+                            title={canCreate ? `New reservation · Room ${room.number} · ${dateStr}` : undefined}
+                            onClick={() => handleNewReservation(room, dateStr)}
                             onKeyDown={(e) => {
                               if ((e.key === 'Enter' || e.key === ' ') && canCreate) {
                                 e.preventDefault();
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                openCellMenu(room, dateStr, rect.left, rect.bottom);
+                                handleNewReservation(room, dateStr);
                               }
                             }}
                             className={`group relative flex h-full shrink-0 items-center justify-center border-r border-border ${canCreate ? 'cursor-pointer' : ''}`}
@@ -988,36 +919,6 @@ export function RoomCalendar({
           date={openLog.date}
           onClose={() => setOpenLog(null)}
           onChanged={() => setDayLogVersion((v) => v + 1)}
-        />
-      )}
-
-      {cellMenu && (
-        <RoomCellMenu
-          roomNumber={cellMenu.room.number}
-          date={cellMenu.date}
-          x={cellMenu.x}
-          y={cellMenu.y}
-          onHold={() => {
-            setCellMenu(null);
-            void handleHold(cellMenu.room, cellMenu.date);
-          }}
-          onEnquire={() => {
-            setEnquiryTarget({ roomNumber: cellMenu.room.number, date: cellMenu.date });
-            setCellMenu(null);
-          }}
-          onBook={() => {
-            setCellMenu(null);
-            handleNewReservation(cellMenu.room, cellMenu.date);
-          }}
-          onClose={() => setCellMenu(null)}
-        />
-      )}
-      {enquiryTarget && (
-        <RoomEnquiryDialog
-          roomNumber={enquiryTarget.roomNumber}
-          date={enquiryTarget.date}
-          onClose={() => setEnquiryTarget(null)}
-          onSaved={() => setDayLogVersion((v) => v + 1)}
         />
       )}
 
