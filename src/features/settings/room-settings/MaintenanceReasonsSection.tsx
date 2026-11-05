@@ -5,7 +5,7 @@ import { Button, Checkbox, IconButton, SelectField, TextField } from '../../../c
 import { Field } from '../../../components/controls';
 import { Modal } from '../../../components/overlays';
 import { Badge, Card, CardTitle, TableContainer } from '../../../components/ui';
-import type { MaintenanceImpact, MaintenancePriority, MaintenanceReasonItem } from './types';
+import type { MaintenancePriority, MaintenanceReasonItem } from './types';
 import { StatStrip, StatTile } from './RoomSettingsKit';
 
 interface MaintenanceReasonsSectionProps {
@@ -43,7 +43,6 @@ export function MaintenanceReasonsSection({
   const filtered = reasons.filter(
     (r) =>
       r.name.toLowerCase().includes(search.toLowerCase()) ||
-      r.code.toLowerCase().includes(search.toLowerCase()) ||
       r.category.toLowerCase().includes(search.toLowerCase()),
   );
 
@@ -62,7 +61,6 @@ export function MaintenanceReasonsSection({
     setEditing({
       ...EMPTY_REASON,
       id: `mr-${Date.now().toString(36)}`,
-      code: `OOO-${reasons.length + 1}`,
     });
   };
 
@@ -70,9 +68,6 @@ export function MaintenanceReasonsSection({
     if (!editing) return;
     if (editing.name.trim().length < 2) {
       return toast('Name required', { detail: 'Please specify reason description.', tone: 'warning' });
-    }
-    if (!editing.code.trim()) {
-      return toast('Code required', { detail: 'Please specify reason code.', tone: 'warning' });
     }
 
     const exists = reasons.some((r) => r.id === editing.id);
@@ -152,12 +147,12 @@ export function MaintenanceReasonsSection({
             <TextField
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by code, trade, issue description..."
+              placeholder="Search by trade, issue description..."
               className="pl-8"
             />
           </div>
           <p className="text-label text-ink-secondary self-center">
-            Showing <span className="font-semibold text-ink">{filtered.length}</span> of {reasons.length} reason codes
+            Showing <span className="font-semibold text-ink">{filtered.length}</span> of {reasons.length} reasons
           </p>
         </div>
 
@@ -165,13 +160,9 @@ export function MaintenanceReasonsSection({
           <table className="pms-table min-w-[760px] w-full text-left">
             <thead>
               <tr>
-                <th className="w-16 text-center">CODE</th>
                 <th>REASON NAME</th>
                 <th>TRADE CATEGORY</th>
                 <th className="text-center">PRIORITY</th>
-                <th>INVENTORY IMPACT</th>
-                <th className="text-center">EST. REPAIR TIME</th>
-                <th className="text-center">SUPERVISOR SIGN-OFF</th>
                 <th className="text-center">STATUS</th>
                 <th className="text-right">ACTIONS</th>
               </tr>
@@ -179,18 +170,8 @@ export function MaintenanceReasonsSection({
             <tbody>
               {filtered.map((item) => (
                 <tr key={item.id} className="transition-colors hover:bg-hover-surface/60 border-b border-divider last:border-b-0">
-                  <td className="text-center py-3">
-                    <span className="font-mono text-micro font-black px-2 py-1 rounded bg-muted-surface text-ink border border-border">
-                      {item.code}
-                    </span>
-                  </td>
                   <td className="py-3">
                     <span className="block font-bold text-ink text-label">{item.name}</span>
-                    {item.activeRoomsCount > 0 && (
-                      <span className="inline-flex items-center gap-1 text-micro text-danger-text font-semibold mt-0.5">
-                        <Lucide.AlertTriangle size={11} /> {item.activeRoomsCount} room currently blocked
-                      </span>
-                    )}
                   </td>
                   <td className="text-label font-medium text-ink-secondary py-3">
                     {item.category}
@@ -199,30 +180,6 @@ export function MaintenanceReasonsSection({
                     <Badge tone={priorityTone(item.priority)} size="sm">
                       {item.priority}
                     </Badge>
-                  </td>
-                  <td className="py-3">
-                    <span
-                      className={`inline-flex items-center gap-1 text-micro font-bold px-2 py-0.5 rounded-full ${
-                        item.impact === 'Out of Order'
-                          ? 'bg-danger-bg text-danger-text border border-danger-border'
-                          : 'bg-warning-bg text-warning-text border border-warning-border'
-                      }`}
-                    >
-                      {item.impact === 'Out of Order' ? <Lucide.Ban size={11} /> : <Lucide.Clock size={11} />}
-                      {item.impact}
-                    </span>
-                  </td>
-                  <td className="text-center tnum text-label font-semibold text-ink py-3">
-                    {item.avgResolutionHours} hrs
-                  </td>
-                  <td className="text-center py-3">
-                    {item.requiresSupervisorSignoff ? (
-                      <span className="text-micro font-bold text-success-text inline-flex items-center gap-1">
-                        <Lucide.Check size={12} /> Required
-                      </span>
-                    ) : (
-                      <span className="text-micro text-ink-muted">Optional</span>
-                    )}
                   </td>
                   <td className="text-center py-3">
                     <Badge tone={item.active ? 'success' : 'neutral'} dot size="sm">
@@ -257,7 +214,7 @@ export function MaintenanceReasonsSection({
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="py-8 text-center text-label text-ink-muted">
+                  <td colSpan={5} className="py-8 text-center text-label text-ink-muted">
                     No maintenance reasons match your search.
                   </td>
                 </tr>
@@ -283,15 +240,6 @@ export function MaintenanceReasonsSection({
                 onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                 placeholder="e.g. Broken Shower Thermostatic Valve"
                 autoFocus
-              />
-            </Field>
-
-            <Field label="Standard Code">
-              <TextField
-                value={editing.code}
-                onChange={(e) => setEditing({ ...editing, code: e.target.value.toUpperCase() })}
-                placeholder="e.g. OOO-VALVE"
-                className="font-mono"
               />
             </Field>
 
@@ -330,33 +278,6 @@ export function MaintenanceReasonsSection({
                 <option value="Medium">Medium (Routine turnover)</option>
                 <option value="Low">Low (Scheduled during low occupancy)</option>
               </SelectField>
-            </Field>
-
-            <Field label="Inventory Availability Impact">
-              <SelectField
-                value={editing.impact}
-                onChange={(e) =>
-                  setEditing({
-                    ...editing,
-                    impact: e.target.value as MaintenanceImpact,
-                  })
-                }
-              >
-                <option value="Out of Order">Out of Order (Deducted from sellable inventory)</option>
-                <option value="Out of Service">Out of Service (Minor, sellable if emergency)</option>
-                <option value="Inspection Required">Inspection Required (Awaiting sign-off)</option>
-              </SelectField>
-            </Field>
-
-            <Field label="Estimated Resolution Duration (Hours)">
-              <TextField
-                type="number"
-                min={1}
-                max={168}
-                value={editing.avgResolutionHours}
-                onChange={(e) => setEditing({ ...editing, avgResolutionHours: Number(e.target.value) })}
-                className="tnum"
-              />
             </Field>
 
             <div className="sm:col-span-2 pt-2">

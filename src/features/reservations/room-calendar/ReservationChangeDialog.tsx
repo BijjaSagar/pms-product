@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
 import type { ProposedReservationChange } from './types';
-import { ROOM_TYPE_CONFIG } from './calendarData';
+import { roomTypeStyle } from './calendarData';
 import { lockAppScroll } from '../../../lib/scrollLock';
 import { Button, Checkbox, IconButton } from '../../../components/primitives';
 
@@ -61,8 +61,8 @@ export function ReservationChangeDialog({
   const isDatesChanged =
     originalCheckIn !== proposedCheckIn || originalCheckOut !== proposedCheckOut;
 
-  const origTypeConfig = ROOM_TYPE_CONFIG[originalRoom.type] || ROOM_TYPE_CONFIG.Standard;
-  const propTypeConfig = ROOM_TYPE_CONFIG[proposedRoom.type] || ROOM_TYPE_CONFIG.Standard;
+  const origTypeConfig = roomTypeStyle(originalRoom.type);
+  const propTypeConfig = roomTypeStyle(proposedRoom.type);
 
   return createPortal(
     <div

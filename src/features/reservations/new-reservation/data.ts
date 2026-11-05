@@ -1,13 +1,36 @@
-import type { OutletCatalogItem } from './types';
+import { store } from '../../../data/store';
+import type { OutletCatalogItem, RoomCategoryOption } from './types';
 
-export const FALLBACK_ROOM_CATEGORIES = [
-  { id: 'standard', name: 'Standard', baseRate: 3500, maxAdults: 2, maxChildren: 1, desc: 'Comfortable essentials for a relaxed stay.' },
-  { id: 'deluxe', name: 'Deluxe', baseRate: 4500, maxAdults: 2, maxChildren: 2, desc: 'A spacious room with premium amenities.' },
-  { id: 'superior', name: 'Superior', baseRate: 5500, maxAdults: 3, maxChildren: 1, desc: 'A bright room with upgraded views.' },
-  { id: 'executive', name: 'Executive', baseRate: 6500, maxAdults: 2, maxChildren: 2, desc: 'A refined room for work and longer stays.' },
-  { id: 'family', name: 'Family Suite', baseRate: 8000, maxAdults: 4, maxChildren: 2, desc: 'Connected space for a family stay.' },
-  { id: 'suite', name: 'Panorama Suite', baseRate: 12000, maxAdults: 2, maxChildren: 2, desc: 'A premium suite with separate living space.' },
-];
+/** The property's bookable room types (active, with at least one bookable room), from the store's real inventory. */
+export function roomCategoriesFromStore(): RoomCategoryOption[] {
+  const bookable = new Set(
+    store
+      .rooms()
+      .filter((room) => room.isActive)
+      .map((room) => room.roomTypeId),
+  );
+  return store
+    .roomTypes()
+    .filter((type) => type.isActive && bookable.has(type.id))
+    .map((type) => ({
+      id: type.id,
+      name: type.name,
+      baseRate: Number(type.baseRate),
+      maxAdults: type.maxAdults,
+      maxChildren: type.maxChildren,
+      desc: type.description ?? '',
+    }));
+}
+
+/** Stands in for a room type while a property has none, so the form can still render. */
+export const NO_ROOM_CATEGORY: RoomCategoryOption = {
+  id: '',
+  name: 'No room types',
+  baseRate: 0,
+  maxAdults: 2,
+  maxChildren: 0,
+  desc: '',
+};
 
 export const MEAL_PLANS = [
   { code: 'EP', label: 'EP · Room only', surcharge: 0 },

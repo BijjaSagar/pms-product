@@ -11,17 +11,19 @@ import type {
 import { useApiResource } from "../../lib/api/useApiResource";
 import { guestFromApi } from "../../lib/api/adapters";
 import type { Guest } from "../../types";
-import { BUSINESS_DATE, GUESTS, TAX_RATE } from "../../data/catalog";
+import { GUESTS, TAX_RATE } from "../../data/catalog";
+import { todayIso } from "./room-calendar/calendarData";
 import { AddGuestModal } from "./new-reservation/AddGuestModal";
 import { GuestActivityLog } from "./new-reservation/GuestActivityLog";
 import { BillingRoutingFields } from "./new-reservation/BillingRoutingFields";
 import { OutletPOSSection } from "./new-reservation/OutletPOSSection";
 import { RoomRequirementsSection } from "./new-reservation/RoomRequirementsSection";
 import {
-  FALLBACK_ROOM_CATEGORIES,
   MEAL_PLANS,
+  NO_ROOM_CATEGORY,
   OUTLET_CATALOG,
   RATE_PLANS,
+  roomCategoriesFromStore,
 } from "./new-reservation/data";
 import type {
   BillingPreferences,
@@ -64,12 +66,15 @@ export function NewReservation({
 
   // Prefill from the room calendar (room + night clicked on the rack).
   const draftRoomTypeName = initialDraft?.roomType ?? "";
+  const [storeCategories] = useState(roomCategoriesFromStore);
   const draftCategory =
-    FALLBACK_ROOM_CATEGORIES.find(
+    storeCategories.find(
       (category) =>
         category.name.toLowerCase() === draftRoomTypeName.toLowerCase(),
-    ) ?? FALLBACK_ROOM_CATEGORIES[1];
-  const initialCheckIn = initialDraft?.checkIn ?? BUSINESS_DATE;
+    ) ??
+    storeCategories[0] ??
+    NO_ROOM_CATEGORY;
+  const initialCheckIn = initialDraft?.checkIn ?? todayIso();
   const initialCheckOut =
     initialDraft?.checkOut ?? nextDayIso(initialCheckIn);
 
@@ -106,7 +111,15 @@ export function NewReservation({
     );
     const allRooms = await inventoryApi.rooms();
     return {
-      roomTypes: roomTypes.map((roomType) => ({
+      roomTypes: roomTypes
+        .filter(
+          (roomType) =>
+            roomType.isActive &&
+            allRooms.some(
+              (room) => room.isActive && room.roomTypeId === roomType.id,
+            ),
+        )
+        .map((roomType) => ({
         id: roomType.id,
         name: roomType.name,
         baseRate: Number(roomType.baseRate),
@@ -136,7 +149,7 @@ export function NewReservation({
     checkOutDate,
   ]);
   const roomTypes: RoomCategoryOption[] =
-    inventoryResource.data?.roomTypes ?? FALLBACK_ROOM_CATEGORIES;
+    inventoryResource.data?.roomTypes ?? storeCategories;
   const availableRoomsByType = useMemo(
     () => inventoryResource.data?.availableRoomsByType ?? {},
     [inventoryResource.data],
@@ -462,11 +475,11 @@ export function NewReservation({
   const handleAddRoom = () => {
     const nextIdx = requirements.length + 1;
     const defaultType =
-      requirements[requirements.length - 1]?.roomTypeId ?? "deluxe";
+      requirements[requirements.length - 1]?.roomTypeId ?? roomTypes[0]?.id ?? "";
     const category =
       roomTypes.find((item) => item.id === defaultType) ??
       roomTypes[0] ??
-      FALLBACK_ROOM_CATEGORIES[1];
+      NO_ROOM_CATEGORY;
     const newReq: RoomRequirement = {
       id: `req-${Date.now()}`,
       roomIndex: nextIdx,
@@ -926,6 +939,15 @@ export function NewReservation({
 
   return (
     <div className="w-full min-w-0 text-ink font-sans flex flex-col gap-4 pb-4">
+      {roomTypes.length === 0 && (
+        <div className="flex items-center gap-2 rounded-xl border border-warning-border bg-warning-bg p-3 text-label text-warning-text">
+          <Lucide.AlertTriangle size={16} />
+          <span>
+            This property has no bookable rooms yet. Add rooms and a floor plan in Room Settings before taking
+            reservations.
+          </span>
+        </div>
+      )}
       {/* ================= 4-COLUMN MASTER WORKBENCH ================= */}
       <div className="grid grid-cols-1 gap-4 items-start lg:max-[1279px]:grid-cols-[minmax(280px,320px)_minmax(0,1fr)] xl:grid-cols-[minmax(240px,3fr)_minmax(0,5fr)_minmax(32px,1fr)_minmax(240px,3fr)]">
         {/* ================= LEFT COLUMN: LUXURY FOLIO BOARDING TICKET ================= */}
@@ -1638,10 +1660,10 @@ export function NewReservation({
                 )}
                   <div>
                     <label htmlFor="res-room-type" className={labelClass}>
-                      Room Type
+                      Room
                     </label>
                     <select id="res-room-type"
-                      value={requirements[0]?.roomTypeId ?? "deluxe"}
+                      value={requirements[0]?.roomTypeId ?? roomTypes[0]?.id ?? ""}
                       onChange={(e) => {
                         const nextType = roomTypes.find(
                           (type) => type.id === e.target.value,

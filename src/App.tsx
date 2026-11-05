@@ -12,6 +12,7 @@ import type { ThemePresetId } from './theme/presets';
 import { Toaster } from './components/overlays';
 import { Dashboard } from './features/dashboard/DashboardPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
+import { InventoryProvider } from './features/inventory/InventoryProvider';
 import { themeApi } from './lib/api/pms';
 import type { ThemeKey } from './types';
 import { Button } from './components/primitives';
@@ -262,7 +263,11 @@ function AuthenticatedApp() {
     );
   }
 
-  return <ShellWithBoundary />;
+  return (
+    <InventoryProvider propertyId={me.activePropertyId}>
+      <ShellWithBoundary />
+    </InventoryProvider>
+  );
 }
 
 function App() {

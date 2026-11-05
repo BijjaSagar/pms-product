@@ -18,8 +18,6 @@ export const EMPTY_RESERVATION_FILTERS: ReservationFilters = {
   to: '',
 };
 
-export const RESERVATION_ROOM_TYPES = ['Standard', 'Deluxe', 'Superior', 'Executive', 'Family Suite', 'Panorama Suite'] as const;
-
 export const RESERVATION_SOURCES = ['Direct', 'Booking.com', 'Agoda', 'Expedia', 'Corporate', 'Walk-in'] as const;
 
 /** Number of filters that narrow the results; the search text counts once it is not blank. */

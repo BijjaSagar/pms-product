@@ -2,6 +2,20 @@ import type { GuestRow, PropertyRow, RoomTypeRow, TaxRuleRow, UserRow } from '..
 
 /** The single fixed business date the entire static demo revolves around. */
 export const BUSINESS_DATE = '2026-10-17';
+
+/** Holidays and local events shown above the room calendar's date header. */
+export const CALENDAR_EVENTS: ReadonlyArray<{ date: string; name: string }> = [
+  { date: '2026-10-20', name: 'Dussehra' },
+  { date: '2026-11-08', name: 'Diwali' },
+  { date: '2026-11-09', name: 'Govardhan Puja' },
+  { date: '2026-11-11', name: 'Bhai Dooj' },
+  { date: '2026-11-24', name: 'Guru Nanak Jayanti' },
+  { date: '2026-12-24', name: 'Christmas Eve' },
+  { date: '2026-12-25', name: 'Christmas' },
+  { date: '2026-12-31', name: "New Year's Eve" },
+  { date: '2027-01-01', name: "New Year's Day" },
+  { date: '2027-01-26', name: 'Republic Day' },
+];
 export const TAX_RATE = 0.12;
 
 export const PROPERTY: PropertyRow = {

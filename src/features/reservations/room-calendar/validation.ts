@@ -42,6 +42,17 @@ export function validateReservationMove({
     };
   }
 
+  // 3a. Rooms not linked to a sellable room cannot take bookings
+  if (!targetRoom.bookable) {
+    return {
+      isValid: false,
+      reason: `Room ${targetRoom.number} (${targetRoom.type}) cannot take bookings: it is not linked to an active room. Check Room Settings.`,
+      proposedTotal: reservation.totalAmount,
+      priceDifference: 0,
+      proposedNights,
+    };
+  }
+
   // 3. Room Out-of-Order / Maintenance check
   if (targetRoom.status === 'Out-of-Order') {
     return {

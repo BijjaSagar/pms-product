@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
 import type { CalendarReservation, CalendarRoom, ProposedReservationChange } from './types';
-import { countNights, ROOM_TYPE_CONFIG } from './calendarData';
+import { countNights, roomTypeStyle } from './calendarData';
 import { validateReservationMove } from './validation';
 import { toast } from '../../../utils/toast';
 import { lockAppScroll } from '../../../lib/scrollLock';
@@ -58,6 +58,7 @@ export function ReservationDetailModal({
     maxOccupancy: 2,
     baseRate: reservation.nightlyRate,
     status: 'Clean' as const,
+    bookable: true,
   };
 
   const startEditMode = () => {
@@ -116,7 +117,7 @@ export function ReservationDetailModal({
     onInitiateChange(change);
   };
 
-  const typeConfig = ROOM_TYPE_CONFIG[currentRoom.type] || ROOM_TYPE_CONFIG.Standard;
+  const typeConfig = roomTypeStyle(currentRoom.type);
 
   return createPortal(
     <div
@@ -310,9 +311,9 @@ export function ReservationDetailModal({
                   <option
                     key={r.id}
                     value={r.id}
-                    disabled={r.status === 'Out-of-Order'}
+                    disabled={r.status === 'Out-of-Order' || !r.bookable}
                   >
-                    Room {r.number} ({r.type} · Flr {r.floor} · ₹{r.baseRate}/nt) {r.status === 'Out-of-Order' ? '— [Out-of-Order]' : ''}
+                    Room {r.number} ({r.type} · Flr {r.floor} · ₹{r.baseRate}/nt) {r.status === 'Out-of-Order' ? '— [Out-of-Order]' : !r.bookable ? '— [Not bookable]' : ''}
                   </option>
                 ))}
               </SelectField>

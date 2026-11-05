@@ -2,10 +2,10 @@ import * as Lucide from 'lucide-react';
 import { FilterToolbar } from '../../components/FilterToolbar';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { SelectField, TextField } from '../../components/primitives';
+import { store } from '../../data/store';
 import { DateRangePicker } from './DateRangePicker';
 import { RESERVATION_STATUS_FILTERS } from './reservationStatusFilters';
 import {
-  RESERVATION_ROOM_TYPES,
   RESERVATION_SOURCES,
   countActiveFilters,
   type ReservationFilters,
@@ -31,6 +31,8 @@ export function ReservationFilterBar({
   viewMode: ReservationViewMode;
   onViewModeChange: (mode: ReservationViewMode) => void;
 }) {
+  // The property's own rooms (Rooms table), loaded into the store at sign-in.
+  const roomTypeNames = store.roomTypes().map((t) => t.name);
   return (
     <FilterToolbar
       ariaLabel="Reservation filters"
@@ -66,9 +68,9 @@ export function ReservationFilterBar({
       </div>
 
       <div className="col-span-2 min-w-0 sm:w-40">
-        <SelectField value={filters.roomType} onChange={(e) => onChange({ roomType: e.target.value })} aria-label="Filter by room type">
-          <option value="All">All room types</option>
-          {RESERVATION_ROOM_TYPES.map((t) => (
+        <SelectField value={filters.roomType} onChange={(e) => onChange({ roomType: e.target.value })} aria-label="Filter by room">
+          <option value="All">All rooms</option>
+          {roomTypeNames.map((t) => (
             <option key={t} value={t}>
               {t}
             </option>

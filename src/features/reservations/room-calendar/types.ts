@@ -17,13 +17,8 @@ export type RoomOperationalStatus =
   | 'Out-of-service'
   | 'Out-of-Order';
 
-export type RoomType =
-  | 'Standard'
-  | 'Deluxe'
-  | 'Superior'
-  | 'Executive'
-  | 'Family Suite'
-  | 'Panorama Suite';
+/** A room type's name, as configured for the property. */
+export type RoomType = string;
 
 export type BookingSource =
   | 'Direct'
@@ -43,6 +38,8 @@ export interface CalendarRoom {
   baseRate: number;
   status: RoomOperationalStatus;
   outOfOrderReason?: string;
+  /** False for a floor-plan room not linked to a sellable room: it is listed but cannot be booked. */
+  bookable: boolean;
 }
 
 export interface CalendarReservation {

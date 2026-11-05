@@ -1,28 +1,38 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { useApiResource } from '../../../lib/api/useApiResource';
-import { amenityApi, propertyApi, roomCategoryApi, roomTypeApi } from '../../../lib/api/pms';
-import type { AmenityDetails, PropertyDetails, RoomCategoryDetails, RoomTypeDetails } from '../../../lib/api/pms';
+import { displayApiError } from '../../../lib/api/client';
+import {
+  amenityApi,
+  floorPlanApi,
+  propertyApi,
+  roomCategoryApi,
+  roomListingApi,
+  roomTypeApi,
+} from '../../../lib/api/pms';
+import type {
+  AmenityDetails,
+  FloorPlanDetails,
+  PropertyDetails,
+  RoomCategoryDetails,
+  RoomDetails,
+  RoomTypeDetails,
+} from '../../../lib/api/pms';
 import { useAuth } from '../../auth/AuthContext';
+import { useInventory } from '../../inventory/inventoryContext';
 import { toast } from '../../../utils/toast';
 import { Button } from '../../../components/primitives';
-import type {
-  MaintenanceReasonItem,
-  OccupancyConfig,
-  RoomSettingsSectionId,
-  RoomStatusDefinition,
-} from './types';
+import type { FloorPlan, MaintenanceReasonItem, RoomSettingsSectionId } from './types';
+import { MAX_FLOORS, MAX_ROOMS_PER_FLOOR, boxKey, parseCount } from './floorPlan';
+import { FloorsSection } from './FloorsSection';
 import {
   INITIAL_MAINTENANCE_REASONS,
-  INITIAL_OCCUPANCY_CONFIG,
-  INITIAL_ROOM_STATUSES,
 } from './initialData';
+import { RoomsSection } from './RoomsSection';
 import { RoomTypesSection } from './RoomTypesSection';
 import { CategoriesSection } from './CategoriesSection';
 import { AmenitiesSection } from './AmenitiesSection';
-import { OccupancyCapacitySection } from './OccupancyCapacitySection';
 import { MaintenanceReasonsSection } from './MaintenanceReasonsSection';
-import { StatusConfigSection } from './StatusConfigSection';
 
 interface SectionTabItem {
   id: RoomSettingsSectionId;
@@ -40,22 +50,17 @@ const GROUPS: SectionGroup[] = [
   {
     title: 'Inventory',
     items: [
+      { id: 'rooms', label: 'Rooms', shortLabel: 'Rooms', icon: Lucide.DoorOpen },
+      { id: 'floors', label: 'Floor Management', shortLabel: 'Floors', icon: Lucide.Layers },
       { id: 'room-types', label: 'Room Types', shortLabel: 'Types', icon: Lucide.BedDouble },
       { id: 'categories', label: 'Categories', shortLabel: 'Categories', icon: Lucide.Boxes },
       { id: 'amenities', label: 'Amenities', shortLabel: 'Amenities', icon: Lucide.Sparkles },
     ],
   },
   {
-    title: 'Guest experience',
-    items: [
-      { id: 'occupancy', label: 'Occupancy & Capacity', shortLabel: 'Capacity', icon: Lucide.Users2 },
-    ],
-  },
-  {
     title: 'Operations',
     items: [
       { id: 'maintenance-reasons', label: 'Maintenance Reasons', shortLabel: 'Reasons', icon: Lucide.Wrench },
-      { id: 'status-config', label: 'Status Configuration', shortLabel: 'Status', icon: Lucide.Activity },
     ],
   },
 ];
@@ -63,10 +68,12 @@ const GROUPS: SectionGroup[] = [
 const SECTIONS: SectionTabItem[] = GROUPS.flatMap((g) => g.items);
 
 export function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
-  const [activeSection, setActiveSection] = useState<RoomSettingsSectionId>('room-types');
+  const [activeSection, setActiveSection] = useState<RoomSettingsSectionId>('rooms');
 
   // Room types come from the backend, scoped to the property being worked on.
   const { me } = useAuth();
+  // Rooms changed here must reach the reservation screens, which read the app-wide inventory.
+  const { refresh: refreshInventory } = useInventory();
   const propertyId = me?.activePropertyId;
   const roomTypeResource = useApiResource(
     () => (propertyId ? roomTypeApi.list(propertyId) : Promise.resolve<RoomTypeDetails[]>([])),
@@ -78,39 +85,106 @@ export function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
     () => (propertyId ? propertyApi.get(propertyId) : Promise.resolve<PropertyDetails | null>(null)),
     [propertyId],
   );
+  // The property's total rooms is the single ceiling every room count below is distributed from.
+  const totalRooms = propertyResource.data?.totalRooms ?? null;
   const categoryResource = useApiResource(
     () => (propertyId ? roomCategoryApi.list(propertyId) : Promise.resolve<RoomCategoryDetails[]>([])),
     [propertyId],
   );
   const categories = categoryResource.data ?? [];
 
-  // Local state for all 6 modular sections
+  // Local state for all modular sections
   const amenityResource = useApiResource(
     () => (propertyId ? amenityApi.list(propertyId) : Promise.resolve<AmenityDetails[]>([])),
     [propertyId],
   );
   const amenities = amenityResource.data ?? [];
-  const [occupancyConfig, setOccupancyConfig] = useState<OccupancyConfig>(INITIAL_OCCUPANCY_CONFIG);
+  const roomResource = useApiResource(
+    () => (propertyId ? roomListingApi.list(propertyId) : Promise.resolve<RoomDetails[]>([])),
+    [propertyId],
+  );
+  const rooms = roomResource.data ?? [];
   const [maintenanceReasons, setMaintenanceReasons] = useState<MaintenanceReasonItem[]>(INITIAL_MAINTENANCE_REASONS);
-  const [statuses, setStatuses] = useState<RoomStatusDefinition[]>(INITIAL_ROOM_STATUSES);
+
+  // The saved floor plan comes from the backend. Unsaved edits are held here so they survive switching
+  // sections; null means "nothing edited, show what is saved".
+  const floorPlanResource = useApiResource(
+    () => (propertyId ? floorPlanApi.get(propertyId) : Promise.resolve<FloorPlanDetails | null>(null)),
+    [propertyId],
+  );
+  const [floorInputEdit, setFloorInputEdit] = useState<string | null>(null);
+  const [floorPlanEdit, setFloorPlan] = useState<FloorPlan | null>(null);
+  const [isSavingFloors, setIsSavingFloors] = useState(false);
+  const savedFloorPlan = floorPlanResource.data;
+  const savedPlan: FloorPlan = { roomsPerFloor: {}, assigned: {} };
+  for (const f of savedFloorPlan?.floors ?? []) {
+    savedPlan.roomsPerFloor[f.floor] = f.roomCount;
+    for (const u of f.units) if (u.roomId) savedPlan.assigned[boxKey(f.floor, u.position)] = u.roomId;
+  }
+  const floorPlan = floorPlanEdit ?? savedPlan;
+  const floorInput = floorInputEdit ?? String(savedFloorPlan?.numberOfFloors ?? propertyResource.data?.numberOfFloors ?? '');
+  const floorsDirty = floorInputEdit !== null || floorPlanEdit !== null;
+
+  const handleSaveFloors = async () => {
+    if (!propertyId) return;
+    const numberOfFloors = parseCount(floorInput, MAX_FLOORS);
+    if (numberOfFloors === 0) {
+      return toast('Number of floors required', { detail: 'Enter how many floors the property has.', tone: 'warning' });
+    }
+    const floors = Array.from({ length: numberOfFloors }, (_, i) => i + 1)
+      .map((floor) => {
+        const roomCount = Math.min(floorPlan.roomsPerFloor[floor] ?? 0, MAX_ROOMS_PER_FLOOR);
+        const assignments = Array.from({ length: roomCount }, (_, i) => i + 1).flatMap((position) => {
+          const roomId = floorPlan.assigned[boxKey(floor, position)];
+          return roomId && rooms.some((r) => r.id === roomId) ? [{ position, roomId }] : [];
+        });
+        return { floor, roomCount, assignments };
+      })
+      .filter((f) => f.roomCount > 0);
+    const boxCount = floors.reduce((n, f) => n + f.roomCount, 0);
+    if (totalRooms !== null && boxCount > totalRooms) {
+      return toast('Too many rooms on the plan', {
+        detail: `The plan draws ${boxCount} rooms but the property has ${totalRooms}.`,
+        tone: 'warning',
+      });
+    }
+
+    setIsSavingFloors(true);
+    try {
+      await floorPlanApi.save(propertyId, { numberOfFloors, floors });
+      setFloorInputEdit(null);
+      setFloorPlan(null);
+      floorPlanResource.refresh();
+      propertyResource.refresh();
+      void refreshInventory();
+      toast('Floor plan saved', {
+        detail: `${numberOfFloors} floor${numberOfFloors === 1 ? '' : 's'} and ${floors.reduce((n, f) => n + f.roomCount, 0)} rooms saved.`,
+        tone: 'success',
+      });
+    } catch (err) {
+      toast('Could not save floor plan', { detail: displayApiError(err), tone: 'danger' });
+    } finally {
+      setIsSavingFloors(false);
+    }
+  };
 
   const [isSavingAll, setIsSavingAll] = useState(false);
 
   // Dynamic counter badge per section
   const getBadgeCount = (id: RoomSettingsSectionId): string | number => {
     switch (id) {
+      case 'rooms':
+        return rooms.length;
+      case 'floors':
+        return parseCount(floorInput, MAX_FLOORS);
       case 'room-types':
         return roomTypes.length;
       case 'categories':
         return categories.length;
       case 'amenities':
         return amenities.length;
-      case 'occupancy':
-        return `${occupancyConfig.maxTotalOccupancy} max`;
       case 'maintenance-reasons':
         return maintenanceReasons.length;
-      case 'status-config':
-        return statuses.length;
     }
   };
 
@@ -119,7 +193,7 @@ export function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
     setTimeout(() => {
       setIsSavingAll(false);
       toast('All room settings committed', {
-        detail: 'Global specifications, amenities, operational rules, and status triggers saved.',
+        detail: 'Global specifications, amenities, and operational rules saved.',
         tone: 'success',
       });
     }, 400);
@@ -127,13 +201,15 @@ export function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
 
   const handleResetDefaults = () => {
     amenityResource.refresh();
-    setOccupancyConfig(INITIAL_OCCUPANCY_CONFIG);
     setMaintenanceReasons(INITIAL_MAINTENANCE_REASONS);
-    setStatuses(INITIAL_ROOM_STATUSES);
+    roomResource.refresh();
     roomTypeResource.refresh();
     categoryResource.refresh();
+    setFloorInputEdit(null);
+    setFloorPlan(null);
+    floorPlanResource.refresh();
     toast('Room settings restored to baseline', {
-      detail: 'All 6 sections reset to standard property defaults.',
+      detail: 'All 5 sections reset to standard property defaults.',
       tone: 'info',
     });
   };
@@ -250,16 +326,54 @@ export function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
           aria-labelledby={`room-tab-${activeSection}`}
           className="min-w-0"
         >
+          {activeSection === 'rooms' && (
+            <RoomsSection
+              propertyId={propertyId ?? null}
+              rooms={rooms}
+              roomTypes={roomTypes}
+              categories={categories}
+              amenities={amenities}
+              totalRooms={totalRooms}
+              loading={roomResource.loading || roomTypeResource.loading}
+              error={roomResource.error}
+              onRefresh={() => {
+                roomResource.refresh();
+                void refreshInventory();
+              }}
+            />
+          )}
+
+          {activeSection === 'floors' && (
+            <FloorsSection
+              rooms={rooms}
+              loading={roomResource.loading}
+              floorInput={floorInput}
+              onFloorInputChange={setFloorInputEdit}
+              plan={floorPlan}
+              onPlanChange={setFloorPlan}
+              loadError={floorPlanResource.error}
+              dirty={floorsDirty}
+              saving={isSavingFloors}
+              canSave={Boolean(propertyId)}
+              onSave={() => void handleSaveFloors()}
+              totalRooms={totalRooms}
+            />
+          )}
+
           {activeSection === 'room-types' && (
             <RoomTypesSection
               propertyId={propertyId ?? null}
               types={roomTypes}
               categories={categories}
-              totalRooms={propertyResource.data?.totalRooms ?? null}
+              totalRooms={totalRooms}
+              rooms={rooms}
               currencyCode={currencyCode}
               loading={roomTypeResource.loading}
               error={roomTypeResource.error}
-              onRefresh={() => roomTypeResource.refresh()}
+              onRefresh={() => {
+                roomTypeResource.refresh();
+                void refreshInventory();
+              }}
             />
           )}
 
@@ -269,7 +383,10 @@ export function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
               categories={categories}
               loading={categoryResource.loading}
               error={categoryResource.error}
-              onRefresh={() => categoryResource.refresh()}
+              onRefresh={() => {
+                categoryResource.refresh();
+                void refreshInventory();
+              }}
             />
           )}
 
@@ -283,25 +400,10 @@ export function RoomSettingsTab({ currencyCode }: { currencyCode: string }) {
             />
           )}
 
-          {activeSection === 'occupancy' && (
-            <OccupancyCapacitySection
-              config={occupancyConfig}
-              currencyCode={currencyCode}
-              onChange={setOccupancyConfig}
-            />
-          )}
-
           {activeSection === 'maintenance-reasons' && (
             <MaintenanceReasonsSection
               reasons={maintenanceReasons}
               onChange={setMaintenanceReasons}
-            />
-          )}
-
-          {activeSection === 'status-config' && (
-            <StatusConfigSection
-              statuses={statuses}
-              onChange={setStatuses}
             />
           )}
         </div>
