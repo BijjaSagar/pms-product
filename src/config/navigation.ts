@@ -26,7 +26,7 @@ export interface NavItem {
   hint: string;
 }
 
-interface NavSection {
+export interface NavSection {
   title: string;
   items: NavItem[];
 }
@@ -63,7 +63,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: 'Rooms',
     items: [
-      { id: 'room-overview', label: 'Room Overview', hint: 'Housekeeping and Maintenance' },
+      { id: 'room-overview', label: 'Room Overview', hint: 'Grid & timeline' },
     ],
   },
   {
@@ -105,27 +105,31 @@ export function sectionOf(view: ViewId): string {
   return found ? found.title : '';
 }
 
+export function labelOf(view: ViewId): string {
+  const found = NAV_ITEMS.find((i) => i.id === view);
+  return found ? found.label : view;
+}
 
 /**
  * Permission that gates each view. The backend API is the real enforcement
  * boundary; this only decides what the shell shows. A view with no entry is
  * visible to every authenticated user.
  */
-const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
+export const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
   dashboard: 'dashboard.read',
   reservations: 'reservation.read',
   'room-calendar': 'reservation.read',
   'new-reservation': 'reservation.create',
-  'rate-management': 'rate.read',
-  'channel-manager': 'channel.read',
+  'rate-management': 'reservation.read',
+  'channel-manager': 'reservation.read',
   guests: 'guest.read',
   'room-overview': 'room.read',
-  'room-types': 'theme.update',
+  'room-types': 'room.read',
   'status-board': 'room.read',
   folios: 'folio.read',
   payments: 'payment.read',
   invoices: 'invoice.read',
-  'night-audit': 'night-audit.read',
+  'night-audit': 'folio.read',
   reports: 'report.read.operations',
   'occupancy-report': 'report.read.operations',
   'revenue-report': 'report.read.financial',
@@ -136,13 +140,4 @@ const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
 
 export function viewPermission(view: ViewId): string | undefined {
   return VIEW_PERMISSION[view];
-}
-
-/** Where a person lands: the first screen they may open, as not every role holds the dashboard. */
-export function homeView(can: (permission: string) => boolean): ViewId {
-  const first = NAV_ITEMS.find((item) => {
-    const permission = viewPermission(item.id);
-    return !permission || can(permission);
-  });
-  return first?.id ?? 'dashboard';
 }

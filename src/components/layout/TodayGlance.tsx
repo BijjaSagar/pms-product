@@ -1,7 +1,7 @@
 import * as Lucide from 'lucide-react';
 import type { NavTarget } from '../../config/navigation';
 
-type GlanceTone = 'primary' | 'success' | 'warning' | 'info' | 'danger';
+export type GlanceTone = 'primary' | 'success' | 'warning' | 'info' | 'danger';
 
 export interface GlanceItem {
   key: string;

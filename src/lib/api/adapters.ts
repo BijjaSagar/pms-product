@@ -7,10 +7,7 @@ import type {
   Reservation,
   ReservationStatus,
   Room,
-  RoomTimelineRow,
   RoomType,
-  TimelineEvent,
-  TimelineStatus,
 } from '../../types';
 import type {
   GuestRow,
@@ -20,12 +17,11 @@ import type {
   PaymentRow,
   ReservationRow,
   RoomRow,
-  RoomTimelineApi,
   RoomTypeRow,
   StayRow,
 } from './pms';
 
-const shortDate = (value: unknown): string => {
+export const shortDate = (value: unknown): string => {
   if (!value) return '—';
   const day = String(value).slice(0, 10);
   const parsed = new Date(`${day}T12:00:00Z`);
@@ -33,7 +29,7 @@ const shortDate = (value: unknown): string => {
 };
 
 export const apiReservationStatus = (value: string): ReservationStatus => ({
-  DRAFT: 'Pending', HOLD: 'Pending', CONFIRMED: 'Confirmed', CHECKED_IN: 'Checked-in',
+  DRAFT: 'Pending', CONFIRMED: 'Confirmed', CHECKED_IN: 'Checked-in',
   CHECKED_OUT: 'Checked-out', CANCELLED: 'Cancelled', NO_SHOW: 'No-show',
 }[value] ?? 'Pending') as ReservationStatus;
 
@@ -50,7 +46,6 @@ export function reservationFromApi(row: ReservationRow): Reservation {
   return {
     id: String(row.bookingCode ?? row.id),
     backendId: String(row.id),
-    createdAt: row.createdAt,
     bookingCode: String(row.bookingCode ?? row.id),
     currencyCode: row.currencyCode ?? 'INR',
     guest,
@@ -124,23 +119,14 @@ export function roomTypeFromApi(row: RoomTypeRow, rooms: RoomRow[]): RoomType {
     name: row.name,
     description: row.description ?? '',
     count: roomCount,
-    maxOccupancy: Number(row.maxOccupancy ?? maxAdults + maxChildren),
+    maxOccupancy: maxAdults + maxChildren,
     maxAdults,
     maxChildren,
-    code: row.code,
-    baseOccupancy: Number(row.baseOccupancy ?? maxAdults),
-    beds: row.bedConfiguration ?? '',
+    beds: '—',
     baseRate: Number(row.baseRate ?? 0),
     amenities,
     active: Boolean(row.isActive),
   };
-}
-
-/* The backend's VIP level as the screen's guest tier. Guests with no level are new until they have stayed. */
-function tierOf(row: GuestRow): Guest['tier'] {
-  if (row.vipLevel === 'PLATINUM' || row.vipLevel === 'VIP') return 'VIP';
-  if (row.vipLevel === 'GOLD') return 'Gold';
-  return Number(row.stayCount ?? 0) === 0 ? 'New' : 'Regular';
 }
 
 export function guestFromApi(row: GuestRow): Guest {
@@ -151,7 +137,7 @@ export function guestFromApi(row: GuestRow): Guest {
     email: row.email ?? '',
     phone: row.phone ?? '',
     company: row.companyName ?? null,
-    tier: tierOf(row),
+    tier: 'Regular',
     category: 'Leisure',
     stays: Number(row.stayCount ?? 0),
     spent: 0,
@@ -163,7 +149,7 @@ export function guestFromApi(row: GuestRow): Guest {
 }
 
 export function housekeepingTaskFromApi(row: HousekeepingTaskRow): HousekeepingTask {
-  const status: HousekeepingTask['status'] = row.status === 'COMPLETED' ? 'Done'
+  const status: HousekeepingTask['status'] = ['READY', 'CLEANED'].includes(row.status) ? 'Done'
     : row.status === 'IN_PROGRESS' ? 'In progress' : 'Pending';
   const priority: HousekeepingTask['priority'] = row.priority === 'URGENT' || row.priority === 'HIGH' ? 'High'
     : row.priority === 'LOW' ? 'Low' : 'Medium';
@@ -189,13 +175,12 @@ export function housekeepingTaskFromApi(row: HousekeepingTaskRow): HousekeepingT
 }
 
 export function maintenanceFromApi(row: MaintenanceTicketRow): MaintenanceRequest {
-  const priority: MaintenanceRequest['priority'] = row.priority === 'URGENT' ? 'Urgent'
+  const priority: MaintenanceRequest['priority'] = row.priority === 'CRITICAL' ? 'Urgent'
     : row.priority === 'HIGH' ? 'High' : row.priority === 'LOW' ? 'Low' : 'Medium';
-  const status: MaintenanceRequest['status'] = row.status === 'RESOLVED' ? 'Resolved'
-    : row.status === 'IN_PROGRESS' ? 'In progress' : 'Open';
+  const status: MaintenanceRequest['status'] = row.status === 'RESOLVED' || row.status === 'CLOSED' ? 'Resolved'
+    : row.status === 'IN_PROGRESS' || row.status === 'ASSIGNED' ? 'In progress' : 'Open';
   return {
-    // The backend numbers tickets by id only, so the screen shows a short form of it.
-    id: row.ticketNo ?? row.id.slice(0, 8).toUpperCase(),
+    id: row.ticketNo ?? row.id,
     backendId: String(row.id),
     backendStatus: row.status,
     assignedToId: row.assignedToId ?? null,
@@ -212,7 +197,7 @@ export function maintenanceFromApi(row: MaintenanceTicketRow): MaintenanceReques
   };
 }
 
-function paymentMethodFromApi(value: string): string {
+export function paymentMethodFromApi(value: string): string {
   return ({ CARD_TERMINAL: 'Card', CASH: 'Cash', BANK_TRANSFER: 'Transfer', UPI: 'UPI', PAYMENT_LINK: 'Payment link', CORPORATE_ACCOUNT: 'Invoice' } as Record<string, string>)[value] ?? value;
 }
 
@@ -249,55 +234,4 @@ export function invoiceFromApi(row: InvoiceRow): Invoice {
     due: shortDate(row.issuedAt),
     method: '—',
   };
-}
-
-type TimelineSegmentApi = RoomTimelineApi['rooms'][number]['segments'][number];
-
-/* Room-level segments: their label and colour family on the timeline. */
-const ROOM_SEGMENT_EVENTS: Record<string, { status: TimelineStatus; label: string }> = {
-  AVAILABLE: { status: 'Available', label: 'Available' },
-  INSPECTED: { status: 'Inspected', label: 'Inspected' },
-  DIRTY: { status: 'Dirty', label: 'Dirty' },
-  CLEANING: { status: 'Cleaning', label: 'Cleaning' },
-  OUT_OF_ORDER: { status: 'Out-of-service', label: 'Out of order' },
-  OUT_OF_SERVICE: { status: 'Maintenance', label: 'Out of service' },
-};
-
-/* Stay segments carry the guest, so their label is the guest's name. */
-const STAY_SEGMENT_EVENTS = {
-  OCCUPIED: { status: 'Occupied', icon: 'user' },
-  ARRIVING: { status: 'Arriving', icon: 'luggage' },
-  DEPARTING: { status: 'Departing', icon: 'clock' },
-} as const;
-
-function timelineEventFromApi(roomNumber: string, index: number, segment: TimelineSegmentApi): TimelineEvent {
-  const base = { id: `${roomNumber}-${index}`, startHour: segment.startHour, endHour: segment.endHour };
-  const stay = STAY_SEGMENT_EVENTS[segment.kind as keyof typeof STAY_SEGMENT_EVENTS];
-  if (stay) {
-    const label = segment.guestName ?? stay.status;
-    return {
-      ...base,
-      status: stay.status,
-      label,
-      subLabel: segment.confirmationNumber,
-      guestName: segment.guestName,
-      icon: stay.icon,
-    };
-  }
-  const room = ROOM_SEGMENT_EVENTS[segment.kind];
-  // An unknown kind means the backend and this screen disagree; failing here is clearer than a wrong bar.
-  if (!room) throw new Error(`Unknown room timeline segment: ${segment.kind}`);
-  return { ...base, status: room.status, label: room.label };
-}
-
-/** Timeline rows for one property day, with each segment as one bar. */
-export function timelineRowsFromApi(response: RoomTimelineApi): RoomTimelineRow[] {
-  return response.rooms.map((room) => ({
-    backendId: room.id,
-    version: room.version,
-    number: room.roomNumber,
-    type: room.roomTypeName,
-    floor: Number.parseInt(String(room.floor ?? '0').replace(/\D/g, ''), 10) || 0,
-    events: room.segments.map((segment, index) => timelineEventFromApi(room.roomNumber, index, segment)),
-  }));
 }

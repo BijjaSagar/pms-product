@@ -36,6 +36,7 @@ import type {
   OccupancyReportRow,
   PageResult,
   PaymentRow,
+  PropertyRow,
   ReservationBillingPreferencesRow,
   ReservationChargeRow,
   ReservationPendingPaymentRow,
@@ -66,6 +67,7 @@ const invoices: InvoiceRow[] = [];
 let activePropertyId = PROPERTY.id;
 let guestSeq = 1023;
 let bookingSeq = 9100;
+let ticketSeq = 118;
 let invoiceSeq = 4000;
 
 interface Hold {
@@ -103,9 +105,9 @@ function currentMembership() {
     id: 'mem-1',
     userId: CURRENT_USER_ID,
     propertyId: activePropertyId,
-    roleId: 'role-admin',
+    roleId: 'role-owner',
     isActive: true,
-    role: { id: 'role-admin', key: 'ADMIN', name: 'Admin', description: 'Full access to every module.' },
+    role: { id: 'role-owner', key: 'owner', name: 'Owner', description: 'Full access to every module.' },
     property: {
       id: PROPERTY.id,
       name: PROPERTY.name,
@@ -421,8 +423,8 @@ function housekeepingReport(from: string, to: string): HousekeepingReportRow {
 
 /* ------------------------------------------------- housekeeping & maintenance */
 
-const hkStaff = () => users.filter((u) => u.baseRoleKey === 'HOUSEKEEPING' && !u.team);
-const mxStaff = () => users.filter((u) => u.team === 'maintenance');
+const hkStaff = () => users.filter((u) => u.baseRoleKey === 'housekeeping');
+const mxStaff = () => users.filter((u) => u.baseRoleKey === 'maintenance');
 
 const tasks: HousekeepingTaskRow[] = (() => {
   const dirty = rooms.filter((r) => r.status === 'VACANT_DIRTY' || r.status === 'OCCUPIED_DIRTY');
@@ -1133,8 +1135,13 @@ function exportCsv(path: string, fallbackName: string): { filename: string; cont
 export const store = {
   /* auth */
   session,
-  switchProperty(propertyId: string) {
-    if (propertyId) activePropertyId = propertyId;
+  /**
+   * The demo data is not stored per property, so it is presented as belonging
+   * to whichever real property the signed-in user is working in.
+   */
+  adoptProperty(property: Pick<PropertyRow, 'id' | 'name' | 'slug' | 'currencyCode' | 'checkInTime' | 'checkOutTime' | 'addressLine1' | 'city'>) {
+    Object.assign(PROPERTY, property);
+    activePropertyId = property.id;
   },
 
   /* day log */
@@ -1146,11 +1153,6 @@ export const store = {
   },
   dayEnquiries: (date: string): DayEnquiryRow[] =>
     dayEnquiries.filter((e) => e.date === date).map((e) => ({ ...e })),
-  addDayEnquiry(input: Omit<DayEnquiryRow, 'id'>): DayEnquiryRow {
-    const row: DayEnquiryRow = { id: nextId('enq'), ...input };
-    dayEnquiries.push(row);
-    return { ...row };
-  },
   removeDayEnquiry(id: string) {
     const index = dayEnquiries.findIndex((e) => e.id === id);
     if (index !== -1) dayEnquiries.splice(index, 1);
@@ -1164,40 +1166,8 @@ export const store = {
     );
   },
 
-
   /* room types */
   roomTypes: (): RoomTypeRow[] => clone(ROOM_TYPES),
-  createRoomType(body: Record<string, unknown>): RoomTypeRow {
-    const type: RoomTypeRow = {
-      id: String(body.id ?? body.code ?? nextId('rt')).toLowerCase(),
-      code: String(body.code ?? 'NEW'),
-      name: String(body.name ?? 'New Room Type'),
-      description: (body.description as string) ?? null,
-      maxAdults: num(body.maxAdults) || 2,
-      maxChildren: num(body.maxChildren),
-      baseRate: money(num(body.baseRate)),
-      amenities: body.amenities ?? [],
-      isActive: body.isActive !== false,
-    };
-    ROOM_TYPES.push(type);
-    return clone(type);
-  },
-  updateRoomType(id: string, body: Record<string, unknown>): RoomTypeRow | undefined {
-    const type = ROOM_TYPES.find((t) => t.id === id);
-    if (!type) return undefined;
-    if (body.name !== undefined) type.name = String(body.name);
-    if (body.description !== undefined) type.description = (body.description as string) ?? null;
-    if (body.maxAdults !== undefined) type.maxAdults = num(body.maxAdults);
-    if (body.maxChildren !== undefined) type.maxChildren = num(body.maxChildren);
-    if (body.baseRate !== undefined) type.baseRate = money(num(body.baseRate));
-    if (body.isActive !== undefined) type.isActive = Boolean(body.isActive);
-    rooms.filter((r) => r.roomTypeId === id).forEach((r) => {
-      r.roomTypeName = type.name;
-      r.roomTypeCode = type.code;
-      r.baseRate = type.baseRate;
-    });
-    return clone(type);
-  },
 
   /* rooms */
   rooms: (): RoomRow[] => clone(rooms),
@@ -1206,7 +1176,6 @@ export const store = {
     const roomNumber = String(body.roomNumber ?? nextId('room'));
     const room: RoomRow = {
       id: `room-${roomNumber}`,
-      version: 0,
       roomNumber,
       roomTypeId: type.id,
       roomTypeCode: type.code,
@@ -1449,8 +1418,144 @@ export const store = {
   },
 
   /* housekeeping */
+  housekeepingTasks: (scope?: string): HousekeepingTaskRow[] => {
+    if (scope === 'open') return clone(tasks.filter((t) => !['READY', 'CANCELLED'].includes(t.status)));
+    return clone(tasks);
+  },
+  housekeepingSummary: () => {
+    const byStatus: Record<string, number> = {};
+    tasks.forEach((t) => {
+      byStatus[t.status] = (byStatus[t.status] ?? 0) + 1;
+    });
+    return { byStatus, rooms: roomsSummary() };
+  },
+  createTask(body: Record<string, unknown>): { id: string; status: string; roomNumber: string } {
+    const room = rooms.find((r) => r.id === String(body.roomId));
+    const task: HousekeepingTaskRow = {
+      id: nextId('hk'),
+      type: String(body.type ?? 'CHECKOUT_CLEAN'),
+      status: 'TODO',
+      priority: String(body.priority ?? 'NORMAL'),
+      roomId: room?.id ?? String(body.roomId ?? ''),
+      roomNumber: room?.roomNumber ?? (body.roomNumber as string) ?? null,
+      roomTypeName: room?.roomTypeName ?? null,
+      assignedToId: (body.assignedToId as string) ?? null,
+      assigneeName: users.find((u) => u.userId === body.assignedToId)?.fullName ?? null,
+      dueAt: (body.dueAt as string) ?? `${BUSINESS_DATE}T14:00:00Z`,
+      startedAt: null,
+      completedAt: null,
+      inspectedAt: null,
+      notes: (body.notes as string) ?? null,
+      blockedReason: null,
+      createdAt: new Date().toISOString(),
+    };
+    tasks.unshift(task);
+    return { id: task.id, status: task.status, roomNumber: task.roomNumber ?? '' };
+  },
+  assignTask(id: string, assignedToId: string | null) {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    task.assignedToId = assignedToId;
+    task.assigneeName = users.find((u) => u.userId === assignedToId)?.fullName ?? null;
+  },
+  startTask(id: string) {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    task.status = 'IN_PROGRESS';
+    task.startedAt = new Date().toISOString();
+  },
+  completeTask(id: string, notes?: string) {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    task.status = 'CLEANED';
+    task.completedAt = new Date().toISOString();
+    if (notes) task.notes = notes;
+  },
+  requestInspection(id: string) {
+    const task = tasks.find((t) => t.id === id);
+    if (task) task.status = 'INSPECTION_REQUIRED';
+  },
+  inspectTask(id: string, result: 'pass' | 'fail', _notes?: string) {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    if (result === 'pass') {
+      task.status = 'READY';
+      task.inspectedAt = new Date().toISOString();
+      const room = rooms.find((r) => r.id === task.roomId);
+      if (room && room.status !== 'OUT_OF_ORDER') room.status = 'INSPECTED';
+    } else {
+      task.status = 'TODO';
+    }
+  },
+  blockTask(id: string, reason: string) {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    task.status = 'BLOCKED';
+    task.blockedReason = reason;
+  },
+  unblockTask(id: string) {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    task.status = 'TODO';
+    task.blockedReason = null;
+  },
+  cancelTask(id: string, _reason: string) {
+    const task = tasks.find((t) => t.id === id);
+    if (task) task.status = 'CANCELLED';
+  },
 
   /* maintenance */
+  maintenanceTickets: (): MaintenanceTicketRow[] => clone(tickets),
+  createTicket(body: Record<string, unknown>): { id: string; ticketNo: string; status: string } {
+    ticketSeq += 1;
+    const room = rooms.find((r) => r.id === String(body.roomId));
+    const ticket: MaintenanceTicketRow = {
+      id: nextId('mx'),
+      ticketNo: `WO-${ticketSeq}`,
+      title: String(body.title ?? 'Maintenance request'),
+      description: String(body.description ?? ''),
+      category: String(body.category ?? 'OTHER'),
+      priority: String(body.priority ?? 'NORMAL'),
+      status: 'OPEN',
+      roomId: room?.id ?? (body.roomId as string) ?? null,
+      roomNumber: room?.roomNumber ?? (body.roomNumber as string) ?? null,
+      assignedToId: (body.assignedToId as string) ?? null,
+      assigneeName: users.find((u) => u.userId === body.assignedToId)?.fullName ?? null,
+      reportedByName: users.find((u) => u.userId === CURRENT_USER_ID)?.fullName ?? null,
+      resolution: null,
+      createdAt: new Date().toISOString(),
+    };
+    tickets.unshift(ticket);
+    return { id: ticket.id, ticketNo: ticket.ticketNo, status: ticket.status };
+  },
+  assignTicket(id: string, assignedToId: string | null) {
+    const ticket = tickets.find((t) => t.id === id);
+    if (!ticket) return;
+    ticket.assignedToId = assignedToId;
+    ticket.assigneeName = users.find((u) => u.userId === assignedToId)?.fullName ?? null;
+    if (ticket.status === 'OPEN') ticket.status = 'ASSIGNED';
+  },
+  startTicket(id: string) {
+    const ticket = tickets.find((t) => t.id === id);
+    if (ticket) ticket.status = 'IN_PROGRESS';
+  },
+  resolveTicket(id: string, resolution: string) {
+    const ticket = tickets.find((t) => t.id === id);
+    if (!ticket) return;
+    ticket.status = 'RESOLVED';
+    ticket.resolution = resolution;
+  },
+  closeTicket(id: string, _reason?: string) {
+    const ticket = tickets.find((t) => t.id === id);
+    if (ticket) ticket.status = 'CLOSED';
+  },
+  reopenTicket(id: string, _reason: string) {
+    const ticket = tickets.find((t) => t.id === id);
+    if (ticket) {
+      ticket.status = 'OPEN';
+      ticket.resolution = null;
+    }
+  },
 
   /* reports */
   dailyFlash: (date?: string): DailyFlashRow => dailyFlash(date ?? BUSINESS_DATE),
@@ -1507,7 +1612,7 @@ export const store = {
   users: (): UserRow[] => users.map(userRow),
   invite(body: Record<string, unknown>): { email: string; inviteToken: string; acceptUrl: string } {
     const email = String(body.email ?? `member${users.length + 1}@grandhorizon.in`);
-    const roleKey = String(body.roleKey ?? 'FRONTDESK');
+    const roleKey = String(body.roleKey ?? 'front_desk');
     const token = nextId('invite');
     const user: InternalUser = {
       userId: nextId('u'),

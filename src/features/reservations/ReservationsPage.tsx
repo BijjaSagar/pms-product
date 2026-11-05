@@ -7,7 +7,6 @@ import type { NavTarget } from '../../config/navigation';
 import { frontDeskApi, reservationApi } from '../../lib/api/pms';
 import { reservationFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
-import { useBusinessDate } from '../../lib/api/businessDate';
 import { displayApiError } from '../../lib/api/client';
 import type { ReservationStatus } from '../../types';
 import { Button, Checkbox, IconButton, SelectField } from '../../components/primitives';
@@ -32,8 +31,6 @@ export function Reservations({
   go: (t: NavTarget) => void;
 }) {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>(initialViewMode);
-  // The calendar cannot place days until the business date has loaded from the backend.
-  const businessDate = useBusinessDate();
 
   const loadRows = useCallback(async () => {
     const result = await reservationApi.list('', undefined, 1, 100);
@@ -170,14 +167,7 @@ export function Reservations({
       />
 
       {viewMode === 'calendar' ? (
-        !businessDate ? (
-          <div role="status" className="flex items-center justify-center gap-2 px-6 py-12 text-label text-ink-secondary">
-            <Lucide.Loader2 size={16} className="animate-spin" aria-hidden="true" />
-            <span>Loading calendar…</span>
-          </div>
-        ) : (
-          <RoomCalendar go={go} onReservationUpdated={() => resource.refresh()} filters={filters} />
-        )
+        <RoomCalendar go={go} onReservationUpdated={() => resource.refresh()} filters={filters} />
       ) : (
         <>
           {/* ================= 5. RESERVATIONS TABLE CARD ================= */}
@@ -273,9 +263,7 @@ export function Reservations({
                             {r.id}
                           </div>
                           <div className="text-label text-ink-muted mt-0.5">
-                            {r.createdAt
-                              ? new Date(r.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                              : '—'}
+                            {r.checkInIso ? `Oct 15, 2026 • 10:24 AM` : 'Oct 15, 2026 • 09:12 AM'}
                           </div>
                         </td>
 

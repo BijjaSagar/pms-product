@@ -1,44 +1,21 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { toast } from '../../utils/toast';
-import type { RoomTimelineRow, TimelineStatus } from '../../types';
-import { frontDeskApi, inventoryApi } from '../../lib/api/pms';
-import { timelineRowsFromApi } from '../../lib/api/adapters';
-import { useBusinessDate } from '../../lib/api/businessDate';
+import { ROOM_TIMELINE_SEED, type RoomTimelineRow, type TimelineStatus } from '../../data/roomTimeline';
 import { TableContainer } from '../../components/ui';
 import { matchesRoomFilters, type RoomFilters } from './roomFilters';
-import {
-  END_HOUR,
-  START_HOUR,
-  TIME_TICKS,
-  clipToWindow,
-  currentEvent,
-  formatClock,
-  pluralRooms,
-  roomStatusOf,
-} from './timeline/timelineMath';
+import { END_HOUR, START_HOUR, TIME_TICKS, formatClock, pluralRooms, roomStatusOf } from './timeline/timelineMath';
 import { TimelineRow } from './timeline/TimelineRow';
 import { RoomStatusDialog, type TimelineRoomView } from './timeline/RoomStatusDialog';
 
-/* The housekeeping state each status sets. Cleaning has none: it follows a housekeeping task. */
-const HOUSEKEEPING_FOR: Partial<Record<TimelineStatus, 'CLEAN' | 'DIRTY' | 'INSPECTED'>> = {
-  Available: 'CLEAN',
-  Dirty: 'DIRTY',
-  Inspected: 'INSPECTED',
-};
-
-const OUT_OF_SERVICE: TimelineStatus[] = ['Out-of-service', 'Maintenance'];
-
-const STATUS_CHANGE_REASON = 'Set from the room status timeline';
-
-/* The inventory name for a row, falling back to the timeline's own room type when the room is not in the inventory. */
+/* The inventory name for a row, falling back to the timeline code when the room is not in the inventory. */
 function typeNameOf(row: RoomTimelineRow, roomTypeNames: Record<string, string>): string {
   return roomTypeNames[row.number] ?? row.type;
 }
 
 /*
- * Rooms by hour for the business date. The filters narrow the rows; the room type comes from the room
- * inventory because the timeline's own names can differ from the inventory names.
+ * Rooms by hour. The filters narrow the rows; the room type comes from the room inventory because the
+ * timeline's own codes (STD, DLX) do not match the inventory names.
  */
 export function StatusTimeline({
   filters,
@@ -47,36 +24,13 @@ export function StatusTimeline({
   filters: RoomFilters;
   roomTypeNames: Record<string, string>;
 }) {
-  const businessDate = useBusinessDate();
-  const [rows, setRows] = useState<RoomTimelineRow[] | null>(null);
+  const [rows, setRows] = useState<RoomTimelineRow[]>(ROOM_TIMELINE_SEED);
   const [collapsedFloors, setCollapsedFloors] = useState<Set<number>>(() => new Set());
   const [dialogRoomNumber, setDialogRoomNumber] = useState<string | null>(null);
 
-  const allRows = useMemo(() => rows ?? [], [rows]);
-
-  /* Bumped after a status change so the timeline is read from the backend again. */
-  const [revision, setRevision] = useState(0);
-
-  useEffect(() => {
-    let current = true;
-    const load = async () => {
-      try {
-        const response = await frontDeskApi.roomTimeline(businessDate);
-        if (!current) return;
-        setRows(timelineRowsFromApi(response).map((row) => ({ ...row, events: clipToWindow(row.events) })));
-      } catch (error) {
-        if (current) toast.error('Could not load the room timeline', error instanceof Error ? error.message : undefined);
-      }
-    };
-    void load();
-    return () => {
-      current = false;
-    };
-  }, [businessDate, revision]);
-
   const visibleRows = useMemo(
     () =>
-      allRows.filter((row) =>
+      rows.filter((row) =>
         matchesRoomFilters(
           {
             number: row.number,
@@ -87,21 +41,21 @@ export function StatusTimeline({
           filters
         )
       ),
-    [allRows, filters, roomTypeNames]
+    [rows, filters, roomTypeNames]
   );
 
   const floors = useMemo(
-    () => Array.from(new Set(allRows.map((row) => row.floor))).sort((a, b) => a - b),
-    [allRows]
+    () => Array.from(new Set(rows.map((row) => row.floor))).sort((a, b) => a - b),
+    [rows]
   );
 
-  const dialogRow = allRows.find((row) => row.number === dialogRoomNumber) ?? null;
+  const dialogRow = rows.find((row) => row.number === dialogRoomNumber) ?? null;
   const dialogRoom: TimelineRoomView | null = dialogRow
     ? {
         number: dialogRow.number,
         typeName: typeNameOf(dialogRow, roomTypeNames),
         floor: dialogRow.floor,
-        current: currentEvent(dialogRow.events),
+        current: dialogRow.events[0],
       }
     : null;
 
@@ -114,35 +68,29 @@ export function StatusTimeline({
     });
   };
 
-  const setRoomStatus = async (roomNumber: string, status: TimelineStatus) => {
-    const row = allRows.find((item) => item.number === roomNumber);
-    if (!row) return;
-    if (status === 'Cleaning') {
-      toast('Cleaning follows a housekeeping task', {
-        detail: 'Start a cleaning task for this room from Housekeeping.',
-        tone: 'info',
-      });
-      return;
-    }
-    const label = status === 'Maintenance' ? 'out of service' : status.toLowerCase();
-    try {
-      if (status === 'Maintenance') {
-        await inventoryApi.outOfOrder(row.backendId, STATUS_CHANGE_REASON);
-      } else {
-        const current = currentEvent(row.events)?.status;
-        if (current && OUT_OF_SERVICE.includes(current)) {
-          await inventoryApi.backInService(row.backendId, STATUS_CHANGE_REASON);
-        }
-        const housekeeping = HOUSEKEEPING_FOR[status];
-        if (housekeeping) {
-          await inventoryApi.setHousekeepingStatus(row.backendId, housekeeping, row.version, STATUS_CHANGE_REASON);
-        }
-      }
-      toast(`Room ${roomNumber} updated`, { detail: `Now ${label}.`, tone: 'success' });
-      setRevision((value) => value + 1);
-    } catch (error) {
-      toast.error(`Could not set room ${roomNumber} ${label}`, error instanceof Error ? error.message : undefined);
-    }
+  const setRoomStatus = (roomNumber: string, status: TimelineStatus) => {
+    setRows((previous) =>
+      previous.map((row) =>
+        row.number === roomNumber
+          ? {
+              ...row,
+              events: [
+                {
+                  id: `${roomNumber}-${status.toLowerCase()}`,
+                  status,
+                  label: status === 'Maintenance' ? 'Out of service' : status,
+                  startHour: START_HOUR,
+                  endHour: END_HOUR,
+                },
+              ],
+            }
+          : row
+      )
+    );
+    toast(`Room ${roomNumber} updated`, {
+      detail: `Now ${status === 'Maintenance' ? 'out of service' : status.toLowerCase()}.`,
+      tone: 'success',
+    });
   };
 
   return (
@@ -151,16 +99,11 @@ export function StatusTimeline({
         <header className="flex flex-col gap-1 border-b border-divider px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <h2 className="text-body font-semibold text-ink">Room status timeline</h2>
           <p className="tnum text-label text-ink-secondary">
-            {formatClock(START_HOUR)} – {formatClock(END_HOUR)} · {visibleRows.length} of {allRows.length} rooms
+            {formatClock(START_HOUR)} – {formatClock(END_HOUR)} · {visibleRows.length} of {rows.length} rooms
           </p>
         </header>
 
-        {rows === null ? (
-          <div role="status" className="flex items-center justify-center gap-2 px-6 py-12 text-label text-ink-secondary">
-            <Lucide.Loader2 size={16} className="animate-spin" aria-hidden="true" />
-            <span>Loading room timeline…</span>
-          </div>
-        ) : visibleRows.length === 0 ? (
+        {visibleRows.length === 0 ? (
           <div role="status" className="flex flex-col items-center gap-2 px-6 py-12 text-center">
             <Lucide.SearchX size={22} className="text-ink-muted" aria-hidden="true" />
             <p className="text-body font-semibold text-ink">No rooms match these filters</p>

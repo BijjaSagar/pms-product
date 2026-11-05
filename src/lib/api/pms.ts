@@ -1,28 +1,9 @@
 import { store } from '../../data/store';
+import { clearAccessToken, saveAccessToken } from './authToken';
+import { ApiError, apiRequest } from './client';
 import type { ThemeKey } from '../../types';
-import { ApiError, displayApiError } from './client';
-import { roleLabel, toFrontendPermissions } from './backendPermissions';
-import { setBusinessDate } from './businessDate';
-import {
-  guestRowFromBackend,
-  reservationRowFromBackend,
-  stayRowFromBackend,
-  type BackendGuest as BackendGuestRow,
-  type BackendReservation,
-} from './bookingMapping';
-import {
-  folioDetailFromBackend,
-  invoiceRowFromBackend,
-  paymentRowFromBackend,
-  type BackendFolio,
-  type BackendInvoice,
-  type BackendPayment,
-  type BackendTransaction,
-} from './billingMapping';
-import { toast } from '../../utils/toast';
-import { propertyPatchFromFields, propertyRowFromBackend, type BackendProperty } from './propertyMapping';
 
-interface PropertyMembership {
+export interface PropertyMembership {
   id: string;
   userId: string;
   propertyId: string;
@@ -53,37 +34,23 @@ export interface PageResult<T> {
 }
 
 export interface PropertyRow {
-  id: string; code: string; name: string; legalName: string | null; slug: string; timezone: string; currencyCode: string; countryCode?: string;
-  businessDate: string; checkInTime?: string; checkOutTime?: string; noShowCutoffTime: string | null; holdMinutes: number | null;
-  overbookingEnabled: boolean; approvalThreshold: string | null;
-  addressLine1: string | null; city: string | null; state: string | null; postalCode: string | null;
-  gstin: string | null; stateCode: string | null;
+  id: string; name: string; slug: string; timezone: string; currencyCode: string; countryCode?: string;
+  checkInTime?: string; checkOutTime?: string; addressLine1?: string | null; city?: string | null;
 }
 export interface RoomTypeRow {
   id: string; code: string; name: string; description?: string | null; maxAdults: number; maxChildren: number;
-  baseOccupancy?: number; maxOccupancy?: number; bedConfiguration?: string | null; baseRate: string; amenities?: unknown; isActive: boolean;
+  baseRate: string; amenities?: unknown; isActive: boolean;
 }
 export interface RoomRow {
   id: string; roomNumber: string; roomTypeId: string; roomTypeCode?: string | null; roomTypeName?: string | null;
   floor?: string | null; status: string; isActive: boolean; notes?: string | null; wing?: string | null; baseRate?: string;
-  outOfOrderReason?: string | null; version: number;
-}
-
-/** One property day of room segments, as the backend derives them from stays, status history, tasks and blocks. */
-export interface RoomTimelineApi {
-  date: string;
-  timeZone: string;
-  rooms: Array<{
-    id: string; version: number; roomNumber: string; floor: string | null; roomTypeName: string;
-    segments: Array<{ kind: string; startHour: number; endHour: number; reservationId?: string; confirmationNumber?: string; guestName?: string }>;
-  }>;
+  outOfOrderReason?: string | null;
 }
 export interface GuestRow {
   id: string; firstName: string; lastName: string; email: string | null; phone: string | null;
   companyName?: string | null; city?: string | null; countryCode?: string | null; masked?: boolean;
   nationality?: string | null; dateOfBirth?: string | null; gender?: string | null; address?: string | null;
   state?: string | null; country?: string | null;
-  vipLevel?: string | null;
   preferences?: string | null; internalNotes?: string | null; stayCount?: number; lastStayAt?: string | null;
 }
 export interface ReservationRoomRow {
@@ -113,7 +80,6 @@ export interface ReservationRow {
   guestName?: string | null; roomNumber?: string | null; roomSummary?: string | null; roomTypeName?: string | null; roomTypeId?: string;
   roomLines?: ReservationRoomRow[]; pendingCharges?: ReservationChargeRow[]; pendingPayments?: ReservationPendingPaymentRow[]; billingPreferences?: ReservationBillingPreferencesRow;
   discountAmount?: string; paid?: number;
-  createdAt?: string;
 }
 export interface StayRow extends ReservationRow {
   guestId?: string | null;
@@ -121,14 +87,6 @@ export interface StayRow extends ReservationRow {
   folioId?: string | null; folioNo?: string | null; balance?: string;
 }
 export interface StayList { businessDate: string; data: StayRow[] }
-/** The backend's price for a room over a stay. Amounts are totals for every night. */
-interface RoomQuote {
-  nights: number;
-  available: boolean;
-  roomAmount: string;
-  taxAmount: string;
-  totalAmount: string;
-}
 export interface AvailabilityRow { id: string; roomNumber: string; floor?: string | null; status: string }
 export interface AvailabilityResult { nights: string[]; totalRooms: number; available: AvailabilityRow[] }
 export interface FolioBalanceRow { charges: string; tax: string; total: string; paid: string; balance: string; currencyCode: string }
@@ -154,11 +112,8 @@ export interface HousekeepingTaskRow {
   dueAt?: string | null; startedAt?: string | null; completedAt?: string | null; inspectedAt?: string | null;
   notes?: string | null; blockedReason?: string | null; createdAt: string;
 }
-export interface HousekeepingSummaryRow {
-  rooms: { total: number; ready: number; dirty: number; occupied: number; outOfOrder: number };
-}
 export interface MaintenanceTicketRow {
-  id: string; ticketNo?: string | null; title?: string | null; description: string; category: string; priority: string; status: string;
+  id: string; ticketNo: string; title: string; description: string; category: string; priority: string; status: string;
   roomId?: string | null; roomNumber?: string | null; assignedToId?: string | null; assigneeName?: string | null;
   reportedByName?: string | null; resolution?: string | null; createdAt: string;
 }
@@ -204,328 +159,132 @@ export interface NightAuditRow {
   exceptionCount?: number; advisoryOnly?: boolean;
 }
 
-/*
- * Authentication is the one part of this app that talks to the real backend
- * (pms-backend). Everything else still reads the in-memory demo store.
- */
-const API_BASE_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1';
-const ACCESS_TOKEN_KEY = 'pms.accessToken';
-const REFRESH_TOKEN_KEY = 'pms.refreshToken';
-const ACCESS_EXPIRES_AT_KEY = 'pms.accessTokenExpiresAt';
-const RENEW_BEFORE_EXPIRY_MS = 60_000;
-const RENEW_RETRY_MS = 30_000;
-const RENEWAL_LOCK = 'pms.session-renewal';
-const RENEWAL_LOCK_HOLD_MS = 250;
+interface LoginResponse {
+  accessToken: string;
+  tokenType: 'Bearer';
+}
 
-interface BackendUser { id: string; email: string; fullName: string; status: string }
-interface BackendTokens { accessToken: string; refreshToken: string; expiresIn: number }
-interface BackendLoginResult extends BackendTokens { user: BackendUser }
-interface BackendGrant { roles: string[]; permissions: string[] }
+type BackendRole = 'ADMIN' | 'STAFF';
+
 interface BackendMe {
-  user: BackendUser;
-  platform: BackendGrant | null;
-  properties: Array<BackendGrant & { id: string; businessDate: string }>;
-}
-interface BackendErrorBody { error?: { code?: string; message?: string } }
-
-/*
- * The backend's own id for the signed-in user's property, from /auth/me. The
- * demo store keeps its own property id, so room data is requested with this one.
- */
-let backendPropertyId: string | null = null;
-
-// localStorage keeps the login after the tab closes or the PC shuts down, until the user logs out.
-// It can throw in private windows or when site data is blocked.
-function readAccessToken(): string | null {
-  try { return localStorage.getItem(ACCESS_TOKEN_KEY); } catch { return null; }
+  id: string;
+  email: string;
+  name: string;
+  role: BackendRole;
+  /** The one property a STAFF user belongs to; null for ADMIN. */
+  propertyId: string | null;
 }
 
-function readRefreshToken(): string | null {
-  try { return localStorage.getItem(REFRESH_TOKEN_KEY); } catch { return null; }
+/** What `GET /properties` returns: every property for ADMIN, only their own for STAFF. */
+interface BackendProperty {
+  id: string;
+  name: string;
+  code: string;
+  address: string | null;
+  city: string;
+  defaultCurrency: string;
+  checkInTime: string;
+  checkOutTime: string;
+  isActive: boolean;
 }
 
-// Counted from this browser's clock and the server's expiresIn, so a wrong PC clock can't cause a renewal loop.
-function readAccessExpiresAt(): number {
-  try { return Number(localStorage.getItem(ACCESS_EXPIRES_AT_KEY)); } catch { return 0; }
-}
+const ROLE_LABELS: Record<BackendRole, { id: string; key: string; name: string; description: string }> = {
+  ADMIN: { id: 'role-admin', key: 'admin', name: 'Administrator', description: 'Manages every property.' },
+  STAFF: { id: 'role-staff', key: 'staff', name: 'Staff', description: 'Works at one property.' },
+};
 
-function saveTokens({ accessToken, refreshToken, expiresIn }: BackendTokens): void {
-  try {
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-    localStorage.setItem(ACCESS_EXPIRES_AT_KEY, String(Date.now() + expiresIn * 1000));
-    // Last, because other tabs react to this key and read the other two.
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-  } catch { /* with storage blocked, the user signs in again after a reload */ }
-}
-
-let renewalTimer: ReturnType<typeof setTimeout> | undefined;
-let renewalInFlight: Promise<void> | null = null;
-/** True once a session is in use on screen. A session still being restored is not renewed in the background. */
-let renewalActive = false;
-let wakeListenersAdded = false;
-const sessionEndedListeners = new Set<() => void>();
-
-function stopRenewal(): void {
-  renewalActive = false;
-  clearTimeout(renewalTimer);
-}
-
-function forgetSessionState(): void {
-  backendPropertyId = null;
-  setBusinessDate('');
-  stopRenewal();
-}
-
-function clearTokens(): void {
-  forgetSessionState();
-  try {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(ACCESS_EXPIRES_AT_KEY);
-  } catch { /* nothing stored, nothing to clear */ }
-}
-
-/** The backend refused this session (revoked or reused), so the user has to sign in again. */
-function endSession(): void {
-  const wasInUse = renewalActive;
-  clearTokens();
-  if (wasInUse) sessionEndedListeners.forEach((listener) => listener());
-}
-
-function scheduleRenewal(delayMs: number): void {
-  clearTimeout(renewalTimer);
-  if (renewalActive) renewalTimer = setTimeout(renewInBackground, delayMs);
-}
-
-function scheduleNextRenewal(): void {
-  scheduleRenewal(Math.max(readAccessExpiresAt() - RENEW_BEFORE_EXPIRY_MS - Date.now(), 0));
-}
-
-function renewInBackground(): void {
-  // A failure is already handled inside renewSession: it retries, or ends the session.
-  renewSession().catch(() => undefined);
-}
-
-/** Lets one tab at a time renew. The lock is released by itself if a tab closes while holding it. */
-function withRenewalLock<T>(work: () => Promise<T>): Promise<T> {
-  return 'locks' in navigator ? navigator.locks.request(RENEWAL_LOCK, work) : work();
-}
+/** An ADMIN's choice of property for this browser tab; STAFF never use it. */
+const ACTIVE_PROPERTY_KEY = 'pms.activePropertyId';
 
 /**
- * Swaps the refresh token for a new pair. Tabs share one token, and the backend treats a token used
- * twice as stolen and ends the session, so calls in this tab share one renewal and tabs take turns.
+ * Authentication and property access are real (backend `/auth/*` and
+ * `/properties`): a STAFF user only ever sees their own property, an ADMIN
+ * picks one. Permissions and all other data are not on the backend yet, so they
+ * still come from the demo store, which is presented as the active property.
  */
-function renewSession(): Promise<void> {
-  if (renewalInFlight) return renewalInFlight;
-  const tokenWhenAsked = readAccessToken();
-  const attempt = withRenewalLock(async () => {
-    if (readAccessToken() !== tokenWhenAsked) {
-      // Another tab renewed while this one waited for its turn.
-      scheduleNextRenewal();
-      return;
-    }
-    const refreshToken = readRefreshToken();
-    if (!refreshToken) {
-      endSession();
-      throw new ApiError('You are not signed in.', 401, 'UNAUTHENTICATED');
-    }
-    try {
-      const tokens = await backendRequest<BackendTokens>('/auth/refresh', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
-      });
-      // Signed out or signed in again while this ran, so its answer is about a session that is gone.
-      if (readRefreshToken() !== refreshToken) return;
-      saveTokens(tokens);
-      scheduleNextRenewal();
-      // Browsers pass localStorage writes to other tabs with a short delay. Keep the lock until they
-      // arrive, or the next tab could read the old token, and using it twice ends the session.
-      await new Promise((resolve) => setTimeout(resolve, RENEWAL_LOCK_HOLD_MS));
-    } catch (cause) {
-      if (readRefreshToken() === refreshToken) {
-        // Only the backend saying no ends the session. Being offline or a server error is retried.
-        if (cause instanceof ApiError && cause.status === 401) endSession();
-        else scheduleRenewal(RENEW_RETRY_MS);
-      }
-      throw cause;
-    }
-  }).finally(() => {
-    renewalInFlight = null;
-  });
-  renewalInFlight = attempt;
-  return attempt;
-}
-
-/** Keeps the session alive while a tab is open. Timers stop while a laptop sleeps, so waking up checks too. */
-function startRenewal(): void {
-  renewalActive = true;
-  scheduleNextRenewal();
-  if (wakeListenersAdded) return;
-  wakeListenersAdded = true;
-  const renewIfDue = () => {
-    if (renewalActive && Date.now() >= readAccessExpiresAt() - RENEW_BEFORE_EXPIRY_MS) renewInBackground();
-  };
-  document.addEventListener('visibilitychange', renewIfDue);
-  window.addEventListener('focus', renewIfDue);
-  window.addEventListener('online', renewIfDue);
-}
-
-/** Runs a request with the access token. If it has expired, renews it and tries once more. */
-async function withAccessToken<T>(send: (token: string) => Promise<T>): Promise<T> {
-  const token = readAccessToken();
-  if (!token) throw new ApiError('You are not signed in.', 401, 'UNAUTHENTICATED');
-  try {
-    return await send(token);
-  } catch (cause) {
-    if (!(cause instanceof ApiError && cause.status === 401)) throw cause;
-    // Another request or tab may have renewed the token while this one was on its way.
-    if (readAccessToken() === token) await renewSession();
-    const renewed = readAccessToken();
-    if (!renewed) throw cause;
-    return send(renewed);
-  }
-}
-
-/** Calls the backend and turns its `{ error: { code, message } }` envelope into an ApiError. */
-async function backendRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
-  let response: Response;
-  try {
-    response = await fetch(`${API_BASE_URL}${path}`, init);
-  } catch {
-    throw new ApiError('Cannot reach the server. Check that the backend is running.', 0, 'NETWORK_ERROR');
-  }
-  if (response.status === 204) return undefined as T;
-  const body: unknown = await response.json().catch(() => null);
-  if (!response.ok) {
-    const error = (body as BackendErrorBody | null)?.error;
-    throw new ApiError(error?.message ?? `Request failed with status ${response.status}.`, response.status, error?.code);
-  }
-  return body as T;
-}
-
-/** Path prefix for the signed-in user's property on the backend. */
-function propertyPath(): string {
-  if (!backendPropertyId) throw new ApiError('You are not signed in.', 401, 'UNAUTHENTICATED');
-  return `/properties/${backendPropertyId}`;
-}
-
-/** A backend request signed with the stored access token. */
-function authedRequest<T>(
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
-  path: string,
-  body?: unknown,
-  extraHeaders: Record<string, string> = {},
-): Promise<T> {
-  const hasBody = body !== undefined;
-  return withAccessToken((token) => backendRequest<T>(path, {
-    method,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
-      ...extraHeaders,
-    },
-    ...(hasBody ? { body: JSON.stringify(body) } : {}),
-  }));
-}
-
 export const authApi = {
-  /** POST /auth/login with email and password; stores the returned tokens. */
-  login: async (email: string, password: string): Promise<void> => {
-    clearTokens();
-    const result = await backendRequest<BackendLoginResult>('/auth/login', {
+  login: async (email: string, password: string, remember: boolean) => {
+    const { accessToken } = await apiRequest<LoginResponse>('/auth/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: { email, password },
     });
-    saveTokens(result);
+    saveAccessToken(accessToken, remember);
   },
-
-  /** True when a token is stored, so the session can be restored on load. */
-  hasSession: (): boolean => readAccessToken() !== null,
-
-  /** Calls back when the backend ends a session in use, not when the user logs out. Returns the unsubscribe. */
-  onSessionEnded: (listener: () => void): (() => void) => {
-    sessionEndedListeners.add(listener);
-    return () => sessionEndedListeners.delete(listener);
-  },
-
-  /** Calls back when another tab signs in or out, because tabs share one login. Returns the unsubscribe. */
-  onOtherTabChange: (listener: (signedIn: boolean) => void): (() => void) => {
-    const onStorage = (event: StorageEvent) => {
-      // A null key means all of this site's storage was cleared.
-      if (event.key !== null && event.key !== ACCESS_TOKEN_KEY) return;
-      if (!readAccessToken()) {
-        forgetSessionState();
-        listener(false);
-      } else if (renewalActive) {
-        scheduleNextRenewal();
-      } else {
-        listener(true);
-      }
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  },
-
-  /**
-   * GET /auth/me for the signed-in user. Identity, role and permissions come from
-   * the backend. The property and its data still come from the demo store, whose
-   * ids differ from the backend's, so the active property is the store's.
-   */
   me: async (): Promise<AuthMe> => {
-    let body: BackendMe;
-    try {
-      body = await withAccessToken((token) => backendRequest<BackendMe>('/auth/me', {
-        headers: { Authorization: `Bearer ${token}` },
-      }));
-    } catch (cause) {
-      // Refused even after renewing, so this session can never succeed again.
-      if (cause instanceof ApiError && cause.status === 401) endSession();
-      throw cause;
-    }
-    if (readAccessToken()) startRenewal();
-    const { user } = body;
-    backendPropertyId = body.properties[0]?.id ?? null;
-    setBusinessDate(body.properties[0]?.businessDate ?? '');
-    const grant = body.properties[0] ?? body.platform;
-    const role = grant?.roles[0];
+    const [user, properties] = await Promise.all([
+      apiRequest<BackendMe>('/auth/me'),
+      apiRequest<BackendProperty[]>('/properties'),
+    ]);
     const demo = store.session();
-    const membership = demo.user.propertyMemberships[0];
+    const role = ROLE_LABELS[user.role];
+    const demoProperty = demo.user.propertyMemberships[0]?.property;
+
+    const propertyIds = properties.filter((p) => p.isActive).map((p) => p.id);
+    const saved = sessionStorage.getItem(ACTIVE_PROPERTY_KEY);
+    const activeId =
+      user.role === 'STAFF'
+        ? user.propertyId
+        : saved && propertyIds.includes(saved)
+          ? saved
+          : propertyIds.length === 1
+            ? (propertyIds[0] ?? null)
+            : null;
+
+    const active = properties.find((p) => p.id === activeId);
+    if (active) {
+      store.adoptProperty({
+        id: active.id,
+        name: active.name,
+        slug: active.code,
+        currencyCode: active.defaultCurrency,
+        checkInTime: active.checkInTime,
+        checkOutTime: active.checkOutTime,
+        addressLine1: active.address,
+        city: active.city,
+      });
+    }
+
     return {
+      ...demo,
       user: {
         ...demo.user,
-        id: user.id,
         email: user.email,
-        fullName: user.fullName,
-        status: user.status,
-        propertyMemberships: membership
-          ? [{ ...membership, role: { ...membership.role, name: role ? roleLabel(role) : 'Staff' } }]
-          : [],
+        fullName: user.name,
+        propertyMemberships: properties.map((p) => ({
+          id: `membership-${p.id}`,
+          userId: demo.user.id,
+          propertyId: p.id,
+          roleId: role.id,
+          isActive: p.isActive,
+          role,
+          property: {
+            id: p.id,
+            name: p.name,
+            slug: p.code,
+            timezone: demoProperty?.timezone ?? 'UTC',
+            currencyCode: p.defaultCurrency,
+          },
+        })),
       },
-      activePropertyId: demo.activePropertyId,
-      permissions: toFrontendPermissions(grant?.permissions ?? []),
+      activePropertyId: active?.id ?? null,
     };
   },
-
-  /** POST /auth/logout to end the session on the server, then forget the tokens. */
-  logout: async (): Promise<void> => {
-    stopRenewal();
+  /** Always forgets the token locally, even if the server could not be reached. */
+  logout: async () => {
     try {
-      // A renewal finishing after the logout would add a live token to the ended session, so let it finish first.
-      await renewalInFlight?.catch(() => undefined);
-      if (readAccessToken()) {
-        await withAccessToken((token) => backendRequest<void>('/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }));
-      }
-    } catch {
-      // Signing out must always work locally, even with the server down. This browser
-      // forgets the tokens either way, so nobody here can use that session again.
+      await apiRequest<void>('/auth/logout', { method: 'POST' });
+    } catch (error) {
+      // Already signed out server-side; nothing left to revoke.
+      if (!(error instanceof ApiError && error.status === 401)) throw error;
     } finally {
-      clearTokens();
+      clearAccessToken();
+      sessionStorage.removeItem(ACTIVE_PROPERTY_KEY);
     }
   },
-
-  switchProperty: async (propertyId: string) => store.switchProperty(propertyId),
+  /** Only meaningful for ADMIN; a STAFF user's property comes from the backend. */
+  switchProperty: async (propertyId: string) => {
+    sessionStorage.setItem(ACTIVE_PROPERTY_KEY, propertyId);
+  },
 };
 
 export interface HoldResult {
@@ -563,475 +322,207 @@ export const dayLogApi = {
   note: async (date: string) => store.dayNote(date),
   saveNote: async (date: string, text: string) => store.saveDayNote(date, text),
   enquiries: async (date: string) => store.dayEnquiries(date),
-  addEnquiry: async (row: Omit<DayEnquiryRow, 'id'>) => store.addDayEnquiry(row),
   removeEnquiry: async (id: string) => store.removeDayEnquiry(id),
 };
 
-/** The nights from arrival up to, not including, departure. */
-const nightsOf = (checkIn: string, checkOut: string): string[] => {
-  const nights: string[] = [];
-  for (let date = new Date(`${checkIn}T00:00:00Z`); date.toISOString().slice(0, 10) < checkOut; date.setUTCDate(date.getUTCDate() + 1)) {
-    nights.push(date.toISOString().slice(0, 10));
-  }
-  return nights;
-};
+export type PropertyTypeKey = 'HOTEL' | 'RESORT' | 'VILLA' | 'MOTEL' | 'APARTMENT';
 
-/** Room-night holds taken from the calendar. The backend lapses each hold after the property's hold time. */
-export const holdApi = {
-  acquire: async (roomId: string, checkIn: string, checkOut: string): Promise<HoldResult> => {
-    const hold = await authedRequest<{ holdId: string; roomId: string; checkIn: string; checkOut: string; expiresAt: string; remainingMs: number }>(
-      'POST',
-      `${propertyPath()}/rooms/${roomId}/holds`,
-      { checkIn, checkOut },
-    );
-    return { holdId: hold.holdId, roomId: hold.roomId, nights: nightsOf(checkIn, checkOut), expiresAt: hold.expiresAt, remainingMs: hold.remainingMs };
-  },
-};
-
-/** The ETag the backend sends with a record, for If-Match on the next change to it. */
-async function etagOf(path: string): Promise<string> {
-  const response = await withAccessToken(async (token) => {
-    const sent = await fetch(`${API_BASE_URL}${path}`, { headers: { Authorization: `Bearer ${token}` } });
-    if (sent.status === 401) throw new ApiError('You are not signed in.', 401, 'UNAUTHENTICATED');
-    return sent;
-  });
-  const etag = response.headers.get('ETag');
-  if (!etag) throw new ApiError('The server did not send a version for this record.', 502, 'NO_ETAG');
-  return etag;
+/** A property as the backend stores it (`GET /properties/:id`). */
+export interface PropertyDetails {
+  id: string;
+  name: string;
+  code: string;
+  type: PropertyTypeKey;
+  description: string | null;
+  address: string | null;
+  city: string;
+  state: string | null;
+  country: string;
+  postalCode: string | null;
+  phone: string | null;
+  frontDeskPhone: string | null;
+  emergencyContact: string | null;
+  email: string | null;
+  generalEmail: string | null;
+  reservationsEmail: string | null;
+  website: string | null;
+  /** 24-hour "HH:mm". */
+  checkInTime: string;
+  /** 24-hour "HH:mm". */
+  checkOutTime: string;
+  /** ISO 4217 code. */
+  defaultCurrency: string;
+  numberOfFloors: number | null;
+  totalRooms: number | null;
+  isActive: boolean;
 }
 
-/** The signed-in user's property: its details and the fields the settings screen edits. */
+/** Only the fields being changed; `null` clears an optional field. */
+export type PropertyUpdate = Partial<Omit<PropertyDetails, 'id' | 'isActive'>>;
+
+/** Real backend calls. Reading is open to the property's own staff; updating is ADMIN only. */
 export const propertyApi = {
-  current: async (): Promise<PropertyRow> =>
-    propertyRowFromBackend(await authedRequest<BackendProperty>('GET', propertyPath())),
-  update: async (fields: Record<string, unknown>): Promise<PropertyRow> => {
-    const path = propertyPath();
-    const current = await authedRequest<BackendProperty>('GET', path);
-    return propertyRowFromBackend(
-      await authedRequest<BackendProperty>('PATCH', path, propertyPatchFromFields(current, fields), { 'If-Match': await etagOf(path) }),
-    );
-  },
+  get: async (id: string) => apiRequest<PropertyDetails>(`/properties/${id}`),
+  update: async (id: string, body: PropertyUpdate) =>
+    apiRequest<PropertyDetails>(`/properties/${id}`, { method: 'PATCH', body }),
 };
 
-/*
- * Property settings the backend keeps as key and value pairs. The key is the setting's name,
- * for example "contact.phone". A setting that was never saved reads as the fallback.
- */
-export const settingsApi = {
-  get: async <T,>(key: string, fallback: T): Promise<T> => {
-    try {
-      return (await authedRequest<{ value: T }>('GET', `${propertyPath()}/settings/${key}`)).value;
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 404) return fallback;
-      throw error;
-    }
-  },
-  /** Saves a value, creating the setting on first save. The version guards against overwriting a newer save. */
-  set: async (key: string, value: unknown): Promise<void> => {
-    const path = `${propertyPath()}/settings/${key}`;
-    let version = 0;
-    try {
-      version = (await authedRequest<{ version: number }>('GET', path)).version;
-    } catch (error) {
-      if (!(error instanceof ApiError && error.status === 404)) throw error;
-    }
-    await authedRequest('PUT', path, { value }, { 'If-Match': `"v${version}"` });
-  },
-};
+export type RoomTypeStatus = 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE';
 
-/** Room inventory, read from and written to pms-backend for the signed-in property. */
-export const inventoryApi = {
-  rooms: async (): Promise<RoomRow[]> =>
-    (await authedRequest<{ data: RoomRow[] }>('GET', `${propertyPath()}/rooms?limit=200`)).data,
-  roomTypes: async (): Promise<RoomTypeRow[]> =>
-    (await authedRequest<{ data: RoomTypeRow[] }>('GET', `${propertyPath()}/room-types`)).data,
-  updateRoom: async (id: string, body: Record<string, unknown>): Promise<RoomRow> =>
-    authedRequest('PATCH', `${propertyPath()}/rooms/${id}`, body),
-  updateRoomType: async (id: string, body: Record<string, unknown>): Promise<RoomTypeRow> =>
-    authedRequest('PATCH', `${propertyPath()}/room-types/${id}`, body),
-  createRoom: async (body: Record<string, unknown>): Promise<RoomRow> =>
-    authedRequest('POST', `${propertyPath()}/rooms`, body),
-  createRoomType: async (body: Record<string, unknown>): Promise<RoomTypeRow> =>
-    authedRequest('POST', `${propertyPath()}/room-types`, body),
-  availability: async (checkIn: string, checkOut: string, roomTypeId: string): Promise<AvailabilityResult> =>
-    authedRequest('GET', `${propertyPath()}/room-availability?checkIn=${checkIn}&checkOut=${checkOut}&roomTypeId=${roomTypeId}`),
-  outOfOrder: async (id: string, reason: string): Promise<void> =>
-    authedRequest('POST', `${propertyPath()}/rooms/${id}/out-of-order`, { reason }),
-  backInService: async (id: string, reason: string): Promise<void> =>
-    authedRequest('POST', `${propertyPath()}/rooms/${id}/back-in-service`, { reason }),
-  /** Sets the housekeeping state; the backend rejects it when the room has changed since `expectedVersion`. */
-  setHousekeepingStatus: async (
-    id: string,
-    housekeepingStatus: 'DIRTY' | 'CLEAN' | 'INSPECTED',
-    expectedVersion: number,
-    reason: string,
-  ): Promise<void> =>
-    authedRequest('POST', `${propertyPath()}/rooms/${id}/status`, { housekeepingStatus, expectedVersion, reason }),
-};
-
-/** The If-Match header for a change to a record the backend versions. */
-async function versionHeader(path: string): Promise<Record<string, string>> {
-  const current = await authedRequest<{ version: number }>('GET', path);
-  return { 'If-Match': `"v${current.version}"` };
+/** A room type of one property as the backend stores it (`/:propertyId/rooms`). */
+export interface RoomTypeDetails {
+  id: string;
+  propertyId: string;
+  name: string;
+  /** Number of physical rooms of this type. */
+  roomCount: number;
+  /** Maximum guests per room. */
+  capacity: number;
+  /** Per night; the backend returns the decimal as a string. */
+  baseRate: string;
+  status: RoomTypeStatus;
+  /** Bed classification (a room category of the same property), if set. */
+  categoryId: string | null;
+  category: { id: string; name: string; bedSetup: string } | null;
 }
 
-/** Only the guest fields the backend accepts. The guest form sends more than the backend stores. */
-const guestFields = (body: Record<string, unknown>): Record<string, unknown> => {
-  const picked: Record<string, unknown> = {};
-  for (const key of ['title', 'firstName', 'lastName', 'email', 'phone', 'nationality', 'dateOfBirth', 'vipLevel', 'preferences', 'companyName', 'gender', 'address', 'city', 'state', 'country', 'internalNotes']) {
-    if (body[key] !== undefined) picked[key] = body[key];
-  }
-  return picked;
+export interface RoomTypeInput {
+  name: string;
+  roomCount: number;
+  capacity: number;
+  baseRate: number;
+  status: RoomTypeStatus;
+  /** Send null to clear the bed classification. */
+  categoryId?: string | null;
+}
+
+/** Real backend calls, always scoped to one property. */
+export const roomTypeApi = {
+  list: async (propertyId: string) => apiRequest<RoomTypeDetails[]>(`/${propertyId}/rooms`),
+  create: async (propertyId: string, body: RoomTypeInput) =>
+    apiRequest<RoomTypeDetails>(`/${propertyId}/rooms`, { method: 'POST', body }),
+  update: async (propertyId: string, id: string, body: Partial<RoomTypeInput>) =>
+    apiRequest<RoomTypeDetails>(`/${propertyId}/rooms/${id}`, { method: 'PATCH', body }),
+};
+
+/** A room category of one property as the backend stores it (`/:propertyId/room-categories`). */
+export interface RoomCategoryDetails {
+  id: string;
+  propertyId: string;
+  name: string;
+  description: string | null;
+  bedSetup: string;
+  isActive: boolean;
+}
+
+export interface RoomCategoryInput {
+  name: string;
+  description?: string;
+  bedSetup: string;
+  isActive: boolean;
+}
+
+export const roomCategoryApi = {
+  list: async (propertyId: string) => apiRequest<RoomCategoryDetails[]>(`/${propertyId}/room-categories`),
+  create: async (propertyId: string, body: RoomCategoryInput) =>
+    apiRequest<RoomCategoryDetails>(`/${propertyId}/room-categories`, { method: 'POST', body }),
+  update: async (propertyId: string, id: string, body: Partial<RoomCategoryInput>) =>
+    apiRequest<RoomCategoryDetails>(`/${propertyId}/room-categories/${id}`, { method: 'PATCH', body }),
+  remove: async (propertyId: string, id: string) =>
+    apiRequest<void>(`/${propertyId}/room-categories/${id}`, { method: 'DELETE' }),
+};
+
+/** An amenity of one property as the backend stores it (`/:propertyId/amenities`). */
+export interface AmenityDetails {
+  id: string;
+  propertyId: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+}
+
+export interface AmenityInput {
+  name: string;
+  description?: string;
+  isActive: boolean;
+}
+
+export const amenityApi = {
+  list: async (propertyId: string) => apiRequest<AmenityDetails[]>(`/${propertyId}/amenities`),
+  create: async (propertyId: string, body: AmenityInput) =>
+    apiRequest<AmenityDetails>(`/${propertyId}/amenities`, { method: 'POST', body }),
+  update: async (propertyId: string, id: string, body: Partial<AmenityInput>) =>
+    apiRequest<AmenityDetails>(`/${propertyId}/amenities/${id}`, { method: 'PATCH', body }),
+  remove: async (propertyId: string, id: string) =>
+    apiRequest<void>(`/${propertyId}/amenities/${id}`, { method: 'DELETE' }),
+};
+
+export const inventoryApi = {
+  rooms: async () => store.rooms(),
+  roomTypes: async () => store.roomTypes(),
+  updateRoom: async (id: string, body: Record<string, unknown>) => store.updateRoom(id, body),
+  createRoom: async (body: Record<string, unknown>) => store.createRoom(body),
+  availability: async (checkIn: string, checkOut: string, roomTypeId: string) =>
+    store.availability(checkIn, checkOut, roomTypeId),
+  outOfOrder: async (id: string, reason: string) => store.outOfOrder(id, reason),
+  backInService: async (id: string, reason: string) => store.backInService(id, reason),
 };
 
 export const guestApi = {
-  list: async (search = '', page = 1, pageSize = 100): Promise<PageResult<GuestRow>> => {
-    const query = new URLSearchParams({ limit: String(Math.min(pageSize, 200)) });
-    if (search.trim()) query.set('q', search.trim());
-    const result = await authedRequest<{ data: BackendGuestRow[]; meta: { nextCursor?: string } }>('GET', `${propertyPath()}/guests?${query}`);
-    return { data: result.data.map(guestRowFromBackend), page, pageSize, hasMore: Boolean(result.meta.nextCursor) };
-  },
-  get: async (id: string): Promise<GuestRow> =>
-    guestRowFromBackend(await authedRequest<BackendGuestRow>('GET', `${propertyPath()}/guests/${id}`)),
-  create: async (body: Record<string, unknown>): Promise<GuestRow> =>
-    guestRowFromBackend(await authedRequest<BackendGuestRow>('POST', `${propertyPath()}/guests`, guestFields(body))),
-  update: async (id: string, body: Record<string, unknown>): Promise<GuestRow> => {
-    const path = `${propertyPath()}/guests/${id}`;
-    return guestRowFromBackend(await authedRequest<BackendGuestRow>('PATCH', path, guestFields(body), await versionHeader(path)));
-  },
-};
-
-/** The rate plan new bookings are priced on: the property's BAR (best available rate) plan. */
-let barPlan: { propertyId: string; id: string } | null = null;
-async function barRatePlanId(): Promise<string> {
-  const propertyId = backendPropertyId;
-  if (barPlan && barPlan.propertyId === propertyId) return barPlan.id;
-  const plans = await authedRequest<{ data: Array<{ id: string; code: string; isActive: boolean }> }>('GET', `${propertyPath()}/rate-plans`);
-  const plan = plans.data.find((item) => item.code === 'BAR' && item.isActive) ?? plans.data.find((item) => item.isActive);
-  if (!plan || !propertyId) throw new ApiError('No rate plan is set up for this property.', 422, 'NO_RATE_PLAN');
-  barPlan = { propertyId, id: plan.id };
-  return plan.id;
-}
-
-/** Where a booking's room line came from: the calendar's hold, the room picked, or none. */
-interface BookingLine {
-  roomTypeId: string;
-  roomId?: string | null;
-  holdId?: string | null;
-  adults?: number;
-  children?: number;
-}
-
-const BOOKING_SOURCES = ['DIRECT', 'PHONE', 'EMAIL', 'WALK_IN', 'OTA', 'CORPORATE', 'WEBSITE', 'GROUP', 'AGENT', 'GDS', 'META', 'BOOKING_ENGINE'];
-
-/* The booking form's source labels, mapped to the backend's source values. */
-const SOURCE_BY_LABEL: Record<string, string> = {
-  Direct: 'DIRECT', OTA: 'OTA', Agent: 'AGENT', GDS: 'GDS', Corp: 'CORPORATE', Corporate: 'CORPORATE', 'Booking Engine': 'BOOKING_ENGINE', Meta: 'META',
+  list: async (search = '', page = 1, pageSize = 100) => store.listGuests(search, page, pageSize),
+  get: async (id: string) => store.getGuest(id) as GuestRow,
+  create: async (body: Record<string, unknown>) => store.createGuest(body),
+  update: async (id: string, body: Record<string, unknown>) => store.updateGuest(id, body) as GuestRow,
 };
 
 export const reservationApi = {
-  list: async (search = '', status?: string, page = 1, pageSize = 100): Promise<PageResult<ReservationRow>> => {
-    const result = await authedRequest<{ data: BackendReservation[]; meta: { nextCursor?: string } }>(
-      'GET',
-      `${propertyPath()}/reservations?limit=200`,
-    );
-    const needle = search.trim().toLowerCase();
-    const rows = result.data
-      .map(reservationRowFromBackend)
-      .filter((row) => !status || row.status === status)
-      .filter((row) => !needle || [row.bookingCode, row.guestName ?? ''].some((text) => text.toLowerCase().includes(needle)));
-    return { data: rows.slice((page - 1) * pageSize, page * pageSize), page, pageSize, hasMore: rows.length > page * pageSize };
-  },
-  get: async (id: string): Promise<ReservationRow> =>
-    reservationRowFromBackend(await authedRequest<BackendReservation>('GET', `${propertyPath()}/reservations/${id}`)),
-  /** One booking per room line, sharing the guest and dates. The first booking's code is the one the screen shows. */
-  create: async (body: Record<string, unknown>): Promise<ReservationRow> => {
-    const lines = (body.roomLines as BookingLine[] | undefined) ?? [];
-    if (lines.length === 0) throw new ApiError('Add at least one room to the booking.', 422, 'NO_ROOMS');
-    const ratePlanId = await barRatePlanId();
-    const label = String(body.source);
-    const source = SOURCE_BY_LABEL[label] ?? (BOOKING_SOURCES.includes(label) ? label : 'DIRECT');
-    const holdOnly = body.status === 'DRAFT' || undefined;
-    let first: BackendReservation | null = null;
-    for (const line of lines) {
-      const created = await authedRequest<BackendReservation>(
-        'POST',
-        `${propertyPath()}/reservations`,
-        {
-          arrivalDate: body.checkInDate,
-          departureDate: body.checkOutDate,
-          roomTypeId: line.roomTypeId,
-          ratePlanId,
-          adults: line.adults ?? body.adults ?? 1,
-          children: line.children ?? 0,
-          source,
-          sourceDetail: typeof body.sourceType === 'string' && body.sourceType ? body.sourceType : undefined,
-          externalReferenceId: typeof body.externalReferenceId === 'string' && body.externalReferenceId ? body.externalReferenceId : undefined,
-          internalNotes: typeof body.internalNotes === 'string' && body.internalNotes ? body.internalNotes : undefined,
-          primaryGuestId: body.primaryGuestId,
-          roomId: line.roomId ?? undefined,
-          holdId: line.holdId ?? undefined,
-          specialRequests: body.specialRequests || undefined,
-          holdOnly,
-        },
-        { 'Idempotency-Key': crypto.randomUUID() },
-      );
-      first ??= created;
-    }
-    const booked = first as BackendReservation;
-    await postBookingExtras(booked.id, body);
-    return reservationRowFromBackend(booked);
-  },
-  update: async (id: string, patch: Record<string, unknown>): Promise<ReservationRow> => {
-    const path = `${propertyPath()}/reservations/${id}`;
-    const body: Record<string, unknown> = {};
-    if (patch.checkInDate !== undefined) body.arrivalDate = patch.checkInDate;
-    if (patch.checkOutDate !== undefined) body.departureDate = patch.checkOutDate;
-    if (patch.specialRequests !== undefined) body.specialRequests = patch.specialRequests;
-    if (patch.adults !== undefined) body.adults = patch.adults;
-    if (patch.children !== undefined) body.children = patch.children;
-    return reservationRowFromBackend(await authedRequest<BackendReservation>('PATCH', path, body, await versionHeader(path)));
-  },
-  assignRoom: async (id: string, roomId: string): Promise<ReservationRow> => {
-    const path = `${propertyPath()}/reservations/${id}/room`;
-    await authedRequest('PUT', path, { roomId }, await versionHeader(`${propertyPath()}/reservations/${id}`));
-    return reservationApi.get(id);
-  },
-  /** The backend's price for one room over a stay, at the BAR rate plan. */
-  quote: async (params: { checkIn: string; checkOut: string; roomTypeId: string; adults: number; children: number }): Promise<RoomQuote> => {
-    const ratePlanId = await barRatePlanId();
-    const result = await authedRequest<{
-      nights: Array<{ date: string; amount: string }>;
-      available: boolean;
-      totals: { roomAmount: string; taxAmount: string; totalAmount: string };
-    }>('POST', `${propertyPath()}/reservations/quotes`, {
-      arrivalDate: params.checkIn,
-      departureDate: params.checkOut,
-      roomTypeId: params.roomTypeId,
-      ratePlanId,
-      adults: params.adults,
-      children: params.children,
-    });
-    return {
-      nights: result.nights.length,
-      available: result.available,
-      roomAmount: result.totals.roomAmount,
-      taxAmount: result.totals.taxAmount,
-      totalAmount: result.totals.totalAmount,
-    };
-  },
-  cancel: async (id: string, reason: string): Promise<void> => {
-    const path = `${propertyPath()}/reservations/${id}/cancel`;
-    await authedRequest('POST', path, { reasonCode: 'GUEST_REQUEST', note: reason.slice(0, 300) }, await versionHeader(`${propertyPath()}/reservations/${id}`));
-  },
+  list: async (search = '', status?: string, page = 1, pageSize = 100) =>
+    store.listReservations(search, status, page, pageSize),
+  get: async (id: string) => store.getReservation(id) as ReservationRow,
+  create: async (body: Record<string, unknown>) => store.createReservation(body),
+  update: async (id: string, body: Record<string, unknown>) => store.updateReservation(id, body) as ReservationRow,
+  assignRoom: async (id: string, roomId: string, roomLineId?: string) => store.assignRoom(id, roomId, roomLineId),
+  cancel: async (id: string, reason: string) => store.cancelReservation(id, reason),
 };
-
-/** Arrivals, departures and guests in house for the business date. */
-async function dayStays(kind: 'arrivals' | 'departures' | 'in-house'): Promise<StayList> {
-  const [result, folios] = await Promise.all([
-    authedRequest<{ data: BackendReservation[]; meta: { businessDate: string } }>('GET', `${propertyPath()}/${kind}?limit=200`),
-    allFolios(),
-  ]);
-  const folioByReservation = new Map(folios.filter((folio) => folio.reservationId).map((folio) => [folio.reservationId as string, folio]));
-  return {
-    businessDate: result.meta.businessDate,
-    data: result.data.map((reservation) => stayRowFromBackend(reservation, folioByReservation.get(reservation.id))),
-  };
-}
 
 export const frontDeskApi = {
-  arrivals: async (): Promise<StayList> => dayStays('arrivals'),
-  departures: async (): Promise<StayList> => dayStays('departures'),
-  inHouse: async (): Promise<StayList> => dayStays('in-house'),
-  checkIn: async (id: string): Promise<void> => {
-    const path = `${propertyPath()}/reservations/${id}/check-in`;
-    await authedRequest('POST', path, {}, await versionHeader(`${propertyPath()}/reservations/${id}`));
-  },
-  checkOut: async (id: string): Promise<void> => {
-    const path = `${propertyPath()}/reservations/${id}/check-out`;
-    await authedRequest('POST', path, {}, await versionHeader(`${propertyPath()}/reservations/${id}`));
-  },
-  roomTimeline: async (date: string): Promise<RoomTimelineApi> =>
-    (await authedRequest<{ data: RoomTimelineApi }>('GET', `${propertyPath()}/front-desk/room-timeline?date=${date}`)).data,
+  arrivals: async () => store.arrivals(),
+  departures: async () => store.departures(),
+  inHouse: async () => store.inHouse(),
+  checkIn: async (id: string, _overrideReason?: string) => store.checkIn(id),
+  checkOut: async (id: string, overrideReason?: string) => store.checkOut(id, overrideReason),
+  extend: async (id: string, newCheckOutDate: string) => store.extend(id, newCheckOutDate),
 };
-
-/*
- * Add-ons and payments entered on the booking form go to the booking's folio. A failed post is
- * reported, and the booking stands: staff can post the rest from billing.
- */
-async function postBookingExtras(reservationId: string, body: Record<string, unknown>): Promise<void> {
-  const charges = ((body.pendingCharges as Array<{ description: string; quantity: string; unitAmount: string; postToFolio: boolean }> | undefined) ?? [])
-    .filter((charge) => charge.postToFolio);
-  const payments = (body.pendingPayments as Array<{ amount: string; method: string; reference?: string | null }> | undefined) ?? [];
-  if (charges.length === 0 && payments.length === 0) return;
-
-  const [folio] = (await authedRequest<{ data: BackendFolio[] }>('GET', `${propertyPath()}/folios?reservationId=${reservationId}&limit=50`)).data;
-  if (!folio) {
-    toast.error('Add-ons and payments not posted', { detail: 'The booking has no folio to post them to.' });
-    return;
-  }
-  const failures: string[] = [];
-  for (const charge of charges) {
-    try {
-      await folioApi.postItem(folio.id, { description: charge.description, quantity: charge.quantity, unitAmount: charge.unitAmount });
-    } catch (error) {
-      failures.push(`${charge.description}: ${displayApiError(error)}`);
-    }
-  }
-  for (const payment of payments) {
-    try {
-      await folioApi.payment(folio.id, { amount: payment.amount, method: methodKindOf(payment.method), reference: payment.reference ?? undefined });
-    } catch (error) {
-      failures.push(`${payment.method} ${payment.amount}: ${displayApiError(error)}`);
-    }
-  }
-  if (failures.length > 0) {
-    toast.error('Some add-ons or payments were not posted', { detail: failures.join(' ') });
-  }
-}
-
-interface PaymentMethodRow { id: string; kind: string; name: string; isActive: boolean }
-let methodCache: { propertyId: string; methods: PaymentMethodRow[] } | null = null;
-
-/** The property's active payment methods, cached for the signed-in property. */
-async function paymentMethods(): Promise<PaymentMethodRow[]> {
-  const propertyId = backendPropertyId ?? '';
-  if (methodCache?.propertyId === propertyId) return methodCache.methods;
-  const result = await authedRequest<{ data: PaymentMethodRow[] }>('GET', `${propertyPath()}/payment-methods`);
-  methodCache = { propertyId, methods: result.data.filter((method) => method.isActive) };
-  return methodCache.methods;
-}
-
-async function paymentMethodIdOfKind(kind: string): Promise<string> {
-  const method = (await paymentMethods()).find((item) => item.kind === kind);
-  if (!method) throw new ApiError(`No ${kind.toLowerCase().replaceAll('_', ' ')} payment method is set up for this property.`, 422, 'NO_PAYMENT_METHOD');
-  return method.id;
-}
-
-/** Payment kind for a method name the booking form offers. */
-function methodKindOf(method: string): string {
-  const text = method.toLowerCase();
-  if (text.includes('cash')) return 'CASH';
-  if (text.includes('upi')) return 'UPI';
-  if (text.includes('bank')) return 'BANK_TRANSFER';
-  if (text.includes('card')) return 'CARD_TERMINAL';
-  throw new ApiError(`"${method}" is not a payment method the PMS accepts.`, 422, 'UNKNOWN_PAYMENT_METHOD');
-}
-
-async function methodKinds(): Promise<Map<string, string>> {
-  return new Map((await paymentMethods()).map((method) => [method.id, method.kind]));
-}
-
-/** Every folio of the property. Each reservation has one guest folio. */
-async function allFolios(): Promise<BackendFolio[]> {
-  return (await authedRequest<{ data: BackendFolio[] }>('GET', `${propertyPath()}/folios?limit=200`)).data;
-}
-
-async function paymentsOfFolio(folio: BackendFolio, kinds: Map<string, string>): Promise<PaymentRow[]> {
-  const result = await authedRequest<{ data: BackendPayment[] }>('GET', `${propertyPath()}/folios/${folio.id}/payments?limit=200`);
-  return result.data.map((payment) => paymentRowFromBackend(payment, kinds, folio));
-}
-
-async function folioDetailOf(folioId: string): Promise<FolioDetailRow> {
-  const [folio, transactions, kinds] = await Promise.all([
-    authedRequest<BackendFolio>('GET', `${propertyPath()}/folios/${folioId}`),
-    authedRequest<{ data: BackendTransaction[] }>('GET', `${propertyPath()}/folios/${folioId}/transactions?limit=200`),
-    methodKinds(),
-  ]);
-  return folioDetailFromBackend(folio, transactions.data, await paymentsOfFolio(folio, kinds));
-}
-
-/** A fresh key for each write, so a retried request is not posted twice. */
-const idempotency = (): Record<string, string> => ({ 'Idempotency-Key': crypto.randomUUID() });
 
 export const folioApi = {
-  listPayments: async (): Promise<PaymentRow[]> => {
-    const [folios, kinds] = await Promise.all([allFolios(), methodKinds()]);
-    return (await Promise.all(folios.map((folio) => paymentsOfFolio(folio, kinds)))).flat();
-  },
-  listInvoices: async (): Promise<InvoiceRow[]> => {
-    const folios = await allFolios();
-    const perFolio = await Promise.all(
-      folios.map(async (folio) => {
-        const result = await authedRequest<{ data: BackendInvoice[] }>('GET', `${propertyPath()}/folios/${folio.id}/invoices`);
-        return result.data.map((invoice) => invoiceRowFromBackend(invoice, folio.folioNumber));
-      }),
-    );
-    return perFolio.flat();
-  },
-  detail: async (id: string): Promise<FolioDetailRow> => folioDetailOf(id),
-  /** Posts an extra charge. The billing screen sends its own description, quantity and unit amount. */
-  postItem: async (folioId: string, body: { description: string; quantity: string; unitAmount: string }): Promise<void> => {
-    await authedRequest(
-      'POST',
-      `${propertyPath()}/folios/${folioId}/transactions`,
-      { category: 'OTHER', description: body.description, quantity: Number(body.quantity), unitPrice: body.unitAmount },
-      idempotency(),
-    );
-  },
-  /** Records a payment. `method` is a payment kind such as CARD_TERMINAL or CASH. */
-  payment: async (folioId: string, body: { amount: string; method: string; reference?: string }): Promise<void> => {
-    const paymentMethodId = await paymentMethodIdOfKind(body.method);
-    await authedRequest(
-      'POST',
-      `${propertyPath()}/folios/${folioId}/payments`,
-      { paymentMethodId, amount: body.amount, reference: body.reference },
-      idempotency(),
-    );
-  },
-  /** Requests a refund of a payment, then processes it. */
-  refund: async (paymentId: string, amount: string, reason: string): Promise<void> => {
-    const refund = await authedRequest<{ id: string }>('POST', `${propertyPath()}/payments/${paymentId}/refunds`, { amount, reason }, idempotency());
-    await authedRequest(
-      'POST',
-      `${propertyPath()}/refunds/${refund.id}/process`,
-      { reference: `RF-${refund.id.slice(0, 8).toUpperCase()}` },
-      idempotency(),
-    );
-  },
-  invoice: async (id: string) => {
-    const invoice = await authedRequest<BackendInvoice>('GET', `${propertyPath()}/invoices/${id}`);
-    return {
-      ...invoiceRowFromBackend(invoice, null),
-      property: {
-        name: invoice.seller?.name ?? '',
-        addressLine1: invoice.seller?.address?.line1 ?? null,
-        city: invoice.seller?.address?.city ?? null,
-        countryCode: invoice.seller?.address?.country ?? 'IN',
-      },
-      lines: invoice.lines.map((line, index) => ({ id: String(index), description: line.description, totalAmount: line.amount })),
-    };
-  },
-  voidInvoice: async (invoiceId: string, reason: string): Promise<void> => {
-    await authedRequest('POST', `${propertyPath()}/invoices/${invoiceId}/void`, { reason }, idempotency());
-  },
+  listPayments: async () => store.listPayments(),
+  listInvoices: async () => store.listInvoices(),
+  balance: async (id: string) => store.folioBalance(id) as FolioBalanceRow,
+  detail: async (id: string) => store.folioDetail(id) as FolioDetailRow,
+  close: async (id: string) => store.closeFolio(id),
+  reopen: async (id: string, reason: string) => store.reopenFolio(id, reason),
+  postItem: async (id: string, body: Record<string, unknown>) => store.postItem(id, body),
+  voidItem: async (itemId: string, reason: string) => store.voidItem(itemId, reason),
+  payment: async (id: string, body: Record<string, unknown>) => store.recordPayment(id, body),
+  refund: async (id: string, amount: string, reason: string) => store.refundPayment(id, amount, reason),
+  issueInvoice: async (folioId: string) => store.issueInvoice(folioId) as { id: string; invoiceNo: string; status?: string },
+  voidInvoice: async (invoiceId: string, reason: string) => store.voidInvoice(invoiceId, reason),
+  invoice: async (id: string) => store.getInvoice(id) as InvoiceRow & { property: { name: string; addressLine1: string | null; city: string | null; countryCode: string } | null; lines: Array<{ id: string; description: string; totalAmount: string }> },
 };
 
-/** Housekeeping and maintenance, read from pms-backend. Cancelled items are not listed. */
 export const operationsApi = {
-  housekeepingTasks: async (): Promise<HousekeepingTaskRow[]> =>
-    (await authedRequest<{ data: HousekeepingTaskRow[] }>('GET', `${propertyPath()}/housekeeping/tasks?limit=200`)).data
-      .filter((task) => task.status !== 'CANCELLED'),
-  maintenanceTickets: async (): Promise<MaintenanceTicketRow[]> =>
-    (await authedRequest<{ data: MaintenanceTicketRow[] }>('GET', `${propertyPath()}/maintenance-requests?limit=200`)).data
-      .filter((ticket) => ticket.status !== 'CANCELLED'),
-  /**
-   * How many rooms are ready for guests, from the room list. A room is ready when it is in service
-   * and clean or inspected, the same rule the backend uses when it checks a room in.
-   */
-  housekeepingSummary: async (): Promise<HousekeepingSummaryRow> => {
-    const rooms = await inventoryApi.rooms();
-    const count = (statuses: string[]) => rooms.filter((room) => statuses.includes(room.status)).length;
-    return {
-      rooms: {
-        total: rooms.length,
-        ready: count(['VACANT_CLEAN', 'INSPECTED', 'OCCUPIED_CLEAN']),
-        dirty: count(['VACANT_DIRTY', 'OCCUPIED_DIRTY']),
-        occupied: count(['OCCUPIED_CLEAN', 'OCCUPIED_DIRTY']),
-        outOfOrder: count(['OUT_OF_ORDER']),
-      },
-    };
-  },
+  housekeepingTasks: async (scope?: string) => store.housekeepingTasks(scope),
+  housekeepingSummary: async () => store.housekeepingSummary(),
+  createTask: async (body: Record<string, unknown>) => store.createTask(body),
+  assignTask: async (id: string, assignedToId: string | null) => store.assignTask(id, assignedToId),
+  startTask: async (id: string) => store.startTask(id),
+  completeTask: async (id: string, notes?: string) => store.completeTask(id, notes),
+  requestInspection: async (id: string) => store.requestInspection(id),
+  inspectTask: async (id: string, result: 'pass' | 'fail', notes?: string) => store.inspectTask(id, result, notes),
+  blockTask: async (id: string, reason: string) => store.blockTask(id, reason),
+  unblockTask: async (id: string) => store.unblockTask(id),
+  cancelTask: async (id: string, reason: string) => store.cancelTask(id, reason),
+  maintenanceTickets: async () => store.maintenanceTickets(),
 };
 
 export const reportsApi = {
@@ -1064,116 +555,18 @@ export interface RoleMatrix {
   resources: Array<{ resource: string; permissions: Array<{ key: string; action: string; description: string; roles: string[] }> }>;
 }
 
-interface BackendUserSummary { id: string; email: string; fullName: string; status: string; lastLoginAt: string | null }
-interface BackendUserDetail extends BackendUserSummary {
-  propertyRoles: Array<{ propertyId: string; roleId: string; roleCode: string; roleName: string }>;
-}
-interface BackendRole { id: string; code: string; name: string; description: string | null; isEditable: boolean; permissions: Array<{ code: string }>; impliedPermissions: string[] }
-interface BackendPermission { code: string; module: string; description: string }
-
-/** The staff member as the staff screen lists them: their role at the signed-in property, or null if they have none there. */
-function userRowOf(user: BackendUserDetail): UserRow | null {
-  const propertyId = backendPropertyId ?? '';
-  const role = user.propertyRoles.find((item) => item.propertyId === propertyId);
-  if (!role) return null;
-  const status: UserRow['status'] = user.status === 'DEACTIVATED' ? 'DISABLED' : user.status === 'INVITED' ? 'INVITED' : 'ACTIVE';
-  return {
-    userId: user.id,
-    email: user.email,
-    fullName: user.fullName,
-    status,
-    lastLoginAt: user.lastLoginAt,
-    membershipActive: status !== 'DISABLED',
-    invitePending: status === 'INVITED',
-    inviteExpired: false,
-    propertyId,
-    roleKey: role.roleCode,
-    roleName: role.roleName,
-  };
-}
-
-async function staffOfProperty(): Promise<UserRow[]> {
-  const list = await authedRequest<{ data: BackendUserSummary[] }>('GET', '/users?limit=200');
-  const details = await Promise.all(list.data.map((user) => authedRequest<BackendUserDetail>('GET', `/users/${user.id}`)));
-  return details.map(userRowOf).filter((row): row is UserRow => row !== null);
-}
-
-/** Everything a role can do, including what its grants imply, so the matrix matches what the backend allows. */
-function heldCodes(role: BackendRole): string[] {
-  return [...role.permissions.map((item) => item.code), ...role.impliedPermissions];
-}
-
-async function rolesOfTenant(): Promise<BackendRole[]> {
-  return (await authedRequest<{ data: BackendRole[] }>('GET', '/roles')).data;
-}
-
-/* Staff and roles, read from and written to pms-backend. Roles are keyed by their backend code. */
 export const adminApi = {
-  users: async (): Promise<UserRow[]> => staffOfProperty(),
-  invite: async (body: { email: string; fullName: string; roleKey: string }): Promise<{ email: string }> => {
-    const role = (await rolesOfTenant()).find((item) => item.code === body.roleKey);
-    if (!role) throw new ApiError('That role does not exist.', 422, 'UNKNOWN_ROLE');
-    const user = await authedRequest<BackendUserSummary>('POST', '/users', {
-      email: body.email,
-      fullName: body.fullName,
-      propertyRoles: [{ propertyId: backendPropertyId, roleId: role.id }],
-    });
-    return { email: user.email };
-  },
-  /** The backend emails invitations and cannot resend them yet. */
-  reissueInvite: async (_id: string): Promise<void> => {
-    throw new ApiError('Resending an invitation is not available yet. Invite the person again instead.', 501, 'NOT_AVAILABLE');
-  },
-  /** Cancelling a pending invitation deactivates the account it created. */
-  cancelInvite: async (id: string): Promise<void> => {
-    await authedRequest('POST', `/users/${id}/deactivate`);
-  },
-  updateUser: async (id: string, body: { fullName?: string }): Promise<void> => {
-    await authedRequest('PATCH', `/users/${id}`, body);
-  },
-  /** Gives the person one role at the property. Their roles at other properties are kept. */
-  setRole: async (id: string, roleKey: string): Promise<void> => {
-    const propertyId = backendPropertyId;
-    if (!propertyId) throw new ApiError('You are not signed in.', 401, 'UNAUTHENTICATED');
-    const [user, roles] = await Promise.all([authedRequest<BackendUserDetail>('GET', `/users/${id}`), rolesOfTenant()]);
-    const role = roles.find((item) => item.code === roleKey);
-    if (!role) throw new ApiError('That role does not exist.', 422, 'UNKNOWN_ROLE');
-    const kept = user.propertyRoles
-      .filter((item) => item.propertyId !== propertyId)
-      .map((item) => ({ propertyId: item.propertyId, roleId: item.roleId }));
-    await authedRequest('PUT', `/users/${id}/property-roles`, { assignments: [...kept, { propertyId, roleId: role.id }] });
-  },
-  setUserStatus: async (id: string, status: 'ACTIVE' | 'DISABLED'): Promise<void> => {
-    await authedRequest('POST', `/users/${id}/${status === 'ACTIVE' ? 'reactivate' : 'deactivate'}`);
-  },
-  roles: async (): Promise<RoleRow[]> => {
-    const [roles, staff] = await Promise.all([rolesOfTenant(), staffOfProperty()]);
-    return roles.map((role) => ({
-      id: role.id,
-      key: role.code,
-      name: role.name,
-      description: role.description,
-      isSystem: !role.isEditable,
-      isActive: true,
-      permissions: heldCodes(role),
-      memberCount: staff.filter((member) => member.roleKey === role.code).length,
-    }));
-  },
-  /** Each permission, grouped by its module, with the roles that hold it. */
-  matrix: async (): Promise<RoleMatrix> => {
-    const [roles, catalog] = await Promise.all([rolesOfTenant(), authedRequest<{ data: BackendPermission[] }>('GET', '/permissions')]);
-    const byModule = new Map<string, RoleMatrix['resources'][number]['permissions']>();
-    for (const permission of catalog.data) {
-      const holders = roles.filter((role) => heldCodes(role).includes(permission.code)).map((role) => role.code);
-      const list = byModule.get(permission.module) ?? [];
-      list.push({ key: permission.code, action: permission.code.split('.').slice(1).join('.'), description: permission.description, roles: holders });
-      byModule.set(permission.module, list);
-    }
-    return {
-      roles: roles.map((role) => ({ key: role.code, name: role.name })),
-      resources: [...byModule].map(([resource, permissions]) => ({ resource, permissions })),
-    };
-  },
+  users: async () => store.users(),
+  acceptInvite: async (token: string, _password: string) => ({ email: token, status: 'ACTIVE' }),
+  invite: async (body: Record<string, unknown>) => store.invite(body),
+  reissueInvite: async (id: string) => store.reissueInvite(id),
+  cancelInvite: async (id: string) => store.cancelInvite(id),
+  updateUser: async (id: string, body: Record<string, unknown>) => store.updateUser(id, body) as UserRow,
+  setRole: async (id: string, propertyId: string, roleKey: string) => store.setRole(id, propertyId, roleKey),
+  setUserStatus: async (id: string, status: 'ACTIVE' | 'DISABLED') => store.setUserStatus(id, status),
+  roles: async () => store.roles(),
+  permissions: async () => store.permissions(),
+  matrix: async () => store.matrix(),
   taxRules: async () => store.taxRules(),
   createTaxRule: async (body: Record<string, unknown>) => store.createTaxRule(body),
   updateTaxRule: async (id: string, body: Record<string, unknown>) => store.updateTaxRule(id, body),
@@ -1181,25 +574,12 @@ export const adminApi = {
 
 const THEME_STORAGE_KEY = 'pms.theme';
 
-/*
- * The colour theme is a property setting, so it follows the property. Before sign-in, or when
- * the setting cannot be read, the last theme chosen on this browser is used.
- */
 export const themeApi = {
-  get: async (): Promise<{ themeKey: ThemeKey }> => {
-    const local = (localStorage.getItem(THEME_STORAGE_KEY) ?? 'CRIMSON_RED') as ThemeKey;
-    if (!backendPropertyId) return { themeKey: local };
-    try {
-      const themeKey = await settingsApi.get<ThemeKey>('appearance.theme', local);
-      localStorage.setItem(THEME_STORAGE_KEY, themeKey);
-      return { themeKey };
-    } catch {
-      return { themeKey: local };
-    }
-  },
+  get: async (): Promise<{ themeKey: ThemeKey }> => ({
+    themeKey: (localStorage.getItem(THEME_STORAGE_KEY) ?? 'CRIMSON_RED') as ThemeKey,
+  }),
   set: async (themeKey: ThemeKey) => {
     localStorage.setItem(THEME_STORAGE_KEY, themeKey);
-    if (backendPropertyId) await settingsApi.set('appearance.theme', themeKey);
     return { themeKey, applied: true };
   },
 };

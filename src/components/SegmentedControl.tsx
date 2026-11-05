@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import { Button } from './primitives';
 
-interface SegmentOption<T extends string> {
+export interface SegmentOption<T extends string> {
   id: T;
   label: string;
   Icon: LucideIcon;

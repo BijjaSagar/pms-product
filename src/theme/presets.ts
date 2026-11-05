@@ -1,7 +1,7 @@
 // Central preset registry. Single source of truth for the swatcher UI.
 // Runtime values live in tokens.css (must stay in sync). TS-only, erasable syntax.
 
-const PRESET_IDS = [
+export const PRESET_IDS = [
   'crimson',
   'ocean',
   'beige',
@@ -15,7 +15,7 @@ const PRESET_IDS = [
 
 export type ThemePresetId = (typeof PRESET_IDS)[number];
 
-interface PresetMeta {
+export interface PresetMeta {
   id: ThemePresetId;
   name: string;
   description: string;

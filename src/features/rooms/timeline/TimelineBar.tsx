@@ -1,6 +1,6 @@
 import * as Lucide from 'lucide-react';
 import { TONE_VARS } from '../../../theme/tone';
-import type { TimelineEvent, TimelineIcon } from '../../../types';
+import type { TimelineEvent, TimelineIcon } from '../../../data/roomTimeline';
 import { EVENT_TONE, barPlacement } from './timelineMath';
 
 const ICONS: Record<TimelineIcon, Lucide.LucideIcon> = {

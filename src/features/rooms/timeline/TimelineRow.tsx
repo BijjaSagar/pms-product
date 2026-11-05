@@ -1,4 +1,4 @@
-import type { RoomTimelineRow } from '../../../types';
+import type { RoomTimelineRow } from '../../../data/roomTimeline';
 import { TIME_TICKS } from './timelineMath';
 import { TimelineBar } from './TimelineBar';
 

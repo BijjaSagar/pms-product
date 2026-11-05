@@ -2,7 +2,7 @@ import * as Lucide from 'lucide-react';
 import { Modal } from '../../../components/overlays';
 import { Badge } from '../../../components/ui';
 import { Button } from '../../../components/primitives';
-import type { TimelineEvent, TimelineStatus } from '../../../types';
+import type { TimelineEvent, TimelineStatus } from '../../../data/roomTimeline';
 import { EVENT_TONE, END_HOUR, START_HOUR, formatClock } from './timelineMath';
 
 export interface TimelineRoomView {

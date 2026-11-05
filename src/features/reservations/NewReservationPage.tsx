@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import * as Lucide from "lucide-react";
 import type { NavDraft, NavTarget } from "../../config/navigation";
 import { toast } from "../../utils/toast";
@@ -11,9 +11,7 @@ import type {
 import { useApiResource } from "../../lib/api/useApiResource";
 import { guestFromApi } from "../../lib/api/adapters";
 import type { Guest } from "../../types";
-import { TAX_RATE } from "../../data/catalog";
-import { useBusinessDate } from "../../lib/api/businessDate";
-import { displayApiError } from "../../lib/api/client";
+import { BUSINESS_DATE, GUESTS, TAX_RATE } from "../../data/catalog";
 import { AddGuestModal } from "./new-reservation/AddGuestModal";
 import { GuestActivityLog } from "./new-reservation/GuestActivityLog";
 import { BillingRoutingFields } from "./new-reservation/BillingRoutingFields";
@@ -34,17 +32,9 @@ import type {
   RoomRequirement,
 } from "./new-reservation/types";
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-/i;
-
-/** The backend's id for a line's room category. Lines can start on a demo category id, so the name decides. */
-function resolveTypeId(requirement: RoomRequirement, roomTypes: RoomCategoryOption[]): string {
-  return roomTypes.find((type) => type.name === requirement.category)?.id ?? requirement.roomTypeId;
-}
-
-/** Identifies one quote: the line, its category, the stay and the guests. A change needs a new quote. */
-function quoteKeyFor(requirement: RoomRequirement, roomTypes: RoomCategoryOption[], checkIn: string, checkOut: string): string {
-  return [requirement.id, resolveTypeId(requirement, roomTypes), checkIn, checkOut, requirement.adults, requirement.children].join("|");
-}
+/* The form opens on the store's first guest, so its defaults match the seeded data. */
+const DEFAULT_GUEST = GUESTS[0];
+const DEFAULT_GUEST_NAME = `${DEFAULT_GUEST.firstName} ${DEFAULT_GUEST.lastName}`;
 
 /** ISO date (YYYY-MM-DD) for the day after the given ISO date. */
 function nextDayIso(iso: string): string {
@@ -71,7 +61,6 @@ export function NewReservation({
   initialDraft?: NavDraft;
 }) {
   const [activeTab, setActiveTab] = useState<"general" | "outlet">("general");
-  const businessDate = useBusinessDate();
 
   // Prefill from the room calendar (room + night clicked on the rack).
   const draftRoomTypeName = initialDraft?.roomType ?? "";
@@ -80,7 +69,7 @@ export function NewReservation({
       (category) =>
         category.name.toLowerCase() === draftRoomTypeName.toLowerCase(),
     ) ?? FALLBACK_ROOM_CATEGORIES[1];
-  const initialCheckIn = initialDraft?.checkIn ?? businessDate;
+  const initialCheckIn = initialDraft?.checkIn ?? BUSINESS_DATE;
   const initialCheckOut =
     initialDraft?.checkOut ?? nextDayIso(initialCheckIn);
 
@@ -178,7 +167,7 @@ export function NewReservation({
       mealPlan: "EP",
       billingRoute: "Default",
       occupants: [
-        { id: "occupant-primary", name: "Primary guest", role: "Primary guest" },
+        { id: "occupant-primary", name: DEFAULT_GUEST_NAME, role: "Primary guest" },
       ],
     },
   ]);
@@ -187,7 +176,7 @@ export function NewReservation({
   // availability. The calendar's room types are display-only and can differ
   // from inventory types, so the room number is the source of truth. Deriving
   // this keeps the prefill without writing state from an effect.
-  const linkedRequirements = useMemo(() => {
+  const requirements = useMemo(() => {
     const lookup = new Map<string, { roomId: string; typeId: string }>();
     for (const [typeId, rooms] of Object.entries(availableRoomsByType)) {
       for (const option of rooms) {
@@ -216,48 +205,6 @@ export function NewReservation({
     });
   }, [roomRequirements, availableRoomsByType, roomTypes]);
 
-  // Room rates are the backend's quote for each line's type, stay and guests, not the room type's base rate.
-  const [quotedRates, setQuotedRates] = useState<Record<string, number>>({});
-  // The backend taxes rooms at its own rate, which can differ from the catalogue's; the quote carries it.
-  const [quotedTaxRate, setQuotedTaxRate] = useState<number | null>(null);
-  const requirements = useMemo(
-    () =>
-      linkedRequirements.map((requirement) => {
-        const rate = quotedRates[quoteKeyFor(requirement, roomTypes, checkInDate, checkOutDate)];
-        return rate === undefined ? requirement : { ...requirement, rate };
-      }),
-    [linkedRequirements, quotedRates, roomTypes, checkInDate, checkOutDate],
-  );
-  useEffect(() => {
-    if (!checkInDate || !checkOutDate || checkOutDate <= checkInDate) return;
-    let active = true;
-    for (const requirement of linkedRequirements) {
-      const typeId = resolveTypeId(requirement, roomTypes);
-      if (!UUID_PATTERN.test(typeId)) continue;
-      const key = quoteKeyFor(requirement, roomTypes, checkInDate, checkOutDate);
-      reservationApi
-        .quote({
-          checkIn: checkInDate,
-          checkOut: checkOutDate,
-          roomTypeId: typeId,
-          adults: requirement.adults,
-          children: requirement.children,
-        })
-        .then((quote) => {
-          if (active && quote.available && quote.nights > 0) {
-            setQuotedRates((previous) => ({ ...previous, [key]: Number(quote.roomAmount) / quote.nights }));
-            if (Number(quote.roomAmount) > 0) setQuotedTaxRate(Number(quote.taxAmount) / Number(quote.roomAmount));
-          }
-        })
-        .catch((error: unknown) => {
-          if (active) toast.error("Price not quoted", { detail: displayApiError(error) });
-        });
-    }
-    return () => {
-      active = false;
-    };
-  }, [linkedRequirements, roomTypes, checkInDate, checkOutDate]);
-
   // Billing Preferences
   const [billingPreferences, setBillingPreferences] =
     useState<BillingPreferences>({
@@ -274,10 +221,10 @@ export function NewReservation({
   const [guestQuery, setGuestQuery] = useState("");
   const [guestModalOpen, setGuestModalOpen] = useState(false);
   // Opens on the first seeded guest, who is a real directory record (so the Activity Log has data)
-  const [guestName, setGuestName] = useState("");
-  const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(null);
-  const [guestContact, setGuestContact] = useState("");
-  const [guestEmail, setGuestEmail] = useState("");
+  const [guestName, setGuestName] = useState(DEFAULT_GUEST_NAME);
+  const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(DEFAULT_GUEST.id);
+  const [guestContact, setGuestContact] = useState(DEFAULT_GUEST.phone ?? "");
+  const [guestEmail, setGuestEmail] = useState(DEFAULT_GUEST.email ?? "");
   const trimmedGuestQuery = guestQuery.trim();
   const loadGuestMatches = useCallback(
     async () =>
@@ -363,6 +310,8 @@ export function NewReservation({
   >("UPI / QR");
   const [collectRef, setCollectRef] = useState("");
   const [copiedCode, setCopiedCode] = useState(false);
+  const [issueModalOpen, setIssueModalOpen] = useState(false);
+  const [issueText, setIssueText] = useState("");
   const [savingReservation, setSavingReservation] = useState(false);
 
   // Confirmation state
@@ -414,13 +363,12 @@ export function NewReservation({
     [posAddons],
   );
   const bookingSubtotal = roomCharges + mealPlanCharges + addonSubtotal;
-  const taxRate = quotedTaxRate ?? TAX_RATE;
   const subTotal = Math.max(0, bookingSubtotal - discountAmount);
-  const taxAmount = Math.round(subTotal * taxRate);
+  const taxAmount = Math.round(subTotal * TAX_RATE);
   const totalBill = subTotal + taxAmount;
   const totalPaid = paymentsList.reduce((acc, p) => acc + p.amount, 0);
   const outstanding = Math.max(0, totalBill - totalPaid);
-  const roomTax = Math.round((roomCharges + mealPlanCharges) * taxRate);
+  const roomTax = Math.round((roomCharges + mealPlanCharges) * TAX_RATE);
 
   const totalsByRoute = useMemo(() => {
     const totals: Record<string, number> = {};
@@ -460,7 +408,7 @@ export function NewReservation({
       (sum, amount) => sum + amount,
       0,
     );
-    const tax = Math.round(netSubtotal * taxRate);
+    const tax = Math.round(netSubtotal * TAX_RATE);
     const entries = Object.entries(totals);
     const split = entries.map(
       ([route, amount]) =>
@@ -486,7 +434,6 @@ export function NewReservation({
     billingPreferences,
     nightsCount,
     discountAmount,
-    taxRate,
   ]);
 
   const formatDisplayDate = (dStr: string) => {
@@ -693,12 +640,7 @@ export function NewReservation({
     // Rooms left on Auto-assign take the first free room of their category that no other line has taken
     const takenRoomIds = new Set(roomIds);
     const resolvedRequirements: RoomRequirement[] = [];
-    // A line can start on a demo category id; the backend knows the same category by its own id.
-    const backendRequirements = requirements.map((room) => ({
-      ...room,
-      roomTypeId: resolveTypeId(room, roomTypes),
-    }));
-    for (const room of backendRequirements) {
+    for (const room of requirements) {
       if (room.roomId) {
         resolvedRequirements.push(room);
         continue;
@@ -876,7 +818,7 @@ export function NewReservation({
 
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-success-bg border border-success-border text-success-text text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold mb-3 uppercase tracking-wider">
             <Lucide.ShieldCheck size={14} />
-            Reservation Confirmed
+            Folio Verified & Confirmed
           </div>
 
           <h2 className="text-[20px] md:max-[1023px]:text-[18px] lg:max-[1439px]:text-[18px] min-[1440px]:text-[18px] font-extrabold tracking-tight text-ink">
@@ -891,10 +833,9 @@ export function NewReservation({
             </p>
           )}
           <p className="max-w-lg mx-auto text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] text-ink-secondary mt-2">
-            Reservation saved for{" "}
+            Reservation successfully saved for{" "}
             <strong className="text-ink">{confirmedBooking.guest}</strong>. Room
-            lines, add-ons and payments are posted to the folio. Room charges
-            post at night audit.
+            lines, billing routes, add-ons, and payments are saved to the PMS.
           </p>
 
           {/* Quick Summary Grid */}
@@ -1176,7 +1117,20 @@ export function NewReservation({
                     >
                       ₹{outstanding.toLocaleString("en-IN")}.00
                     </span>
-                    {outstanding <= 0 && (
+                    {outstanding > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCollectAmount(String(outstanding));
+                          setCollectModalOpen(true);
+                        }}
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-warning-text hover:bg-warning-bg"
+                        title="e-Collect payment"
+                        aria-label="e-Collect payment"
+                      >
+                        <Lucide.Banknote size={14} />
+                      </button>
+                    ) : (
                       <Lucide.Check
                         size={14}
                         className="text-success-text shrink-0"
@@ -1515,7 +1469,7 @@ export function NewReservation({
                           <option value="Web Portal">
                             Web Portal / Engine
                           </option>
-                          <option value="Front Desk">Frontdesk</option>
+                          <option value="Front Desk">Front Desk Agent</option>
                         </select>
                       </>
                     )}
@@ -1933,6 +1887,18 @@ export function NewReservation({
                       </h2>
                     </div>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCollectAmount(String(outstanding));
+                      setCollectModalOpen(true);
+                    }}
+                    className="flex flex-none items-center gap-1.5 rounded-xl bg-warning-text px-3 py-1.5 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-white shadow-xs transition-all hover:bg-warning-text cursor-pointer"
+                  >
+                    <Lucide.Banknote size={13} />
+                    <span>Collect Payment</span>
+                  </button>
                 </div>
 
                 <BillingRoutingFields
@@ -2021,6 +1987,13 @@ export function NewReservation({
                   </div>
 
                   <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-ink-secondary">
+                    <span className="min-w-0 flex-1">Meal plan supplements</span>
+                    <span className="shrink-0 text-right font-semibold font-mono text-ink">
+                      ₹{mealPlanCharges.toLocaleString("en-IN")}.00
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-ink-secondary">
                     <span className="min-w-0 flex-1">Outlet / POS add-ons ({posAddons.length})</span>
                     <span className="shrink-0 text-right font-semibold font-mono text-ink">
                       ₹{addonSubtotal.toLocaleString("en-IN")}.00
@@ -2063,7 +2036,7 @@ export function NewReservation({
                   </div>
 
                   <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-ink-secondary">
-                    <span className="min-w-0 flex-1">Goods & Services Tax (GST {Math.round(taxRate * 1000) / 10}%)</span>
+                    <span className="min-w-0 flex-1">Goods & Services Tax (GST {TAX_RATE * 100}%)</span>
                     <span className="shrink-0 text-right font-semibold font-mono text-ink">
                       ₹{taxAmount.toLocaleString("en-IN")}.00
                     </span>
@@ -2187,35 +2160,26 @@ export function NewReservation({
       {/* ================= FLOATING ACTION DOCK (BOTTOM BAR) ================= */}
       <div className="sticky bottom-3 z-30 mx-auto w-full max-w-4xl">
         <div className="backdrop-blur-md bg-surface/95 rounded-2xl border border-border/90 p-3 md:px-4 shadow-lg flex flex-wrap items-center justify-between gap-2 md:gap-3">
-          {/* Center: Document actions */}
-          <div className="flex items-center gap-1.5 md:gap-2">
-            <button
-              type="button"
-              aria-label="Email"
-              title="Email"
-              className="flex items-center gap-1.5 rounded-xl border border-border bg-surface px-2.5 min-h-[34px] md:min-h-[32px] py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink transition-colors hover:bg-page cursor-pointer md:px-3.5"
-            >
-              <Lucide.Mail size={14} className="text-ink-secondary" />
-              <span className="hidden md:inline">Email</span>
-            </button>
-            <button
-              type="button"
-              aria-label="Print"
-              title="Print"
-              className="flex items-center gap-1.5 rounded-xl border border-border bg-surface px-2.5 min-h-[34px] md:min-h-[32px] py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink transition-colors hover:bg-page cursor-pointer md:px-3.5"
-            >
-              <Lucide.Printer size={14} className="text-ink-secondary" />
-              <span className="hidden md:inline">Print</span>
-            </button>
-            <button
-              type="button"
-              aria-label="More"
-              title="More"
-              className="flex items-center gap-1.5 rounded-xl border border-border bg-surface px-2.5 min-h-[34px] md:min-h-[32px] py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink transition-colors hover:bg-page cursor-pointer md:px-3.5"
-            >
-              <Lucide.MoreHorizontal size={14} className="text-ink-secondary" />
-              <span className="hidden md:inline">More</span>
-            </button>
+          {/* Left: Report an issue */}
+          <button
+            type="button"
+            onClick={() => setIssueModalOpen(true)}
+            aria-label="Report issue"
+            className="flex items-center gap-1.5 px-3 min-h-[34px] md:min-h-[32px] py-1 rounded-xl border border-danger-border bg-danger-bg/70 hover:bg-danger-bg/80 text-danger-text text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold transition-colors cursor-pointer"
+          >
+            <Lucide.AlertCircle size={14} />
+            <span className="hidden md:inline">Report Issue</span>
+          </button>
+
+          {/* Center: Live Total Ticker */}
+          <div className="hidden md:flex items-center gap-2 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold px-3 py-1.5 rounded-xl bg-page border border-border/60">
+            <span className="text-ink-secondary">
+              {requirements.length} Room(s) · {nightsCount} Night(s)
+            </span>
+            <span className="h-3 w-[1px] bg-ink-disabled" />
+            <span className="font-mono text-ink">
+              ₹{totalBill.toLocaleString("en-IN")}.00
+            </span>
           </div>
 
           {/* Right: Actions */}
@@ -2327,6 +2291,42 @@ export function NewReservation({
                 />
               </div>
             </div>
+      </Modal>
+
+      {/* ================= REPORT ISSUE MODAL ================= */}
+      <Modal
+        open={issueModalOpen}
+        onClose={() => setIssueModalOpen(false)}
+        title="Report Reservation Issue"
+        subtitle="Escalate an allotment, rate, or sync issue"
+        footer={
+          <>
+            <button type="button" onClick={() => setIssueModalOpen(false)} className="pms-btn-ghost">
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                toast.success("Issue Submitted", {
+                  detail: "Escalated to IT & Duty Manager.",
+                });
+                setIssueModalOpen(false);
+                setIssueText("");
+              }}
+              className="pms-btn-danger"
+            >
+              Submit Ticket
+            </button>
+          </>
+        }
+      >
+        <textarea
+              rows={3}
+              value={issueText}
+              onChange={(e) => setIssueText(e.target.value)}
+              placeholder="Describe the issue (e.g. rate mismatch on OTA, room allocation conflict)..."
+              className={textareaClass}
+            />
       </Modal>
 
       {guestModalOpen && (

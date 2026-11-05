@@ -1,90 +1,73 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { ApiError, displayApiError } from '../../lib/api/client';
+import { getAccessToken } from '../../lib/api/authToken';
+import { ApiError } from '../../lib/api/client';
 import { authApi } from '../../lib/api/pms';
 import type { AuthMe } from '../../lib/api/pms';
-import { toast } from '../../utils/toast';
 
 interface AuthContextValue {
   me: AuthMe | null;
   loading: boolean;
   error: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, remember: boolean) => Promise<void>;
   logout: () => Promise<void>;
   switchProperty: (propertyId: string) => Promise<void>;
+  reload: () => Promise<void>;
   can: (permission: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-const RESTORE_RETRY_MS = 3_000;
-
-function isTemporaryFailure(cause: unknown): boolean {
-  return cause instanceof ApiError && (cause.status === 0 || cause.status === 429 || cause.status >= 500);
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<AuthMe | null>(null);
-  // A stored token means we are still deciding whether the session is valid, so show the loading state, not the login form.
-  const [loading, setLoading] = useState(() => authApi.hasSession());
+  // Start in the loading state when a saved token has to be checked first, so a
+  // reload does not flash the login page.
+  const [loading, setLoading] = useState(() => getAccessToken() !== null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => authApi.onSessionEnded(() => {
-    setMe(null);
-    toast('Your session has ended', { detail: 'Please sign in again.', tone: 'warning' });
-  }), []);
-
-  useEffect(() => authApi.onOtherTabChange((signedIn) => {
-    if (!signedIn) {
-      setMe(null);
-      return;
-    }
-    authApi.me().then(setMe).catch((cause: unknown) => {
-      toast('Could not restore your session', { detail: displayApiError(cause), tone: 'danger' });
-    });
-  }), []);
-
   useEffect(() => {
-    if (!authApi.hasSession()) return;
+    if (!getAccessToken()) return;
     let active = true;
-    let retryTimer: ReturnType<typeof setTimeout> | undefined;
-    let warned = false;
-    const restore = () => {
-      authApi.me()
-        .then((restored) => {
-          if (!active) return;
-          setMe(restored);
-          setLoading(false);
-        })
-        .catch((cause: unknown) => {
-          if (!active) return;
-          // A PC that has just started may not be online yet. The login is still good, so wait for the server rather than show the login form.
-          if (isTemporaryFailure(cause)) {
-            if (!warned) toast('Waiting for the server', { detail: 'You are still signed in. Trying again…', tone: 'warning' });
-            warned = true;
-            retryTimer = setTimeout(restore, RESTORE_RETRY_MS);
-            return;
-          }
-          // 401 means the stored session is gone; the login form is the right answer.
-          if (!(cause instanceof ApiError && cause.status === 401)) {
-            toast('Could not restore your session', { detail: displayApiError(cause), tone: 'danger' });
-          }
-          setLoading(false);
-        });
+
+    const restoreSession = async () => {
+      try {
+        const session = await authApi.me();
+        if (active) setMe(session);
+      } catch (cause) {
+        // A 401 means the saved token is dead (already cleared); anything else
+        // (server down) also lands on the login page, with the reason shown.
+        if (active && !(cause instanceof ApiError && cause.status === 401)) {
+          setError(cause instanceof Error ? cause.message : 'Could not restore your session.');
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
     };
-    restore();
+    void restoreSession();
+
     return () => {
       active = false;
-      clearTimeout(retryTimer);
     };
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const reload = useCallback(async () => {
+    if (!me) return;
+    setError(null);
+    try {
+      setMe(await authApi.me());
+    } catch (cause) {
+      if (cause instanceof ApiError && cause.status === 401) setMe(null);
+      else setError(cause instanceof Error ? cause.message : 'Could not load your session.');
+    }
+  }, [me]);
+
+  const login = useCallback(async (email: string, password: string, remember: boolean) => {
     setError(null);
     setLoading(true);
     try {
-      await authApi.login(email, password);
+      await authApi.login(email, password, remember);
       setMe(await authApi.me());
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not sign in to your session.');
+      setError(cause instanceof Error ? cause.message : 'Could not sign in.');
       throw cause;
     } finally {
       setLoading(false);
@@ -92,8 +75,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await authApi.logout();
-    setMe(null);
+    try {
+      await authApi.logout();
+    } finally {
+      setMe(null);
+    }
   }, []);
 
   const switchProperty = useCallback(async (propertyId: string) => {
@@ -108,8 +94,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     logout,
     switchProperty,
+    reload,
     can: (permission) => me?.permissions.includes(permission) ?? false,
-  }), [me, loading, error, login, logout, switchProperty]);
+  }), [me, loading, error, login, logout, switchProperty, reload]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

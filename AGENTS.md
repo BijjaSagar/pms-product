@@ -4,7 +4,7 @@ Guidance for AI coding agents working in this repository.
 
 ## What this project is
 
-TriponX Hotel PMS: a React 19 + TypeScript single-page front end for a hotel property management system. It is a **static demo**: there is no server and no database. All data lives in an in-memory store (`src/data/store.ts`) seeded at startup, so every change resets on reload. The UI and its interactions are the product; `src/lib/api/pms.ts` keeps the API shape a real backend would expose.
+TriponX Hotel PMS: a React 19 + TypeScript single-page front end for a hotel property management system. It is a **demo front end**: only authentication and property access (`/api/v1/auth/*` and `/api/v1/properties`, see `authApi` in `src/lib/api/pms.ts`) talk to the Nest backend: a STAFF user is bound to one property, an ADMIN picks one; in dev Vite proxies `/api` to `localhost:3000`, and `VITE_API_BASE_URL` overrides the base URL. Everything else, including permissions, lives in an in-memory store (`src/data/store.ts`) seeded at startup, so every change resets on reload. The UI and its interactions are the product; `src/lib/api/pms.ts` keeps the API shape a real backend would expose.
 
 ## Stack (keep these versions; do not upgrade without a reason)
 

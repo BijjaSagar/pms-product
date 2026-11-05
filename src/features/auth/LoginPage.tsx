@@ -5,14 +5,14 @@ import { useTheme } from '../../theme/useTheme';
 import { THEME_PRESETS } from '../../theme/presets';
 import { ThemeSwatcher } from '../../theme/ThemeSwatcher';
 import { Checkbox, FieldLabel } from '../../components/primitives';
-import { toast } from '../../utils/toast';
 import { displayApiError } from '../../lib/api/client';
+import { toast } from '../../utils/toast';
 
 export function LoginPage() {
   const { login } = useAuth();
   const { preset } = useTheme();
-  const [email, setEmail] = useState('admin@pms.local');
-  const [password, setPassword] = useState('Password@123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,33 +22,14 @@ export function LoginPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await login(email, password);
+      await login(email, password, rememberMe);
       toast('Signed in successfully', {
-        detail: 'Welcome to Grand Horizon Hotel PMS workspace.',
+        detail: 'Welcome to your PMS workspace.',
         tone: 'success',
       });
-    } catch (cause) {
+    } catch (error) {
       toast('Sign in failed', {
-        detail: displayApiError(cause),
-        tone: 'danger',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleQuickDemo = async (demoEmail: string) => {
-    setEmail(demoEmail);
-    setIsSubmitting(true);
-    try {
-      await login(demoEmail, password);
-      toast('Signed in successfully', {
-        detail: 'Welcome to Grand Horizon Hotel PMS workspace.',
-        tone: 'success',
-      });
-    } catch (cause) {
-      toast('Sign in failed', {
-        detail: displayApiError(cause),
+        detail: displayApiError(error),
         tone: 'danger',
       });
     } finally {
@@ -110,9 +91,6 @@ export function LoginPage() {
               {THEME_PRESETS[preset]?.name ?? 'Theme'}
             </span>
           </button>
-          <span className="rounded-full border border-border bg-surface/80 px-2.5 py-0.5 text-micro font-bold uppercase tracking-wider text-ink-secondary">
-            Static Demo
-          </span>
         </div>
       </header>
 
@@ -169,17 +147,6 @@ export function LoginPage() {
                 </div>
               </div>
             </div>
-
-            {/* Bottom active property card */}
-            <div className="mt-6 flex items-center gap-3 rounded-xl border border-border bg-page/60 p-2.5">
-              <div className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Lucide.Building2 size={16} />
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-label font-bold text-ink">Grand Horizon Hotel</p>
-                <p className="truncate text-micro text-ink-muted">Active Demo Property · 48 Rooms</p>
-              </div>
-            </div>
           </section>
 
           {/* Right Login Form Pane */}
@@ -206,7 +173,7 @@ export function LoginPage() {
                 Sign In to Workspace
               </h1>
               <p className="mt-1 text-label text-ink-muted">
-                Sign in with your PMS account. Demo users use the password Password@123.
+                Enter your email and password to continue.
               </p>
             </header>
 
@@ -237,8 +204,8 @@ export function LoginPage() {
                   <button
                     type="button"
                     onClick={() =>
-                      toast('Static Demo Notice', {
-                        detail: 'No credentials needed. Click Sign In to enter directly.',
+                      toast('Password reset', {
+                        detail: 'Ask your property administrator to reset your password.',
                         tone: 'info',
                       })
                     }
@@ -299,33 +266,6 @@ export function LoginPage() {
                   </>
                 )}
               </button>
-
-              {/* Demo Notice Banner */}
-              <div className="flex items-center gap-2 rounded-lg border border-border bg-muted-surface/70 px-3 py-2 text-micro text-ink-secondary">
-                <Lucide.Sparkles size={14} className="text-primary flex-none" />
-                <span className="min-w-0">
-                  <strong>Static Demo Mode:</strong> No credentials required. Click <strong>Sign In</strong> directly.
-                </span>
-              </div>
-
-              {/* Quick Demo Sign-In Chips */}
-              <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                <span className="text-micro font-medium text-ink-muted">Quick login:</span>
-                <button
-                  type="button"
-                  onClick={() => void handleQuickDemo('gm@pms.local')}
-                  className="rounded-md border border-border bg-page px-2 py-0.5 text-micro font-semibold text-ink hover:bg-hover-surface cursor-pointer transition-colors"
-                >
-                  Manager
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleQuickDemo('fde@pms.local')}
-                  className="rounded-md border border-border bg-page px-2 py-0.5 text-micro font-semibold text-ink hover:bg-hover-surface cursor-pointer transition-colors"
-                >
-                  Frontdesk
-                </button>
-              </div>
             </form>
           </section>
         </div>
@@ -336,7 +276,7 @@ export function LoginPage() {
         <p className="tnum">
           TriponX Hotel PMS
         </p>
-        <p>© {new Date().getFullYear()} TriponX Systems. All rights reserved.</p>
+        <p>© 2026 TriponX Systems. All rights reserved.</p>
       </footer>
 
       {/* Theme Swatcher Drawer */}
