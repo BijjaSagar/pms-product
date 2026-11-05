@@ -1,92 +1,154 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
+import { maintenanceReasonApi } from '../../../lib/api/pms';
+import type {
+  MaintenanceReasonDetails,
+  MaintenanceReasonPriority,
+  MaintenanceReasonStatus,
+  MaintenanceTradeCategory,
+} from '../../../lib/api/pms';
+import { displayApiError } from '../../../lib/api/client';
 import { toast } from '../../../utils/toast';
-import { Button, Checkbox, IconButton, SelectField, TextField } from '../../../components/primitives';
+import { Button, IconButton, SelectField, TextField } from '../../../components/primitives';
 import { Field } from '../../../components/controls';
 import { Modal } from '../../../components/overlays';
 import { Badge, Card, CardTitle, TableContainer } from '../../../components/ui';
-import type { MaintenancePriority, MaintenanceReasonItem } from './types';
 import { StatStrip, StatTile } from './RoomSettingsKit';
 
 interface MaintenanceReasonsSectionProps {
-  reasons: MaintenanceReasonItem[];
-  onChange: (items: MaintenanceReasonItem[]) => void;
+  /** The property whose reasons are managed; null until one is chosen. */
+  propertyId: string | null;
+  reasons: MaintenanceReasonDetails[];
+  loading: boolean;
+  error: string | null;
+  onRefresh: () => void;
 }
 
-const EMPTY_REASON: MaintenanceReasonItem = {
-  id: '',
-  code: '',
-  name: '',
-  category: 'General',
-  priority: 'Medium',
-  impact: 'Out of Service',
-  avgResolutionHours: 4,
-  activeRoomsCount: 0,
-  requiresSupervisorSignoff: false,
-  active: true,
+/** What the edit dialog works on. `id` is null while a new reason is being added. */
+interface ReasonForm {
+  id: string | null;
+  reasonName: string;
+  tradeCategory: MaintenanceTradeCategory;
+  priority: MaintenanceReasonPriority;
+  status: MaintenanceReasonStatus;
+}
+
+const EMPTY_FORM: ReasonForm = {
+  id: null,
+  reasonName: '',
+  tradeCategory: 'GENERAL',
+  priority: 'MEDIUM',
+  status: 'ACTIVE',
 };
 
-function priorityTone(p: MaintenancePriority): 'danger' | 'warning' | 'info' | 'neutral' {
-  if (p === 'Urgent') return 'danger';
-  if (p === 'High') return 'warning';
-  if (p === 'Medium') return 'info';
+const formFromReason = (r: MaintenanceReasonDetails): ReasonForm => ({
+  id: r.id,
+  reasonName: r.reasonName,
+  tradeCategory: r.tradeCategory,
+  priority: r.priority,
+  status: r.status,
+});
+
+const CATEGORY_LABELS: Record<MaintenanceTradeCategory, string> = {
+  PLUMBING: 'Plumbing & Pipes',
+  ELECTRICAL: 'Electrical & Lighting',
+  HVAC: 'HVAC & Climate Control',
+  RENOVATION: 'Renovation & Painting',
+  HOUSEKEEPING: 'Housekeeping & Deep Extraction',
+  SECURITY: 'Security & Locks',
+  GENERAL: 'General Maintenance',
+};
+
+const PRIORITY_LABELS: Record<MaintenanceReasonPriority, string> = {
+  URGENT: 'Urgent',
+  HIGH: 'High',
+  MEDIUM: 'Medium',
+  LOW: 'Low',
+};
+
+function priorityTone(p: MaintenanceReasonPriority): 'danger' | 'warning' | 'info' | 'neutral' {
+  if (p === 'URGENT') return 'danger';
+  if (p === 'HIGH') return 'warning';
+  if (p === 'MEDIUM') return 'info';
   return 'neutral';
 }
 
 export function MaintenanceReasonsSection({
+  propertyId,
   reasons,
-  onChange,
+  loading,
+  error,
+  onRefresh,
 }: MaintenanceReasonsSectionProps) {
   const [search, setSearch] = useState('');
-  const [editing, setEditing] = useState<MaintenanceReasonItem | null>(null);
+  const [editing, setEditing] = useState<ReasonForm | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
+  const query = search.trim().toLowerCase();
   const filtered = reasons.filter(
     (r) =>
-      r.name.toLowerCase().includes(search.toLowerCase()) ||
-      r.category.toLowerCase().includes(search.toLowerCase()),
+      r.reasonName.toLowerCase().includes(query) ||
+      CATEGORY_LABELS[r.tradeCategory].toLowerCase().includes(query),
   );
 
-  const oooCount = reasons.filter((r) => r.impact === 'Out of Order').length;
-  const oosCount = reasons.filter((r) => r.impact === 'Out of Service').length;
-  const urgentCount = reasons.filter((r) => r.priority === 'Urgent' || r.priority === 'High').length;
-  const blockedRoomsCount = reasons.reduce((s, r) => s + r.activeRoomsCount, 0);
+  const activeCount = reasons.filter((r) => r.status === 'ACTIVE').length;
+  const urgentCount = reasons.filter((r) => r.priority === 'URGENT').length;
+  const highCount = reasons.filter((r) => r.priority === 'HIGH').length;
 
-  const handleToggle = (id: string) => {
-    const updated = reasons.map((r) => (r.id === id ? { ...r, active: !r.active } : r));
-    onChange(updated);
-    toast('Maintenance reason status updated', { tone: 'success' });
+  const handleToggle = async (r: MaintenanceReasonDetails) => {
+    if (!propertyId) return;
+    try {
+      await maintenanceReasonApi.update(propertyId, r.id, {
+        status: r.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE',
+      });
+      toast('Maintenance reason status updated', { tone: 'success' });
+      onRefresh();
+    } catch (err) {
+      toast('Could not change status', { detail: displayApiError(err), tone: 'danger' });
+    }
   };
 
-  const handleOpenAdd = () => {
-    setEditing({
-      ...EMPTY_REASON,
-      id: `mr-${Date.now().toString(36)}`,
-    });
-  };
-
-  const handleSave = () => {
-    if (!editing) return;
-    if (editing.name.trim().length < 2) {
-      return toast('Name required', { detail: 'Please specify reason description.', tone: 'warning' });
+  const handleSave = async () => {
+    if (!editing || !propertyId) return;
+    const reasonName = editing.reasonName.trim();
+    if (reasonName.length < 1) {
+      return toast('Name required', { detail: 'Please specify the reason name.', tone: 'warning' });
     }
 
-    const exists = reasons.some((r) => r.id === editing.id);
-    let updated: MaintenanceReasonItem[];
-    if (exists) {
-      updated = reasons.map((r) => (r.id === editing.id ? editing : r));
-      toast('Reason updated', { detail: `${editing.name} specifications updated.`, tone: 'success' });
-    } else {
-      updated = [...reasons, editing];
-      toast('Maintenance reason created', { detail: `${editing.name} added to catalog.`, tone: 'success' });
+    const body = {
+      reasonName,
+      tradeCategory: editing.tradeCategory,
+      priority: editing.priority,
+      status: editing.status,
+    };
+
+    setIsSaving(true);
+    try {
+      if (editing.id === null) {
+        await maintenanceReasonApi.create(propertyId, body);
+        toast('Maintenance reason created', { detail: `${reasonName} added to catalog.`, tone: 'success' });
+      } else {
+        await maintenanceReasonApi.update(propertyId, editing.id, body);
+        toast('Reason updated', { detail: `${reasonName} updated successfully.`, tone: 'success' });
+      }
+      onRefresh();
+      setEditing(null);
+    } catch (err) {
+      toast('Could not save reason', { detail: displayApiError(err), tone: 'danger' });
+    } finally {
+      setIsSaving(false);
     }
-    onChange(updated);
-    setEditing(null);
   };
 
-  const handleDelete = (id: string, name: string) => {
-    const updated = reasons.filter((r) => r.id !== id);
-    onChange(updated);
-    toast('Reason removed', { detail: `${name} deleted from catalog.`, tone: 'info' });
+  const handleDelete = async (r: MaintenanceReasonDetails) => {
+    if (!propertyId) return;
+    try {
+      await maintenanceReasonApi.remove(propertyId, r.id);
+      toast('Reason removed', { detail: `${r.reasonName} deleted from catalog.`, tone: 'info' });
+      onRefresh();
+    } catch (err) {
+      toast('Could not remove reason', { detail: displayApiError(err), tone: 'danger' });
+    }
   };
 
   return (
@@ -97,31 +159,31 @@ export function MaintenanceReasonsSection({
           icon={Lucide.Wrench}
           tone="info"
           value={reasons.length}
-          caption="Standardized codes"
+          caption="Standardized reasons"
         />
 
         <StatTile
-          label="Hard Blocks (OOO)"
-          icon={Lucide.Ban}
-          tone="danger"
-          value={oooCount}
-          caption="Deducted from available inventory"
+          label="Active"
+          icon={Lucide.CheckCircle2}
+          tone="success"
+          value={activeCount}
+          caption="Available when blocking a room"
         />
 
         <StatTile
-          label="Soft Blocks (OOS)"
-          icon={Lucide.AlertCircle}
+          label="Disabled"
+          icon={Lucide.PauseCircle}
           tone="warning"
-          value={oosCount}
-          caption="Quick cosmetic maintenance"
+          value={reasons.length - activeCount}
+          caption="Hidden from selection"
         />
 
         <StatTile
-          label="Currently Blocked"
-          icon={Lucide.Lock}
-          tone="primary"
-          value={<>{blockedRoomsCount} Units</>}
-          caption={<>{urgentCount} high priority categories</>}
+          label="Urgent / High"
+          icon={Lucide.AlertCircle}
+          tone="danger"
+          value={urgentCount + highCount}
+          caption={<>{urgentCount} urgent, {highCount} high priority</>}
         />
       </StatStrip>
 
@@ -133,13 +195,21 @@ export function MaintenanceReasonsSection({
           action={
             <Button
               variant="primary"
-              onClick={handleOpenAdd}
+              onClick={() => setEditing({ ...EMPTY_FORM })}
+              disabled={!propertyId}
               icon={<Lucide.Plus size={14} />}
             >
-              Add Reason Code
+              Add Reason
             </Button>
           }
         />
+
+        {error && (
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-3 text-label text-danger-text">
+            <Lucide.AlertCircle size={16} />
+            <span>Could not load maintenance reasons: {error}</span>
+          </div>
+        )}
 
         <div className="mb-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
           <div className="relative flex-1 max-w-sm">
@@ -171,39 +241,36 @@ export function MaintenanceReasonsSection({
               {filtered.map((item) => (
                 <tr key={item.id} className="transition-colors hover:bg-hover-surface/60 border-b border-divider last:border-b-0">
                   <td className="py-3">
-                    <span className="block font-bold text-ink text-label">{item.name}</span>
+                    <span className="block font-bold text-ink text-label">{item.reasonName}</span>
                   </td>
                   <td className="text-label font-medium text-ink-secondary py-3">
-                    {item.category}
+                    {CATEGORY_LABELS[item.tradeCategory]}
                   </td>
                   <td className="text-center py-3">
                     <Badge tone={priorityTone(item.priority)} size="sm">
-                      {item.priority}
+                      {PRIORITY_LABELS[item.priority]}
                     </Badge>
                   </td>
                   <td className="text-center py-3">
-                    <Badge tone={item.active ? 'success' : 'neutral'} dot size="sm">
-                      {item.active ? 'Active' : 'Disabled'}
+                    <Badge tone={item.status === 'ACTIVE' ? 'success' : 'neutral'} dot size="sm">
+                      {item.status === 'ACTIVE' ? 'Active' : 'Disabled'}
                     </Badge>
                   </td>
                   <td className="text-right py-3">
                     <div className="inline-flex items-center gap-1.5">
                       <IconButton
-                        title={item.active ? 'Disable reason code' : 'Enable reason code'}
-                        onClick={() => handleToggle(item.id)}
-                        className={item.active ? 'hover:text-warning-text' : 'hover:text-success-text'}
+                        title={item.status === 'ACTIVE' ? 'Disable reason' : 'Enable reason'}
+                        onClick={() => void handleToggle(item)}
+                        className={item.status === 'ACTIVE' ? 'hover:text-warning-text' : 'hover:text-success-text'}
                       >
-                        {item.active ? <Lucide.PauseCircle size={15} /> : <Lucide.PlayCircle size={15} />}
+                        {item.status === 'ACTIVE' ? <Lucide.PauseCircle size={15} /> : <Lucide.PlayCircle size={15} />}
                       </IconButton>
-                      <IconButton
-                        title={`Edit ${item.name}`}
-                        onClick={() => setEditing(item)}
-                      >
+                      <IconButton title={`Edit ${item.reasonName}`} onClick={() => setEditing(formFromReason(item))}>
                         <Lucide.Pencil size={14} />
                       </IconButton>
                       <IconButton
-                        title={`Delete ${item.name}`}
-                        onClick={() => handleDelete(item.id, item.name)}
+                        title={`Delete ${item.reasonName}`}
+                        onClick={() => void handleDelete(item)}
                         className="hover:text-danger-text"
                       >
                         <Lucide.Trash2 size={14} />
@@ -215,7 +282,11 @@ export function MaintenanceReasonsSection({
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-label text-ink-muted">
-                    No maintenance reasons match your search.
+                    {loading
+                      ? 'Loading maintenance reasons…'
+                      : search
+                        ? `No maintenance reasons found matching "${search}".`
+                        : 'No maintenance reasons yet.'}
                   </td>
                 </tr>
               )}
@@ -224,20 +295,19 @@ export function MaintenanceReasonsSection({
         </TableContainer>
       </Card>
 
-      {/* Edit / Add Modal */}
       <Modal
         open={editing !== null}
         onClose={() => setEditing(null)}
-        title={editing?.id.startsWith('mr-') && !reasons.some((r) => r.id === editing?.id) ? 'Add Maintenance Reason' : `Edit ${editing?.name}`}
-        subtitle="Configure maintenance reason code, physical inventory impact, and resolution timeline"
+        title={editing?.id === null ? 'Add Maintenance Reason' : `Edit ${editing?.reasonName}`}
+        subtitle="Configure the reason, its trade category, default priority and status"
         wide
       >
         {editing && (
           <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 py-2">
             <Field label="Reason Name / Description">
               <TextField
-                value={editing.name}
-                onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                value={editing.reasonName}
+                onChange={(e) => setEditing({ ...editing, reasonName: e.target.value })}
                 placeholder="e.g. Broken Shower Thermostatic Valve"
                 autoFocus
               />
@@ -245,21 +315,14 @@ export function MaintenanceReasonsSection({
 
             <Field label="Trade / Department Category">
               <SelectField
-                value={editing.category}
+                value={editing.tradeCategory}
                 onChange={(e) =>
-                  setEditing({
-                    ...editing,
-                    category: e.target.value as MaintenanceReasonItem['category'],
-                  })
+                  setEditing({ ...editing, tradeCategory: e.target.value as MaintenanceTradeCategory })
                 }
               >
-                <option value="Plumbing">Plumbing & Pipes</option>
-                <option value="Electrical">Electrical & Lighting</option>
-                <option value="HVAC">HVAC & Climate Control</option>
-                <option value="Renovation">Renovation & Painting</option>
-                <option value="Housekeeping">Housekeeping & Deep Extraction</option>
-                <option value="Security">Security & Locks</option>
-                <option value="General">General Maintenance</option>
+                {(Object.keys(CATEGORY_LABELS) as MaintenanceTradeCategory[]).map((c) => (
+                  <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
+                ))}
               </SelectField>
             </Field>
 
@@ -267,37 +330,39 @@ export function MaintenanceReasonsSection({
               <SelectField
                 value={editing.priority}
                 onChange={(e) =>
-                  setEditing({
-                    ...editing,
-                    priority: e.target.value as MaintenancePriority,
-                  })
+                  setEditing({ ...editing, priority: e.target.value as MaintenanceReasonPriority })
                 }
               >
-                <option value="Urgent">Urgent (Immediate attention)</option>
-                <option value="High">High (Same-day resolution)</option>
-                <option value="Medium">Medium (Routine turnover)</option>
-                <option value="Low">Low (Scheduled during low occupancy)</option>
+                <option value="URGENT">Urgent (Immediate attention)</option>
+                <option value="HIGH">High (Same-day resolution)</option>
+                <option value="MEDIUM">Medium (Routine turnover)</option>
+                <option value="LOW">Low (Scheduled during low occupancy)</option>
               </SelectField>
             </Field>
 
-            <div className="sm:col-span-2 pt-2">
-              <Checkbox
-                checked={editing.requiresSupervisorSignoff}
-                onChange={(e) => setEditing({ ...editing, requiresSupervisorSignoff: e.target.checked })}
-                label="Require Maintenance Supervisor electronic sign-off before returning room to service"
-              />
-            </div>
+            <Field label="Status">
+              <SelectField
+                value={editing.status}
+                onChange={(e) =>
+                  setEditing({ ...editing, status: e.target.value as MaintenanceReasonStatus })
+                }
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+              </SelectField>
+            </Field>
 
             <div className="flex justify-end gap-2 sm:col-span-2 pt-3 border-t border-divider">
-              <Button variant="secondary" onClick={() => setEditing(null)}>
+              <Button variant="secondary" onClick={() => setEditing(null)} disabled={isSaving}>
                 Cancel
               </Button>
               <Button
                 variant="primary"
-                onClick={handleSave}
-                icon={<Lucide.Save size={14} />}
+                onClick={() => void handleSave()}
+                disabled={isSaving}
+                icon={isSaving ? <Lucide.Loader2 size={14} className="animate-spin" /> : <Lucide.Save size={14} />}
               >
-                Save Reason
+                {isSaving ? 'Saving…' : 'Save Reason'}
               </Button>
             </div>
           </div>

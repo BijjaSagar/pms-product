@@ -6,22 +6,6 @@ export type RoomSettingsSectionId =
   | 'amenities'
   | 'maintenance-reasons';
 
-export type MaintenancePriority = 'Low' | 'Medium' | 'High' | 'Urgent';
-export type MaintenanceImpact = 'Out of Order' | 'Out of Service' | 'Inspection Required';
-
-export interface MaintenanceReasonItem {
-  id: string;
-  code: string;
-  name: string;
-  category: 'Plumbing' | 'Electrical' | 'HVAC' | 'Renovation' | 'Housekeeping' | 'General' | 'Security';
-  priority: MaintenancePriority;
-  impact: MaintenanceImpact;
-  avgResolutionHours: number;
-  activeRoomsCount: number;
-  requiresSupervisorSignoff: boolean;
-  active: boolean;
-}
-
 /** The sitemap: how many rooms each floor has, and which room offering each box stands for. */
 export interface FloorPlan {
   /** Floor number to its number of rooms. */
