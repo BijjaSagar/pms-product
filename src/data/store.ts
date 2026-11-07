@@ -1146,7 +1146,7 @@ export const store = {
    * The demo data is not stored per property, so it is presented as belonging
    * to whichever real property the signed-in user is working in.
    */
-  adoptProperty(property: Pick<PropertyRow, 'id' | 'name' | 'slug' | 'currencyCode' | 'checkInTime' | 'checkOutTime' | 'addressLine1' | 'city'>) {
+  adoptProperty(property: Pick<PropertyRow, 'id' | 'name' | 'slug' | 'currencyCode' | 'addressLine1' | 'city'>) {
     Object.assign(PROPERTY, property);
     activePropertyId = property.id;
   },

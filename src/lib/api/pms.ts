@@ -1,6 +1,6 @@
 import { store } from '../../data/store';
 import { clearAccessToken, saveAccessToken } from './authToken';
-import { ApiError, apiRequest } from './client';
+import { ApiError, apiBlob, apiRequest } from './client';
 import type { ThemeKey } from '../../types';
 
 export interface PropertyMembership {
@@ -184,11 +184,9 @@ interface BackendProperty {
   id: string;
   name: string;
   code: string;
-  address: string | null;
+  addressLine1: string | null;
   city: string;
   defaultCurrency: string;
-  checkInTime: string;
-  checkOutTime: string;
   isActive: boolean;
 }
 
@@ -241,9 +239,7 @@ export const authApi = {
         name: active.name,
         slug: active.code,
         currencyCode: active.defaultCurrency,
-        checkInTime: active.checkInTime,
-        checkOutTime: active.checkOutTime,
-        addressLine1: active.address,
+        addressLine1: active.addressLine1,
         city: active.city,
       });
     }
@@ -331,33 +327,44 @@ export const dayLogApi = {
   removeEnquiry: async (id: string) => store.removeDayEnquiry(id),
 };
 
-export type PropertyTypeKey = 'HOTEL' | 'RESORT' | 'VILLA' | 'MOTEL' | 'APARTMENT';
-
 /** A property as the backend stores it (`GET /properties/:id`). */
 export interface PropertyDetails {
   id: string;
   name: string;
+  /** Shown as the "Abbreviation". */
   code: string;
-  type: PropertyTypeKey;
-  description: string | null;
-  address: string | null;
-  city: string;
-  state: string | null;
-  country: string;
+  propertyGroup: string | null;
+  locationCode: string | null;
+  googleAnalyticsTag: string | null;
+  metaPixel: string | null;
+  addressLine1: string | null;
+  addressLine2: string | null;
   postalCode: string | null;
-  phone: string | null;
-  frontDeskPhone: string | null;
-  emergencyContact: string | null;
-  email: string | null;
-  generalEmail: string | null;
-  reservationsEmail: string | null;
-  website: string | null;
-  /** 24-hour "HH:mm". */
-  checkInTime: string;
-  /** 24-hour "HH:mm". */
-  checkOutTime: string;
+  country: string;
+  state: string | null;
+  city: string;
+  primaryPhone: string | null;
+  secondaryPhone: string | null;
   /** ISO 4217 code. */
   defaultCurrency: string;
+  ignoreDecimalInBillSettlement: boolean;
+  /** In minutes. */
+  checkoutToleranceValue: number | null;
+  language: string | null;
+  locationMapUrl: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  propertySegment: string | null;
+  starRating: number | null;
+  taxType: string | null;
+  gstn: string | null;
+  tripAdvisorListingName: string | null;
+  tripAdvisorPropertyId: string | null;
+  googleListingName: string | null;
+  trivagoListingName: string | null;
+  propertyLegalName: string | null;
+  corporateAddress: string | null;
+  autoConfirmBookings: boolean;
   numberOfFloors: number | null;
   totalRooms: number | null;
   isActive: boolean;
@@ -514,13 +521,37 @@ export interface RoomDetails {
   maxChildren: number;
   maxOccupancy: number;
   bathrooms: number;
+  /** 1-based position in the order of display on the smart chart; null until ordered. */
+  chartOrder: number | null;
+  /** 1-based position in the upsell order; null until ordered. */
+  upsellOrder: number | null;
+  abbreviation: string | null;
+  /** The code the room goes by in integrations. */
+  integrationCode: string | null;
+  /** Complimentary inclusions, free text. */
+  inclusions: string | null;
+  /** Minimum occupancy at which the room sells. */
+  baseOccupancy: number | null;
+  /** Generally the total number of beds in the room. */
+  idealOccupancy: number | null;
+  defaultChildren: number;
+  syncCategoryOnOta: boolean;
+  excludeFromRevenue: boolean;
+  excludeFromOccupancy: boolean;
+  excludeFromUpgrade: boolean;
+  mealPlans: MealPlanKey[];
   amenityIds: string[];
 }
+
+export type MealPlanKey = 'EP' | 'CP' | 'MAP' | 'AP' | 'MAPAI' | 'APAI';
+
+export type RoomOrderList = 'chart' | 'upsell';
 
 export interface RoomInput {
   roomTypeId: string;
   name: string;
-  description?: string;
+  /** Send null to clear. */
+  description?: string | null;
   roomCount: number;
   categoryId?: string | null;
   allowExtraBeds: boolean;
@@ -529,6 +560,18 @@ export interface RoomInput {
   maxOccupancy: number;
   bathrooms: number;
   amenityIds: string[];
+  /** The fields below can be sent as null to clear them. */
+  abbreviation?: string | null;
+  integrationCode?: string | null;
+  inclusions?: string | null;
+  baseOccupancy?: number | null;
+  idealOccupancy?: number | null;
+  defaultChildren?: number;
+  syncCategoryOnOta?: boolean;
+  excludeFromRevenue?: boolean;
+  excludeFromOccupancy?: boolean;
+  excludeFromUpgrade?: boolean;
+  mealPlans?: MealPlanKey[];
 }
 
 export const roomListingApi = {
@@ -539,6 +582,279 @@ export const roomListingApi = {
     apiRequest<RoomDetails>(`/${propertyId}/room-listings/${id}`, { method: 'PATCH', body }),
   remove: async (propertyId: string, id: string) =>
     apiRequest<void>(`/${propertyId}/room-listings/${id}`, { method: 'DELETE' }),
+  /** `roomIds` must hold every room of the property, first to last. */
+  setOrder: async (propertyId: string, list: RoomOrderList, roomIds: string[]) =>
+    apiRequest<RoomDetails[]>(`/${propertyId}/room-listings/order`, { method: 'PUT', body: { list, roomIds } }),
+};
+
+/** A photo of a room (`/:propertyId/room-listings/:roomId/images`); the bytes come from `roomImageApi.file`. */
+export interface RoomImageDetails {
+  id: string;
+  roomId: string;
+  fileName: string;
+  mimeType: string;
+  /** Bytes. */
+  size: number;
+  caption: string | null;
+  createdAt: string;
+}
+
+export const roomImageApi = {
+  list: async (propertyId: string, roomId: string) =>
+    apiRequest<RoomImageDetails[]>(`/${propertyId}/room-listings/${roomId}/images`),
+  upload: async (propertyId: string, roomId: string, file: File, caption?: string) => {
+    const body = new FormData();
+    body.append('file', file);
+    if (caption) body.append('caption', caption);
+    return apiRequest<RoomImageDetails>(`/${propertyId}/room-listings/${roomId}/images`, { method: 'POST', body });
+  },
+  /** Send null or blank to clear the caption. */
+  update: async (propertyId: string, roomId: string, id: string, caption: string | null) =>
+    apiRequest<RoomImageDetails>(`/${propertyId}/room-listings/${roomId}/images/${id}`, {
+      method: 'PATCH',
+      body: { caption },
+    }),
+  remove: async (propertyId: string, roomId: string, id: string) =>
+    apiRequest<void>(`/${propertyId}/room-listings/${roomId}/images/${id}`, { method: 'DELETE' }),
+  file: async (propertyId: string, roomId: string, id: string) =>
+    apiBlob(`/${propertyId}/room-listings/${roomId}/images/${id}/file`),
+};
+
+export type SmokingPolicyKey = 'ALL_NON_SMOKING' | 'SMOKING_PERMITTED';
+
+/** The smoking policy and amenity catalog of one property (`/:propertyId/property-amenities`). */
+export interface PropertyAmenitiesDetails {
+  /** Null until one is chosen. */
+  smokingPolicy: SmokingPolicyKey | null;
+  /** Every catalog amenity; `code` is an upper-case name such as `FREE_INTERNET`. */
+  amenities: { code: string; isActive: boolean }[];
+}
+
+export const propertyAmenitiesApi = {
+  get: async (propertyId: string) => apiRequest<PropertyAmenitiesDetails>(`/${propertyId}/property-amenities`),
+  setSmokingPolicy: async (propertyId: string, smokingPolicy: SmokingPolicyKey | null) =>
+    apiRequest<PropertyAmenitiesDetails>(`/${propertyId}/property-amenities/smoking-policy`, {
+      method: 'PUT',
+      body: { smokingPolicy },
+    }),
+  setAmenity: async (propertyId: string, code: string, isActive: boolean) =>
+    apiRequest<PropertyAmenitiesDetails>(`/${propertyId}/property-amenities/${code}`, {
+      method: 'PUT',
+      body: { isActive },
+    }),
+};
+
+/** The smoking policy and catalog amenities of one room (`/:propertyId/room-listings/:roomId/category-amenities`). */
+export interface CategoryAmenitiesDetails {
+  /** Null until one is chosen. */
+  smokingPolicy: SmokingPolicyKey | null;
+  /** Every catalog amenity, in display order. */
+  amenities: { code: string; type: string; name: string; isActive: boolean }[];
+}
+
+export const categoryAmenitiesApi = {
+  get: async (propertyId: string, roomId: string) =>
+    apiRequest<CategoryAmenitiesDetails>(`/${propertyId}/room-listings/${roomId}/category-amenities`),
+  setSmokingPolicy: async (propertyId: string, roomId: string, smokingPolicy: SmokingPolicyKey | null) =>
+    apiRequest<{ smokingPolicy: SmokingPolicyKey | null }>(
+      `/${propertyId}/room-listings/${roomId}/category-amenities/smoking-policy`,
+      { method: 'PUT', body: { smokingPolicy } },
+    ),
+  setAmenity: async (propertyId: string, roomId: string, code: string, isActive: boolean) =>
+    apiRequest<{ code: string; isActive: boolean }>(
+      `/${propertyId}/room-listings/${roomId}/category-amenities/${code}`,
+      { method: 'PUT', body: { isActive } },
+    ),
+};
+
+/** One bed type of a room (`/:propertyId/room-listings/:roomId/bed-types`). */
+export interface RoomBedTypeDetails {
+  code: string;
+  name: string;
+  /** 1-based position in the catalog. */
+  displayOrder: number;
+  isActive: boolean;
+  /** Number of beds of this type in the room. */
+  beds: number;
+}
+
+export const roomBedTypeApi = {
+  list: async (propertyId: string, roomId: string) =>
+    apiRequest<RoomBedTypeDetails[]>(`/${propertyId}/room-listings/${roomId}/bed-types`),
+  /** Only the fields sent change. */
+  update: async (propertyId: string, roomId: string, code: string, body: { isActive?: boolean; beds?: number }) =>
+    apiRequest<RoomBedTypeDetails>(`/${propertyId}/room-listings/${roomId}/bed-types/${code}`, { method: 'PUT', body }),
+};
+
+/** An extra bed type of a room (`/:propertyId/room-listings/:roomId/extra-bed-types`); same catalog as bed types. */
+export interface RoomExtraBedTypeDetails {
+  code: string;
+  name: string;
+  /** 1-based position in the catalog. */
+  displayOrder: number;
+  isActive: boolean;
+}
+
+export const roomExtraBedTypeApi = {
+  list: async (propertyId: string, roomId: string) =>
+    apiRequest<RoomExtraBedTypeDetails[]>(`/${propertyId}/room-listings/${roomId}/extra-bed-types`),
+  update: async (propertyId: string, roomId: string, code: string, isActive: boolean) =>
+    apiRequest<{ code: string; isActive: boolean }>(`/${propertyId}/room-listings/${roomId}/extra-bed-types/${code}`, {
+      method: 'PUT',
+      body: { isActive },
+    }),
+};
+
+/** The branding of one property (`/:propertyId/branding`); the logo bytes come from `propertyBrandingApi.logo`. */
+export interface PropertyBrandingDetails {
+  websiteUrl: string | null;
+  /** What a bookable unit is called, e.g. "Room". */
+  accommodationNomenclature: string | null;
+  phoneNumbers: string[];
+  showPropertyNameOnBookingEngine: boolean;
+  hasLogo: boolean;
+  /** Changes with the logo; use it to refresh a cached picture. */
+  logoUpdatedAt: string | null;
+}
+
+export type PropertyBrandingInput = Omit<PropertyBrandingDetails, 'hasLogo' | 'logoUpdatedAt'>;
+
+export const propertyBrandingApi = {
+  get: async (propertyId: string) => apiRequest<PropertyBrandingDetails>(`/${propertyId}/branding`),
+  save: async (propertyId: string, body: PropertyBrandingInput) =>
+    apiRequest<PropertyBrandingDetails>(`/${propertyId}/branding`, { method: 'PUT', body }),
+  uploadLogo: async (propertyId: string, file: File) => {
+    const body = new FormData();
+    body.append('file', file);
+    return apiRequest<PropertyBrandingDetails>(`/${propertyId}/branding/logo`, { method: 'PUT', body });
+  },
+  removeLogo: async (propertyId: string) => apiRequest<void>(`/${propertyId}/branding/logo`, { method: 'DELETE' }),
+  logo: async (propertyId: string) => apiBlob(`/${propertyId}/branding/logo`),
+};
+
+/** A meal plan of a property (`/:propertyId/meal-plans`), with the property's own names where set. */
+export interface MealPlanDetails {
+  /** 1-based position in the list. */
+  displayOrder: number;
+  /** The constant name, e.g. `EP`. */
+  code: string;
+  displayName: string;
+  shortDisplayName: string;
+}
+
+export const mealPlanApi = {
+  list: async (propertyId: string) => apiRequest<MealPlanDetails[]>(`/${propertyId}/meal-plans`),
+  /** Only the names sent change. */
+  update: async (propertyId: string, code: string, body: { displayName?: string; shortDisplayName?: string }) =>
+    apiRequest<MealPlanDetails>(`/${propertyId}/meal-plans/${code}`, { method: 'PUT', body }),
+};
+
+/** A field of the guest registration card (`/:propertyId/grc-settings/fields`). */
+export interface GrcFieldDetails {
+  code: string;
+  name: string;
+  isEnabled: boolean;
+}
+
+/** How a property numbers and titles its guest registration cards (`/:propertyId/grc-settings/print`). */
+export interface GrcPrintDetails {
+  prefix: string | null;
+  inPrefixNo: string | null;
+  /** How many digits the running number is padded to. */
+  postfixDigits: number;
+  /** The running number. */
+  postfixNo: number;
+  printHeader: string;
+}
+
+export const grcSettingsApi = {
+  fields: async (propertyId: string) => apiRequest<GrcFieldDetails[]>(`/${propertyId}/grc-settings/fields`),
+  setField: async (propertyId: string, code: string, isEnabled: boolean) =>
+    apiRequest<GrcFieldDetails>(`/${propertyId}/grc-settings/fields/${code}`, { method: 'PUT', body: { isEnabled } }),
+  print: async (propertyId: string) => apiRequest<GrcPrintDetails>(`/${propertyId}/grc-settings/print`),
+  /** Only the fields sent change; null clears a prefix. */
+  updatePrint: async (propertyId: string, body: Partial<GrcPrintDetails>) =>
+    apiRequest<GrcPrintDetails>(`/${propertyId}/grc-settings/print`, { method: 'PATCH', body }),
+};
+
+/** Reservation numbering, guest ages and booking rules (`/:propertyId/reservation-settings`). */
+export interface ReservationSettingsDetails {
+  reservationPrefix: string | null;
+  /** The last reservation number issued. */
+  maxReservationNumber: number;
+  /** How many infants a room can have. */
+  infantCount: number;
+  infantDisplayText: string;
+  infantMinAge: number;
+  infantMaxAge: number;
+  chargeableChildMinAge: number;
+  chargeableChildMaxAge: number;
+  daysBetweenCheckInCheckOut: number;
+  considerDirtyRoomForParkingLot: boolean;
+  softBlockForDoNotMove: boolean;
+  allowZeroRateBookings: boolean;
+  moveCheckInCheckOutBooking: boolean;
+}
+
+export const reservationSettingsApi = {
+  get: async (propertyId: string) => apiRequest<ReservationSettingsDetails>(`/${propertyId}/reservation-settings`),
+  /** Only the fields sent change; null clears the prefix. */
+  update: async (propertyId: string, body: Partial<ReservationSettingsDetails>) =>
+    apiRequest<ReservationSettingsDetails>(`/${propertyId}/reservation-settings`, { method: 'PATCH', body }),
+};
+
+/** Limits on post master (PM) reservations (`/:propertyId/post-master-settings`). */
+export interface PostMasterSettingsDetails {
+  /** Most PM reservations that can be open at once. */
+  maxOpenPmReservations: number;
+  /** Most gross amount open across all PM reservations. */
+  pmOpenTotalGrossAmount: number;
+  maxRooms: number;
+  maxNights: number;
+  maxRoomNights: number;
+  maxReservationGrossAmount: number;
+}
+
+export const postMasterSettingsApi = {
+  get: async (propertyId: string) => apiRequest<PostMasterSettingsDetails>(`/${propertyId}/post-master-settings`),
+  /** Only the fields sent change. */
+  update: async (propertyId: string, body: Partial<PostMasterSettingsDetails>) =>
+    apiRequest<PostMasterSettingsDetails>(`/${propertyId}/post-master-settings`, { method: 'PATCH', body }),
+};
+
+export type HousekeepingPermissionKey = 'NONE' | 'CLEAN' | 'DIRTY' | 'TO_BE_INSPECTED' | 'INSPECTED' | 'UNDER_MAINTENANCE';
+
+/** A housekeeping status of one property (`/:propertyId/housekeeping-statuses`). */
+export interface HousekeepingStatusDetails {
+  id: string;
+  propertyId: string;
+  name: string;
+  /** "#rrggbb". */
+  color: string;
+  displayOrder: number;
+  abbreviation: string;
+  description: string | null;
+  /** Which users may set the status: NONE, or only users who may mark rooms with the named status. */
+  permissionRequired: HousekeepingPermissionKey;
+  /** The status a room gets on check-in; one status per property. */
+  checkinDefault: boolean;
+  checkoutDefault: boolean;
+  roomChangeDefault: boolean;
+  availableForParkingLot: boolean;
+  allowCheckin: boolean;
+  checkinHardStop: boolean;
+}
+
+export type HousekeepingStatusInput = Omit<HousekeepingStatusDetails, 'id' | 'propertyId' | 'displayOrder'>;
+
+export const housekeepingStatusApi = {
+  list: async (propertyId: string) => apiRequest<HousekeepingStatusDetails[]>(`/${propertyId}/housekeeping-statuses`),
+  create: async (propertyId: string, body: HousekeepingStatusInput) =>
+    apiRequest<HousekeepingStatusDetails>(`/${propertyId}/housekeeping-statuses`, { method: 'POST', body }),
+  update: async (propertyId: string, id: string, body: Partial<HousekeepingStatusInput>) =>
+    apiRequest<HousekeepingStatusDetails>(`/${propertyId}/housekeeping-statuses/${id}`, { method: 'PATCH', body }),
+  remove: async (propertyId: string, id: string) =>
+    apiRequest<void>(`/${propertyId}/housekeeping-statuses/${id}`, { method: 'DELETE' }),
 };
 
 /** A property's floor plan (`/:propertyId/floor-plan`): floors that have rooms, with their boxes. */
@@ -560,6 +876,57 @@ export const floorPlanApi = {
   get: async (propertyId: string) => apiRequest<FloorPlanDetails>(`/${propertyId}/floor-plan`),
   save: async (propertyId: string, body: FloorPlanInput) =>
     apiRequest<FloorPlanDetails>(`/${propertyId}/floor-plan`, { method: 'PUT', body }),
+};
+
+/** The general terms and conditions of one property (`/:propertyId/terms-inclusions`). */
+export interface PropertyTermsDetails {
+  includeInclusions: boolean;
+  inclusions: string | null;
+  includeBookingTerms: boolean;
+  bookingTerms: string | null;
+  includeCheckInTerms: boolean;
+  checkInTerms: string | null;
+  /** Null until the terms have been saved once. */
+  updatedAt: string | null;
+}
+
+export type PropertyTermsInput = Omit<PropertyTermsDetails, 'updatedAt'>;
+
+export const propertyTermsApi = {
+  get: async (propertyId: string) => apiRequest<PropertyTermsDetails>(`/${propertyId}/terms-inclusions`),
+  save: async (propertyId: string, body: Partial<PropertyTermsInput>) =>
+    apiRequest<PropertyTermsDetails>(`/${propertyId}/terms-inclusions`, { method: 'PUT', body }),
+};
+
+/** A cancellation rule of one property (`/:propertyId/cancellation-rules`). */
+export interface CancellationRuleDetails {
+  id: string;
+  propertyId: string;
+  /** First check-in date the rule applies to; the backend returns a date-time at midnight UTC. */
+  startDate: string;
+  /** Last check-in date the rule applies to. */
+  endDate: string;
+  /** The penalty applies to a cancellation made this many days or fewer before check-in. */
+  daysFromCheckin: number;
+  /** Decimal string, e.g. "50.00". */
+  penaltyPercent: string;
+}
+
+export interface CancellationRuleInput {
+  /** "YYYY-MM-DD". */
+  startDate: string;
+  /** "YYYY-MM-DD". */
+  endDate: string;
+  daysFromCheckin: number;
+  penaltyPercent: number;
+}
+
+export const cancellationRuleApi = {
+  list: async (propertyId: string) => apiRequest<CancellationRuleDetails[]>(`/${propertyId}/cancellation-rules`),
+  create: async (propertyId: string, body: CancellationRuleInput) =>
+    apiRequest<CancellationRuleDetails>(`/${propertyId}/cancellation-rules`, { method: 'POST', body }),
+  update: async (propertyId: string, id: string, body: Partial<CancellationRuleInput>) =>
+    apiRequest<CancellationRuleDetails>(`/${propertyId}/cancellation-rules/${id}`, { method: 'PATCH', body }),
 };
 
 /** The bookable room inventory of one property (`/:propertyId/room-inventory`), read from its floor plan. */

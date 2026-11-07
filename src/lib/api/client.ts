@@ -47,15 +47,17 @@ export async function apiRequest<T>(
   options: { method?: string; body?: unknown } = {},
 ): Promise<T> {
   const token = getAccessToken();
+  const isForm = options.body instanceof FormData;
   let response: Response;
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       method: options.method ?? 'GET',
       headers: {
-        ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        // A FormData body sets its own multipart Content-Type (with the boundary).
+        ...(options.body !== undefined && !isForm ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      body: options.body === undefined ? undefined : isForm ? (options.body as FormData) : JSON.stringify(options.body),
     });
   } catch {
     throw new ApiError('Could not reach the server. Check your connection and try again.', 0);
@@ -67,6 +69,27 @@ export async function apiRequest<T>(
     throw new ApiError(errorMessage(body, 'The request could not be completed.'), response.status);
   }
   return body as T;
+}
+
+/**
+ * Fetches a binary file (such as an image) with the bearer token, since an
+ * `<img src>` cannot send one.
+ */
+export async function apiBlob(path: string): Promise<Blob> {
+  const token = getAccessToken();
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  } catch {
+    throw new ApiError('Could not reach the server. Check your connection and try again.', 0);
+  }
+  if (!response.ok) {
+    if (response.status === 401 && token) clearAccessToken();
+    throw new ApiError(errorMessage(await readJsonBody(response), 'The file could not be loaded.'), response.status);
+  }
+  return response.blob();
 }
 
 /** Generates a CSV for a report path and triggers a client-side download. */
