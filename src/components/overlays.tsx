@@ -69,6 +69,7 @@ export function Modal({
   children,
   footer,
   wide,
+  xl,
 }: {
   open: boolean;
   onClose: () => void;
@@ -77,6 +78,8 @@ export function Modal({
   children: ReactNode;
   footer?: ReactNode;
   wide?: boolean;
+  /** Extra large: for dialogs that hold tabs and tables. */
+  xl?: boolean;
 }) {
   useEsc(onClose);
   useScrollLock(open);
@@ -90,7 +93,7 @@ export function Modal({
       <div
         ref={panelRef}
         tabIndex={-1}
-        className={`pms-animate-pop relative my-auto flex max-h-[92dvh] w-full max-w-[calc(100vw-2rem)] flex-col border ${wide ? 'sm:max-w-[780px]' : 'sm:max-w-[540px]'}`}
+        className={`pms-animate-pop relative my-auto flex max-h-[92dvh] w-full max-w-[calc(100vw-2rem)] flex-col border ${xl ? 'sm:max-w-[1100px]' : wide ? 'sm:max-w-[780px]' : 'sm:max-w-[540px]'}`}
         style={{
           background: 'var(--color-surface)',
           borderColor: 'var(--color-border)',
