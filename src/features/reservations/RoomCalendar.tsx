@@ -2,7 +2,6 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { toast } from '../../utils/toast';
 import type { NavTarget } from '../../config/navigation';
-import { store } from '../../data/store';
 import { IconButton } from '../../components/primitives';
 import type { CalendarReservation, CalendarRoom, DragState, ProposedReservationChange, ReservationStatus as CalendarReservationStatus } from './room-calendar/types';
 import {
@@ -24,7 +23,8 @@ import { stayOverlapsRange } from './reservationDateRange';
 import { DayLogButton } from './day-log/DayLogButton';
 import { DayNoteModal } from './day-log/DayNoteModal';
 import { DayEnquiriesModal } from './day-log/DayEnquiriesModal';
-import { dayLogApi, type DayLogSummaryRow } from '../../lib/api/pms';
+import { dayLogApi, frontDeskApi, reservationApi, type DayLogSummaryRow } from '../../lib/api/pms';
+import { displayApiError } from '../../lib/api/client';
 
 // ================= ROOM CALENDAR: 10-DAY VIEW =================
 const DAYS_IN_VIEW = 10;
@@ -105,13 +105,19 @@ function barGeometry(
   };
 }
 
-/** A room is held on a night when a live booking covers it; cancelled and no-show bookings leave it free. */
+/**
+ * A room is held on a night when a live booking covers it. Cancelled and no-show bookings leave it
+ * free, and so does a checked-out stay: check-out releases the room, also on an early departure.
+ */
+function holdsRoom(status: CalendarReservation['status']): boolean {
+  return status !== 'Cancelled' && status !== 'No-show' && status !== 'Checked-out';
+}
+
 function isRoomBookedOn(room: CalendarRoom, dateStr: string, reservations: CalendarReservation[]): boolean {
   return reservations.some(
     (res) =>
       (res.roomId === room.id || res.roomNumber === room.number) &&
-      res.status !== 'Cancelled' &&
-      res.status !== 'No-show' &&
+      holdsRoom(res.status) &&
       res.checkInDate <= dateStr &&
       dateStr < res.checkOutDate
   );
@@ -253,7 +259,24 @@ export function RoomCalendar({
 
   // Master data synchronized with the central PMS store
   const [rooms] = useState<CalendarRoom[]>(loadCalendarRooms);
-  const [reservations, setReservations] = useState<CalendarReservation[]>(() => loadSyncedReservations());
+  // Bookings for the visible window, loaded from the backend; `reloadReservations` re-reads them
+  // after a change so the rack shows what the server saved.
+  const [reservations, setReservations] = useState<CalendarReservation[]>([]);
+  const [reservationsVersion, setReservationsVersion] = useState(0);
+  const reloadReservations = () => setReservationsVersion((v) => v + 1);
+  useEffect(() => {
+    let active = true;
+    loadSyncedReservations(firstDay, horizonEnd)
+      .then((rows) => {
+        if (active) setReservations(rows);
+      })
+      .catch((error: unknown) => {
+        if (active) toast.error('Could not load reservations', { detail: displayApiError(error) });
+      });
+    return () => {
+      active = false;
+    };
+  }, [firstDay, horizonEnd, reservationsVersion]);
 
   // Day notes and enquiries: summary drives the header icons, the date opens the day log
   const [dayLog, setDayLog] = useState<Record<string, DayLogSummaryRow>>({});
@@ -357,15 +380,7 @@ export function RoomCalendar({
    * and night (check-out defaults to the next day).
    */
   const handleNewReservation = (room: CalendarRoom, checkIn: string) => {
-    const covered = reservations.some(
-      (res) =>
-        (res.roomId === room.id || res.roomNumber === room.number) &&
-        res.status !== 'Cancelled' &&
-        res.status !== 'No-show' &&
-        res.checkInDate <= checkIn &&
-        checkIn < res.checkOutDate
-    );
-    if (covered) return;
+    if (isRoomBookedOn(room, checkIn, reservations)) return;
 
     if (!room.bookable) {
       toast.info('Room not bookable', {
@@ -573,69 +588,52 @@ export function RoomCalendar({
     };
   }, [dragState, reservations, visibleRooms, rooms, dayWidth]);
 
-  // Apply the confirmed change and sync it back to the PMS store
-  const handleConfirmChange = async (notifyGuest: boolean) => {
+  // Save the confirmed move on the backend, which checks the room is free and prices the stay again
+  const handleConfirmChange = async () => {
     if (!pendingChange) return;
-
-    setIsSavingChange(true);
-    await new Promise((resolve) => setTimeout(resolve, 350));
-
-    const { reservation, proposedRoom, proposedCheckIn, proposedCheckOut, proposedNights, proposedTotal } =
-      pendingChange;
+    const { reservation, proposedRoom, proposedCheckIn, proposedCheckOut } = pendingChange;
     const backendId = reservation.backendId ?? reservation.id;
 
+    setIsSavingChange(true);
     try {
-      store.updateReservation(backendId, {
-        roomId: proposedRoom.id,
-        roomNumber: proposedRoom.number,
-        checkInDate: proposedCheckIn,
-        checkOutDate: proposedCheckOut,
-        nights: proposedNights,
-        totalAmount: String(proposedTotal),
+      await reservationApi.changeStay(backendId, {
+        checkIn: proposedCheckIn,
+        checkOut: proposedCheckOut,
+        roomLineId: reservation.roomLineId,
+        roomNumber: proposedRoom.number !== reservation.roomNumber ? proposedRoom.number : undefined,
       });
-      store.assignRoom(backendId, proposedRoom.id, reservation.roomLineId);
-    } catch {
-      // In-memory store only; the local state below still updates the view
+      setPendingChange(null);
+      onReservationUpdated?.();
+      toast.success('Reservation Updated', {
+        detail: `${reservation.guestName} moved to Room ${proposedRoom.number} (${proposedCheckIn} → ${proposedCheckOut}).`,
+      });
+    } catch (error) {
+      toast.error('Reservation Not Moved', { detail: displayApiError(error) });
+    } finally {
+      setIsSavingChange(false);
+      reloadReservations();
     }
-
-    setReservations((prev) =>
-      prev.map((r) =>
-        r.backendId === backendId
-          ? {
-            ...r,
-            ...(r.id === reservation.id
-              ? { roomId: proposedRoom.id, roomNumber: proposedRoom.number, roomType: proposedRoom.type }
-              : {}),
-            checkInDate: proposedCheckIn,
-            checkOutDate: proposedCheckOut,
-            nights: proposedNights,
-            totalAmount: proposedNights * r.nightlyRate,
-          }
-          : r
-      )
-    );
-
-    setIsSavingChange(false);
-    setPendingChange(null);
-    onReservationUpdated?.();
-
-    toast.success('Reservation Updated & Synced', {
-      detail: `${reservation.guestName} reassigned to Room ${proposedRoom.number} (${proposedCheckIn} → ${proposedCheckOut}). ${notifyGuest ? 'Simulated guest email & SMS queued.' : ''}`,
-    });
   };
 
   const handleStatusUpdate = (resId: string, newStatus: CalendarReservationStatus) => {
     const selected = reservations.find((reservation) => reservation.id === resId);
     const backendId = selected?.backendId ?? resId;
-    setReservations((prev) => prev.map((r) => (r.backendId === backendId ? { ...r, status: newStatus } : r)));
-    try {
-      if (newStatus === 'Checked-in') store.checkIn(backendId);
-      else if (newStatus === 'Checked-out') store.checkOut(backendId);
-      else if (newStatus === 'Cancelled') store.cancelReservation(backendId, 'Cancelled via calendar');
-    } catch {
-      // The store rejects some transitions; the local state already reflects the choice
+    const action =
+      newStatus === 'Checked-in' ? frontDeskApi.checkIn(backendId)
+        : newStatus === 'Checked-out' ? frontDeskApi.checkOut(backendId)
+          : newStatus === 'Cancelled' ? reservationApi.cancel(backendId, 'Cancelled via calendar')
+            : null;
+    if (!action) {
+      toast.info('Not Changed', { detail: `${newStatus} cannot be set from the calendar.` });
+      return;
     }
-    onReservationUpdated?.();
+    void action
+      .then(() => {
+        toast.success('Reservation Updated', { detail: `${selected?.guestName ?? 'Reservation'} is now ${newStatus}.` });
+        onReservationUpdated?.();
+      })
+      .catch((error: unknown) => toast.error('Status Not Changed', { detail: displayApiError(error) }))
+      .finally(reloadReservations);
   };
 
   const ghost = dragState?.isDragging

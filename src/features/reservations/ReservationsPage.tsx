@@ -263,7 +263,7 @@ export function Reservations({
                             {r.id}
                           </div>
                           <div className="text-label text-ink-muted mt-0.5">
-                            {r.checkInIso ? `Oct 15, 2026 • 10:24 AM` : 'Oct 15, 2026 • 09:12 AM'}
+                            {r.bookedAt ?? '—'}
                           </div>
                         </td>
 

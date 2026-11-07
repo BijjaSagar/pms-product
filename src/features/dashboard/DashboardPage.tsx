@@ -7,6 +7,9 @@ import { useApiResource } from '../../lib/api/useApiResource';
 import { useAuth } from '../../features/auth/AuthContext';
 import type { PaymentRow, ReservationRow, StayRow } from '../../lib/api/pms';
 import { toast } from '../../utils/toast';
+import { hotelTodayIso } from '../../utils/date';
+import { displayApiError } from '../../lib/api/client';
+import { ConfirmDialog } from '../../components/overlays';
 import { Avatar, Badge, TableActionBtn, TableContainer } from '../../components/ui';
 import { Button } from '../../components/primitives';
 
@@ -88,197 +91,6 @@ const DEMO_TIMELINE: ActivityItem[] = [
     actionLabel: 'Mark Done',
     actionTone: 'text-ink bg-page hover:bg-muted-surface border-border',
     target: { view: 'room-overview' } as NavTarget,
-  },
-];
-
-const DEMO_PENDING_CHECKINS = [
-  {
-    id: 'RSV-DM-0013',
-    bookingCode: 'RSV-DM-0013',
-    guest: 'Rohan Singh',
-    isVip: false,
-    room: '201',
-    roomType: 'Deluxe King',
-    roomReady: true,
-    eta: '10:00 AM',
-    dates: 'Oct 14 – 16',
-    nights: 2,
-    total: 12980,
-    balance: 0,
-    status: 'Guaranteed',
-  },
-  {
-    id: 'RSV-DM-0014',
-    bookingCode: 'RSV-DM-0014',
-    guest: 'Priya Mehta',
-    isVip: true,
-    vipTier: 'VIP Elite',
-    room: '302',
-    roomType: 'Executive Suite',
-    roomReady: true,
-    eta: '11:30 AM',
-    dates: 'Oct 14 – 17',
-    nights: 3,
-    total: 25600,
-    balance: 0,
-    status: 'Confirmed',
-  },
-  {
-    id: 'RSV-DM-0018',
-    bookingCode: 'RSV-DM-0018',
-    guest: 'Kavita Nair',
-    isVip: false,
-    room: '205',
-    roomType: 'Deluxe Queen',
-    roomReady: false,
-    eta: '01:15 PM',
-    dates: 'Oct 14 – 15',
-    nights: 1,
-    total: 6490,
-    balance: 6490,
-    status: 'Pending Deposit',
-  },
-  {
-    id: 'RSV-DM-0019',
-    bookingCode: 'RSV-DM-0019',
-    guest: 'Arjun Verma',
-    isVip: false,
-    room: 'Unassigned',
-    roomType: 'Superior Twin',
-    roomReady: false,
-    eta: '03:00 PM',
-    dates: 'Oct 14 – 18',
-    nights: 4,
-    total: 21800,
-    balance: 0,
-    status: 'Guaranteed',
-  },
-  {
-    id: 'RSV-DM-0020',
-    bookingCode: 'RSV-DM-0020',
-    guest: 'Sameer Sen',
-    isVip: true,
-    vipTier: 'VIP Diamond',
-    room: '404',
-    roomType: 'Presidential Suite',
-    roomReady: true,
-    eta: '04:30 PM',
-    dates: 'Oct 14 – 16',
-    nights: 2,
-    total: 38400,
-    balance: 10000,
-    status: 'Confirmed',
-  },
-];
-
-const DEMO_PENDING_CHECKOUTS = [
-  {
-    id: 'RSV-DM-0010',
-    bookingCode: 'RSV-DM-0010',
-    guest: 'Rahul Lal',
-    room: '103',
-    roomType: 'Standard Queen',
-    outTime: '11:00 AM',
-    isLateCheckout: false,
-    dates: 'Oct 12 – 14',
-    nights: 2,
-    folioBalance: 0,
-    status: 'Due Out' as const,
-  },
-  {
-    id: 'RSV-DM-0008',
-    bookingCode: 'RSV-DM-0008',
-    guest: 'Aditya Nanda',
-    room: '202',
-    roomType: 'Deluxe King',
-    outTime: '11:30 AM',
-    isLateCheckout: false,
-    dates: 'Oct 11 – 14',
-    nights: 3,
-    folioBalance: 1850,
-    status: 'Due Out' as const,
-  },
-  {
-    id: 'RSV-DM-0006',
-    bookingCode: 'RSV-DM-0006',
-    guest: 'Sunita Menon',
-    room: '305',
-    roomType: 'Executive Suite',
-    outTime: '02:00 PM',
-    isLateCheckout: true,
-    dates: 'Oct 10 – 14',
-    nights: 4,
-    folioBalance: 0,
-    status: 'Late Checkout' as const,
-  },
-  {
-    id: 'RSV-DM-0005',
-    bookingCode: 'RSV-DM-0005',
-    guest: 'Manish Gupta',
-    room: '107',
-    roomType: 'Superior Twin',
-    outTime: '12:00 PM',
-    isLateCheckout: false,
-    dates: 'Oct 13 – 14',
-    nights: 1,
-    folioBalance: 4200,
-    status: 'Due Out' as const,
-  },
-  {
-    id: 'RSV-DM-0004',
-    bookingCode: 'RSV-DM-0004',
-    guest: 'Elena Reddy',
-    room: '401',
-    roomType: 'Deluxe King',
-    outTime: '11:00 AM',
-    isLateCheckout: false,
-    dates: 'Oct 12 – 14',
-    nights: 2,
-    folioBalance: 0,
-    status: 'Inspected' as const,
-  },
-];
-
-const DEMO_RESERVATIONS = [
-  {
-    id: 'RSV-DM-0013',
-    guest: 'Rohan Singh',
-    dates: 'Oct 14 – Oct 16',
-    room: '201',
-    status: 'Confirmed',
-    total: 12980,
-  },
-  {
-    id: 'RSV-DM-0014',
-    guest: 'Priya Mehta',
-    dates: 'Oct 14 – Oct 17',
-    room: '2 Rooms',
-    status: 'Confirmed',
-    total: 25600,
-  },
-  {
-    id: 'RSV-DM-0015',
-    guest: 'Harsh Ali',
-    dates: 'Oct 15 – Oct 17',
-    room: '305',
-    status: 'Pending',
-    total: 8450,
-  },
-  {
-    id: 'RSV-DM-0016',
-    guest: 'Elena Reddy',
-    dates: 'Oct 13 – Oct 14',
-    room: '103',
-    status: 'Checked-out',
-    total: 6490,
-  },
-  {
-    id: 'RSV-DM-0017',
-    guest: 'Vikram Rao',
-    dates: 'Oct 15 – Oct 18',
-    room: '404',
-    status: 'Confirmed',
-    total: 18700,
   },
 ];
 
@@ -381,46 +193,70 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
   const totalRoomCount = roomReadiness?.total ?? 0;
   const readyPct = totalRoomCount > 0 ? Math.round((readyRooms / totalRoomCount) * 100) : 0;
 
-  const pendingCheckins = useMemo(() => {
-    if (arrivals && arrivals.length > 0) {
-      return arrivals.slice(0, 5).map((a) => ({
+  // Real arrivals and departures only; an empty day shows an empty table, never sample guests.
+  const pendingCheckins = useMemo(
+    () =>
+      (arrivals ?? []).slice(0, 5).map((a) => ({
         id: a.id,
         bookingCode: a.bookingCode || a.id,
-        guest: a.guestName || 'Registered Guest',
+        guest: a.guestName || 'Guest',
         isVip: false,
         vipTier: undefined as string | undefined,
         room: a.roomNumber || 'Unassigned',
-        roomType: a.roomTypeName || 'Standard Room',
+        roomType: a.roomTypeName || '',
         roomReady: a.roomReady ?? true,
-        eta: '12:00 PM',
+        eta: displayTime(a.checkInTime),
         dates: `${a.checkInDate} – ${a.checkOutDate}`,
         nights: a.nights ?? 1,
-        total: parseFloat(a.totalAmount || '0') || 7500,
+        total: parseFloat(a.totalAmount || '0') || 0,
         balance: parseFloat(a.balance || '0') || 0,
         status: (a.status as 'Confirmed' | 'Pending' | 'Checked-in' | 'Checked-out' | 'Cancelled' | 'No-show') || 'Confirmed',
-      }));
-    }
-    return DEMO_PENDING_CHECKINS;
-  }, [arrivals]);
+      })),
+    [arrivals],
+  );
 
+  // In-house guests due out today, and late ones still here after their check-out date.
   const pendingCheckouts = useMemo(() => {
-    if (departures && departures.length > 0) {
-      return departures.slice(0, 5).map((d) => ({
+    const today = hotelTodayIso();
+    return (departures ?? []).slice(0, 5).map((d) => {
+      const isLateCheckout = d.checkOutDate < today;
+      return {
         id: d.id,
         bookingCode: d.bookingCode || d.id,
-        guest: d.guestName || 'In-House Guest',
-        room: d.roomNumber || '101',
-        roomType: d.roomTypeName || 'Standard Room',
-        outTime: '11:00 AM',
-        isLateCheckout: false,
+        guest: d.guestName || 'Guest',
+        room: d.roomNumber || 'Unassigned',
+        roomType: d.roomTypeName || '',
+        outTime: displayTime(d.checkOutTime),
+        isLateCheckout,
         dates: `${d.checkInDate} – ${d.checkOutDate}`,
         nights: d.nights ?? 1,
         folioBalance: parseFloat(d.balance || '0') || 0,
-        status: 'Due Out' as const,
-      }));
-    }
-    return DEMO_PENDING_CHECKOUTS;
+        // The table also styles 'Inspected', which comes with housekeeping data later.
+        status: (isLateCheckout ? 'Late Checkout' : 'Due Out') as 'Due Out' | 'Late Checkout' | 'Inspected',
+      };
+    });
   }, [departures]);
+
+  // Check-out from the dashboard: frees the room for new bookings from today.
+  const [checkoutTarget, setCheckoutTarget] = useState<{ id: string; guest: string; room: string; balance: number } | null>(null);
+  const [checkingOut, setCheckingOut] = useState(false);
+  const confirmCheckout = async () => {
+    if (!checkoutTarget) return;
+    setCheckingOut(true);
+    try {
+      await frontDeskApi.checkOut(checkoutTarget.id);
+      toast('Checked out', {
+        detail: `${checkoutTarget.guest} checked out. Room ${checkoutTarget.room} can be booked again.`,
+        tone: 'success',
+      });
+      setCheckoutTarget(null);
+      resource.refresh();
+    } catch (error) {
+      toast('Check-out failed', { detail: displayApiError(error), tone: 'danger' });
+    } finally {
+      setCheckingOut(false);
+    }
+  };
 
   const recentReservations = useMemo(() => {
     if (reservations && reservations.length > 0) {
@@ -433,7 +269,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         total: r.total,
       }));
     }
-    return DEMO_RESERVATIONS;
+    return [];
   }, [reservations]);
 
   const recentPayments = useMemo(() => {
@@ -670,6 +506,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                     </tr>
                   </thead>
                   <tbody>
+                    {pendingCheckins.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="py-6 text-center text-label text-ink-muted">
+                          No arrivals waiting for check-in today.
+                        </td>
+                      </tr>
+                    )}
                     {pendingCheckins.map((r, idx) => (
                       <tr key={r.id}>
                         <td className="text-center font-medium text-ink-secondary text-label whitespace-nowrap">
@@ -787,6 +630,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                     </tr>
                   </thead>
                   <tbody>
+                    {pendingCheckouts.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="py-6 text-center text-label text-ink-muted">
+                          No guests due to check out today.
+                        </td>
+                      </tr>
+                    )}
                     {pendingCheckouts.map((d, idx) => (
                       <tr key={d.id}>
                         <td className="text-center font-medium text-ink-secondary text-label whitespace-nowrap">
@@ -837,15 +687,12 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         <td className="text-right whitespace-nowrap pr-3.5">
                           <Button variant="warning"
                             type="button"
-                            onClick={() => {
-                              if (d.folioBalance > 0) {
-                                toast('Folio Balance Pending', { detail: `Collect ₹${d.folioBalance.toLocaleString('en-IN')} from ${d.guest} before closing the folio.`, tone: 'warning' });
-                              }
-                              go({ view: 'folios' });
-                            }}
+                            onClick={() =>
+                              setCheckoutTarget({ id: d.id, guest: d.guest, room: d.room, balance: d.folioBalance })
+                            }
                             className="inline-flex items-center gap-1.5 transition-all cursor-pointer"
                           >
-                            <span>Open folio</span>
+                            <span>Check out</span>
                           </Button>
                         </td>
                       </tr>
@@ -1309,8 +1156,26 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
       </div>
 
-
+      <ConfirmDialog
+        open={checkoutTarget !== null}
+        onClose={() => setCheckoutTarget(null)}
+        onConfirm={confirmCheckout}
+        title="Check out guest"
+        body={checkoutTarget ? `Check out ${checkoutTarget.guest} from Room ${checkoutTarget.room}? The room can be booked again from today.` : ''}
+        note={checkoutTarget && checkoutTarget.balance > 0 ? `₹${checkoutTarget.balance.toLocaleString('en-IN')} is still unpaid on this booking.` : undefined}
+        confirmLabel="Check out"
+        busy={checkingOut}
+        autoClose={false}
+      />
 
     </div>
   );
+}
+
+/** "14:00" as "2:00 PM"; "—" when the time is unknown. */
+function displayTime(value: string | undefined): string {
+  const match = /^(\d{2}):(\d{2})$/.exec(value ?? '');
+  if (!match) return '—';
+  const hours = Number(match[1]);
+  return `${hours % 12 || 12}:${match[2]} ${hours < 12 ? 'AM' : 'PM'}`;
 }

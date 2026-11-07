@@ -2,14 +2,24 @@ import { useState, type ChangeEvent } from "react";
 import { Field } from "../../../components/controls";
 import { Modal } from "../../../components/overlays";
 import { Button } from "../../../components/primitives";
-import { guestApi } from "../../../lib/api/pms";
-import { guestFromApi } from "../../../lib/api/adapters";
+import { guestDirectoryApi } from "../../../lib/api/pms";
+import type { BackendGuestGender } from "../../../lib/api/pms";
+import { guestFromBackend } from "../../../lib/api/adapters";
 import { displayApiError } from "../../../lib/api/client";
 import { toast } from "../../../utils/toast";
 import { inputClass } from "../../../utils/styling";
 import type { Guest } from "../../../types";
+import { useAuth } from "../../auth/AuthContext";
+import { hotelTodayIso } from "../../../utils/date";
+import { isRealDate, isValidPhone } from "./bookingRules";
 
 const GENDER_OPTIONS = ["Male", "Female", "Other", "Prefer not to say"];
+const GENDER_CODES: Record<string, BackendGuestGender> = {
+  Male: "MALE",
+  Female: "FEMALE",
+  Other: "OTHER",
+  "Prefer not to say": "PREFER_NOT_TO_SAY",
+};
 
 type GuestForm = {
   name: string;
@@ -47,45 +57,50 @@ export function AddGuestModal({
 }) {
   const [form, setForm] = useState<GuestForm>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const { me } = useAuth();
 
   const setField = (key: keyof GuestForm) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((previous) => ({ ...previous, [key]: e.target.value }));
 
   const save = async () => {
-    const name = form.name.trim();
+    if (saving) return;
+    const name = form.name.trim().replace(/\s+/g, " ");
     const email = form.email.trim();
     const mobile = form.mobile.trim();
-    if (name.length < 2) {
-      toast.error("Check the Guest details", { detail: "Name is required." });
-      return;
-    }
-    if (mobile.length < 6) {
-      toast.error("Check the Guest details", { detail: "A valid mobile number is required." });
-      return;
-    }
-    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      toast.error("Check the Guest details", { detail: "Enter a valid email address." });
+    const problem =
+      name.length < 2 ? "Name is required."
+        : name.length > 200 ? "Name is too long."
+          : !isValidPhone(mobile) ? "Enter a valid mobile number, e.g. +91 98765 43210."
+            : email && (email.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
+              ? "Enter a valid email address."
+              : form.dateOfBirth && !isRealDate(form.dateOfBirth) ? "Enter a real date of birth."
+                : form.dateOfBirth && form.dateOfBirth > hotelTodayIso()
+                  ? "Date of birth cannot be in the future."
+                  : null;
+    if (problem) {
+      toast.error("Check the Guest details", { detail: problem });
       return;
     }
 
-    const [firstName, ...rest] = name.split(/\s+/);
+    const [firstName, ...rest] = name.split(" ");
+    const optional = (value: string, max = 100) => value.trim().slice(0, max) || undefined;
     setSaving(true);
     try {
-      const created = await guestApi.create({
-        firstName,
-        lastName: rest.join(" "),
-        email: email || null,
+      const created = await guestDirectoryApi.create(me?.activePropertyId ?? "", {
+        firstName: firstName.slice(0, 100),
+        lastName: rest.join(" ").slice(0, 100),
+        email: email || undefined,
         phone: mobile,
-        nationality: form.nationality.trim() || null,
-        dateOfBirth: form.dateOfBirth || null,
-        gender: form.gender || null,
-        address: form.address.trim() || null,
-        city: form.city.trim() || null,
-        state: form.state.trim() || null,
-        country: form.country.trim() || null,
+        nationality: optional(form.nationality),
+        dateOfBirth: form.dateOfBirth || undefined,
+        gender: GENDER_CODES[form.gender],
+        address: optional(form.address, 300),
+        city: optional(form.city),
+        state: optional(form.state),
+        country: optional(form.country),
       });
       toast.success("Guest added", { detail: `${name} was saved to the Guest directory.` });
-      onCreated(guestFromApi(created));
+      onCreated(guestFromBackend(created));
     } catch (error) {
       toast.error("Could not add Guest", { detail: displayApiError(error) });
     } finally {

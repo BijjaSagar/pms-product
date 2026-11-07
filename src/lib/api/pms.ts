@@ -2,6 +2,7 @@ import { store } from '../../data/store';
 import { clearAccessToken, saveAccessToken } from './authToken';
 import { ApiError, apiRequest } from './client';
 import type { ThemeKey } from '../../types';
+import { hotelTodayIso, shiftDate } from '../../utils/date';
 
 export interface PropertyMembership {
   id: string;
@@ -83,7 +84,9 @@ export interface ReservationRow {
   subtotal?: string; taxTotal?: string; specialRequests?: string | null; guest?: { id: string; name?: string; firstName?: string; lastName?: string } | null;
   guestName?: string | null; roomNumber?: string | null; roomSummary?: string | null; roomTypeName?: string | null; roomTypeId?: string;
   roomLines?: ReservationRoomRow[]; pendingCharges?: ReservationChargeRow[]; pendingPayments?: ReservationPendingPaymentRow[]; billingPreferences?: ReservationBillingPreferencesRow;
-  discountAmount?: string; paid?: number;
+  discountAmount?: string; paid?: number; createdAt?: string;
+  /** 24-hour "HH:mm". */
+  checkInTime?: string; checkOutTime?: string;
 }
 export interface StayRow extends ReservationRow {
   guestId?: string | null;
@@ -235,6 +238,7 @@ export const authApi = {
             : null;
 
     const active = properties.find((p) => p.id === activeId);
+    backendPropertyId = active?.id ?? null;
     if (active) {
       store.adoptProperty({
         id: active.id,
@@ -283,6 +287,7 @@ export const authApi = {
     } finally {
       clearAccessToken();
       sessionStorage.removeItem(ACTIVE_PROPERTY_KEY);
+      backendPropertyId = null;
     }
   },
   /** Only meaningful for ADMIN; a STAFF user's property comes from the backend. */
@@ -606,6 +611,172 @@ export const roomInventoryApi = {
   get: async (propertyId: string) => apiRequest<RoomInventory>(`/${propertyId}/room-inventory`),
 };
 
+/* ---------- Guests and reservations on the backend (New Reservation screen) ---------- */
+
+export type BackendGuestGender = 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY';
+
+/** A guest as the backend stores it (`/:propertyId/guests`). */
+export interface BackendGuest {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  phone: string;
+  nationality: string | null;
+  dateOfBirth: string | null;
+  gender: BackendGuestGender | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+}
+
+export interface BackendGuestInput {
+  firstName: string;
+  lastName?: string;
+  email?: string;
+  phone: string;
+  nationality?: string;
+  dateOfBirth?: string;
+  gender?: BackendGuestGender;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+}
+
+export interface BackendPage<T> {
+  data: T[];
+  meta: { total: number; page: number; pageSize: number };
+}
+
+export const guestDirectoryApi = {
+  search: async (propertyId: string, search: string, pageSize = 6) =>
+    apiRequest<BackendPage<BackendGuest>>(
+      `/${propertyId}/guests?${new URLSearchParams({ search, pageSize: String(pageSize) })}`,
+    ),
+  create: async (propertyId: string, body: BackendGuestInput) =>
+    apiRequest<BackendGuest>(`/${propertyId}/guests`, { method: 'POST', body }),
+};
+
+/** One room offering's availability for a stay (`/:propertyId/availability`). */
+export interface RoomAvailability {
+  roomId: string;
+  roomName: string;
+  roomTypeName: string;
+  baseRate: string;
+  maxAdults: number;
+  maxChildren: number;
+  maxOccupancy: number;
+  sellable: boolean;
+  totalUnits: number;
+  /** How many more can be sold on every night of the stay. */
+  available: number;
+  /** Room numbers free for the whole stay. */
+  freeUnits: { floorUnitId: string; roomNumber: string; floor: number }[];
+}
+
+export interface StayAvailability {
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  taxPercent: string;
+  rooms: RoomAvailability[];
+}
+
+export type BookingStatusCode = 'CONFIRMED' | 'GUARANTEED' | 'TENTATIVE' | 'WAITLIST';
+export type BookingSourceCode = 'DIRECT' | 'OTA' | 'AGENT' | 'GDS' | 'CORPORATE' | 'BOOKING_ENGINE' | 'META';
+export type BookingCategoryCode = 'FIT' | 'GROUP' | 'MICE' | 'SERIES';
+export type MealPlanCode = 'EP' | 'CP' | 'MAP' | 'AP';
+export type BillingRouteCode = 'TO_GUEST' | 'TO_COMPANY' | 'TO_TRAVEL_AGENT' | 'DIRECT_SETTLEMENT';
+export type PaymentMethodCode = 'UPI_QR' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'CASH' | 'BANK_TRANSFER';
+
+/** The New Reservation form as the backend accepts it. The server prices it. */
+export interface BookingInput {
+  status: BookingStatusCode;
+  source: BookingSourceCode;
+  sourceDetail?: string;
+  sourceContactNumber?: string;
+  externalReferenceId?: string;
+  bookingCategory: BookingCategoryCode;
+  primaryGuestId: string;
+  checkIn: string;
+  checkOut: string;
+  checkInTime: string;
+  checkOutTime: string;
+  rooms: {
+    roomId: string;
+    adults: number;
+    children: number;
+    infants: number;
+    ratePlanName: string;
+    mealPlan: MealPlanCode;
+    floorUnitId?: string;
+  }[];
+  overridePrice: boolean;
+  roomTotalOverride?: number;
+  discountAmount: number;
+  charges: {
+    outletId: string;
+    outletName: string;
+    description: string;
+    quantity: number;
+    unitAmount: number;
+    billingRoute?: BillingRouteCode;
+    roomIndex: number;
+  }[];
+  payments: { amount: number; method: PaymentMethodCode; reference?: string }[];
+  tasks: { text: string; isDone: boolean }[];
+  specialRequests?: string;
+  roomBillTo: 'TO_GUEST' | 'TO_COMPANY';
+  extrasBillTo: 'TO_GUEST' | 'TO_COMPANY';
+  noPost: boolean;
+  companyName?: string;
+  companyGst?: string;
+  payAtHotel: boolean;
+  paymentNotes?: string;
+  /** The total the user saw; the server refuses the save if its own differs. */
+  expectedTotal: number;
+}
+
+/** The saved reservation, as returned by the backend. */
+export interface BookingResult {
+  id: string;
+  bookingCode: string;
+  status: string;
+  total: string;
+  paid: string;
+  balance: string;
+  rooms: { roomIndex: number; roomNumber: string | null }[];
+}
+
+export const bookingApi = {
+  availability: async (propertyId: string, checkIn: string, checkOut: string) =>
+    apiRequest<StayAvailability>(
+      `/${propertyId}/availability?${new URLSearchParams({ checkIn, checkOut })}`,
+    ),
+  /**
+   * Saves a booking. `idempotencyKey` must stay the same for every attempt at
+   * the same booking: the server then returns the booking already made instead
+   * of a duplicate. A dropped connection is retried once with the same key.
+   */
+  create: async (propertyId: string, body: BookingInput, idempotencyKey: string) => {
+    const send = () =>
+      apiRequest<BookingResult>(`/${propertyId}/reservations`, {
+        method: 'POST',
+        body,
+        headers: { 'Idempotency-Key': idempotencyKey },
+      });
+    try {
+      return await send();
+    } catch (error) {
+      if (!(error instanceof ApiError && error.status === 0)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      return send();
+    }
+  },
+};
+
 export const inventoryApi = {
   rooms: async () => store.rooms(),
   roomTypes: async () => store.roomTypes(),
@@ -617,30 +788,444 @@ export const inventoryApi = {
   backInService: async (id: string, reason: string) => store.backInService(id, reason),
 };
 
+/* ---------- Guests, reservations and the front desk: the real backend ---------- */
+
+/** The property this tab works on; set when the session loads (authApi.me). */
+let backendPropertyId: string | null = null;
+
+function propertyPath(): string {
+  if (!backendPropertyId) throw new ApiError('Choose a property first.', 0);
+  return `/${backendPropertyId}`;
+}
+
+interface BackendReservationGuest {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string | null;
+}
+
+interface BackendReservationSummary {
+  id: string;
+  bookingCode: string;
+  status: string;
+  source: string;
+  externalReferenceId: string | null;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  checkInTime: string;
+  checkOutTime: string;
+  guest: BackendReservationGuest;
+  roomNumbers: string[];
+  roomNames: string[];
+  rooms: { id: string; roomIndex: number; roomName: string; roomNumber: string | null }[];
+  adults: number;
+  children: number;
+  total: string;
+  paid: string;
+  balance: string;
+  createdAt: string;
+}
+
+interface BackendReservationLine {
+  id: string;
+  roomIndex: number;
+  roomId: string;
+  roomName: string;
+  roomTypeName: string;
+  floorUnitId: string | null;
+  roomNumber: string | null;
+  adults: number;
+  children: number;
+  infants: number;
+  ratePlanName: string;
+  mealPlan: MealPlanCode;
+  ratePerNight: string;
+  released: boolean;
+}
+
+interface BackendReservationDetail {
+  id: string;
+  bookingCode: string;
+  status: string;
+  source: BookingSourceCode;
+  sourceDetail: string | null;
+  sourceContactNumber: string | null;
+  externalReferenceId: string | null;
+  bookingCategory: BookingCategoryCode;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  checkInTime: string;
+  checkOutTime: string;
+  guest: BackendReservationGuest;
+  rooms: BackendReservationLine[];
+  charges: {
+    roomIndex: number | null;
+    outletId: string;
+    outletName: string;
+    description: string;
+    quantity: number;
+    unitAmount: string;
+    billingRoute: BillingRouteCode;
+  }[];
+  overridePrice: boolean;
+  roomCharges: string;
+  discountAmount: string;
+  subtotal: string;
+  taxTotal: string;
+  total: string;
+  paid: string;
+  balance: string;
+  specialRequests: string | null;
+  roomBillTo: 'TO_GUEST' | 'TO_COMPANY';
+  extrasBillTo: 'TO_GUEST' | 'TO_COMPANY';
+  noPost: boolean;
+  companyName: string | null;
+  companyGst: string | null;
+  payAtHotel: boolean;
+  paymentNotes: string | null;
+  createdAt: string;
+}
+
+const MAX_PAGE = 100;
+
+function guestRowFromBackend(guest: BackendGuest): GuestRow {
+  return { ...guest, companyName: null, stayCount: 0 };
+}
+
+function reservationRowFromSummary(r: BackendReservationSummary): ReservationRow {
+  return {
+    id: r.id,
+    bookingCode: r.bookingCode,
+    externalReferenceId: r.externalReferenceId,
+    status: r.status,
+    source: r.source,
+    checkInDate: r.checkIn,
+    checkOutDate: r.checkOut,
+    nights: r.nights,
+    adults: r.adults,
+    children: r.children,
+    currencyCode: 'INR',
+    totalAmount: r.total,
+    primaryGuestId: r.guest.id,
+    guest: r.guest,
+    guestName: `${r.guest.firstName} ${r.guest.lastName}`.trim(),
+    roomNumber: r.roomNumbers[0] ?? null,
+    roomSummary: r.rooms
+      .map((line) => `${line.roomName} · ${line.roomNumber ?? 'Unassigned'}`)
+      .join(' + '),
+    roomTypeName: [...new Set(r.roomNames)].join(' + '),
+    paid: Number(r.paid),
+    createdAt: r.createdAt,
+    checkInTime: r.checkInTime,
+    checkOutTime: r.checkOutTime,
+    roomLines: r.rooms.map((line) => ({
+      id: line.id,
+      roomTypeId: '',
+      roomNumber: line.roomNumber,
+      roomTypeName: line.roomName,
+      nightlyRate: '0',
+    })),
+  };
+}
+
+function reservationRowFromDetail(r: BackendReservationDetail): ReservationRow {
+  return {
+    id: r.id,
+    bookingCode: r.bookingCode,
+    externalReferenceId: r.externalReferenceId,
+    status: r.status,
+    source: r.source,
+    checkInDate: r.checkIn,
+    checkOutDate: r.checkOut,
+    nights: r.nights,
+    adults: r.rooms.reduce((sum, line) => sum + line.adults, 0),
+    children: r.rooms.reduce((sum, line) => sum + line.children, 0),
+    infants: r.rooms.reduce((sum, line) => sum + line.infants, 0),
+    currencyCode: 'INR',
+    totalAmount: r.total,
+    subtotal: r.subtotal,
+    taxTotal: r.taxTotal,
+    discountAmount: r.discountAmount,
+    primaryGuestId: r.guest.id,
+    guest: r.guest,
+    guestName: `${r.guest.firstName} ${r.guest.lastName}`.trim(),
+    roomNumber: r.rooms.find((line) => line.roomNumber)?.roomNumber ?? null,
+    roomTypeName: [...new Set(r.rooms.map((line) => line.roomName))].join(' + '),
+    nightlyRate: r.rooms[0]?.ratePerNight,
+    specialRequests: r.specialRequests,
+    internalNotes: r.paymentNotes,
+    paid: Number(r.paid),
+    createdAt: r.createdAt,
+    roomLines: r.rooms.map((line) => ({
+      id: line.id,
+      roomTypeId: line.roomId,
+      roomId: line.floorUnitId,
+      roomNumber: line.roomNumber,
+      roomTypeName: line.roomName,
+      nightlyRate: line.ratePerNight,
+      baseRate: line.ratePerNight,
+      ratePlanName: line.ratePlanName,
+      adults: line.adults,
+      children: line.children,
+      infants: line.infants,
+      mealPlanName: line.mealPlan,
+    })),
+  };
+}
+
+function stayRowFrom(row: ReservationRow): StayRow {
+  const room = row.roomNumber ? store.rooms().find((r) => r.roomNumber === row.roomNumber) : undefined;
+  return {
+    ...row,
+    guestId: row.primaryGuestId ?? null,
+    guestName: row.guestName ?? null,
+    roomNumber: row.roomNumber ?? null,
+    roomStatus: room?.status ?? null,
+    roomReady: room ? room.status === 'VACANT_CLEAN' || room.status === 'INSPECTED' : false,
+    folioId: null,
+    folioNo: null,
+    balance: String(Math.max(0, Number(row.totalAmount ?? 0) - Number(row.paid ?? 0))),
+  };
+}
+
+/** Every reservation matching the filters, page by page (at most 1,000). */
+async function listAllReservations(filters: Record<string, string>): Promise<ReservationRow[]> {
+  const rows: ReservationRow[] = [];
+  for (let page = 1; page <= 10; page++) {
+    const query = new URLSearchParams({ ...filters, page: String(page), pageSize: String(MAX_PAGE) });
+    const result = await apiRequest<BackendPage<BackendReservationSummary>>(
+      `${propertyPath()}/reservations?${query}`,
+    );
+    rows.push(...result.data.map(reservationRowFromSummary));
+    if (page * MAX_PAGE >= result.meta.total) break;
+  }
+  return rows;
+}
+
+/** Statuses the server lets you edit: bookings that have not arrived yet. */
+const EDITABLE = ['CONFIRMED', 'GUARANTEED', 'TENTATIVE', 'WAITLIST'];
+
+const getDetail = (id: string) =>
+  apiRequest<BackendReservationDetail>(`${propertyPath()}/reservations/${id}`);
+
+type BookingUpdate = Omit<BookingInput, 'payments' | 'tasks' | 'expectedTotal'>;
+
+/** The saved reservation as an edit body, so a change keeps everything else as it is. */
+function updateBodyFrom(r: BackendReservationDetail): BookingUpdate {
+  const optional = (value: string | null) => value ?? undefined;
+  return {
+    status: r.status as BookingStatusCode,
+    source: r.source,
+    sourceDetail: optional(r.sourceDetail),
+    sourceContactNumber: optional(r.sourceContactNumber),
+    externalReferenceId: optional(r.externalReferenceId),
+    bookingCategory: r.bookingCategory,
+    primaryGuestId: r.guest.id,
+    checkIn: r.checkIn,
+    checkOut: r.checkOut,
+    checkInTime: r.checkInTime,
+    checkOutTime: r.checkOutTime,
+    rooms: r.rooms.map((line) => ({
+      roomId: line.roomId,
+      adults: line.adults,
+      children: line.children,
+      infants: line.infants,
+      ratePlanName: line.ratePlanName,
+      mealPlan: line.mealPlan,
+      floorUnitId: line.floorUnitId ?? undefined,
+    })),
+    overridePrice: r.overridePrice,
+    roomTotalOverride: r.overridePrice ? Number(r.roomCharges) : undefined,
+    discountAmount: Number(r.discountAmount),
+    charges: r.charges.map((charge) => ({
+      outletId: charge.outletId,
+      outletName: charge.outletName,
+      description: charge.description,
+      quantity: charge.quantity,
+      unitAmount: Number(charge.unitAmount),
+      billingRoute: charge.billingRoute,
+      roomIndex: charge.roomIndex ?? 1,
+    })),
+    specialRequests: optional(r.specialRequests),
+    roomBillTo: r.roomBillTo,
+    extrasBillTo: r.extrasBillTo,
+    noPost: r.noPost,
+    companyName: optional(r.companyName),
+    companyGst: optional(r.companyGst),
+    payAtHotel: r.payAtHotel,
+    paymentNotes: optional(r.paymentNotes),
+  };
+}
+
+export interface StayChange {
+  checkIn?: string;
+  checkOut?: string;
+  /** Move one room line to another room number. */
+  roomLineId?: string;
+  roomNumber?: string;
+}
+
+/**
+ * Changes the dates and/or the room number of a reservation. The server checks
+ * the new stay is free (the reservation does not clash with itself) and
+ * prices it again.
+ */
+async function changeStay(id: string, change: StayChange): Promise<ReservationRow> {
+  const detail = await getDetail(id);
+  if (!EDITABLE.includes(detail.status)) {
+    const label = detail.status.toLowerCase().replace('_', '-');
+    throw new ApiError(
+      detail.status === 'CHECKED_IN'
+        ? 'A checked-in stay cannot be moved or have its dates changed yet.'
+        : `A ${label} reservation cannot be changed.`,
+      409,
+    );
+  }
+  const body = updateBodyFrom(detail);
+  body.checkIn = change.checkIn ?? body.checkIn;
+  body.checkOut = change.checkOut ?? body.checkOut;
+  if (change.roomNumber) {
+    const lineIndex = Math.max(
+      0,
+      detail.rooms.findIndex((line) => line.id === change.roomLineId),
+    );
+    const query = new URLSearchParams({
+      checkIn: body.checkIn,
+      checkOut: body.checkOut,
+      excludeReservationId: id,
+    });
+    const availability = await apiRequest<StayAvailability>(`${propertyPath()}/availability?${query}`);
+    const target = availability.rooms
+      .flatMap((room) => room.freeUnits.map((unit) => ({ ...unit, roomId: room.roomId })))
+      .find((unit) => unit.roomNumber === change.roomNumber);
+    if (!target) {
+      throw new ApiError(`Room ${change.roomNumber} is not free for these dates.`, 409);
+    }
+    const line = body.rooms[lineIndex];
+    if (line) body.rooms[lineIndex] = { ...line, roomId: target.roomId, floorUnitId: target.floorUnitId };
+  }
+  const saved = await apiRequest<BackendReservationDetail>(`${propertyPath()}/reservations/${id}`, {
+    method: 'PUT',
+    body,
+  });
+  return reservationRowFromDetail(saved);
+}
+
+/** Only the fields the backend Guest accepts. */
+function guestBody(body: Record<string, unknown>): Record<string, unknown> {
+  const allowed = [
+    'firstName', 'lastName', 'email', 'phone', 'nationality', 'dateOfBirth',
+    'gender', 'address', 'city', 'state', 'country',
+  ];
+  return Object.fromEntries(
+    Object.entries(body).filter(([key, value]) => allowed.includes(key) && value !== undefined),
+  );
+}
+
 export const guestApi = {
-  list: async (search = '', page = 1, pageSize = 100) => store.listGuests(search, page, pageSize),
-  get: async (id: string) => store.getGuest(id) as GuestRow,
-  create: async (body: Record<string, unknown>) => store.createGuest(body),
-  update: async (id: string, body: Record<string, unknown>) => store.updateGuest(id, body) as GuestRow,
+  list: async (search = '', page = 1, pageSize = 100): Promise<PageResult<GuestRow>> => {
+    const query = new URLSearchParams({
+      ...(search.trim() ? { search: search.trim().slice(0, 100) } : {}),
+      page: String(page),
+      pageSize: String(Math.min(pageSize, MAX_PAGE)),
+    });
+    const result = await apiRequest<BackendPage<BackendGuest>>(`${propertyPath()}/guests?${query}`);
+    return {
+      data: result.data.map(guestRowFromBackend),
+      page: result.meta.page,
+      pageSize: result.meta.pageSize,
+      hasMore: result.meta.page * result.meta.pageSize < result.meta.total,
+    };
+  },
+  get: async (id: string) =>
+    guestRowFromBackend(await apiRequest<BackendGuest>(`${propertyPath()}/guests/${id}`)),
+  create: async (body: Record<string, unknown>) =>
+    guestRowFromBackend(
+      await apiRequest<BackendGuest>(`${propertyPath()}/guests`, { method: 'POST', body: guestBody(body) }),
+    ),
+  update: async (id: string, body: Record<string, unknown>) =>
+    guestRowFromBackend(
+      await apiRequest<BackendGuest>(`${propertyPath()}/guests/${id}`, { method: 'PATCH', body: guestBody(body) }),
+    ),
 };
 
 export const reservationApi = {
-  list: async (search = '', status?: string, page = 1, pageSize = 100) =>
-    store.listReservations(search, status, page, pageSize),
-  get: async (id: string) => store.getReservation(id) as ReservationRow,
-  create: async (body: Record<string, unknown>) => store.createReservation(body),
-  update: async (id: string, body: Record<string, unknown>) => store.updateReservation(id, body) as ReservationRow,
-  assignRoom: async (id: string, roomId: string, roomLineId?: string) => store.assignRoom(id, roomId, roomLineId),
-  cancel: async (id: string, reason: string) => store.cancelReservation(id, reason),
+  list: async (search = '', status?: string, page = 1, pageSize = 100): Promise<PageResult<ReservationRow>> => {
+    const query = new URLSearchParams({
+      ...(search.trim() ? { search: search.trim().slice(0, 100) } : {}),
+      ...(status ? { status } : {}),
+      page: String(page),
+      pageSize: String(Math.min(pageSize, MAX_PAGE)),
+    });
+    const result = await apiRequest<BackendPage<BackendReservationSummary>>(
+      `${propertyPath()}/reservations?${query}`,
+    );
+    return {
+      data: result.data.map(reservationRowFromSummary),
+      page: result.meta.page,
+      pageSize: result.meta.pageSize,
+      hasMore: result.meta.page * result.meta.pageSize < result.meta.total,
+    };
+  },
+  /** Every reservation of the property overlapping [from, to), for the calendar. */
+  listRange: (from: string, to: string) => listAllReservations({ from, to }),
+  get: async (id: string) => reservationRowFromDetail(await getDetail(id)),
+  /** Date changes from the reservation drawer. */
+  update: async (id: string, patch: { checkInDate?: string; checkOutDate?: string }) =>
+    changeStay(id, { checkIn: patch.checkInDate, checkOut: patch.checkOutDate }),
+  /** Drag and drop on the room calendar: new dates and/or room number. */
+  changeStay,
+  cancel: async (id: string, reason: string) =>
+    reservationRowFromDetail(
+      await apiRequest<BackendReservationDetail>(`${propertyPath()}/reservations/${id}/cancel`, {
+        method: 'POST',
+        body: { reason: reason.trim().slice(0, 500) || 'Cancelled' },
+      }),
+    ),
 };
 
+const ARRIVING = ['CONFIRMED', 'GUARANTEED', 'TENTATIVE'];
+
 export const frontDeskApi = {
-  arrivals: async () => store.arrivals(),
-  departures: async () => store.departures(),
-  inHouse: async () => store.inHouse(),
-  checkIn: async (id: string, _overrideReason?: string) => store.checkIn(id),
-  checkOut: async (id: string, overrideReason?: string) => store.checkOut(id, overrideReason),
-  extend: async (id: string, newCheckOutDate: string) => store.extend(id, newCheckOutDate),
+  arrivals: async (): Promise<StayList> => {
+    const today = hotelTodayIso();
+    const rows = await listAllReservations({ from: today, to: shiftDate(today, 1) });
+    return {
+      businessDate: today,
+      data: rows
+        .filter((row) => row.checkInDate === today && ARRIVING.includes(row.status))
+        .map(stayRowFrom),
+    };
+  },
+  /** In-house guests due out today, plus any still here after their check-out date. */
+  departures: async (): Promise<StayList> => {
+    const today = hotelTodayIso();
+    const rows = await listAllReservations({ status: 'CHECKED_IN' });
+    return {
+      businessDate: today,
+      data: rows
+        .filter((row) => row.checkOutDate <= today)
+        .sort((a, b) => a.checkOutDate.localeCompare(b.checkOutDate))
+        .map(stayRowFrom),
+    };
+  },
+  inHouse: async (): Promise<StayList> => ({
+    businessDate: hotelTodayIso(),
+    data: (await listAllReservations({ status: 'CHECKED_IN' })).map(stayRowFrom),
+  }),
+  checkIn: async (id: string) =>
+    reservationRowFromDetail(
+      await apiRequest<BackendReservationDetail>(`${propertyPath()}/reservations/${id}/check-in`, { method: 'POST' }),
+    ),
+  checkOut: async (id: string) =>
+    reservationRowFromDetail(
+      await apiRequest<BackendReservationDetail>(`${propertyPath()}/reservations/${id}/check-out`, { method: 'POST' }),
+    ),
+  extend: async (id: string, newCheckOutDate: string) => changeStay(id, { checkOut: newCheckOutDate }),
 };
 
 export const folioApi = {
