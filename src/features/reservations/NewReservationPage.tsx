@@ -3,16 +3,24 @@ import * as Lucide from "lucide-react";
 import type { NavDraft, NavTarget } from "../../config/navigation";
 import { toast } from "../../utils/toast";
 import { Modal } from "../../components/overlays";
-import { inventoryApi, guestApi, reservationApi } from "../../lib/api/pms";
-import type {
-  ReservationPendingPaymentRow,
-  ReservationRoomRow,
-} from "../../lib/api/pms";
+import { bookingApi, guestDirectoryApi, inventoryApi } from "../../lib/api/pms";
+import type { BookingInput } from "../../lib/api/pms";
+import { ApiError, displayApiError, newIdempotencyKey } from "../../lib/api/client";
 import { useApiResource } from "../../lib/api/useApiResource";
-import { guestFromApi } from "../../lib/api/adapters";
+import { guestFromBackend } from "../../lib/api/adapters";
 import type { Guest } from "../../types";
-import { GUESTS, TAX_RATE } from "../../data/catalog";
-import { todayIso } from "./room-calendar/calendarData";
+import { TAX_RATE } from "../../data/catalog";
+import { useAuth } from "../auth/AuthContext";
+import {
+  CATEGORY_CODES,
+  PAYMENT_CODES,
+  ROUTE_CODES,
+  SOURCE_CODES,
+  STATUS_CODES,
+  findFormProblem,
+  isRealDate,
+} from "./new-reservation/bookingRules";
+import { hotelTodayIso } from "../../utils/date";
 import { AddGuestModal } from "./new-reservation/AddGuestModal";
 import { GuestActivityLog } from "./new-reservation/GuestActivityLog";
 import { BillingRoutingFields } from "./new-reservation/BillingRoutingFields";
@@ -33,10 +41,6 @@ import type {
   RoomCategoryOption,
   RoomRequirement,
 } from "./new-reservation/types";
-
-/* The form opens on the store's first guest, so its defaults match the seeded data. */
-const DEFAULT_GUEST = GUESTS[0];
-const DEFAULT_GUEST_NAME = `${DEFAULT_GUEST.firstName} ${DEFAULT_GUEST.lastName}`;
 
 /** ISO date (YYYY-MM-DD) for the day after the given ISO date. */
 function nextDayIso(iso: string): string {
@@ -63,6 +67,9 @@ export function NewReservation({
   initialDraft?: NavDraft;
 }) {
   const [activeTab, setActiveTab] = useState<"general" | "outlet">("general");
+  const { me } = useAuth();
+  // The screen is only reachable with a property chosen (see App).
+  const propertyId = me?.activePropertyId ?? "";
 
   // Prefill from the room calendar (room + night clicked on the rack).
   const draftRoomTypeName = initialDraft?.roomType ?? "";
@@ -74,7 +81,7 @@ export function NewReservation({
     ) ??
     storeCategories[0] ??
     NO_ROOM_CATEGORY;
-  const initialCheckIn = initialDraft?.checkIn ?? todayIso();
+  const initialCheckIn = initialDraft?.checkIn ?? hotelTodayIso();
   const initialCheckOut =
     initialDraft?.checkOut ?? nextDayIso(initialCheckIn);
 
@@ -94,57 +101,60 @@ export function NewReservation({
   const [ratePlan, setRatePlan] = useState("Best Available Rates");
   const [mealPlan, setMealPlan] = useState("EP");
 
+  // Free rooms come from the backend for the chosen dates. Dates the backend
+  // would refuse (e.g. check-out before check-in) load no rooms; the save
+  // explains what to fix.
   const loadInventory = useCallback(async () => {
-    const roomTypes = await inventoryApi.roomTypes();
-    const availabilityEntries = await Promise.all(
-      roomTypes.map(
-        async (roomType) =>
-          [
-            roomType.id,
-            await inventoryApi.availability(
-              checkInDate,
-              checkOutDate,
-              roomType.id,
-            ),
-          ] as const,
-      ),
-    );
     const allRooms = await inventoryApi.rooms();
+    // While the dates are being typed they can be out of order; ask only for a real stay.
+    const validStay =
+      isRealDate(checkInDate) && isRealDate(checkOutDate) && checkOutDate > checkInDate;
+    const availability = !validStay ? null : await bookingApi
+      .availability(propertyId, checkInDate, checkOutDate)
+      .catch((error: unknown) => {
+        if (error instanceof ApiError && error.status === 400) return null;
+        throw error;
+      });
+    const offered = (availability?.rooms ?? []).filter(
+      (room) => room.sellable && room.totalUnits > 0,
+    );
     return {
-      roomTypes: roomTypes
-        .filter(
-          (roomType) =>
-            roomType.isActive &&
-            allRooms.some(
-              (room) => room.isActive && room.roomTypeId === roomType.id,
-            ),
-        )
-        .map((roomType) => ({
-        id: roomType.id,
-        name: roomType.name,
-        baseRate: Number(roomType.baseRate),
-        maxAdults: roomType.maxAdults,
-        maxChildren: roomType.maxChildren,
-        desc: roomType.description ?? "",
+      roomTypes: offered.map((room) => ({
+        id: room.roomId,
+        name: room.roomName,
+        baseRate: Number(room.baseRate),
+        maxAdults: room.maxAdults,
+        maxChildren: room.maxChildren,
+        desc: room.roomTypeName,
       })),
+      // Room numbers free for the whole stay, keyed by room. `id` is the
+      // backend's room number id (floor-plan box), sent when saving.
       availableRoomsByType: Object.fromEntries(
-        availabilityEntries.map(([id, availability]) => [
-          id,
-          availability.available,
+        offered.map((room) => [
+          room.roomId,
+          room.available > 0
+            ? room.freeUnits.map((unit) => ({
+              id: unit.floorUnitId,
+              roomNumber: unit.roomNumber,
+              floor: String(unit.floor),
+              status: "VACANT_CLEAN",
+            }))
+            : [],
         ]),
       ),
       // Every room of each category, so the dropdown can show the rooms that are not free for these dates too
       allRoomsByType: Object.fromEntries(
-        roomTypes.map((roomType) => [
-          roomType.id,
+        offered.map((room) => [
+          room.roomId,
           allRooms
-            .filter((room) => room.roomTypeId === roomType.id)
-            .map((room) => ({ id: room.id, roomNumber: room.roomNumber, status: room.status })),
+            .filter((item) => item.roomTypeId === room.roomId)
+            .map((item) => ({ id: item.id, roomNumber: item.roomNumber, status: item.status })),
         ]),
       ),
     };
-  }, [checkInDate, checkOutDate]);
+  }, [propertyId, checkInDate, checkOutDate]);
   const inventoryResource = useApiResource(loadInventory, [
+    propertyId,
     checkInDate,
     checkOutDate,
   ]);
@@ -180,7 +190,7 @@ export function NewReservation({
       mealPlan: "EP",
       billingRoute: "Default",
       occupants: [
-        { id: "occupant-primary", name: DEFAULT_GUEST_NAME, role: "Primary guest" },
+        { id: "occupant-primary", name: "", role: "Primary guest" },
       ],
     },
   ]);
@@ -233,20 +243,20 @@ export function NewReservation({
   // Guest: either picked from the guest directory, or typed in as a new guest
   const [guestQuery, setGuestQuery] = useState("");
   const [guestModalOpen, setGuestModalOpen] = useState(false);
-  // Opens on the first seeded guest, who is a real directory record (so the Activity Log has data)
-  const [guestName, setGuestName] = useState(DEFAULT_GUEST_NAME);
-  const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(DEFAULT_GUEST.id);
-  const [guestContact, setGuestContact] = useState(DEFAULT_GUEST.phone ?? "");
-  const [guestEmail, setGuestEmail] = useState(DEFAULT_GUEST.email ?? "");
-  const trimmedGuestQuery = guestQuery.trim();
+  // Opens with no Guest: one is picked from the property's Guest directory or added with +.
+  const [guestName, setGuestName] = useState("");
+  const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(null);
+  const [guestContact, setGuestContact] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const trimmedGuestQuery = guestQuery.trim().slice(0, 100);
   const loadGuestMatches = useCallback(
     async () =>
       trimmedGuestQuery
-        ? (await guestApi.list(trimmedGuestQuery, 1, 6)).data.map(guestFromApi)
+        ? (await guestDirectoryApi.search(propertyId, trimmedGuestQuery)).data.map(guestFromBackend)
         : [],
-    [trimmedGuestQuery]
+    [propertyId, trimmedGuestQuery]
   );
-  const guestMatches = useApiResource(loadGuestMatches, [trimmedGuestQuery]);
+  const guestMatches = useApiResource(loadGuestMatches, [propertyId, trimmedGuestQuery]);
 
   // The primary guest is also the first occupant of the first room
   const syncPrimaryOccupantName = (name: string) =>
@@ -293,31 +303,13 @@ export function NewReservation({
   const [discountAmount, setDiscountAmount] = useState(0);
 
   // Front Desk Tasks & Checklist
-  const [tasks, setTasks] = useState<FrontDeskTask[]>([
-    {
-      id: "t-1",
-      text: "Verify physical Photo ID and collect signed registration card",
-      done: false,
-      priority: "high",
-    },
-    {
-      id: "t-2",
-      text: "Pre-allocate room 202 on high floor (Requested by guest)",
-      done: true,
-      priority: "medium",
-    },
-    {
-      id: "t-3",
-      text: "Send digital invoice and welcome packet via WhatsApp",
-      done: false,
-      priority: "low",
-    },
-  ]);
+  const [tasks, setTasks] = useState<FrontDeskTask[]>([]);
+  const [payAtHotel, setPayAtHotel] = useState(false);
   const [newTaskInput, setNewTaskInput] = useState("");
 
   // Modal states
   const [collectModalOpen, setCollectModalOpen] = useState(false);
-  const [collectAmount, setCollectAmount] = useState("4305");
+  const [collectAmount, setCollectAmount] = useState("");
   const [collectMethod, setCollectMethod] = useState<
     "UPI / QR" | "Credit Card" | "Debit Card" | "Cash" | "Bank Transfer"
   >("UPI / QR");
@@ -326,6 +318,10 @@ export function NewReservation({
   const [issueModalOpen, setIssueModalOpen] = useState(false);
   const [issueText, setIssueText] = useState("");
   const [savingReservation, setSavingReservation] = useState(false);
+  // One key per booking: every retry of this booking sends the same key, so a
+  // save that reached the server but lost its reply cannot create a duplicate.
+  // A new key is made only after a booking is saved.
+  const [idempotencyKey, setIdempotencyKey] = useState(() => newIdempotencyKey("booking"));
 
   // Confirmation state
   const [confirmedBooking, setConfirmedBooking] = useState<{
@@ -590,10 +586,22 @@ export function NewReservation({
   };
 
   const handleRecordPayment = () => {
-    const amt = parseFloat(collectAmount);
-    if (!amt || amt <= 0) {
+    const amt = Number(collectAmount);
+    if (!Number.isFinite(amt) || amt <= 0) {
       toast.error("Invalid Amount", {
         detail: "Please specify an amount greater than ₹0.",
+      });
+      return;
+    }
+    if (Math.round(amt * 100) !== amt * 100) {
+      toast.error("Invalid Amount", {
+        detail: "Use at most 2 decimal places.",
+      });
+      return;
+    }
+    if (amt > outstanding) {
+      toast.error("Amount Too High", {
+        detail: `The balance is ₹${outstanding.toLocaleString("en-IN")}.`,
       });
       return;
     }
@@ -605,206 +613,191 @@ export function NewReservation({
         hour: "2-digit",
         minute: "2-digit",
       }),
-      ref: collectRef || `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
+      ref: collectRef.trim().slice(0, 100),
     };
     setPaymentsList((prev) => [...prev, newPayment]);
     setCollectModalOpen(false);
     setCollectRef("");
-    toast.success("Payment Recorded", {
-      detail: `₹${amt.toLocaleString("en-IN")} via ${collectMethod}`,
+    toast.success("Payment Added", {
+      detail: `₹${amt.toLocaleString("en-IN")} via ${collectMethod}. It is saved with the reservation.`,
     });
   };
 
-  const handleConfirmReservation = async (withEmail = false) => {
-    if (!guestName.trim()) {
-      toast.error("Guest Name Required", {
-        detail: "Please provide guest name before confirming.",
-      });
-      return;
-    }
-    if (!guestContact.trim()) {
-      toast.error("Guest Phone Required", {
-        detail: "Please provide a contact phone number before confirming.",
-      });
-      return;
-    }
-    if (
-      new Date(`${checkOutDate}T00:00:00`).getTime() <=
-      new Date(`${checkInDate}T00:00:00`).getTime()
-    ) {
-      toast.error("Invalid Stay Dates", {
-        detail: "Check-out must be after check-in.",
-      });
-      return;
-    }
+  const handleConfirmReservation = async () => {
+    if (savingReservation) return;
     if (inventoryResource.loading) {
       toast.info("Inventory Loading", {
         detail: "Please wait until room availability has loaded.",
       });
       return;
     }
-    const roomIds = requirements.map((room) => room.roomId).filter(Boolean);
-    if (new Set(roomIds).size !== roomIds.length) {
+    if (inventoryResource.error) {
+      toast.error("Rooms Not Loaded", {
+        detail: `Could not load free rooms: ${inventoryResource.error}`,
+      });
+      return;
+    }
+    const problem = findFormProblem({
+      guestId: primaryGuestId,
+      status: bookingType,
+      checkIn: checkInDate,
+      checkOut: checkOutDate,
+      checkInTime,
+      checkOutTime,
+      bookingSource,
+      sourceContactNumber,
+      requirements,
+      roomOptions: roomTypes,
+      overridePrice,
+      overrideRoomTotal,
+      companyGst: billingPreferences.companyGst,
+      billsCompany:
+        billingPreferences.roomBillTo === "To Company" ||
+        billingPreferences.extrasBillTo === "To Company" ||
+        (!billingPreferences.noPost &&
+          posAddons.some((addon) => addon.billingRoute === "To Company")),
+      companyName: billingPreferences.companyName,
+      paid: totalPaid,
+      total: totalBill,
+    });
+    if (problem) {
+      toast.error(problem.title, { detail: problem.detail });
+      return;
+    }
+
+    const isWaitlist = bookingType === "Waitlist";
+    // Room numbers the backend reports free for these dates, by their id.
+    const freeUnitIds = new Set(
+      Object.values(availableRoomsByType).flatMap((rooms) =>
+        rooms.map((option) => option.id),
+      ),
+    );
+    for (const room of requirements) {
+      if (!isWaitlist && room.roomNo && !freeUnitIds.has(room.roomId ?? "")) {
+        toast.error("Room Not Available", {
+          detail: `Room ${room.roomNo} is not free for these dates. Pick another room number or Auto.`,
+        });
+        return;
+      }
+    }
+    const pickedUnitIds = requirements
+      .map((room) => (room.roomNo ? room.roomId : null))
+      .filter((id): id is string => Boolean(id));
+    if (!isWaitlist && new Set(pickedUnitIds).size !== pickedUnitIds.length) {
       toast.error("Room Assigned Twice", {
         detail: "Each reservation room must use a different physical room.",
       });
       return;
     }
-    // Rooms left on Auto-assign take the first free room of their category that no other line has taken
-    const takenRoomIds = new Set(roomIds);
-    const resolvedRequirements: RoomRequirement[] = [];
+    // Rooms left on Auto take the first free room number of their room that no other line has taken.
+    // A waitlist takes no room, so it gets none.
+    const takenUnitIds = new Set(pickedUnitIds);
+    const unitIdByLine = new Map<string, string | undefined>();
     for (const room of requirements) {
-      if (room.roomId) {
-        resolvedRequirements.push(room);
+      if (isWaitlist) {
+        unitIdByLine.set(room.id, undefined);
+        continue;
+      }
+      if (room.roomNo && room.roomId) {
+        unitIdByLine.set(room.id, room.roomId);
         continue;
       }
       const free = (availableRoomsByType[room.roomTypeId] ?? []).find(
-        (option) => !takenRoomIds.has(option.id),
+        (option) => !takenUnitIds.has(option.id),
       );
       if (!free) {
         toast.error("No Room Available", {
-          detail: `No free ${room.category} room is left for Room ${room.roomIndex}. Pick a room number or change its category.`,
+          detail: `No free ${room.category} room is left for Room ${room.roomIndex}. Pick another room or change the dates.`,
         });
         return;
       }
-      takenRoomIds.add(free.id);
-      resolvedRequirements.push({ ...room, roomId: free.id, roomNo: free.roomNumber });
+      takenUnitIds.add(free.id);
+      unitIdByLine.set(room.id, free.id);
     }
+
+    const blank = (value: string) => value.trim() || undefined;
+    const routeCode = (route: string) =>
+      route === "Default" ? undefined : ROUTE_CODES[route as keyof typeof ROUTE_CODES];
+    const body: BookingInput = {
+      status: STATUS_CODES[bookingType],
+      source: SOURCE_CODES[bookingSource] ?? "DIRECT",
+      sourceDetail: blank(sourceType),
+      sourceContactNumber: ["Agent", "GDS", "Corp", "Corporate"].includes(bookingSource)
+        ? blank(sourceContactNumber)
+        : undefined,
+      externalReferenceId: blank(externalReferenceId),
+      bookingCategory: CATEGORY_CODES[bookingCategory] ?? "FIT",
+      primaryGuestId: primaryGuestId as string,
+      checkIn: checkInDate,
+      checkOut: checkOutDate,
+      checkInTime,
+      checkOutTime,
+      rooms: requirements.map((room) => ({
+        roomId: room.roomTypeId,
+        adults: room.adults,
+        children: room.children,
+        infants: room.infant,
+        ratePlanName: samePlanAllRooms ? ratePlan : room.ratePlan,
+        mealPlan: (samePlanAllRooms ? mealPlan : room.mealPlan) as BookingInput["rooms"][number]["mealPlan"],
+        floorUnitId: unitIdByLine.get(room.id),
+      })),
+      overridePrice: overridePrice && overrideRoomTotal !== null,
+      roomTotalOverride:
+        overridePrice && overrideRoomTotal !== null ? overrideRoomTotal : undefined,
+      discountAmount,
+      charges: posAddons.map((addon) => ({
+        outletId: addon.outletId,
+        outletName: addon.outletName,
+        description: addon.name,
+        quantity: addon.quantity,
+        unitAmount: addon.unitPrice,
+        billingRoute: routeCode(addon.billingRoute),
+        roomIndex:
+          requirements.find((room) => room.id === addon.roomRequirementId)?.roomIndex ?? 1,
+      })),
+      payments: paymentsList.map((payment) => ({
+        amount: payment.amount,
+        method: PAYMENT_CODES[payment.method] ?? "CASH",
+        reference: blank(payment.ref),
+      })),
+      tasks: tasks.map((task) => ({ text: task.text, isDone: task.done })),
+      specialRequests: blank(specialRequests),
+      roomBillTo: billingPreferences.roomBillTo === "To Company" ? "TO_COMPANY" : "TO_GUEST",
+      extrasBillTo: billingPreferences.extrasBillTo === "To Company" ? "TO_COMPANY" : "TO_GUEST",
+      noPost: billingPreferences.noPost,
+      companyName: blank(billingPreferences.companyName),
+      companyGst: blank(billingPreferences.companyGst.toUpperCase()),
+      payAtHotel,
+      paymentNotes: blank(paymentNotes),
+      expectedTotal: totalBill,
+    };
+
     setSavingReservation(true);
     try {
-      let guestId = primaryGuestId;
-      if (!guestId) {
-        const nameParts = guestName.trim().split(/\s+/);
-        const createdGuest = await guestApi.create({
-          firstName: nameParts.shift() ?? "Guest",
-          lastName: nameParts.join(" "),
-          email: guestEmail.trim() || null,
-          phone: guestContact.trim() || null,
-          companyName: billingPreferences.companyName || null,
-        });
-        guestId = createdGuest.id;
-        setPrimaryGuestId(guestId);
-      }
-
-      const persistedRooms: ReservationRoomRow[] = resolvedRequirements.map((room) => {
-        const mealSurcharge =
-          MEAL_PLANS.find((plan) => plan.code === room.mealPlan)?.surcharge ??
-          0;
-        const baseRate =
-          overridePrice && overrideRoomTotal !== null
-            ? calculatedRoomCharges > 0
-              ? room.rate * (overrideRoomTotal / calculatedRoomCharges)
-              : overrideRoomTotal /
-              Math.max(1, requirements.length * nightsCount)
-            : room.rate;
-        return {
-          id: room.id,
-          roomTypeId: room.roomTypeId,
-          roomId: room.roomId,
-          roomNumber: room.roomNo || null,
-          roomTypeName: room.category,
-          baseRate: String(baseRate),
-          nightlyRate: String(baseRate + mealSurcharge * room.adults),
-          ratePlanName: samePlanAllRooms ? ratePlan : room.ratePlan,
-          adults: room.adults,
-          children: room.children,
-          infants: room.infant,
-          mealPlanName: samePlanAllRooms ? mealPlan : room.mealPlan,
-          billingRoute:
-            room.billingRoute === "Default"
-              ? billingPreferences.roomBillTo
-              : room.billingRoute,
-          occupants: room.occupants,
-        };
-      });
-      const persistedAddons = posAddons.map((addon) => {
-        const room =
-          resolvedRequirements.find(
-            (candidate) => candidate.id === addon.roomRequirementId,
-          ) ?? resolvedRequirements[0];
-        const route = billingPreferences.noPost
-          ? "Direct Settlement"
-          : addon.billingRoute === "Default"
-            ? billingPreferences.extrasBillTo
-            : addon.billingRoute;
-        return {
-          id: addon.id,
-          outletId: addon.outletId,
-          outletName: addon.outletName,
-          description: addon.name,
-          quantity: String(addon.quantity),
-          unitAmount: String(addon.unitPrice),
-          billingRoute: route,
-          roomLineId: room.id,
-          roomNumber: room.roomNo || null,
-          postToFolio:
-            !billingPreferences.noPost && route !== "Direct Settlement",
-        };
-      });
-      const pendingPayments: ReservationPendingPaymentRow[] = paymentsList.map(
-        (payment) => ({
-          amount: String(payment.amount),
-          method: payment.method,
-          reference: payment.ref,
-        }),
-      );
-      const saved = await reservationApi.create({
-        externalReferenceId: externalReferenceId.trim() || null,
-        status:
-          bookingType === "Confirmed" || bookingType === "Guaranteed"
-            ? "CONFIRMED"
-            : "DRAFT",
-        source: bookingSource,
-        sourceType,
-        primaryGuestId: guestId,
-        checkInDate,
-        checkOutDate,
-        adults: persistedRooms.reduce(
-          (sum, room) => sum + Number(room.adults ?? 0),
-          0,
-        ),
-        children: persistedRooms.reduce(
-          (sum, room) => sum + Number(room.children ?? 0),
-          0,
-        ),
-        infants: persistedRooms.reduce(
-          (sum, room) => sum + Number(room.infants ?? 0),
-          0,
-        ),
-        roomLines: persistedRooms,
-        pendingCharges: persistedAddons,
-        pendingPayments,
-        discountAmount: String(discountAmount),
-        billingPreferences,
-        specialRequests,
-        internalNotes: [
-          sourceType && `Booking mode: ${sourceType}`,
-          paymentNotes,
-          ...tasks.map((task) => `${task.done ? "[x]" : "[ ]"} ${task.text}`),
-        ]
-          .filter(Boolean)
-          .join("\n"),
-      });
+      const saved = await bookingApi.create(propertyId, body, idempotencyKey);
+      setIdempotencyKey(newIdempotencyKey("booking"));
       const code = saved.bookingCode;
       setBookingId(code);
       setConfirmedBooking({
         code,
         referenceId: externalReferenceId.trim(),
-        total: totalBill,
+        total: Number(saved.total),
         guest: guestName,
         rooms: requirements.length,
         nights: nightsCount,
       });
-      toast.success("Reservation Confirmed", {
-        detail: `${guestName} · Booking ID ${code}${externalReferenceId.trim() ? ` · Ref ${externalReferenceId.trim()}` : ""} ${withEmail ? "· Confirmation email sent" : ""}`,
+      inventoryResource.refresh();
+      const roomNumbers = saved.rooms
+        .map((room) => room.roomNumber)
+        .filter(Boolean)
+        .join(", ");
+      toast.success(isWaitlist ? "Added to Waitlist" : "Reservation Confirmed", {
+        detail: `${guestName} · Booking ID ${code}${roomNumbers ? ` · Room ${roomNumbers}` : ""}${externalReferenceId.trim() ? ` · Ref ${externalReferenceId.trim()}` : ""}`,
       });
     } catch (error) {
-      toast.error("Reservation Not Saved", {
-        detail:
-          error instanceof Error
-            ? error.message
-            : "Please check the booking details and try again.",
-      });
+      // 409: a room was taken meanwhile or the total changed; show the latest free rooms.
+      if (error instanceof ApiError && error.status === 409) inventoryResource.refresh();
+      toast.error("Reservation Not Saved", { detail: displayApiError(error) });
     } finally {
       setSavingReservation(false);
     }
@@ -1954,7 +1947,7 @@ export function NewReservation({
                               {p.method}
                             </span>
                             <span className="break-words text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] text-ink-secondary font-mono">
-                              Ref: {p.ref} · {p.time}
+                              Ref: {p.ref || "—"} · {p.time}
                             </span>
                           </div>
                         </div>
@@ -1975,6 +1968,8 @@ export function NewReservation({
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
+                    checked={payAtHotel}
+                    onChange={(e) => setPayAtHotel(e.target.checked)}
                     className="w-4 h-4 rounded border-border text-[var(--color-primary)] focus:ring-[var(--color-primary)]/20"
                   />
                   <span className="text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-semibold text-ink">
@@ -2227,7 +2222,7 @@ export function NewReservation({
             <button
               type="button"
               disabled={savingReservation}
-              onClick={() => void handleConfirmReservation(true)}
+              onClick={() => void handleConfirmReservation()}
               className="flex items-center gap-1.5 rounded-xl bg-[var(--color-primary)] px-3 min-h-[34px] md:min-h-[32px] py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-white shadow-md shadow-[var(--color-primary)]/20 transition-all hover:opacity-95 cursor-pointer md:px-5"
             >
               {savingReservation ? (

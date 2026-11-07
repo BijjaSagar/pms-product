@@ -52,6 +52,8 @@ export interface RoomType {
 export interface Reservation {
   id: string;
   backendId?: string;
+  /** When the booking was made, e.g. "Nov 07, 2026 • 3:19 PM". */
+  bookedAt?: string;
   bookingCode?: string;
   currencyCode?: string;
   roomTypeId?: string;

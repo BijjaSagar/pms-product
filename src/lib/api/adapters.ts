@@ -10,6 +10,7 @@ import type {
   RoomType,
 } from '../../types';
 import type {
+  BackendGuest,
   GuestRow,
   HousekeepingTaskRow,
   InvoiceRow,
@@ -29,7 +30,8 @@ export const shortDate = (value: unknown): string => {
 };
 
 export const apiReservationStatus = (value: string): ReservationStatus => ({
-  DRAFT: 'Pending', CONFIRMED: 'Confirmed', CHECKED_IN: 'Checked-in',
+  DRAFT: 'Pending', CONFIRMED: 'Confirmed', GUARANTEED: 'Confirmed',
+  TENTATIVE: 'Pending', WAITLIST: 'Pending', CHECKED_IN: 'Checked-in',
   CHECKED_OUT: 'Checked-out', CANCELLED: 'Cancelled', NO_SHOW: 'No-show',
 }[value] ?? 'Pending') as ReservationStatus;
 
@@ -72,7 +74,18 @@ export function reservationFromApi(row: ReservationRow): Reservation {
     ratePlan: firstRoom?.ratePlanName ?? 'Standard rate',
     specialRequests: row.specialRequests ?? '',
     notes: row.internalNotes ?? '',
+    bookedAt: bookedAt(row.createdAt),
   };
+}
+
+/** "Nov 07, 2026 • 3:19 PM" in the viewer's time, or undefined without a date. */
+function bookedAt(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return undefined;
+  const day = date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+  const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return `${day} • ${time}`;
 }
 
 export function roomFromApi(row: RoomRow, liveStays: StayRow[] = []): Room {
@@ -126,6 +139,25 @@ export function roomTypeFromApi(row: RoomTypeRow, rooms: RoomRow[]): RoomType {
     baseRate: Number(row.baseRate ?? 0),
     amenities,
     active: Boolean(row.isActive),
+  };
+}
+
+/** A backend guest (`/:propertyId/guests`) in the shape the screens use. */
+export function guestFromBackend(row: BackendGuest): Guest {
+  return {
+    id: row.id,
+    name: `${row.firstName} ${row.lastName}`.trim() || 'Guest',
+    email: row.email ?? '',
+    phone: row.phone,
+    company: null,
+    tier: 'Regular',
+    category: 'Leisure',
+    stays: 0,
+    spent: 0,
+    balance: 0,
+    lastVisit: '',
+    preferences: [],
+    notes: '',
   };
 }
 

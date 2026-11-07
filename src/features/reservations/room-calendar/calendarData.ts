@@ -1,6 +1,6 @@
 import type { CalendarReservation, CalendarRoom, RoomOperationalStatus, ReservationStatus } from './types';
-import { GUESTS } from '../../../data/catalog';
 import { store, UNASSIGNED_TYPE_NAME } from '../../../data/store';
+import { reservationApi } from '../../../lib/api/pms';
 
 /** Today's date (YYYY-MM-DD) in the user's local time zone. Call it when rendering, so it stays right past midnight. */
 export function todayIso(): string {
@@ -115,63 +115,46 @@ export function loadCalendarRooms(): CalendarRoom[] {
 
 const STATUS_MAP: Record<string, ReservationStatus> = {
   CONFIRMED: 'Confirmed',
+  GUARANTEED: 'Confirmed',
+  TENTATIVE: 'Tentative',
+  WAITLIST: 'Tentative',
   CHECKED_IN: 'Checked-in',
   CHECKED_OUT: 'Checked-out',
   CANCELLED: 'Cancelled',
   NO_SHOW: 'No-show',
-  PENDING: 'Pending',
-  DRAFT: 'Tentative',
 };
 
 /**
- * Store reservations placed on the calendar at the rooms and dates the store holds.
- * A room line without a room, or a room the calendar does not show, is left off the rack.
+ * Backend reservations overlapping [from, to), placed on the calendar at their room numbers.
+ * A room line without a room number, or a room the calendar does not show, is left off the rack.
  */
-export function loadSyncedReservations(): CalendarReservation[] {
+export async function loadSyncedReservations(from: string, to: string): Promise<CalendarReservation[]> {
   const rooms = loadCalendarRooms();
   const roomsByNumber = new Map(rooms.map((room) => [room.number, room]));
-  const result = store.listReservations('', undefined, 1, 200);
+  const rows = await reservationApi.listRange(from, to);
 
-  return result.data
-    .filter((r) => r.status !== 'CANCELLED')
+  return rows
+    .filter((r) => r.status !== 'CANCELLED' && r.status !== 'WAITLIST')
     .flatMap((r) => {
-      const guestName =
-        r.guestName ||
-        r.guest?.name ||
-        (r.guest?.firstName ? `${r.guest.firstName} ${r.guest.lastName ?? ''}`.trim() : null) ||
-        'Guest';
-      const guest = GUESTS.find((g) => g.id === (r.primaryGuestId || r.guest?.id));
       const checkInDate = String(r.checkInDate).slice(0, 10);
       const checkOutDate = String(r.checkOutDate).slice(0, 10);
       const nights = countNights(checkInDate, checkOutDate);
       const status: ReservationStatus = STATUS_MAP[r.status] || 'Confirmed';
-      const lines = r.roomLines?.length
-        ? r.roomLines.map((line) => ({
-            id: line.id,
-            roomNumber: line.roomNumber ?? null,
-            nightlyRate: Number(line.nightlyRate),
-            adults: Number(line.adults ?? 1),
-            children: Number(line.children ?? 0),
-          }))
-        : [{
-            id: `legacy-${r.id}`,
-            roomNumber: r.roomNumber ?? null,
-            nightlyRate: Number(r.nightlyRate ?? 0),
-            adults: Number(r.adults ?? 1),
-            children: Number(r.children ?? 0),
-          }];
+      const lines = r.roomLines ?? [];
       const isGroup = lines.length > 1;
+      const stayTotal = Number(r.totalAmount ?? 0);
+      const paid = Number(r.paid ?? 0);
+      const guest = r.guest as { email?: string | null; phone?: string | null } | null | undefined;
 
       return lines.flatMap((line) => {
         const room = line.roomNumber ? roomsByNumber.get(line.roomNumber) : undefined;
         if (!room) return [];
-        const nightlyRate = line.nightlyRate || room.baseRate;
-        const totalAmount = nights * nightlyRate;
+        const totalAmount = stayTotal / Math.max(1, lines.length);
         return [{
           id: isGroup ? `${r.id}::${line.id}` : r.id,
           backendId: r.id,
-          roomLineId: line.id.startsWith('legacy-') ? undefined : line.id,
-          guestName,
+          roomLineId: line.id,
+          guestName: r.guestName || 'Guest',
           guestEmail: guest?.email ?? '',
           guestPhone: guest?.phone ?? '',
           roomId: room.id,
@@ -183,12 +166,11 @@ export function loadSyncedReservations(): CalendarReservation[] {
           status,
           bookingSource:
             r.source === 'OTA' ? 'Booking.com' : r.source === 'CORPORATE' ? 'Corporate' : 'Direct',
-          nightlyRate,
+          nightlyRate: nights > 0 ? totalAmount / nights : room.baseRate,
           totalAmount,
-          paymentStatus:
-            r.paid && Number(r.paid) >= totalAmount ? 'Paid' : Number(r.paid) > 0 ? 'Partial' : 'Pending',
-          adults: line.adults,
-          children: line.children,
+          paymentStatus: paid >= stayTotal && stayTotal > 0 ? 'Paid' : paid > 0 ? 'Partial' : 'Pending',
+          adults: Number(r.adults ?? 1),
+          children: Number(r.children ?? 0),
           specialRequests: r.specialRequests || '',
           notes: r.internalNotes || '',
         }];

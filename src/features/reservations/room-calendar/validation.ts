@@ -81,8 +81,8 @@ export function validateReservationMove({
   const conflicting = allReservations.find((other) => {
     // Exclude the current reservation being moved
     if (other.id === reservation.id) return false;
-    // Exclude cancelled bookings (they do not occupy rooms)
-    if (other.status === 'Cancelled') return false;
+    // Cancelled, no-show and checked-out stays do not occupy rooms (check-out releases the room)
+    if (other.status === 'Cancelled' || other.status === 'No-show' || other.status === 'Checked-out') return false;
     // Only check reservations in the target room
     if (other.roomId !== targetRoom.id) return false;
 
