@@ -11,7 +11,7 @@ import type {
 import { useApiResource } from "../../lib/api/useApiResource";
 import { guestFromApi } from "../../lib/api/adapters";
 import type { Guest } from "../../types";
-import { GUESTS, TAX_RATE } from "../../data/catalog";
+import { TAX_RATE } from "../../data/catalog";
 import { todayIso } from "./room-calendar/calendarData";
 import { AddGuestModal } from "./new-reservation/AddGuestModal";
 import { GuestActivityLog } from "./new-reservation/GuestActivityLog";
@@ -33,10 +33,6 @@ import type {
   RoomCategoryOption,
   RoomRequirement,
 } from "./new-reservation/types";
-
-/* The form opens on the store's first guest, so its defaults match the seeded data. */
-const DEFAULT_GUEST = GUESTS[0];
-const DEFAULT_GUEST_NAME = `${DEFAULT_GUEST.firstName} ${DEFAULT_GUEST.lastName}`;
 
 /** ISO date (YYYY-MM-DD) for the day after the given ISO date. */
 function nextDayIso(iso: string): string {
@@ -180,7 +176,7 @@ export function NewReservation({
       mealPlan: "EP",
       billingRoute: "Default",
       occupants: [
-        { id: "occupant-primary", name: DEFAULT_GUEST_NAME, role: "Primary guest" },
+        { id: "occupant-primary", name: "", role: "Primary guest" },
       ],
     },
   ]);
@@ -233,11 +229,10 @@ export function NewReservation({
   // Guest: either picked from the guest directory, or typed in as a new guest
   const [guestQuery, setGuestQuery] = useState("");
   const [guestModalOpen, setGuestModalOpen] = useState(false);
-  // Opens on the first seeded guest, who is a real directory record (so the Activity Log has data)
-  const [guestName, setGuestName] = useState(DEFAULT_GUEST_NAME);
-  const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(DEFAULT_GUEST.id);
-  const [guestContact, setGuestContact] = useState(DEFAULT_GUEST.phone ?? "");
-  const [guestEmail, setGuestEmail] = useState(DEFAULT_GUEST.email ?? "");
+  const [guestName, setGuestName] = useState("");
+  const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(null);
+  const [guestContact, setGuestContact] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
   const trimmedGuestQuery = guestQuery.trim();
   const loadGuestMatches = useCallback(
     async () =>
@@ -293,31 +288,12 @@ export function NewReservation({
   const [discountAmount, setDiscountAmount] = useState(0);
 
   // Front Desk Tasks & Checklist
-  const [tasks, setTasks] = useState<FrontDeskTask[]>([
-    {
-      id: "t-1",
-      text: "Verify physical Photo ID and collect signed registration card",
-      done: false,
-      priority: "high",
-    },
-    {
-      id: "t-2",
-      text: "Pre-allocate room 202 on high floor (Requested by guest)",
-      done: true,
-      priority: "medium",
-    },
-    {
-      id: "t-3",
-      text: "Send digital invoice and welcome packet via WhatsApp",
-      done: false,
-      priority: "low",
-    },
-  ]);
+  const [tasks, setTasks] = useState<FrontDeskTask[]>([]);
   const [newTaskInput, setNewTaskInput] = useState("");
 
   // Modal states
   const [collectModalOpen, setCollectModalOpen] = useState(false);
-  const [collectAmount, setCollectAmount] = useState("4305");
+  const [collectAmount, setCollectAmount] = useState("");
   const [collectMethod, setCollectMethod] = useState<
     "UPI / QR" | "Credit Card" | "Debit Card" | "Cash" | "Bank Transfer"
   >("UPI / QR");

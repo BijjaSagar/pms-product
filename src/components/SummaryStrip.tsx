@@ -11,9 +11,18 @@ export interface SummaryItem {
 }
 
 /** A row of headline figures: the value first, the label above it and a hint below, with a tinted icon. */
-export function SummaryStrip({ items, label }: { items: SummaryItem[]; label: string }) {
+export function SummaryStrip({
+  items,
+  label,
+  columns = 'xs:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5',
+}: {
+  items: SummaryItem[];
+  label: string;
+  /** Responsive column classes; the default suits five items. */
+  columns?: string;
+}) {
   return (
-    <ul aria-label={label} className="grid grid-cols-1 gap-2.5 xs:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+    <ul aria-label={label} className={`grid grid-cols-1 gap-2.5 ${columns}`}>
       {items.map(({ label: text, value, hint, icon: Icon, tone }) => (
         <li key={text} className="min-w-0 rounded-xl border border-border bg-surface p-3.5">
           <div className="flex items-start justify-between gap-2">

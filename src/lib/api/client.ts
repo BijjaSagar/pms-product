@@ -19,6 +19,22 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * The property the signed-in user is working in. The auth provider sets it whenever the session loads or
+ * changes, so API helpers that act on "the current property" do not need it passed to every call.
+ */
+let activePropertyId: string | null = null;
+
+export function setActivePropertyId(id: string | null): void {
+  activePropertyId = id;
+}
+
+/** The current property's id, or an error the screens can show when none is selected. */
+export function requireActivePropertyId(): string {
+  if (!activePropertyId) throw new ApiError('Select a property before continuing.', 0);
+  return activePropertyId;
+}
+
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '/api/v1';
 
 /** Nest error bodies are `{ statusCode, message: string | string[], error }`. */
@@ -44,7 +60,7 @@ async function readJsonBody(response: Response): Promise<unknown> {
  */
 export async function apiRequest<T>(
   path: string,
-  options: { method?: string; body?: unknown } = {},
+  options: { method?: string; body?: unknown; headers?: Record<string, string> } = {},
 ): Promise<T> {
   const token = getAccessToken();
   const isForm = options.body instanceof FormData;
@@ -56,6 +72,7 @@ export async function apiRequest<T>(
         // A FormData body sets its own multipart Content-Type (with the boundary).
         ...(options.body !== undefined && !isForm ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
       },
       body: options.body === undefined ? undefined : isForm ? (options.body as FormData) : JSON.stringify(options.body),
     });
