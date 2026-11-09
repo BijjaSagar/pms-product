@@ -31,10 +31,10 @@ export function SyncSettingsPanel({ settings, expanded, onToggleExpanded, onChan
         <span className="flex flex-none items-center gap-2 text-label font-semibold text-ink-muted"><span className="hidden sm:inline">{settings.autoSync ? 'Auto-sync on' : 'Auto-sync paused'}</span><Lucide.ChevronDown size={16} className={`transition-transform ${expanded ? 'rotate-180' : ''}`} /></span>
       </ListItem>
       {expanded && (
-        <div id="sync-settings-content" className="border-t px-4 py-4 sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>
+        <div id="sync-settings-content" className="border-t px-4 py-4 sm:px-5 border-divider">
           <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {SYNC_OPTIONS.map(({ key, label, detail, icon: Icon }) => (
-              <label key={key} className="flex cursor-pointer items-center justify-between gap-3 rounded-control border p-3 transition-colors hover:bg-hover-surface" style={{ borderColor: 'var(--color-border)' }}>
+              <label key={key} className="flex cursor-pointer items-center justify-between gap-3 rounded-control border p-3 transition-colors hover:bg-hover-surface border-border">
                 <span className="flex min-w-0 items-center gap-2.5"><Icon size={15} className="flex-none text-primary" /><span className="min-w-0"><span className="block text-label font-semibold text-ink">{label}</span><span className="mt-0.5 block text-micro text-ink-muted">{detail}</span></span></span>
                 <input type="checkbox" role="switch" checked={settings[key]} onChange={(event) => onChange(key, event.target.checked)} aria-label={label} className="h-4 w-4 flex-none accent-primary" />
               </label>
@@ -54,7 +54,7 @@ export function SyncSettingsPanel({ settings, expanded, onToggleExpanded, onChan
               <TextField type="number" min={0} max={100} value={settings.defaultMarkup} onChange={(event) => onChange('defaultMarkup', event.target.value)} className={`${inputClass()}`} />
             </label>
           </div>
-          <div className="mt-4 flex flex-col gap-2 border-t pt-3 sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: 'var(--color-divider)' }}>
+          <div className="mt-4 flex flex-col gap-2 border-t pt-3 sm:flex-row sm:items-center sm:justify-between border-divider">
             <p className="text-label text-ink-muted">Settings are stored in this demo session only.</p>
             <Button variant="primary" type="button" onClick={onSave} ><Lucide.Check size={14} /> Save settings</Button>
           </div>

@@ -223,15 +223,14 @@ export function Sidebar({
 
   // ================= EXPANDED FULL PANEL (Used when expanded or inside mobile drawer) =================
   const fullPanel = (
-    <div className="flex h-full flex-col bg-surface" style={{ background: 'var(--color-sidebar)', color: 'var(--color-ink)' }}>
+    <div className="flex h-full flex-col bg-surface text-ink" style={{ background: 'var(--color-sidebar)' }}>
       {/* Brand Header */}
-      <div className="flex items-center justify-between border-b px-4 pb-4 pt-5" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="flex items-center justify-between border-b px-4 pb-4 pt-5 border-border">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => go('dashboard')}
-            className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-disp2 font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 cursor-pointer"
-            style={{ background: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
+            className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-disp2 font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 cursor-pointer bg-primary text-primary-foreground"
             aria-label="Dashboard"
           >
             T
@@ -316,7 +315,7 @@ export function Sidebar({
       </nav>
 
       {/* Footer controls in full panel */}
-      <div className="border-t p-3 flex flex-col gap-1.5" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="border-t p-3 flex flex-col gap-1.5 border-border">
         {onOpenThemes && (
           <ListItem
             type="button"
@@ -343,14 +342,13 @@ export function Sidebar({
   const compactRail = (
     <div className="flex h-full flex-col items-center justify-between bg-surface" style={{ background: 'var(--color-sidebar)' }}>
       {/* 1. Top Brand Logo */}
-      <div className="flex h-16 w-full items-center justify-center border-b" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="flex h-16 w-full items-center justify-center border-b border-border">
         <button
           type="button"
           onClick={() => go('dashboard')}
           onMouseEnter={(e) => handleMouseEnter(e, 'TriponX Hotel PMS', 'Go to Dashboard', 'PMS')}
           onMouseLeave={handleMouseLeave}
-          className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-disp2 font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 cursor-pointer"
-          style={{ background: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
+          className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-disp2 font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 cursor-pointer bg-primary text-primary-foreground"
           aria-label="TriponX Home"
         >
           T
@@ -371,8 +369,7 @@ export function Sidebar({
               {/* Active left indicator pill */}
               {isSectionActive && (
                 <span
-                  className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full"
-                  style={{ background: 'var(--color-primary)' }}
+                  className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-primary"
                 />
               )}
 
@@ -413,11 +410,8 @@ export function Sidebar({
                 {/* Sub-item count badge indicator */}
                 {!isDirectItem && (
                   <span
-                    className="absolute -bottom-0.5 -right-0.5 flex h-3.5 min-w-[14px] px-0.5 items-center justify-center rounded-full text-micro font-bold"
-                    style={{
-                      background: isSectionActive ? 'var(--color-primary)' : 'var(--color-ink-muted)',
-                      color: 'var(--color-primary-foreground)',
-                    }}
+                    className="absolute -bottom-0.5 -right-0.5 flex h-3.5 min-w-[14px] px-0.5 items-center justify-center rounded-full text-micro font-bold text-primary-foreground"
+                    style={{ background: isSectionActive ? 'var(--color-primary)' : 'var(--color-ink-muted)' }}
                   >
                     {section.items.length}
                   </span>
@@ -429,7 +423,7 @@ export function Sidebar({
       </nav>
 
       {/* 3. Bottom Utility Actions */}
-      <div className="flex h-20 w-full flex-col items-center justify-center border-t gap-1.5 py-2" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="flex h-20 w-full flex-col items-center justify-center border-t gap-1.5 py-2 border-border">
         {/* Theme Swatcher Trigger */}
         {onOpenThemes && (
           <IconButton variant="plain"
@@ -524,11 +518,7 @@ export function Sidebar({
               <div className="flex items-center justify-between border-b border-divider bg-page/80 px-4 py-3">
                 <div className="flex items-center gap-2.5">
                   <div
-                    className="flex h-7 w-7 items-center justify-center rounded-lg shadow-2xs"
-                    style={{
-                      background: 'var(--color-primary)',
-                      color: 'var(--color-primary-foreground)',
-                    }}
+                    className="flex h-7 w-7 items-center justify-center rounded-lg shadow-2xs bg-primary text-primary-foreground"
                   >
                     <SectionIcon size={15} />
                   </div>
@@ -601,7 +591,7 @@ export function Sidebar({
                             {item.label}
                           </p>
                           {isItemActive && (
-                            <span className="h-1.5 w-1.5 rounded-full flex-none" style={{ background: 'var(--color-primary)' }} />
+                            <span className="h-1.5 w-1.5 rounded-full flex-none bg-primary" />
                           )}
                         </div>
                         <p className="text-label text-ink-muted font-normal truncate mt-0.5">
@@ -628,10 +618,10 @@ export function Sidebar({
             onClick={onClose}
           />
           <aside
-            className="pms-overlay-enter absolute left-0 top-0 h-full w-[86vw] max-w-[320px] overflow-hidden rounded-r-[16px] border-r"
-            style={{ borderColor: 'var(--color-border)', boxShadow: 'var(--shadow-2xl)', background: 'var(--color-sidebar)' }}
+            className="pms-overlay-enter absolute left-0 top-0 h-full w-[86vw] max-w-[320px] overflow-hidden rounded-r-[16px] border-r border-border bg-sidebar"
+            style={{ boxShadow: 'var(--shadow-2xl)' }}
           >
-            <div className="flex items-center justify-between border-b px-4 py-3 lg:hidden" style={{ borderColor: 'var(--color-border)' }}>
+            <div className="flex items-center justify-between border-b px-4 py-3 lg:hidden border-border">
               <span className="text-label font-bold uppercase tracking-[0.12em] text-ink-muted">Menu</span>
               <Button variant="secondary" type="button" onClick={onClose} aria-label="Close navigation" className="min-w-[38px] cursor-pointer">✕</Button>
             </div>

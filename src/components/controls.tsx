@@ -7,18 +7,27 @@ export function Field({
   children,
   hint,
   error,
+  required,
+  className = '',
 }: {
   label: string;
   children: ReactNode;
   hint?: string;
   error?: string;
+  /** Adds the required marker after the label. */
+  required?: boolean;
+  /** Layout classes such as `sm:col-span-2`. */
+  className?: string;
 }) {
   return (
-    <label className="flex min-w-0 flex-col gap-1.5">
-      <span className="pms-label">{label}</span>
+    <label className={`flex min-w-0 flex-col gap-1.5 ${className}`}>
+      <span className="pms-label">
+        {label}
+        {required ? <span className="ml-0.5 text-danger-text" aria-hidden="true">*</span> : null}
+      </span>
       {children}
       {error ? (
-        <span className="text-label font-medium" style={{ color: 'var(--color-danger-text)' }} role="alert">
+        <span className="text-label font-medium text-danger-text" role="alert">
           {error}
         </span>
       ) : hint ? (
@@ -41,10 +50,10 @@ export function Tabs<T extends string>({
 }) {
   return (
     <div
-      className="pms-chip-row gap-1 rounded-[12px] border p-1"
+      className="pms-chip-row gap-1 rounded-[12px] border p-1 border-border"
       role="tablist"
       aria-label={label}
-      style={{ borderColor: 'var(--color-border)', background: 'color-mix(in srgb, var(--color-muted-surface) 78%, var(--color-surface))', boxShadow: 'var(--shadow-xs), var(--shadow-inner)' }}
+      style={{ background: 'color-mix(in srgb, var(--color-muted-surface) 78%, var(--color-surface))', boxShadow: 'var(--shadow-xs), var(--shadow-inner)' }}
     >
       {tabs.map((t) => {
         const selected = t.id === active;
@@ -163,5 +172,38 @@ export function FilterChip({
     >
       {children}
     </Button>
+  );
+}
+
+/** An on/off switch. Use it where a control sits inside a card or a row; use ToggleRow for a whole-row choice. */
+export function Switch({
+  checked,
+  onChange,
+  disabled,
+  label,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  disabled?: boolean;
+  /** Read by screen readers, since the switch itself has no text. */
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-6 w-11 flex-none cursor-pointer items-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+        checked ? 'border-primary bg-primary' : 'border-border bg-muted-surface'
+      }`}
+    >
+      <span
+        aria-hidden="true"
+        className={`inline-block h-4 w-4 rounded-full bg-surface shadow-xs transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`}
+      />
+    </button>
   );
 }

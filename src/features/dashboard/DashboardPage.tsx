@@ -1135,7 +1135,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             </div>
 
             {/* 4 Stat Boxes */}
-            <div className="grid grid-cols-4 gap-2 text-center mb-3.5">
+            <div className="grid grid-cols-2 gap-2 text-center mb-3.5 sm:grid-cols-4">
               <div className="rounded-xl border border-success-border bg-success-bg/60 p-2">
                 <span className="text-label font-medium text-success-text block">✓ Cleaned</span>
                 <span className="text-label font-bold text-success-text mt-0.5 block">9</span>

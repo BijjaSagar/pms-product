@@ -12,7 +12,7 @@ interface Props {
 export function SeasonalityPanel({ seasons, onAdd, onToggleStatus }: Props) {
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="seasonality-title">
-      <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 border-border">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-warning-text to-warning-border text-white shadow-xs shadow-warning-text/20">
             <Lucide.SunMedium size={18} strokeWidth={2.4} />
@@ -36,7 +36,7 @@ export function SeasonalityPanel({ seasons, onAdd, onToggleStatus }: Props) {
               <div>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-2.5">
-                    <span className="flex h-9 w-9 flex-none items-center justify-center rounded-control" style={{ background: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))', color: 'var(--color-primary)' }}>
+                    <span className="flex h-9 w-9 flex-none items-center justify-center rounded-control text-primary" style={{ background: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))' }}>
                       <Lucide.CalendarRange size={17} />
                     </span>
                     <div className="min-w-0">
@@ -52,7 +52,7 @@ export function SeasonalityPanel({ seasons, onAdd, onToggleStatus }: Props) {
                   {positive ? 'Increase rates' : 'Reduce rates'} during this season across applicable room types.
                 </p>
               </div>
-              <div className="mt-4 flex items-center justify-between border-t pt-3" style={{ borderColor: 'var(--color-divider)' }}>
+              <div className="mt-4 flex items-center justify-between border-t pt-3 border-divider">
                 <span className={`inline-flex items-center gap-1.5 text-label font-semibold ${active ? 'text-success-text' : 'text-ink-muted'}`}>
                   <span className={`h-1.5 w-1.5 rounded-full ${active ? 'bg-success-text' : 'bg-ink-disabled'}`} />{season.status}
                 </span>

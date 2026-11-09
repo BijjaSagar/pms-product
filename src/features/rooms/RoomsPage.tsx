@@ -69,7 +69,7 @@ function RoomDetail({
       </div>
 
       {room.guest ? (
-        <div className="rounded-2xl border p-4 shadow-xs" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}>
+        <div className="rounded-2xl border p-4 shadow-xs border-border bg-surface">
           <p className="pms-label mb-2">Current in-house guest</p>
           <div className="flex items-center gap-3">
             <Avatar name={room.guest} size={38} />
@@ -97,7 +97,7 @@ function RoomDetail({
           ['Housekeeping status', room.hk],
           ['Room status', room.status],
         ].map(([k, v]) => (
-          <div key={k} className="rounded-xl border p-2.5" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}>
+          <div key={k} className="rounded-xl border p-2.5 border-border bg-surface">
             <p className="text-label text-ink-muted">{k}</p>
             <p className="font-semibold text-ink mt-0.5">{v}</p>
           </div>
@@ -145,7 +145,7 @@ function RoomDetail({
       </div>
 
       {/* Actions */}
-      <div className="mt-2 flex flex-wrap gap-2.5 pt-2 border-t" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="mt-2 flex flex-wrap gap-2.5 pt-2 border-t border-border">
         {room.status === 'Out-of-service' ? (
           <Button variant="primary"
             type="button"

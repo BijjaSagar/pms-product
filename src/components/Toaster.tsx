@@ -131,8 +131,7 @@ function ToastCard({ toast: t, onDismiss }: ToastCardProps) {
         <div className="min-w-0 flex-1 pt-0.5">
           <div className="flex items-center justify-between gap-2 pr-1">
             <h4
-              className="text-body font-semibold tracking-tight leading-snug truncate"
-              style={{ color: 'var(--color-ink)' }}
+              className="text-body font-semibold tracking-tight leading-snug truncate text-ink"
             >
               {t.title}
             </h4>
@@ -149,8 +148,7 @@ function ToastCard({ toast: t, onDismiss }: ToastCardProps) {
 
           {t.detail ? (
             <p
-              className="mt-1 text-label leading-relaxed line-clamp-3"
-              style={{ color: 'var(--color-ink-secondary)' }}
+              className="mt-1 text-label leading-relaxed line-clamp-3 text-ink-secondary"
             >
               {t.detail}
             </p>
@@ -165,12 +163,7 @@ function ToastCard({ toast: t, onDismiss }: ToastCardProps) {
                   void t.action?.onClick();
                   onDismiss(t.id);
                 }}
-                className="inline-flex items-center gap-1.5 transition-all cursor-pointer"
-                style={{
-                  background: 'var(--color-surface)',
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-ink)',
-                }}
+                className="inline-flex items-center gap-1.5 transition-all cursor-pointer bg-surface border-border text-ink"
               >
                 <span>{t.action.label}</span>
                 <Lucide.ArrowRight size={12} className="opacity-70" />
@@ -184,8 +177,7 @@ function ToastCard({ toast: t, onDismiss }: ToastCardProps) {
           type="button"
           onClick={() => onDismiss(t.id)}
           aria-label="Dismiss notification"
-          className="flex flex-none items-center justify-center transition-all cursor-pointer"
-          style={{ color: 'var(--color-ink-muted)' }}
+          className="flex flex-none items-center justify-center transition-all cursor-pointer text-ink-muted"
           onMouseEnter={(e) => {
             e.currentTarget.style.color = 'var(--color-ink)';
             e.currentTarget.style.backgroundColor = 'var(--color-hover-surface)';

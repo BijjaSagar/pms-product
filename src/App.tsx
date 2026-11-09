@@ -128,8 +128,8 @@ function Shell() {
   }, [view, target.query, target.focusId, target.draft, go, can, me]);
 
   return (
-    <div className="pms-app-shell flex h-dvh min-h-0" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
-      <a href="#pms-main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[70] focus:rounded-control focus:border focus:px-4 focus:py-2 focus:text-body focus:font-semibold" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)', color: 'var(--color-ink)' }}>
+    <div className="pms-app-shell flex h-dvh min-h-0 bg-page text-ink">
+      <a href="#pms-main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[70] focus:rounded-control focus:border focus:px-4 focus:py-2 focus:text-body focus:font-semibold bg-surface border-border text-ink">
         Skip to main content
       </a>
       <Sidebar
@@ -139,7 +139,7 @@ function Shell() {
         onClose={() => setNavOpen(false)}
         onOpenThemes={() => setSwatcherOpen(true)}
       />
-      <div className="pms-app-column flex min-h-0 min-w-0 flex-1 flex-col" style={{ background: 'var(--color-page)' }}>
+      <div className="pms-app-column flex min-h-0 min-w-0 flex-1 flex-col bg-page">
         <Header
           currentView={view}
           onMenu={() => setNavOpen(true)}
@@ -151,14 +151,13 @@ function Shell() {
           data-app-scroll
           className="pms-app-scroll flex min-h-0 flex-1 flex-col overflow-x-clip overflow-y-auto"
         >
-          <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}-${target.draft?.roomNumber ?? ''}-${target.draft?.checkIn ?? ''}`} className={`pms-animate-fade-in mx-auto w-full flex-1 px-4 py-4 lg:px-6 lg:py-6 max-w-[1600px] 2xl:max-w-[1760px]`} style={{ background: 'var(--color-page)' }}>
+          <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}-${target.draft?.roomNumber ?? ''}-${target.draft?.checkIn ?? ''}`} className={"pms-animate-fade-in mx-auto w-full flex-1 px-4 py-4 lg:px-6 lg:py-6 max-w-[1600px] 2xl:max-w-[1760px] bg-page"}>
             <Suspense fallback={<PageSkeleton />}>{page}</Suspense>
           </main>
           <footer
-            className="border-t px-4 py-3.5 lg:px-6"
-            style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+            className="border-t px-4 py-3.5 lg:px-6 border-border bg-surface"
           >
-            <p className="tnum mx-auto w-full max-w-[1600px] text-label font-normal 2xl:max-w-[1760px]" style={{ color: 'var(--color-ink-secondary)' }}>
+            <p className="tnum mx-auto w-full max-w-[1600px] text-label font-normal 2xl:max-w-[1760px] text-ink-secondary">
               TriponX PMS · {THEME_PRESETS[preset]?.name ?? 'Theme'} · 9 colour themes ·
               status colours fixed across themes · unsupported modules remain demo-only
             </p>
@@ -212,7 +211,7 @@ function AuthenticatedApp() {
 
   if (loading) {
     return (
-      <main className="flex h-dvh items-center justify-center" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
+      <main className="flex h-dvh items-center justify-center bg-page text-ink">
         <p className="pms-helper">Connecting to TriponX…</p>
       </main>
     );
@@ -233,7 +232,7 @@ function AuthenticatedApp() {
   if (!me.activePropertyId) {
     const memberships = me.user.propertyMemberships.filter((membership) => membership.isActive);
     return (
-      <main className="flex min-h-screen items-center justify-center px-4" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
+      <main className="flex min-h-screen items-center justify-center px-4 bg-page text-ink">
         <section className="pms-card w-full max-w-[520px] p-5">
           <h1 className="pms-section-title">Choose a property</h1>
           <p className="pms-helper mt-1">Select an active property to continue.</p>

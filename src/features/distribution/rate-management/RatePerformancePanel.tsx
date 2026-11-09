@@ -38,7 +38,7 @@ export function RatePerformancePanel() {
           <div><p className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Revenue</p><p className="mt-1 text-body font-bold text-ink tnum">₹4.2L</p><p className="text-micro font-semibold text-success-text">+18%</p></div>
         </div>
       </div>
-      <div className="mt-4 overflow-hidden rounded-control border p-2 sm:p-3" style={{ borderColor: 'var(--color-divider)', background: 'var(--color-muted-surface)' }}>
+      <div className="mt-4 overflow-hidden rounded-control border p-2 sm:p-3 border-divider bg-muted-surface">
         <svg viewBox="0 0 500 145" role="img" aria-label="Average daily rate and occupancy trend over the next 14 days" className="h-[170px] w-full overflow-visible">
           <defs>
             <linearGradient id="rate-performance-fill" x1="0" y1="0" x2="0" y2="1">
@@ -61,7 +61,7 @@ export function RatePerformancePanel() {
         </div>
         <p className="inline-flex items-center gap-1 text-label text-ink-muted"><Lucide.TrendingUp size={13} />Demand peaks Oct 24</p>
       </div>
-      <div className="mt-3 flex justify-between border-t pt-2 text-micro text-ink-muted" style={{ borderColor: 'var(--color-divider)' }}>
+      <div className="mt-3 flex justify-between border-t pt-2 text-micro text-ink-muted border-divider">
         {trend.filter((_, index) => index % 2 === 0).map((item) => <span key={item.day}>{item.day}</span>)}
       </div>
     </section>

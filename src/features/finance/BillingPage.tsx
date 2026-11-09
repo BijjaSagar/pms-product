@@ -800,13 +800,12 @@ export function Billing() {
 
         {/* PROMINENT GUEST SELECT BOX AT THE TOP (User requested) */}
         <div
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl border shadow-xs"
-          style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl border shadow-xs bg-surface border-border"
         >
           <div className="flex items-center gap-2.5">
             <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center font-bold"
-              style={{ background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)', color: 'var(--color-primary)' }}
+              className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-primary"
+              style={{ background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)' }}
             >
               <Lucide.UserCheck size={18} />
             </div>
@@ -826,11 +825,7 @@ export function Billing() {
                 id="top-guest-select"
                 value={selectedGuestId}
                 onChange={(e) => setSelectedGuestId(e.target.value)}
-                className="w-full cursor-pointer transition-all pl-3.5 pr-10"
-                style={{
-                  background: 'var(--color-page)',
-                  borderColor: 'var(--color-border)',
-                }}
+                className="w-full cursor-pointer transition-all pl-3.5 pr-10 bg-page border-border"
               >
                 {guests.map((g) => (
                   <option key={g.id} value={g.id}>
@@ -842,12 +837,7 @@ export function Billing() {
             </div>
 
             <span
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-label font-semibold border"
-              style={{
-                background: 'var(--color-muted-surface)',
-                color: 'var(--color-primary)',
-                borderColor: 'var(--color-border)',
-              }}
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-label font-semibold border bg-muted-surface text-primary border-border"
             >
               <span className="w-2 h-2 rounded-full bg-success-text animate-pulse" />
               <span>In-house ({guests.length})</span>
@@ -858,8 +848,7 @@ export function Billing() {
 
       {/* 2. GUEST & STAY SUMMARY BANNER (Matching reference 100%) */}
       <div
-        className="rounded-2xl border p-4 sm:p-5 shadow-xs grid grid-cols-1 md:grid-cols-12 gap-5 items-center"
-        style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+        className="rounded-2xl border p-4 sm:p-5 shadow-xs grid grid-cols-1 md:grid-cols-12 gap-5 items-center bg-surface border-border"
       >
         {/* Left Column: Avatar & Guest Profile */}
         <div className="md:col-span-5 flex items-center gap-4">
@@ -931,7 +920,7 @@ export function Billing() {
       </div>
 
       {/* 3. NAVIGATION TABS */}
-      <div className="border-b" style={{ borderColor: 'var(--color-divider)' }}>
+      <div className="border-b border-divider">
         <div className="flex items-center gap-6 overflow-x-auto no-scrollbar">
           {(
             [
@@ -954,8 +943,7 @@ export function Billing() {
                 <span>{tab}</span>
                 {isActive ? (
                   <span
-                    className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
-                    style={{ background: 'var(--color-primary)' }}
+                    className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-primary"
                   />
                 ) : null}
               </Button>
@@ -971,8 +959,7 @@ export function Billing() {
           <div className="lg:col-span-8 flex flex-col gap-4">
             {/* Filters Bar above table */}
             <div
-              className="p-3 rounded-2xl border shadow-xs flex flex-wrap items-center justify-between gap-3"
-              style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+              className="p-3 rounded-2xl border shadow-xs flex flex-wrap items-center justify-between gap-3 bg-surface border-border"
             >
               <div className="flex items-center gap-2.5 flex-wrap flex-1 min-w-[280px]">
                 {/* Category Select */}
@@ -980,8 +967,7 @@ export function Billing() {
                   <SelectField
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="w-full cursor-pointer pl-3 pr-8"
-                    style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
+                    className="w-full cursor-pointer pl-3 pr-8 bg-page border-border"
                   >
                     <option value="All">All charges</option>
                     <option value="Room charges">Room charges</option>
@@ -1001,8 +987,7 @@ export function Billing() {
                       type="text"
                       value={fromDate}
                       onChange={(e) => setFromDate(e.target.value)}
-                      className="w-[110px] pl-3 pr-7"
-                      style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
+                      className="w-[110px] pl-3 pr-7 bg-page border-border"
                     />
                     <Lucide.Calendar size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
                   </div>
@@ -1016,8 +1001,7 @@ export function Billing() {
                       type="text"
                       value={toDate}
                       onChange={(e) => setToDate(e.target.value)}
-                      className="w-[110px] pl-3 pr-7"
-                      style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
+                      className="w-[110px] pl-3 pr-7 bg-page border-border"
                     />
                     <Lucide.Calendar size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
                   </div>
@@ -1031,8 +1015,7 @@ export function Billing() {
                     placeholder="Search description or reference..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full placeholder:text-ink-muted transition-colors focus:outline-none focus:ring-2 pl-9 pr-8"
-                    style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
+                    className="w-full placeholder:text-ink-muted transition-colors focus:outline-none focus:ring-2 pl-9 pr-8 bg-page border-border"
                   />
                   {searchQuery ? (
                     <IconButton variant="plain"
@@ -1060,8 +1043,7 @@ export function Billing() {
             {/* More filters drawer panel if toggled */}
             {moreFiltersOpen ? (
               <div
-                className="p-3.5 rounded-2xl border text-label flex flex-wrap items-center gap-4"
-                style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+                className="p-3.5 rounded-2xl border text-label flex flex-wrap items-center gap-4 bg-surface border-border"
               >
                 <span className="font-bold text-ink">Active filters:</span>
                 <span className="text-ink-secondary">Showing charges for stay period 13-10-2026 to 17-10-2026.</span>
@@ -1080,15 +1062,13 @@ export function Billing() {
 
             {/* Charges Table Card */}
             <div
-              className="rounded-2xl border shadow-xs overflow-hidden"
-              style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+              className="rounded-2xl border shadow-xs overflow-hidden bg-surface border-border"
             >
               <div className="pms-table-scroll overflow-x-auto">
                 <table className="pms-table w-full text-left border-collapse min-w-[700px]">
                   <thead>
                     <tr
-                      className="border-b text-label font-bold uppercase tracking-wider text-ink-muted bg-page/90"
-                      style={{ borderColor: 'var(--color-divider)' }}
+                      className="border-b text-label font-bold uppercase tracking-wider text-ink-muted bg-page/90 border-divider"
                     >
                       <th className="py-2.5 px-3 w-10 text-center">
                         <Checkbox
@@ -1109,7 +1089,7 @@ export function Billing() {
                       <th className="py-2.5 px-3 font-bold text-center w-12">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y text-label text-ink" style={{ borderColor: 'var(--color-divider)' }}>
+                  <tbody className="divide-y text-label text-ink border-divider">
                     {filteredTransactions.map((tx) => {
                       const isSelected = selectedTxIds.includes(tx.id);
                       return (
@@ -1222,8 +1202,7 @@ export function Billing() {
 
               {/* Table Footer: Add Manual Charge & Pagination */}
               <div
-                className="p-3.5 border-t flex flex-wrap items-center justify-between gap-3 text-label"
-                style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}
+                className="p-3.5 border-t flex flex-wrap items-center justify-between gap-3 text-label bg-surface border-divider"
               >
                 <div>
                   <Button variant="secondary"
@@ -1242,7 +1221,7 @@ export function Billing() {
                     <SelectField
                       value={rowsPerPage}
                       onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                      style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
+                      className="bg-page border-border"
                     >
                       <option value={10}>10</option>
                       <option value={25}>25</option>
@@ -1255,8 +1234,7 @@ export function Billing() {
                       type="button"
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      className="flex items-center justify-center disabled:opacity-40"
-                      style={{ borderColor: 'var(--color-border)' }}
+                      className="flex items-center justify-center disabled:opacity-40 border-border"
                     >
                       <Lucide.ChevronLeft size={14} />
                     </IconButton>
@@ -1277,8 +1255,7 @@ export function Billing() {
                     <IconButton variant="ghost"
                       type="button"
                       onClick={() => setCurrentPage((p) => Math.min(3, p + 1))}
-                      className="flex items-center justify-center"
-                      style={{ borderColor: 'var(--color-border)' }}
+                      className="flex items-center justify-center border-border"
                     >
                       <Lucide.ChevronRight size={14} />
                     </IconButton>
@@ -1292,8 +1269,7 @@ export function Billing() {
           <div className="lg:col-span-4 flex flex-col gap-4">
             {/* Card 1: Folio Summary */}
             <div
-              className="rounded-2xl border p-4 sm:p-5 shadow-xs flex flex-col gap-4"
-              style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+              className="rounded-2xl border p-4 sm:p-5 shadow-xs flex flex-col gap-4 bg-surface border-border"
             >
               <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
                 <div className="flex items-center gap-2.5">
@@ -1365,7 +1341,7 @@ export function Billing() {
               </div>
 
               {/* Subtotal & Taxes */}
-              <div className="border-t pt-3 flex flex-col gap-2 text-label" style={{ borderColor: 'var(--color-divider)' }}>
+              <div className="border-t pt-3 flex flex-col gap-2 text-label border-divider">
                 <div className="flex items-center justify-between text-ink font-semibold">
                   <span>Subtotal</span>
                   <span className="text-body font-bold">{formatINR(currentGuest.summary.subtotal)}</span>
@@ -1434,7 +1410,7 @@ export function Billing() {
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between pt-1 border-t" style={{ borderColor: 'var(--color-divider)' }}>
+                <div className="flex items-center justify-between pt-1 border-t border-divider">
                   <span className="flex items-center gap-1.5 font-bold text-danger-text text-label uppercase tracking-wider">
                     <Lucide.AlertCircle size={14} />
                     <span>Outstanding Balance</span>
@@ -1466,8 +1442,7 @@ export function Billing() {
 
             {/* Card 2: Payment Details */}
             <div
-              className="rounded-2xl border p-4 sm:p-5 shadow-xs flex flex-col gap-3.5"
-              style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+              className="rounded-2xl border p-4 sm:p-5 shadow-xs flex flex-col gap-3.5 bg-surface border-border"
             >
               <div className="flex items-center justify-between">
                 <h4 className="font-bold text-ink text-title">Payment Details</h4>
@@ -1492,8 +1467,7 @@ export function Billing() {
               {currentGuest.payments.map((p) => (
                 <div
                   key={p.id}
-                  className="rounded-xl border p-3 flex items-center justify-between gap-3 text-label"
-                  style={{ background: 'var(--color-page)', borderColor: 'var(--color-border)' }}
+                  className="rounded-xl border p-3 flex items-center justify-between gap-3 text-label bg-page border-border"
                 >
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-lg bg-success-bg text-success-text flex items-center justify-center flex-shrink-0">
@@ -1523,8 +1497,7 @@ export function Billing() {
 
             {/* Card 3: Quick Actions */}
             <div
-              className="rounded-2xl border p-4 sm:p-5 shadow-xs flex flex-col gap-3"
-              style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+              className="rounded-2xl border p-4 sm:p-5 shadow-xs flex flex-col gap-3 bg-surface border-border"
             >
               <h4 className="font-bold text-ink text-title">Quick Actions</h4>
               <div className="grid grid-cols-3 gap-2">
@@ -1557,12 +1530,8 @@ export function Billing() {
 
             {/* Card 4: Info Note */}
             <div
-              className="rounded-2xl border p-3.5 flex items-start gap-2.5 text-label"
-              style={{
-                background: 'color-mix(in srgb, var(--color-primary) 6%, var(--color-surface))',
-                borderColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
-                color: 'var(--color-ink-secondary)',
-              }}
+              className="rounded-2xl border p-3.5 flex items-start gap-2.5 text-label text-ink-secondary"
+              style={{ background: 'color-mix(in srgb, var(--color-primary) 6%, var(--color-surface))', borderColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
             >
               <Lucide.Info size={16} className="text-primary flex-shrink-0 mt-0.5" />
               <p className="leading-relaxed">
@@ -1575,7 +1544,7 @@ export function Billing() {
 
       {/* OTHER TABS CONTENT (Room Folios, Payments, Statements, History) */}
       {activeTab === 'Room Folios (1)' ? (
-        <div className="p-6 rounded-2xl border bg-surface flex flex-col gap-4" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="p-6 rounded-2xl border bg-surface flex flex-col gap-4 border-border">
           <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20">
@@ -1588,8 +1557,8 @@ export function Billing() {
             </div>
             <span className="font-bold text-primary text-title">{formatINR(currentGuest.summary.roomCharges)}</span>
           </div>
-          <div className="border rounded-xl p-4 text-label flex flex-col gap-2" style={{ borderColor: 'var(--color-divider)' }}>
-            <div className="flex justify-between py-1 border-b" style={{ borderColor: 'var(--color-divider)' }}>
+          <div className="border rounded-xl p-4 text-label flex flex-col gap-2 border-divider">
+            <div className="flex justify-between py-1 border-b border-divider">
               <span className="font-medium text-ink">Room Tariff (Deluxe King, {currentGuest.nights} nights)</span>
               <span className="font-bold text-ink">{formatINR(currentGuest.summary.roomCharges)}</span>
             </div>
@@ -1602,7 +1571,7 @@ export function Billing() {
       ) : null}
 
       {activeTab === 'Payments' ? (
-        <div className="rounded-2xl border bg-surface p-5 shadow-xs flex flex-col gap-4" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="rounded-2xl border bg-surface p-5 shadow-xs flex flex-col gap-4 border-border">
           <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
@@ -1630,7 +1599,7 @@ export function Billing() {
             </Button>
           </div>
 
-          <div className="divide-y border rounded-xl overflow-hidden" style={{ borderColor: 'var(--color-divider)' }}>
+          <div className="divide-y border rounded-xl overflow-hidden border-divider">
             {currentGuest.payments.map((pm) => (
               <div key={pm.id} className="p-3.5 flex items-center justify-between text-label">
                 <div>
@@ -1654,7 +1623,7 @@ export function Billing() {
       ) : null}
 
       {activeTab === 'Statements' ? (
-        <div className="rounded-2xl border bg-surface p-6 shadow-xs flex flex-col gap-4" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="rounded-2xl border bg-surface p-6 shadow-xs flex flex-col gap-4 border-border">
           <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
@@ -1675,8 +1644,8 @@ export function Billing() {
             </Button>
           </div>
 
-          <div className="border rounded-2xl p-6 flex flex-col gap-4 font-mono text-label" style={{ borderColor: 'var(--color-divider)' }}>
-            <div className="flex justify-between border-b pb-4" style={{ borderColor: 'var(--color-divider)' }}>
+          <div className="border rounded-2xl p-6 flex flex-col gap-4 font-mono text-label border-divider">
+            <div className="flex justify-between border-b pb-4 border-divider">
               <div>
                 <p className="font-bold text-body font-sans">{currentGuest.name}</p>
                 <p className="text-ink-muted">{currentGuest.room} · {currentGuest.reservationCode}</p>
@@ -1687,11 +1656,11 @@ export function Billing() {
               </div>
             </div>
 
-            <div className="flex justify-between font-bold py-2 border-b" style={{ borderColor: 'var(--color-divider)' }}>
+            <div className="flex justify-between font-bold py-2 border-b border-divider">
               <span>Total Charges &amp; Taxes</span>
               <span>{formatINR(currentGuest.summary.totalAmount)}</span>
             </div>
-            <div className="flex justify-between font-bold py-2 border-b text-success-text" style={{ borderColor: 'var(--color-divider)' }}>
+            <div className="flex justify-between font-bold py-2 border-b text-success-text border-divider">
               <span>Total Payments Received</span>
               <span>-{formatINR(currentGuest.summary.paymentsReceived)}</span>
             </div>
@@ -1704,7 +1673,7 @@ export function Billing() {
       ) : null}
 
       {activeTab === 'History' || activeTab === 'Other Folios (0)' ? (
-        <div className="rounded-2xl border bg-surface p-6 shadow-xs flex flex-col gap-3" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="rounded-2xl border bg-surface p-6 shadow-xs flex flex-col gap-3 border-border">
           <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
@@ -1942,7 +1911,7 @@ export function Billing() {
               <span className="text-ink-secondary">Reservation:</span>
               <span className="font-mono font-bold text-ink">{currentGuest.reservationCode}</span>
             </div>
-            <div className="flex justify-between border-t pt-2" style={{ borderColor: 'var(--color-divider)' }}>
+            <div className="flex justify-between border-t pt-2 border-divider">
               <span className="font-bold text-ink">Total Billed:</span>
               <span className="font-bold text-ink">{formatINR(currentGuest.summary.totalAmount)}</span>
             </div>
@@ -1950,7 +1919,7 @@ export function Billing() {
               <span className="font-bold">Payments Received:</span>
               <span className="font-bold">-{formatINR(currentGuest.summary.paymentsReceived)}</span>
             </div>
-            <div className="flex justify-between text-title font-bold text-danger-text border-t pt-2" style={{ borderColor: 'var(--color-divider)' }}>
+            <div className="flex justify-between text-title font-bold text-danger-text border-t pt-2 border-divider">
               <span>Settlement Amount Due:</span>
               <span>{formatINR(currentGuest.summary.outstandingBalance)}</span>
             </div>
@@ -1990,8 +1959,8 @@ export function Billing() {
         }
       >
         <div className="flex flex-col gap-4 py-2 text-label">
-          <div className="p-4 rounded-xl border bg-surface flex flex-col gap-3" style={{ borderColor: 'var(--color-border)' }}>
-            <div className="flex justify-between items-start border-b pb-3" style={{ borderColor: 'var(--color-divider)' }}>
+          <div className="p-4 rounded-xl border bg-surface flex flex-col gap-3 border-border">
+            <div className="flex justify-between items-start border-b pb-3 border-divider">
               <div>
                 <h4 className="font-bold text-title text-ink">TRIOUNITY GRAND HOTEL &amp; SUITES</h4>
                 <p className="text-label text-ink-muted">GSTIN: 27AABCT3518Q1ZV · Licensed PMS Hotel</p>
@@ -2019,14 +1988,14 @@ export function Billing() {
               </div>
             </div>
 
-            <table className="w-full text-left border-t border-b text-label" style={{ borderColor: 'var(--color-divider)' }}>
+            <table className="w-full text-left border-t border-b text-label border-divider">
               <thead>
                 <tr className="text-ink-muted font-bold py-1.5">
                   <th className="py-1">Description</th>
                   <th className="py-1 text-right">Amount</th>
                 </tr>
               </thead>
-              <tbody className="divide-y" style={{ borderColor: 'var(--color-divider)' }}>
+              <tbody className="divide-y border-divider">
                 <tr>
                   <td className="py-1 text-ink">Room Tariff Charges ({currentGuest.roomType})</td>
                   <td className="py-1 text-right font-bold text-ink">{formatINR(currentGuest.summary.roomCharges)}</td>

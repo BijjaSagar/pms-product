@@ -193,8 +193,8 @@ function Configuration({ propertyId, canEdit }: { propertyId: string; canEdit: b
                 <tr key={status.id} className="border-b border-divider last:border-b-0">
                   <td className="py-2.5">
                     <span
-                      className="block h-5 w-8 rounded border"
-                      style={{ background: status.color, borderColor: 'var(--color-border)' }}
+                      className="block h-5 w-8 rounded border border-border"
+                      style={{ background: status.color }}
                       aria-label={`Color ${status.color}`}
                     />
                   </td>
@@ -252,8 +252,7 @@ function Configuration({ propertyId, canEdit }: { propertyId: string; canEdit: b
                     value={editing.color}
                     aria-label="Color"
                     onChange={(e) => setEditing({ ...editing, color: e.target.value })}
-                    className="h-9 w-14 cursor-pointer rounded border bg-transparent p-0.5"
-                    style={{ borderColor: 'var(--color-border)' }}
+                    className="h-9 w-14 cursor-pointer rounded border border-border bg-transparent p-0.5"
                   />
                   <span className="text-label text-ink-muted">{editing.color}</span>
                 </div>

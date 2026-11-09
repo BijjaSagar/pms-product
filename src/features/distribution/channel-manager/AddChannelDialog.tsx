@@ -38,7 +38,7 @@ export function AddChannelDialog({ open, providers, onClose, onConnect }: Props)
     )}>
       <form id="add-channel-form" onSubmit={submit} className="flex flex-col gap-3.5">
         {!providers.length ? (
-          <div className="rounded-control border p-4 text-center text-body text-ink-secondary" style={{ borderColor: 'var(--color-border)' }}>All available demo providers are already connected.</div>
+          <div className="rounded-control border p-4 text-center text-body text-ink-secondary border-border">All available demo providers are already connected.</div>
         ) : <>
           <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">Channel provider
             <SelectField value={providerId} onChange={(event) => setProviderId(event.target.value)} className={`${inputClass()}`}>
@@ -56,7 +56,7 @@ export function AddChannelDialog({ open, providers, onClose, onConnect }: Props)
               <TextField type="password" value={secret} onChange={(event) => setSecret(event.target.value)} className={`${inputClass()}`} placeholder="Enter secret" autoComplete="new-password" />
             </label>
           </div>
-          <div className="flex items-start gap-2 rounded-control border p-3 text-label leading-relaxed text-ink-secondary" style={{ borderColor: 'var(--color-info-border)', background: 'var(--color-info-bg)' }}>
+          <div className="flex items-start gap-2 rounded-control border p-3 text-label leading-relaxed text-ink-secondary border-info-border bg-info-bg">
             <Lucide.Info size={14} className="mt-0.5 flex-none text-info-text" />
             Credentials are used only to validate this demo form and are not stored or sent to a service.
           </div>

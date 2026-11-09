@@ -29,7 +29,7 @@ export function RatePlansPanel({ plans, onCreate, onEdit, onToggleStatus }: Prop
 
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="rate-plans-title">
-      <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 border-border">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
             <Lucide.Layers size={18} strokeWidth={2.4} />
@@ -89,7 +89,7 @@ export function RatePlansPanel({ plans, onCreate, onEdit, onToggleStatus }: Prop
           </tbody>
         </table>
       </div>
-      <div className="flex items-center justify-between border-t px-4 py-3 text-label text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>
+      <div className="flex items-center justify-between border-t px-4 py-3 text-label text-ink-muted sm:px-5 border-divider">
         <span>{visiblePlans.length} of {plans.length} plans</span>
         <span>Changes are kept in this demo session</span>
       </div>

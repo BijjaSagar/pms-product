@@ -31,7 +31,7 @@ export function InventoryProvider({ propertyId, children }: { propertyId: string
 
   if (initial.error) {
     return (
-      <main className="flex h-dvh items-center justify-center px-4" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
+      <main className="flex h-dvh items-center justify-center px-4 bg-page text-ink">
         <section className="pms-card w-full max-w-[480px] p-5">
           <h1 className="pms-section-title">Could not load rooms</h1>
           <p className="pms-helper mt-1">{initial.error}</p>
@@ -45,7 +45,7 @@ export function InventoryProvider({ propertyId, children }: { propertyId: string
 
   if (initial.data === null) {
     return (
-      <main className="flex h-dvh items-center justify-center" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
+      <main className="flex h-dvh items-center justify-center bg-page text-ink">
         <div className="w-full max-w-md px-4"><CardSkeleton lines={4} label="Loading rooms" /></div>
       </main>
     );

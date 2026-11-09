@@ -34,6 +34,12 @@ import { SeasonDialog } from './rate-management/SeasonDialog';
 import { SeasonalityPanel } from './rate-management/SeasonalityPanel';
 import type { BulkUpdatePayload, EditableRateRow, RateHistoryEvent, RatePlan, RateTabId, Season } from './rate-management/types';
 import { Button, SelectField } from '../../components/primitives';
+import { Field } from '../../components/controls';
+import { PageTabs } from '../../components/PageTabs';
+import type { PageTab } from '../../components/PageTabs';
+import { SummaryStrip } from '../../components/SummaryStrip';
+import type { SummaryItem } from '../../components/SummaryStrip';
+import { Badge } from '../../components/ui';
 
 const ROOM_RATE_MULTIPLIER: Record<string, number> = {
   Standard: 0.72,
@@ -44,7 +50,7 @@ const ROOM_RATE_MULTIPLIER: Record<string, number> = {
   Suite: 2.15,
 };
 
-const TABS: Array<{ id: RateTabId; label: string; icon: Lucide.LucideIcon }> = [
+const TABS: PageTab<RateTabId>[] = [
   { id: 'calendar', label: 'Rate calendar', icon: Lucide.CalendarDays },
   { id: 'plans', label: 'Rate plans', icon: Lucide.Layers3 },
   { id: 'seasonality', label: 'Seasonality', icon: Lucide.CalendarRange },
@@ -63,40 +69,6 @@ function createRoomRateMap(): Record<string, number[]> {
 
 function formatCurrency(value: number): string {
   return `₹${Math.round(value).toLocaleString('en-IN')}`;
-}
-
-function MetricCard({
-  label,
-  value,
-  hint,
-  icon: Icon,
-  tint,
-}: {
-  label: string;
-  value: string;
-  hint: string;
-  icon: Lucide.LucideIcon;
-  tint: 'primary' | 'success' | 'warning' | 'info';
-}) {
-  const colors = {
-    primary: { icon: 'var(--color-primary)', background: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))' },
-    success: { icon: 'var(--color-success-text)', background: 'var(--color-success-bg)' },
-    warning: { icon: 'var(--color-warning-text)', background: 'var(--color-warning-bg)' },
-    info: { icon: 'var(--color-info-text)', background: 'var(--color-info-bg)' },
-  }[tint];
-
-  return (
-    <article className="pms-card pms-card-hover flex min-w-0 items-center gap-3 p-3.5 sm:p-4">
-      <span className="flex h-10 w-10 flex-none items-center justify-center rounded-control" style={{ color: colors.icon, background: colors.background }}>
-        <Icon size={18} strokeWidth={2} />
-      </span>
-      <div className="min-w-0">
-        <p className="truncate text-label font-medium text-ink-secondary">{label}</p>
-        <p className="mt-0.5 truncate text-disp2 font-bold leading-tight text-ink tnum">{value}</p>
-        <p className="mt-0.5 truncate text-micro text-ink-muted">{hint}</p>
-      </div>
-    </article>
-  );
 }
 
 export function RateManagement() {
@@ -263,95 +235,79 @@ export function RateManagement() {
     setPlanDialogOpen(true);
   };
 
-  const metrics = [
-    { label: 'Active rate plans', value: String(ratePlans.filter((plan) => plan.status === 'Active').length), hint: `${ratePlans.length} configured`, icon: Lucide.Layers3, tint: 'primary' as const },
-    { label: 'Room inventory', value: String(FLOOR_PLAN.reduce((sum, plan) => sum + plan.count, 0)), hint: `Across ${CATALOG_ROOM_TYPES.length} room types`, icon: Lucide.BedDouble, tint: 'info' as const },
-    { label: 'Average daily rate', value: '₹8,450', hint: 'Demo forecast', icon: Lucide.CircleDollarSign, tint: 'success' as const },
-    { label: 'Occupancy forecast', value: '78%', hint: 'Demo forecast', icon: Lucide.ChartNoAxesCombined, tint: 'warning' as const },
-    { label: 'Projected revenue', value: '₹4,22,500', hint: 'Next 30 days', icon: Lucide.TrendingUp, tint: 'success' as const },
+  const metrics: SummaryItem[] = [
+    { label: 'Active rate plans', value: String(ratePlans.filter((plan) => plan.status === 'Active').length), hint: `${ratePlans.length} configured`, icon: Lucide.Layers3, tone: 'primary' },
+    { label: 'Room inventory', value: String(FLOOR_PLAN.reduce((sum, plan) => sum + plan.count, 0)), hint: `Across ${CATALOG_ROOM_TYPES.length} room types`, icon: Lucide.BedDouble, tone: 'info' },
+    { label: 'Average daily rate', value: '₹8,450', hint: 'Demo forecast', icon: Lucide.CircleDollarSign, tone: 'success' },
+    { label: 'Occupancy forecast', value: '78%', hint: 'Demo forecast', icon: Lucide.ChartNoAxesCombined, tone: 'warning' },
+    { label: 'Projected revenue', value: '₹4,22,500', hint: 'Next 30 days', icon: Lucide.TrendingUp, tone: 'success' },
   ];
 
+  const planAdjustmentLabel = (pct: number) => `${pct > 0 ? '+' : ''}${pct}%`;
+
   return (
-    <div className="pms-page">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20 mt-0.5">
-            <Lucide.SlidersHorizontal size={20} strokeWidth={2.4} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-disp3 font-bold tracking-tight text-ink leading-tight">Rate Management</h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
-                </span>
-                Active Rates
-              </span>
-            </div>
-            <p className="text-label text-ink-secondary mt-1">Control pricing, stay rules and channel distribution from one workspace.</p>
+    <div className="pms-page gap-5">
+      {/* Title, publish state and the actions that matter most */}
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="mt-0.5 flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/20">
+            <Lucide.SlidersHorizontal size={20} strokeWidth={2.4} aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <h1 className="text-disp3 font-bold leading-tight tracking-tight text-ink">Rate Management</h1>
+            <p className="mt-0.5 text-label text-ink-secondary">Pricing, stay rules and channel distribution in one place.</p>
           </div>
         </div>
+
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="secondary" type="button" onClick={() => setActiveTab('bulk')} ><Lucide.Zap size={14} /> Bulk update</Button>
-          <Button variant="primary" type="button" onClick={openCreatePlan} ><Lucide.Plus size={15} /> Create rate plan</Button>
-          <Button variant="secondary" type="button" onClick={handlePublish} disabled={!hasUnpublishedChanges} className="disabled:opacity-50"><Lucide.Upload size={14} /> Publish rates</Button>
+          <span role="status" className="mr-1">
+            {hasUnpublishedChanges ? (
+              <Badge tone="warning" dot>Unpublished changes</Badge>
+            ) : (
+              <Badge tone="success" dot>All changes published</Badge>
+            )}
+          </span>
+          <Button variant="secondary" onClick={() => setActiveTab('bulk')} icon={<Lucide.Zap size={14} />}>
+            Bulk update
+          </Button>
+          <Button variant="secondary" onClick={openCreatePlan} icon={<Lucide.Plus size={15} />}>
+            Create rate plan
+          </Button>
+          <Button variant="primary" onClick={handlePublish} disabled={!hasUnpublishedChanges} icon={<Lucide.Upload size={14} />}>
+            Publish rates
+          </Button>
         </div>
       </header>
 
-      <section className="pms-stagger grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5" aria-label="Rate management summary">
-        {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
-      </section>
+      <SummaryStrip label="Rate management summary" items={metrics} />
 
-      <section className="pms-card grid gap-3 p-4 sm:grid-cols-2 sm:p-4 lg:grid-cols-[minmax(180px,0.8fr)_minmax(240px,1.2fr)_minmax(0,1fr)] lg:items-end" aria-label="Rate calendar filters">
-        <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">
-          Room type
-          <SelectField value={selectedRoomType} onChange={(event) => handleRoomTypeChange(event.target.value)} className="w-full">
-            {ROOM_TYPES.map((roomType) => <option key={roomType} value={roomType}>{roomType}</option>)}
-          </SelectField>
-        </label>
-        <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">
-          Rate plan
-          <SelectField value={selectedPlan?.id ?? ''} onChange={(event) => setSelectedPlanId(event.target.value)} className="w-full">
-            {eligiblePlans.map((plan) => <option key={plan.id} value={plan.id}>{plan.name}</option>)}
-          </SelectField>
-        </label>
-        <div className="flex min-h-[40px] items-center justify-between gap-3 rounded-control border px-3" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
-          <span className="text-label font-medium text-ink-secondary">Selected window</span>
-          <span className="text-label font-semibold text-ink">{dateLabel}</span>
+      {/* What the calendar below is showing */}
+      <section className="pms-card flex flex-col gap-3 p-4 md:flex-row md:items-end" aria-label="Calendar filters">
+        <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field label="Room type">
+            <SelectField value={selectedRoomType} onChange={(event) => handleRoomTypeChange(event.target.value)}>
+              {ROOM_TYPES.map((roomType) => <option key={roomType} value={roomType}>{roomType}</option>)}
+            </SelectField>
+          </Field>
+          <Field label="Rate plan">
+            <SelectField value={selectedPlan?.id ?? ''} onChange={(event) => setSelectedPlanId(event.target.value)}>
+              {eligiblePlans.map((plan) => <option key={plan.id} value={plan.id}>{plan.name}</option>)}
+            </SelectField>
+          </Field>
+        </div>
+        <div className="flex min-h-[34px] items-center gap-2 rounded-lg bg-muted-surface px-3 text-label md:min-h-[32px]">
+          <Lucide.CalendarRange size={14} className="flex-none text-ink-muted" aria-hidden="true" />
+          <span className="text-ink-secondary">Window</span>
+          <span className="font-semibold text-ink">{dateLabel}</span>
         </div>
       </section>
 
-      <section className="pms-card overflow-hidden">
-        <div
-          className="no-scrollbar flex overflow-x-auto border-b px-2 sm:px-3"
-          role="tablist"
-          aria-label="Rate management sections"
-          style={{ borderColor: 'var(--color-border)' }}
-          onKeyDown={(event) => {
-            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-            event.preventDefault();
-            const currentIndex = TABS.findIndex((tab) => `rate-tab-${tab.id}` === document.activeElement?.id);
-            const step = event.key === 'ArrowRight' ? 1 : -1;
-            const next = TABS[(currentIndex + step + TABS.length) % TABS.length];
-            setActiveTab(next.id);
-            document.getElementById(`rate-tab-${next.id}`)?.focus();
-          }}
-        >
-          {TABS.map(({ id, label, icon: Icon }) => {
-            const selected = activeTab === id;
-            return (
-              <Button variant="text" key={id} type="button" role="tab" tabIndex={selected ? 0 : -1} id={`rate-tab-${id}`} aria-selected={selected} aria-controls="rate-tab-panel" onClick={() => setActiveTab(id)} className={`relative flex flex-none items-center gap-2 transition-colors ${selected ? 'text-primary' : 'text-ink-muted hover:text-ink'}`}>
-                <Icon size={15} aria-hidden="true" />{label}
-                {selected && <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-primary sm:inset-x-4" />}
-              </Button>
-            );
-          })}
-        </div>
+      <div className="flex min-w-0 flex-col gap-3">
+        <PageTabs label="Rate management sections" idPrefix="rate" panelId="rate-tab-panel" tabs={TABS} active={activeTab} onChange={setActiveTab} />
 
-        <div id="rate-tab-panel" role="tabpanel" aria-labelledby={`rate-tab-${activeTab}`} className="min-w-0 p-3 sm:p-4">
+        <div id="rate-tab-panel" role="tabpanel" aria-labelledby={`rate-tab-${activeTab}`} className="pms-card min-w-0 p-3 sm:p-4">
           {activeTab === 'calendar' && selectedPlan && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
               <RateCalendarPanel
                 roomType={selectedRoomType}
                 plan={{ ...selectedPlan, channels: selectedPlan.channels.filter((channelId) => connectedChannelIds.includes(channelId)) }}
@@ -384,36 +340,60 @@ export function RateManagement() {
                 onCopyRow={handleCopyRow}
               />
 
-              <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.8fr)]">
+              <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,0.8fr)] xl:items-start">
                 <RatePerformancePanel />
-                {selectedPlan && (
-                  <aside className="pms-card flex flex-col p-4 sm:p-5" aria-labelledby="selected-plan-title">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex min-w-0 items-center gap-2.5">
-                        <span className="flex h-9 w-9 flex-none items-center justify-center rounded-control bg-primary/10 text-primary"><Lucide.Tag size={16} /></span>
-                        <div className="min-w-0"><p className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Selected rate plan</p><h2 id="selected-plan-title" className="mt-0.5 truncate text-title font-bold text-ink">{selectedPlan.name}</h2></div>
+                <aside className="pms-card flex flex-col p-4 sm:p-5" aria-labelledby="selected-plan-title">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <span className="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <Lucide.Tag size={16} aria-hidden="true" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-micro font-bold uppercase tracking-[0.14em] text-ink-muted">Selected rate plan</p>
+                        <h2 id="selected-plan-title" className="mt-0.5 truncate text-title font-bold text-ink">{selectedPlan.name}</h2>
                       </div>
-                      <span className={`tnum rounded-full px-2.5 py-1 text-label font-bold ${selectedPlan.adjustmentPct < 0 ? 'bg-success-bg text-success-text' : selectedPlan.adjustmentPct > 0 ? 'bg-warning-bg text-warning-text' : 'bg-muted-surface text-ink-secondary'}`}>{selectedPlan.adjustmentPct > 0 ? '+' : ''}{selectedPlan.adjustmentPct}%</span>
                     </div>
-                    <p className="mt-3 text-label leading-relaxed text-ink-secondary">{selectedPlan.description}</p>
-                    <dl className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3 border-t pt-4 text-label" style={{ borderColor: 'var(--color-divider)' }}>
-                      <div><dt className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Meal plan</dt><dd className="mt-1 font-medium text-ink">{selectedPlan.mealPlan}</dd></div>
-                      <div><dt className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Coverage</dt><dd className="mt-1 font-medium text-ink">{selectedPlan.channels.filter((id) => connectedChannelIds.includes(id)).length} channels</dd></div>
-                      <div className="col-span-2"><dt className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Cancellation</dt><dd className="mt-1 font-medium text-ink">{selectedPlan.cancellationPolicy}</dd></div>
-                    </dl>
-                    <div className="mt-auto flex gap-2 pt-5">
-                      <Button variant="secondary" type="button" onClick={() => openEditPlan(selectedPlan)} className="flex-1"><Lucide.Pencil size={13} /> Edit plan</Button>
-                      <Button variant="secondary" type="button" onClick={() => {
+                    <Badge tone={selectedPlan.adjustmentPct < 0 ? 'success' : selectedPlan.adjustmentPct > 0 ? 'warning' : 'neutral'}>
+                      {planAdjustmentLabel(selectedPlan.adjustmentPct)}
+                    </Badge>
+                  </div>
+                  <p className="mt-3 text-label leading-relaxed text-ink-secondary">{selectedPlan.description}</p>
+                  <dl className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3 border-t border-divider pt-4 text-label">
+                    <div>
+                      <dt className="text-micro font-bold uppercase tracking-[0.14em] text-ink-muted">Meal plan</dt>
+                      <dd className="mt-1 font-medium text-ink">{selectedPlan.mealPlan}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-micro font-bold uppercase tracking-[0.14em] text-ink-muted">Coverage</dt>
+                      <dd className="mt-1 font-medium text-ink">{selectedPlan.channels.filter((id) => connectedChannelIds.includes(id)).length} channels</dd>
+                    </div>
+                    <div className="col-span-2">
+                      <dt className="text-micro font-bold uppercase tracking-[0.14em] text-ink-muted">Cancellation</dt>
+                      <dd className="mt-1 font-medium text-ink">{selectedPlan.cancellationPolicy}</dd>
+                    </div>
+                  </dl>
+                  <div className="mt-auto flex gap-2 pt-5">
+                    <Button variant="secondary" onClick={() => openEditPlan(selectedPlan)} icon={<Lucide.Pencil size={13} />} className="flex-1">
+                      Edit plan
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      aria-label="Clone selected rate plan"
+                      title="Clone this plan"
+                      onClick={() => {
                         const clone: RatePlan = { ...selectedPlan, id: `plan-${Date.now()}`, code: `${selectedPlan.code.slice(0, 8)}-COPY`, name: `${selectedPlan.name} copy`, status: 'Inactive' };
                         setRatePlans((previous) => [clone, ...previous]);
                         setSelectedPlanId(clone.id);
                         setHasUnpublishedChanges(true);
                         addHistory('Rate plan cloned', clone.name, 'info');
                         toast(`${selectedPlan.name} cloned`, { tone: 'success' });
-                      }} aria-label="Clone selected rate plan" className="min-w-[42px]"><Lucide.Copy size={14} /></Button>
-                    </div>
-                  </aside>
-                )}
+                      }}
+                      className="min-w-[42px]"
+                    >
+                      <Lucide.Copy size={14} />
+                    </Button>
+                  </div>
+                </aside>
               </div>
             </div>
           )}
@@ -424,7 +404,7 @@ export function RateManagement() {
           {activeTab === 'bulk' && <BulkUpdatePanel startDate={rangeStart} endDate={endDate} onApply={handleBulkUpdate} />}
           {activeTab === 'history' && <HistoryPanel events={history} />}
         </div>
-      </section>
+      </div>
 
       {planDialogOpen && <RatePlanDialog key={editingPlan?.id ?? 'new-rate-plan'} open plan={editingPlan} roomTypes={ROOM_TYPES} channelIds={CHANNELS.map((channel) => channel.id)} onClose={() => { setPlanDialogOpen(false); setEditingPlan(null); }} onSave={handleSavePlan} />}
       {seasonDialogOpen && <SeasonDialog open onClose={() => setSeasonDialogOpen(false)} onSave={handleSaveSeason} />}
