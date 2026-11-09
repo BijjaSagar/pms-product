@@ -10,7 +10,7 @@ const TONE = {
 export function HistoryPanel({ events }: { events: RateHistoryEvent[] }) {
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="rate-history-title">
-      <div className="flex items-center gap-2.5 border-b px-4 py-4 sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="flex items-center gap-2.5 border-b px-4 py-4 sm:px-5 border-border">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
           <Lucide.History size={18} strokeWidth={2.4} />
         </div>
@@ -20,7 +20,7 @@ export function HistoryPanel({ events }: { events: RateHistoryEvent[] }) {
         </div>
       </div>
       {events.length ? (
-        <ol className="divide-y" style={{ borderColor: 'var(--color-divider)' }}>
+        <ol className="divide-y border-divider">
           {events.map((event) => {
             const tone = TONE[event.tone];
             const Icon = tone.icon;
@@ -40,7 +40,7 @@ export function HistoryPanel({ events }: { events: RateHistoryEvent[] }) {
           })}
         </ol>
       ) : <p className="p-10 text-center text-body text-ink-muted">No rate changes have been recorded.</p>}
-      <div className="border-t px-4 py-3 text-label text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>History entries are sample data and reset when the page is reloaded.</div>
+      <div className="border-t px-4 py-3 text-label text-ink-muted sm:px-5 border-divider">History entries are sample data and reset when the page is reloaded.</div>
     </section>
   );
 }

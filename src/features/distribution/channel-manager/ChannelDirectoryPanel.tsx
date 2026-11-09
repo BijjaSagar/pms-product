@@ -30,7 +30,7 @@ export function ChannelDirectoryPanel({ channels, selectedChannelId, syncingChan
 
   return (
     <section className="pms-card min-w-0 overflow-hidden" aria-labelledby="channel-directory-title">
-      <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5 border-border">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
             <Lucide.Network size={17} strokeWidth={2.4} />
@@ -107,7 +107,7 @@ export function ChannelDirectoryPanel({ channels, selectedChannelId, syncingChan
           </tbody>
         </table>
       </div>
-      <div className="flex justify-between border-t px-4 py-3 text-label text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>
+      <div className="flex justify-between border-t px-4 py-3 text-label text-ink-muted sm:px-5 border-divider">
         <span>{filtered.length} of {channels.length} channels</span><span>Select a row to view details</span>
       </div>
     </section>

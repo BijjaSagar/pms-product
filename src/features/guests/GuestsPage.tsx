@@ -42,9 +42,9 @@ function GuestProfile({ g, onClose, go, onSave }: { g: Guest; onClose: () => voi
         </div>
         <Badge tone={tierTone(g.tier)}>{g.tier}</Badge>
       </div>
-      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+      <div className="mt-3 grid grid-cols-1 gap-2 text-center xs:grid-cols-3">
         {[[String(g.stays), 'Stays'], [g.spent > 0 ? formatCurrency(g.spent, 'INR') : '—', 'Lifetime'], [g.balance > 0 ? formatCurrency(g.balance, 'INR') : '—', 'Balance']].map(([v, k]) => (
-          <div key={k} className="rounded-control border p-2.5 sm:p-3" style={{ borderColor: 'var(--color-border)' }}>
+          <div key={k} className="rounded-control border p-2.5 sm:p-3 border-border">
             <p className="tnum text-title font-bold text-ink">{v}</p>
             <p className="text-label text-ink-secondary mt-0.5">{k}</p>
           </div>
@@ -57,7 +57,7 @@ function GuestProfile({ g, onClose, go, onSave }: { g: Guest; onClose: () => voi
         {tab === 'overview' && (
           <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {[['Email', g.email], ['Phone', editing ? '' : phone], ['Company', g.company ?? '—'], ['Last visit', g.lastVisit], ['Preferences', editing ? '' : (prefs || '—')]].map(([k, v]) => (
-              <div key={k} className="rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}>
+              <div key={k} className="rounded-control border p-3 border-border">
                 <dt className="text-label font-medium text-ink-secondary mb-1">{k}</dt>
                 <dd className="text-body font-semibold text-ink">
                   {editing && (k === 'Phone' || k === 'Preferences') ? (
@@ -79,7 +79,7 @@ function GuestProfile({ g, onClose, go, onSave }: { g: Guest; onClose: () => voi
           </ul>
         )}
         {tab === 'notes' && (
-          <div className="rounded-control border p-3" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
+          <div className="rounded-control border p-3 border-border bg-muted-surface">
             <p className="text-body text-ink">{g.notes || 'No notes yet.'}</p>
             <p className="text-label text-ink-secondary mt-1">Communication history appears here in the connected build.</p>
           </div>

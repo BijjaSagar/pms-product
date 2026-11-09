@@ -16,7 +16,7 @@ const RATE_PLANS = ['Best Available Rate', 'Room Only', 'Breakfast Included', 'H
 export function MappingPanel({ mappings, channels, onChange, onAdd, onSave }: Props) {
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="mapping-title">
-      <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 border-border">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
             <Lucide.GitMerge size={18} strokeWidth={2.4} />
@@ -48,7 +48,7 @@ export function MappingPanel({ mappings, channels, onChange, onAdd, onSave }: Pr
           </tbody>
         </table>
       </div>
-      <div className="flex items-start gap-2 border-t px-4 py-3 text-label text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}><Lucide.Info size={13} className="mt-0.5 flex-none" /><span>Mapping changes are a local demo and do not update external channel services.</span></div>
+      <div className="flex items-start gap-2 border-t px-4 py-3 text-label text-ink-muted sm:px-5 border-divider"><Lucide.Info size={13} className="mt-0.5 flex-none" /><span>Mapping changes are a local demo and do not update external channel services.</span></div>
     </section>
   );
 }

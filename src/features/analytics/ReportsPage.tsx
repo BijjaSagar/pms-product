@@ -193,7 +193,7 @@ export function Reports({
       </div>
 
       {/* ================= 2. HORIZONTAL TABS BAR ================= */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-border">
         {ANALYTICS_TABS.map((t) => {
           const isActive = activeTab === t.id;
           const Icon = t.icon;

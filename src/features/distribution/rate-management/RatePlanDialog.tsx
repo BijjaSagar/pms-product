@@ -103,7 +103,7 @@ export function RatePlanDialog({ open, plan, roomTypes, channelIds, onClose, onS
         <div className="space-y-4">
           <fieldset>
             <legend className="mb-2 text-label font-semibold text-ink-secondary">Room types</legend>
-            <div className="grid grid-cols-2 gap-2 rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}>
+            <div className="grid grid-cols-2 gap-2 rounded-control border p-3 border-border">
               {['All room types', ...roomTypes].map((roomType) => (
                 <label key={roomType} className="flex items-center gap-2 text-label text-ink">
                   <Checkbox type="checkbox" checked={selectedRoomTypes.includes(roomType)} onChange={() => toggleSelection(selectedRoomTypes, roomType, (next) => setSelectedRoomTypes(roomType === 'All room types' && !selectedRoomTypes.includes(roomType) ? ['All room types'] : next.filter((item) => item !== 'All room types')))} />
@@ -114,7 +114,7 @@ export function RatePlanDialog({ open, plan, roomTypes, channelIds, onClose, onS
           </fieldset>
           <fieldset>
             <legend className="mb-2 text-label font-semibold text-ink-secondary">Channels</legend>
-            <div className="grid grid-cols-2 gap-2 rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }}>
+            <div className="grid grid-cols-2 gap-2 rounded-control border p-3 border-border">
               {channelIds.map((channelId) => (
                 <label key={channelId} className="flex items-center gap-2 text-label capitalize text-ink">
                   <Checkbox type="checkbox" checked={selectedChannels.includes(channelId)} onChange={() => toggleSelection(selectedChannels, channelId, setSelectedChannels)} />

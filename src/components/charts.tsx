@@ -40,7 +40,7 @@ export function BarChart({
                 borderBottom: 'none',
               }}
             />
-            <span className="w-full truncate text-center text-label font-semibold" style={{ color: 'var(--color-ink-muted)' }}>
+            <span className="w-full truncate text-center text-label font-semibold text-ink-muted">
               {d.label}
             </span>
           </div>
@@ -103,14 +103,14 @@ export function DonutChart({
         {slices.map((s) => (
           <li
             key={s.label}
-            className="flex items-center justify-between gap-2 rounded-control border px-2.5 py-2 text-label"
-            style={{ borderColor: 'var(--color-divider)', background: 'color-mix(in srgb, var(--color-muted-surface) 42%, transparent)', boxShadow: 'var(--shadow-xs)' }}
+            className="flex items-center justify-between gap-2 rounded-control border px-2.5 py-2 text-label border-divider"
+            style={{ background: 'color-mix(in srgb, var(--color-muted-surface) 42%, transparent)', boxShadow: 'var(--shadow-xs)' }}
           >
-            <span className="flex min-w-0 items-center gap-2" style={{ color: 'var(--color-ink-secondary)' }}>
+            <span className="flex min-w-0 items-center gap-2 text-ink-secondary">
               <span className="h-2.5 w-2.5 flex-none rounded-full" style={{ background: s.color, boxShadow: `0 0 0 3px color-mix(in srgb, ${s.color} 20%, transparent)` }} aria-hidden="true" />
               <span className="truncate font-medium">{s.label}</span>
             </span>
-            <span className="tnum flex-none font-bold" style={{ color: 'var(--color-ink)' }}>
+            <span className="tnum flex-none font-bold text-ink">
               {s.value}
             </span>
           </li>

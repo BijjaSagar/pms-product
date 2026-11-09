@@ -23,7 +23,7 @@ export function PromotionsPanel({ channels, bookings, channelFilter, onChannelFi
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(300px,0.75fr)]">
       <section className="pms-card overflow-hidden" aria-labelledby="recent-channel-bookings-title">
-        <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 border-border">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
               <Lucide.CalendarCheck size={18} strokeWidth={2.4} />
@@ -50,7 +50,7 @@ export function PromotionsPanel({ channels, bookings, channelFilter, onChannelFi
       </section>
 
       <section className="pms-card overflow-hidden" aria-labelledby="channel-promotions-title">
-        <div className="flex items-center gap-2.5 border-b px-4 py-4 sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="flex items-center gap-2.5 border-b px-4 py-4 sm:px-5 border-border">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-warning-text to-warning-border text-white shadow-xs shadow-warning-text/20">
             <Lucide.Sparkles size={18} strokeWidth={2.4} />
           </div>
@@ -59,10 +59,10 @@ export function PromotionsPanel({ channels, bookings, channelFilter, onChannelFi
             <p className="text-label text-ink-muted mt-0.5">Rate offers currently configured for distribution</p>
           </div>
         </div>
-        <div className="divide-y" style={{ borderColor: 'var(--color-divider)' }}>
+        <div className="divide-y border-divider">
           {CAMPAIGNS.map((campaign) => <article key={campaign.name} className="flex items-start justify-between gap-3 px-4 py-4 sm:px-5"><div className="flex min-w-0 gap-3"><span className="flex h-9 w-9 flex-none items-center justify-center rounded-control bg-primary/10 text-primary"><Lucide.Sparkles size={16} /></span><div className="min-w-0"><h3 className="truncate text-title font-semibold text-ink">{campaign.name}</h3><p className="mt-1 text-label text-ink-muted">{campaign.detail}</p><p className="mt-1.5 text-micro text-ink-secondary">{campaign.channelCount} channel{campaign.channelCount === 1 ? '' : 's'}</p></div></div><span className={`flex-none rounded-full px-2 py-1 text-micro font-semibold ${campaign.status === 'Active' ? 'bg-success-bg text-success-text' : 'bg-info-bg text-info-text'}`}>{campaign.status}</span></article>)}
         </div>
-        <div className="border-t px-4 py-3 text-label text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>Promotion setup is sample data in this demo.</div>
+        <div className="border-t px-4 py-3 text-label text-ink-muted sm:px-5 border-divider">Promotion setup is sample data in this demo.</div>
       </section>
     </div>
   );

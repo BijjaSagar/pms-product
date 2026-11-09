@@ -6,12 +6,13 @@ import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
 import { IconButton } from '../../components/primitives';
-import { Card, CardTitle, TableContainer } from '../../components/ui';
+import { CardSkeleton } from '../../components/Skeleton';
+import { Card, CardTitle } from '../../components/ui';
 import { useInventory } from '../inventory/inventoryContext';
 import { RoomCategoryDialog } from './RoomCategoryDialog';
 import { FloorsSection } from './room-settings/FloorsSection';
 import { useFloorPlanEditor } from './room-settings/useFloorPlanEditor';
-import { TableStateRows } from '../../components/Skeleton';
+import { SettingsHeader } from './SettingsKit';
 
 const ORDER_KEY = { chart: 'chartOrder', upsell: 'upsellOrder' } as const;
 
@@ -25,9 +26,11 @@ function sortRooms(rooms: RoomDetails[], list: RoomOrderList): RoomDetails[] {
   });
 }
 
-function OrderTable({
+/** One ordered list of rooms. Rows work at every width, so no separate phone layout is needed. */
+function OrderList({
   title,
   subtitle,
+  icon,
   rooms,
   busy,
   loading,
@@ -38,6 +41,7 @@ function OrderTable({
 }: {
   title: string;
   subtitle: string;
+  icon: Lucide.LucideIcon;
   rooms: RoomDetails[];
   busy: boolean;
   loading: boolean;
@@ -50,56 +54,65 @@ function OrderTable({
 }) {
   return (
     <Card>
-      <CardTitle icon={Lucide.ListOrdered} title={title} subtitle={subtitle} />
-      <TableContainer>
-        <table className="pms-table w-full min-w-[480px] text-left">
-          <thead>
-            <tr>
-              <th className="w-32">DISPLAY ORDER</th>
-              <th>NAME</th>
-              <th className="text-right">ACTION</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rooms.map((room, index) => (
-              <tr key={room.id} className="border-b border-divider transition-colors last:border-b-0 hover:bg-hover-surface/60">
-                <td className="py-3 text-label font-bold text-ink">{index + 1}</td>
-                <td className="py-3 text-label font-medium text-ink">{room.name}</td>
-                <td className="py-3 text-right">
-                  <div className="inline-flex items-center gap-1.5">
-                    {onEdit ? (
-                      <IconButton title={`Edit ${room.name}`} onClick={() => onEdit(room)}>
-                        <Lucide.Pencil size={14} />
-                      </IconButton>
-                    ) : null}
-                    {onMove ? (
-                      <>
-                        <IconButton
-                          title={`Move ${room.name} up`}
-                          onClick={() => onMove(index, -1)}
-                          disabled={!canEdit || busy || index === 0}
-                        >
-                          <Lucide.ArrowUp size={14} />
-                        </IconButton>
-                        <IconButton
-                          title={`Move ${room.name} down`}
-                          onClick={() => onMove(index, 1)}
-                          disabled={!canEdit || busy || index === rooms.length - 1}
-                        >
-                          <Lucide.ArrowDown size={14} />
-                        </IconButton>
-                      </>
-                    ) : null}
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {rooms.length === 0 && (
-              <TableStateRows cols={3} loading={loading} error={error} empty="No rooms yet." />
-            )}
-          </tbody>
-        </table>
-      </TableContainer>
+      <CardTitle icon={icon} title={title} subtitle={subtitle} />
+      {rooms.length === 0 ? (
+        loading && !error ? (
+          <CardSkeleton lines={4} label={`Loading ${title.toLowerCase()}`} />
+        ) : (
+          <p role={error ? 'alert' : undefined} className={`py-8 text-center text-label ${error ? 'text-danger-text' : 'text-ink-muted'}`}>
+            {error ?? 'No rooms yet.'}
+          </p>
+        )
+      ) : (
+        <ol className="flex flex-col gap-2">
+          {rooms.map((room, index) => (
+            <li
+              key={room.id}
+              className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 transition-colors hover:bg-hover-surface/60"
+            >
+              <span
+                className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-primary/10 text-label font-bold text-primary tnum"
+                aria-label={`Position ${index + 1}`}
+              >
+                {index + 1}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-body font-semibold text-ink">{room.name}</p>
+                <p className="truncate text-label text-ink-secondary">
+                  {room.roomType.name} · {room.roomCount} {room.roomCount === 1 ? 'room' : 'rooms'}
+                </p>
+              </div>
+              <div className="flex flex-none items-center gap-1.5">
+                {onEdit ? (
+                  <IconButton title={`Edit ${room.name}`} aria-label={`Edit ${room.name}`} onClick={() => onEdit(room)}>
+                    <Lucide.Pencil size={14} />
+                  </IconButton>
+                ) : null}
+                {onMove ? (
+                  <>
+                    <IconButton
+                      title={`Move ${room.name} up`}
+                      aria-label={`Move ${room.name} up`}
+                      onClick={() => onMove(index, -1)}
+                      disabled={!canEdit || busy || index === 0}
+                    >
+                      <Lucide.ArrowUp size={14} />
+                    </IconButton>
+                    <IconButton
+                      title={`Move ${room.name} down`}
+                      aria-label={`Move ${room.name} down`}
+                      onClick={() => onMove(index, 1)}
+                      disabled={!canEdit || busy || index === rooms.length - 1}
+                    >
+                      <Lucide.ArrowDown size={14} />
+                    </IconButton>
+                  </>
+                ) : null}
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
     </Card>
   );
 }
@@ -149,26 +162,33 @@ export function RoomSetup2Tab({ propertyId, canEdit }: { propertyId: string; can
 
   return (
     <div className="flex flex-col gap-5">
-      <OrderTable
-        title="Room Category (In Order of Display on Smart Chart)"
-        subtitle="Rooms are shown on the smart chart in this order"
-        rooms={chartRooms}
-        busy={busy}
-        loading={resource.loading}
-        error={resource.error}
-        canEdit={canEdit}
-        onEdit={(room) => setViewingId(room.id)}
-      />
-      <OrderTable
-        title="Room Category (Upsell Order)"
-        subtitle="Rooms are offered for upselling in this order"
-        rooms={upsellRooms}
-        busy={busy}
-        loading={resource.loading}
-        error={resource.error}
-        canEdit={canEdit}
-        onMove={(index, direction) => void move('upsell', upsellRooms, index, direction)}
-      />
+      <SettingsHeader title="Room Setup" description="Order your rooms and lay out the floors of the property" />
+
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:items-start">
+        <OrderList
+          icon={Lucide.LayoutGrid}
+          title="Smart Chart Order"
+          subtitle="Rooms appear on the smart chart in this order"
+          rooms={chartRooms}
+          busy={busy}
+          loading={resource.loading}
+          error={resource.error}
+          canEdit={canEdit}
+          onEdit={(room) => setViewingId(room.id)}
+        />
+        <OrderList
+          icon={Lucide.TrendingUp}
+          title="Upsell Order"
+          subtitle="Rooms are offered for upselling in this order"
+          rooms={upsellRooms}
+          busy={busy}
+          loading={resource.loading}
+          error={resource.error}
+          canEdit={canEdit}
+          onMove={(index, direction) => void move('upsell', upsellRooms, index, direction)}
+        />
+      </div>
+
       <FloorsSection
         rooms={rooms}
         loading={resource.loading}

@@ -112,8 +112,7 @@ export function RoomImages({ propertyId, room, canEdit }: { propertyId: string; 
           {images.map((image) => (
             <li
               key={image.id}
-              className="flex flex-col overflow-hidden rounded-xl border"
-              style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+              className="flex flex-col overflow-hidden rounded-xl border border-border bg-surface"
             >
               <div className="aspect-[4/3] w-full overflow-hidden bg-muted-surface">
                 <AuthImage

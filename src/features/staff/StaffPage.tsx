@@ -355,7 +355,7 @@ export function Staff() {
       {roles.length ? <Card>
         <CardTitle title="Role catalogue" subtitle="Role permissions are managed in the backend" />
         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-          {roles.map((role: RoleRow) => <div key={role.id} className="rounded-control border p-3 sm:p-3.5" style={{ borderColor: 'var(--color-border)' }}>
+          {roles.map((role: RoleRow) => <div key={role.id} className="rounded-control border p-3 sm:p-3.5 border-border">
             <div className="flex items-center justify-between gap-2"><span className="text-body font-semibold text-ink">{role.name}</span><Badge tone={role.isActive ? 'success' : 'neutral'}>{role.memberCount} members</Badge></div>
             <p className="text-label text-ink-secondary mt-1">{role.description ?? role.key}</p>
             <p className="mt-1 text-label text-ink-secondary">{role.permissions.length} permissions{role.isSystem ? ' · system role' : ''}</p>

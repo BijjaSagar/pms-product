@@ -29,8 +29,15 @@ import {
 } from './channel-manager/data';
 import type { Channel, ChannelBooking, ChannelLog, ChannelPerformance, ChannelProvider, ChannelTabId, InventoryRow, InventorySelection, RateMapping, SyncSettings } from './channel-manager/types';
 import { Button, IconButton, TextField } from '../../components/primitives';
+import { Field, Switch } from '../../components/controls';
+import { PageTabs } from '../../components/PageTabs';
+import type { PageTab } from '../../components/PageTabs';
+import { SummaryStrip } from '../../components/SummaryStrip';
+import type { SummaryItem } from '../../components/SummaryStrip';
+import { Badge } from '../../components/ui';
+import type { BadgeTone } from '../../utils/status';
 
-const TABS: Array<{ id: ChannelTabId; label: string; icon: Lucide.LucideIcon }> = [
+const TABS: PageTab<ChannelTabId>[] = [
   { id: 'inventory', label: 'Inventory', icon: Lucide.CalendarDays },
   { id: 'rates', label: 'Rates', icon: Lucide.ChartNoAxesCombined },
   { id: 'restrictions', label: 'Restrictions', icon: Lucide.LockKeyhole },
@@ -38,35 +45,11 @@ const TABS: Array<{ id: ChannelTabId; label: string; icon: Lucide.LucideIcon }> 
   { id: 'promotions', label: 'Promotions & bookings', icon: Lucide.Sparkles },
 ];
 
-function MetricCard({
-  label,
-  value,
-  hint,
-  icon: Icon,
-  tone,
-}: {
-  label: string;
-  value: string;
-  hint: string;
-  icon: Lucide.LucideIcon;
-  tone: 'primary' | 'success' | 'info' | 'warning' | 'danger';
-}) {
-  const style = tone === 'primary'
-    ? { color: 'var(--color-primary)', background: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))' }
-    : { color: `var(--color-${tone}-text)`, background: `var(--color-${tone}-bg)` };
-  return (
-    <article className="pms-card pms-card-hover flex min-w-0 items-center gap-3 p-3.5 sm:p-4">
-      <span className="flex h-10 w-10 flex-none items-center justify-center rounded-control" style={style}><Icon size={18} /></span>
-      <div className="min-w-0"><p className="truncate text-label font-medium text-ink-secondary">{label}</p><p className="mt-0.5 truncate text-disp2 font-bold leading-tight text-ink tnum">{value}</p><p className="mt-0.5 truncate text-micro text-ink-muted">{hint}</p></div>
-    </article>
-  );
-}
-
-function statusAppearance(status: Channel['status']) {
-  if (status === 'connected') return { label: 'Connected', color: 'var(--color-success-text)', background: 'var(--color-success-bg)', border: 'var(--color-success-border)' };
-  if (status === 'error') return { label: 'Needs attention', color: 'var(--color-danger-text)', background: 'var(--color-danger-bg)', border: 'var(--color-danger-border)' };
-  return { label: 'Paused', color: 'var(--color-ink-secondary)', background: 'var(--color-muted-surface)', border: 'var(--color-border)' };
-}
+const STATUS: Record<Channel['status'], { label: string; tone: BadgeTone }> = {
+  connected: { label: 'Connected', tone: 'success' },
+  error: { label: 'Needs attention', tone: 'danger' },
+  paused: { label: 'Paused', tone: 'neutral' },
+};
 
 const formatMoney = (value: number) => `₹${value.toLocaleString('en-IN')}`;
 
@@ -234,12 +217,12 @@ export function ChannelManager() {
     setCellDraft(String(selection.available));
   };
 
-  const metrics = [
-    { label: 'Connected channels', value: `${connectedCount}/${channels.length}`, hint: `${issueCount} require attention`, icon: Lucide.Link2, tone: issueCount ? 'warning' as const : 'success' as const },
-    { label: 'Room nights', value: String(performanceTotals.roomNights), hint: 'Next 30 days', icon: Lucide.BedDouble, tone: 'primary' as const },
-    { label: 'Bookings this month', value: String(monthlyBookings), hint: 'Across connected channels', icon: Lucide.CalendarDays, tone: 'info' as const },
-    { label: 'Channel revenue', value: formatMoney(performanceTotals.revenue), hint: 'Last 30 days', icon: Lucide.CircleDollarSign, tone: 'success' as const },
-    { label: 'Channel issues', value: String(issueCount), hint: issueCount ? 'Reconnect required' : 'All channels healthy', icon: Lucide.AlertCircle, tone: issueCount ? 'danger' as const : 'success' as const },
+  const metrics: SummaryItem[] = [
+    { label: 'Connected channels', value: `${connectedCount}/${channels.length}`, hint: `${issueCount} require attention`, icon: Lucide.Link2, tone: issueCount ? 'warning' : 'success' },
+    { label: 'Room nights', value: String(performanceTotals.roomNights), hint: 'Next 30 days', icon: Lucide.BedDouble, tone: 'primary' },
+    { label: 'Bookings this month', value: String(monthlyBookings), hint: 'Across connected channels', icon: Lucide.CalendarDays, tone: 'info' },
+    { label: 'Channel revenue', value: formatMoney(performanceTotals.revenue), hint: 'Last 30 days', icon: Lucide.CircleDollarSign, tone: 'success' },
+    { label: 'Channel issues', value: String(issueCount), hint: issueCount ? 'Reconnect required' : 'All channels healthy', icon: Lucide.AlertCircle, tone: issueCount ? 'danger' : 'success' },
   ];
 
   const handleMappingChange = (id: string, field: keyof RateMapping, value: string) => {
@@ -300,123 +283,223 @@ export function ChannelManager() {
     if (tab === 'restrictions') setSettingsExpanded(true);
   };
 
+  const selectedStatus = selectedChannel ? STATUS[selectedChannel.status] : null;
+
   return (
-    <div className="pms-page">
-      <header className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20 mt-0.5">
-            <Lucide.Globe size={20} strokeWidth={2.4} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-disp3 font-bold tracking-tight text-ink leading-tight">Channel Manager</h1>
-              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
-                </span>
-                Live Feed
-              </span>
-            </div>
-            <p className="text-label text-ink-secondary mt-1">Monitor OTA connections, inventory distribution and booking performance.</p>
+    <div className="pms-page gap-5">
+      {/* Title and the actions, from most to least used */}
+      <header className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="mt-0.5 flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/20">
+            <Lucide.Globe size={20} strokeWidth={2.4} aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <h1 className="text-disp3 font-bold leading-tight tracking-tight text-ink">Channel Manager</h1>
+            <p className="mt-0.5 text-label text-ink-secondary">OTA connections, inventory distribution and booking performance.</p>
           </div>
         </div>
+
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="secondary" type="button" aria-pressed={settings.autoSync} onClick={() => handleSettingsChange('autoSync', !settings.autoSync)} className={`inline-flex items-center gap-2 border transition-colors ${settings.autoSync ? 'bg-success-bg text-success-text' : 'bg-muted-surface text-ink-secondary'}`} style={{ borderColor: settings.autoSync ? 'var(--color-success-border)' : 'var(--color-border)' }}>
-            <span className={`h-1.5 w-1.5 rounded-full ${settings.autoSync ? 'bg-success-text' : 'bg-ink-disabled'}`} /> Auto-sync {settings.autoSync ? 'on' : 'paused'}
+          <span role="status" className="mr-1">
+            {hasUnpublishedChanges ? <Badge tone="warning" dot>Unpublished changes</Badge> : <Badge tone="success" dot>Up to date</Badge>}
+          </span>
+          <label className="flex min-h-[34px] cursor-pointer items-center gap-2 rounded-xl border border-border bg-surface px-3 md:min-h-[32px]">
+            <span className="text-label font-semibold text-ink-secondary">Auto-sync</span>
+            <Switch label="Auto-sync" checked={settings.autoSync} onChange={(next) => handleSettingsChange('autoSync', next)} />
+          </label>
+          <IconButton title="Sync settings" aria-label="Sync settings" onClick={() => handleTabChange('restrictions')}>
+            <Lucide.Settings2 size={15} />
+          </IconButton>
+          <IconButton title="Sync logs" aria-label="Sync logs" onClick={() => setShowLogs(true)}>
+            <Lucide.ScrollText size={15} />
+          </IconButton>
+          <Button variant="secondary" onClick={handlePublishChanges} disabled={!hasUnpublishedChanges} icon={<Lucide.Upload size={14} />}>
+            Publish
           </Button>
-          <Button variant="secondary" type="button" onClick={() => { handleTabChange('restrictions'); setSettingsExpanded(true); }} ><Lucide.Settings2 size={14} /> Sync settings</Button>
-          <Button variant="secondary" type="button" onClick={() => setShowLogs(true)} ><Lucide.ScrollText size={14} /> Logs</Button>
-          <Button variant="secondary" type="button" onClick={handleGlobalSync} disabled={isSyncing || connectedCount === 0} className="disabled:opacity-50"><Lucide.RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />{isSyncing ? 'Syncing' : 'Sync now'}</Button>
-          <Button variant="secondary" type="button" onClick={handlePublishChanges} disabled={!hasUnpublishedChanges} className="disabled:opacity-50"><Lucide.Upload size={14} /> Publish changes</Button>
-          <Button variant="primary" type="button" onClick={() => setShowAddChannel(true)} ><Lucide.Plus size={15} /> Add channel</Button>
+          <Button variant="secondary" onClick={handleGlobalSync} disabled={isSyncing || connectedCount === 0} icon={<Lucide.RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />}>
+            {isSyncing ? 'Syncing' : 'Sync now'}
+          </Button>
+          <Button variant="primary" onClick={() => setShowAddChannel(true)} icon={<Lucide.Plus size={15} />}>
+            Add channel
+          </Button>
         </div>
       </header>
 
       {issueCount > 0 && (
-        <div role="status" className="flex flex-col gap-2 rounded-card border p-3.5 sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)' }}>
-          <div className="flex items-start gap-2.5"><Lucide.AlertCircle size={17} className="mt-0.5 flex-none text-danger-text" /><div><p className="text-label font-bold text-danger-text">{issueCount} channel connection{issueCount === 1 ? '' : 's'} need attention</p><p className="mt-0.5 text-label text-danger-text">{channelsWithErrors.map((channel) => `${channel.name}: ${channel.errorDetail ?? 'Reconnect to resume synchronization.'}`).join(' · ')}</p></div></div>
-          <Button variant="text" type="button" onClick={() => channelsWithErrors.forEach(handleReconnect)} className="text-danger-text transition-colors hover:bg-surface/50">Reconnect {issueCount === 1 ? 'channel' : 'all'}</Button>
+        <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-danger-border bg-danger-bg p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <Lucide.AlertCircle size={18} className="mt-0.5 flex-none text-danger-text" aria-hidden="true" />
+            <div>
+              <p className="text-body font-bold text-danger-text">
+                {issueCount} channel connection{issueCount === 1 ? '' : 's'} need{issueCount === 1 ? 's' : ''} attention
+              </p>
+              <p className="mt-0.5 text-label text-danger-text">
+                {channelsWithErrors.map((channel) => `${channel.name}: ${channel.errorDetail ?? 'Reconnect to resume synchronization.'}`).join(' · ')}
+              </p>
+            </div>
+          </div>
+          <Button variant="danger" onClick={() => channelsWithErrors.forEach(handleReconnect)} icon={<Lucide.Link2 size={14} />} className="flex-none">
+            Reconnect {issueCount === 1 ? 'channel' : 'all'}
+          </Button>
         </div>
       )}
 
-      <section className="pms-stagger grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5" aria-label="Channel manager summary">
-        {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
-      </section>
+      <SummaryStrip label="Channel manager summary" items={metrics} />
 
-      <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(290px,0.75fr)]">
+      <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.75fr)] xl:items-start">
         <ChannelDirectoryPanel channels={channels} selectedChannelId={selectedChannel?.id ?? ''} syncingChannelIds={syncingChannelIds} globalSyncing={isSyncing} onSelect={setSelectedChannelId} onSync={handleChannelSync} onReconnect={handleReconnect} />
-        {selectedChannel ? (
+
+        {selectedChannel && selectedStatus ? (
           <section className="pms-card flex min-w-0 flex-col p-4 sm:p-5" aria-labelledby="channel-detail-title">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3"><ChannelLogo channel={selectedChannel} size="lg" /><div className="min-w-0"><h2 id="channel-detail-title" className="truncate text-title font-bold text-ink">{selectedChannel.name}</h2><span className="mt-1 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-micro font-semibold" style={{ color: statusAppearance(selectedChannel.status).color, background: statusAppearance(selectedChannel.status).background, borderColor: statusAppearance(selectedChannel.status).border }}><span className={`h-1.5 w-1.5 rounded-full ${selectedChannel.status === 'connected' ? 'bg-success-text' : selectedChannel.status === 'error' ? 'bg-danger-text' : 'bg-ink-disabled'}`} />{statusAppearance(selectedChannel.status).label}</span></div></div>
-              <IconButton variant="ghost" type="button" aria-label="Open channel logs" onClick={() => setShowLogs(true)} className="flex flex-none items-center justify-center"><Lucide.Ellipsis size={17} /></IconButton>
+              <div className="flex min-w-0 items-center gap-3">
+                <ChannelLogo channel={selectedChannel} size="lg" />
+                <div className="min-w-0">
+                  <h2 id="channel-detail-title" className="truncate text-title font-bold text-ink">{selectedChannel.name}</h2>
+                  <div className="mt-1">
+                    <Badge tone={selectedStatus.tone} size="sm" dot>{selectedStatus.label}</Badge>
+                  </div>
+                </div>
+              </div>
+              <IconButton title="Open channel logs" aria-label="Open channel logs" onClick={() => setShowLogs(true)}>
+                <Lucide.Ellipsis size={17} />
+              </IconButton>
             </div>
-            {selectedChannel.status === 'error' && <div className="mt-4 rounded-control border p-3 text-label leading-relaxed text-danger-text" style={{ borderColor: 'var(--color-danger-border)', background: 'var(--color-danger-bg)' }}><span className="font-bold">Connection error</span><br />{selectedChannel.errorDetail}</div>}
-            <div className="mt-4 grid grid-cols-3 divide-x rounded-control border py-3" style={{ borderColor: 'var(--color-divider)' }}>
-              <div className="px-2 text-center"><p className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Rooms</p><p className="mt-1 text-body font-bold text-ink tnum">{selectedChannel.activeRooms}</p></div>
-              <div className="px-2 text-center"><p className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Bookings MTD</p><p className="mt-1 text-body font-bold text-ink tnum">{selectedChannel.bookingsMtd}</p></div>
-              <div className="px-2 text-center"><p className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Sync health</p><p className="mt-1 text-body font-bold text-ink tnum">{selectedChannel.syncSuccess}%</p></div>
+
+            {selectedChannel.status === 'error' && (
+              <div className="mt-4 rounded-xl border border-danger-border bg-danger-bg p-3 text-label leading-relaxed text-danger-text">
+                <span className="font-bold">Connection error</span>
+                <br />
+                {selectedChannel.errorDetail}
+              </div>
+            )}
+
+            <dl className="mt-4 grid grid-cols-3 gap-2">
+              {[
+                ['Rooms', String(selectedChannel.activeRooms)],
+                ['Bookings MTD', String(selectedChannel.bookingsMtd)],
+                ['Sync health', `${selectedChannel.syncSuccess}%`],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-xl bg-muted-surface px-2 py-2.5 text-center">
+                  <dt className="truncate text-micro font-bold uppercase tracking-[0.1em] text-ink-muted">{label}</dt>
+                  <dd className="tnum mt-1 text-title font-bold text-ink">{value}</dd>
+                </div>
+              ))}
+            </dl>
+
+            <div className="mt-4 flex items-center justify-between gap-2 text-label">
+              <span className="text-ink-muted">Last sync</span>
+              <span className={`font-semibold ${selectedChannel.status === 'error' ? 'text-danger-text' : 'text-ink-secondary'}`}>{selectedChannel.lastSync}</span>
             </div>
-            <div className="mt-4 flex items-center justify-between gap-2 text-label"><span className="text-ink-muted">Last sync</span><span className={`font-semibold ${selectedChannel.status === 'error' ? 'text-danger-text' : 'text-ink-secondary'}`}>{selectedChannel.lastSync}</span></div>
-            <div className="mt-2 flex items-center justify-between gap-2 text-label"><span className="text-ink-muted">Rate mappings</span><Button variant="link" type="button" onClick={() => handleTabChange('mapping')} className="hover:underline">{mappedCount} mapped · Review</Button></div>
+            <div className="mt-2 flex items-center justify-between gap-2 text-label">
+              <span className="text-ink-muted">Rate mappings</span>
+              <Button variant="link" onClick={() => handleTabChange('mapping')} className="hover:underline">
+                {mappedCount} mapped · Review
+              </Button>
+            </div>
+
             <div className="mt-auto flex gap-2 pt-5">
-              {selectedChannel.status === 'error'
-                ? <Button variant="primary" type="button" onClick={() => handleReconnect(selectedChannel)} className="flex-1"><Lucide.Link2 size={14} /> Reconnect</Button>
-                : <Button variant="primary" type="button" onClick={() => handleChannelSync(selectedChannel)} disabled={selectedChannel.status === 'paused'} className="flex-1 disabled:opacity-50"><Lucide.RefreshCw size={14} /> Sync channel</Button>}
-              <Button variant="secondary" type="button" onClick={() => handlePauseChannel(selectedChannel)} >{selectedChannel.status === 'paused' ? 'Resume' : 'Pause'}</Button>
+              {selectedChannel.status === 'error' ? (
+                <Button variant="primary" onClick={() => handleReconnect(selectedChannel)} icon={<Lucide.Link2 size={14} />} className="flex-1">
+                  Reconnect
+                </Button>
+              ) : (
+                <Button variant="primary" onClick={() => handleChannelSync(selectedChannel)} disabled={selectedChannel.status === 'paused'} icon={<Lucide.RefreshCw size={14} />} className="flex-1">
+                  Sync channel
+                </Button>
+              )}
+              <Button variant="secondary" onClick={() => handlePauseChannel(selectedChannel)}>
+                {selectedChannel.status === 'paused' ? 'Resume' : 'Pause'}
+              </Button>
             </div>
           </section>
         ) : null}
       </div>
 
-      <section className="pms-card overflow-hidden">
-        <div className="no-scrollbar flex overflow-x-auto border-b px-2 sm:px-3" role="tablist" aria-label="Channel manager sections" style={{ borderColor: 'var(--color-border)' }} onKeyDown={(event) => {
-          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-          event.preventDefault();
-          const currentIndex = TABS.findIndex((tab) => `channel-tab-${tab.id}` === document.activeElement?.id);
-          const next = TABS[(currentIndex + (event.key === 'ArrowRight' ? 1 : -1) + TABS.length) % TABS.length];
-          handleTabChange(next.id);
-          document.getElementById(`channel-tab-${next.id}`)?.focus();
-        }}>
-          {TABS.map(({ id, label, icon: Icon }) => {
-            const selected = activeTab === id;
-            return <Button variant="text" key={id} id={`channel-tab-${id}`} type="button" role="tab" tabIndex={selected ? 0 : -1} aria-selected={selected} aria-controls="channel-tab-panel" onClick={() => handleTabChange(id)} className={`relative flex flex-none items-center gap-2 transition-colors ${selected ? 'text-primary' : 'text-ink-muted hover:text-ink'}`}><Icon size={15} />{label}{selected && <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-primary sm:inset-x-4" />}</Button>;
-          })}
-        </div>
-        <div id="channel-tab-panel" role="tabpanel" aria-labelledby={`channel-tab-${activeTab}`} className="min-w-0 p-3 sm:p-4">
+      <div className="flex min-w-0 flex-col gap-3">
+        <PageTabs label="Channel manager sections" idPrefix="channel" panelId="channel-tab-panel" tabs={TABS} active={activeTab} onChange={handleTabChange} />
+
+        <div id="channel-tab-panel" role="tabpanel" aria-labelledby={`channel-tab-${activeTab}`} className="pms-card min-w-0 p-3 sm:p-4">
           {activeTab === 'inventory' && <InventoryPanel dates={dates} rows={inventory} roomFilter={roomFilter} dateLabel={dateLabel} lastUpdatedLabel={lastGlobalSync} onRoomFilterChange={setRoomFilter} onPrevious={() => setRangeStart((current) => shiftDate(current, -15))} onNext={() => setRangeStart((current) => shiftDate(current, 15))} onToday={() => setRangeStart(shiftDate(BUSINESS_DATE, -3))} onSelectCell={handleInventoryCellSelect} />}
           {activeTab === 'rates' && <RatesPanel channels={channels} performance={performance} channelFilter={channelFilter} onChannelFilterChange={setChannelFilter} />}
           {activeTab === 'restrictions' && <div className="flex flex-col gap-4"><ChannelRestrictionsPanel settings={settings} onChange={handleSettingsChange} /><SyncSettingsPanel settings={settings} expanded={settingsExpanded} onToggleExpanded={() => setSettingsExpanded((value) => !value)} onChange={handleSettingsChange} onSave={handleSaveSettings} /></div>}
           {activeTab === 'mapping' && <MappingPanel mappings={mappings} channels={channels} onChange={handleMappingChange} onAdd={handleAddMapping} onSave={handleSaveMappings} />}
           {activeTab === 'promotions' && <PromotionsPanel channels={channels} bookings={bookings} channelFilter={channelFilter} onChannelFilterChange={setChannelFilter} onViewAll={() => setShowAllBookings(true)} />}
         </div>
-      </section>
+      </div>
 
       {showAddChannel && <AddChannelDialog key={channels.length} open providers={availableProviders} onClose={() => setShowAddChannel(false)} onConnect={handleConnectChannel} />}
 
       {showLogs && (
-        <Modal open onClose={() => setShowLogs(false)} title="Channel synchronization logs" subtitle={`Most recent activity · last global sync ${lastGlobalSync}`} wide footer={<Button variant="primary" type="button" onClick={() => setShowLogs(false)} >Done</Button>}>
-          <div className="flex flex-col gap-2.5">
+        <Modal open onClose={() => setShowLogs(false)} title="Channel synchronization logs" subtitle={`Most recent activity · last global sync ${lastGlobalSync}`} wide footer={<Button variant="primary" onClick={() => setShowLogs(false)}>Done</Button>}>
+          <ul className="flex flex-col gap-2.5">
             {logs.map((log) => {
               const failed = log.status === 'Failed';
               const running = log.status === 'Running';
-              return <article key={log.id} className="flex flex-col gap-2 rounded-control border p-3 sm:flex-row sm:items-start sm:justify-between" style={{ background: failed ? 'var(--color-danger-bg)' : 'var(--color-muted-surface)', borderColor: failed ? 'var(--color-danger-border)' : 'var(--color-border)' }}><div className="flex min-w-0 items-start gap-2.5"><span className={`mt-1.5 h-2 w-2 flex-none rounded-full ${failed ? 'bg-danger-text' : running ? 'animate-pulse bg-warning-text' : 'bg-success-text'}`} /><div className="min-w-0"><div className="flex flex-wrap items-center gap-x-2 gap-y-1"><span className="text-label font-bold text-ink">{channelNames.get(log.channelId) ?? (log.channelId === 'system' ? 'Channel Manager' : log.channelId)}</span><span className="text-micro font-mono text-ink-muted">{log.time}</span><span className="rounded px-1.5 py-0.5 text-micro font-semibold text-primary" style={{ background: 'color-mix(in srgb, var(--color-primary) 10%, transparent)' }}>{log.event}</span></div><p className="mt-1 text-label leading-relaxed text-ink-secondary">{log.detail}</p></div></div><span className={`flex-none rounded-full px-2 py-1 text-micro font-bold ${failed ? 'bg-danger-bg text-danger-text' : running ? 'bg-warning-bg text-warning-text' : 'bg-success-bg text-success-text'}`}>{log.status}</span></article>;
+              return (
+                <li
+                  key={log.id}
+                  className={`flex flex-col gap-2 rounded-xl border p-3 sm:flex-row sm:items-start sm:justify-between ${failed ? 'border-danger-border bg-danger-bg' : 'border-border bg-muted-surface'}`}
+                >
+                  <div className="flex min-w-0 items-start gap-2.5">
+                    <span className={`mt-1.5 h-2 w-2 flex-none rounded-full ${failed ? 'bg-danger-text' : running ? 'animate-pulse bg-warning-text' : 'bg-success-text'}`} aria-hidden="true" />
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="text-label font-bold text-ink">{channelNames.get(log.channelId) ?? (log.channelId === 'system' ? 'Channel Manager' : log.channelId)}</span>
+                        <span className="font-mono text-micro text-ink-muted">{log.time}</span>
+                        <span className="rounded bg-primary/10 px-1.5 py-0.5 text-micro font-semibold text-primary">{log.event}</span>
+                      </div>
+                      <p className="mt-1 text-label leading-relaxed text-ink-secondary">{log.detail}</p>
+                    </div>
+                  </div>
+                  <Badge size="sm" tone={failed ? 'danger' : running ? 'warning' : 'success'}>{log.status}</Badge>
+                </li>
+              );
             })}
-          </div>
+          </ul>
         </Modal>
       )}
 
       {showAllBookings && (
-        <Modal open onClose={() => setShowAllBookings(false)} title="Recent channel bookings" subtitle="Incoming reservations from connected distribution channels." wide footer={<Button variant="primary" type="button" onClick={() => setShowAllBookings(false)} >Close</Button>}>
-          <div className="pms-table-scroll overflow-x-auto"><table className="pms-table min-w-[620px]"><thead><tr><th>Channel</th><th>Booking ID</th><th>Guest</th><th>Room type</th><th>Stay dates</th><th>Status</th></tr></thead><tbody>{bookings.map((booking) => <tr key={booking.id}><td>{channelNames.get(booking.channelId) ?? booking.channelId}</td><td className="font-mono text-label">{booking.id}</td><td className="font-semibold">{booking.guestName}</td><td>{booking.roomType}</td><td>{booking.checkIn} – {booking.checkOut}</td><td>{booking.status}</td></tr>)}</tbody></table></div>
+        <Modal open onClose={() => setShowAllBookings(false)} title="Recent channel bookings" subtitle="Incoming reservations from connected distribution channels." wide footer={<Button variant="primary" onClick={() => setShowAllBookings(false)}>Close</Button>}>
+          <div className="pms-table-scroll overflow-x-auto">
+            <table className="pms-table min-w-[620px]">
+              <thead>
+                <tr><th>Channel</th><th>Booking ID</th><th>Guest</th><th>Room type</th><th>Stay dates</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                {bookings.map((booking) => (
+                  <tr key={booking.id}>
+                    <td>{channelNames.get(booking.channelId) ?? booking.channelId}</td>
+                    <td className="font-mono text-label">{booking.id}</td>
+                    <td className="font-semibold">{booking.guestName}</td>
+                    <td>{booking.roomType}</td>
+                    <td>{booking.checkIn} – {booking.checkOut}</td>
+                    <td>{booking.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Modal>
       )}
 
       {selectedCell && (
-        <Modal open onClose={() => setSelectedCell(null)} title={`Inventory override · ${selectedCell.roomType}`} subtitle={`${selectedCell.date.weekday}, ${selectedCell.date.month} ${selectedCell.date.day} · capacity ${selectedCell.total} rooms`} footer={<><Button variant="secondary" type="button" onClick={() => setSelectedCell(null)} >Cancel</Button><Button variant="primary" type="button" onClick={handleSaveInventoryCell} >Save availability</Button></>}>
-          <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">Rooms available to channels<TextField autoFocus type="number" min={0} max={selectedCell.total} value={cellDraft} onChange={(event) => setCellDraft(event.target.value)} className="w-full" /></label>
-          <p className="mt-2 text-label text-ink-muted">The override applies to this room type and date in the local demo inventory.</p>
+        <Modal
+          open
+          onClose={() => setSelectedCell(null)}
+          title={`Inventory override · ${selectedCell.roomType}`}
+          subtitle={`${selectedCell.date.weekday}, ${selectedCell.date.month} ${selectedCell.date.day} · capacity ${selectedCell.total} rooms`}
+          footer={(
+            <>
+              <Button variant="secondary" onClick={() => setSelectedCell(null)}>Cancel</Button>
+              <Button variant="primary" onClick={handleSaveInventoryCell}>Save availability</Button>
+            </>
+          )}
+        >
+          <Field label="Rooms available to channels" hint="The override applies to this room type and date in the local demo inventory.">
+            <TextField autoFocus type="number" min={0} max={selectedCell.total} value={cellDraft} onChange={(event) => setCellDraft(event.target.value)} />
+          </Field>
         </Modal>
       )}
     </div>

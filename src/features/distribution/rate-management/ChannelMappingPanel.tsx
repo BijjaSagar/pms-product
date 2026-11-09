@@ -13,7 +13,7 @@ interface Props {
 export function ChannelMappingPanel({ channels, connectedChannelIds, plans, onToggle, onSync }: Props) {
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="channel-mapping-title">
-      <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 border-border">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/20">
             <Lucide.Globe size={18} strokeWidth={2.4} />
@@ -28,7 +28,7 @@ export function ChannelMappingPanel({ channels, connectedChannelIds, plans, onTo
         </span>
       </div>
 
-      <div className="divide-y" style={{ borderColor: 'var(--color-divider)' }}>
+      <div className="divide-y border-divider">
         {channels.map((channel) => {
           const connected = connectedChannelIds.includes(channel.id);
           const mappedCount = plans.filter((plan) => plan.channels.includes(channel.id)).length;
@@ -59,7 +59,7 @@ export function ChannelMappingPanel({ channels, connectedChannelIds, plans, onTo
           );
         })}
       </div>
-      <div className="flex items-start gap-2 border-t px-4 py-3 text-label text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>
+      <div className="flex items-start gap-2 border-t px-4 py-3 text-label text-ink-muted sm:px-5 border-divider">
         <Lucide.Info size={14} className="mt-0.5 flex-none text-info-text" />
         <p>Channel connections and sync times are sample data in this demo. Turning a channel off removes it from rate-plan distribution.</p>
       </div>

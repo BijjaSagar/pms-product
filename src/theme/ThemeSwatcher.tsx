@@ -19,12 +19,11 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
         style={{ background: 'var(--color-scrim)' }}
       />
       <aside
-        className="pms-overlay-enter absolute right-0 top-0 flex h-full w-full flex-col border-l"
-        style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)', boxShadow: 'var(--shadow-2xl)', maxWidth: 'min(460px, 100vw)' }}
+        className="pms-overlay-enter absolute right-0 top-0 flex h-full w-full flex-col border-l bg-surface border-border"
+        style={{ boxShadow: 'var(--shadow-2xl)', maxWidth: 'min(460px, 100vw)' }}
       >
         <div
-          className="flex items-start justify-between gap-3 border-b px-5 py-4"
-          style={{ borderColor: 'var(--color-border)' }}
+          className="flex items-start justify-between gap-3 border-b px-5 py-4 border-border"
         >
           <div>
             <h2 className="pms-section-title">Appearance</h2>
@@ -63,16 +62,12 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                   }}
                 >
                   <span className="flex min-w-0 items-center justify-between gap-2">
-                    <span className="min-w-0 truncate text-body font-semibold" style={{ color: 'var(--color-ink)' }}>
+                    <span className="min-w-0 truncate text-body font-semibold text-ink">
                       {p.name}
                     </span>
                     <span
-                      className="flex h-4 w-4 flex-none items-center justify-center rounded-full border text-micro font-bold"
-                      style={{
-                        borderColor: 'var(--color-primary)',
-                        background: checked ? 'var(--color-primary)' : 'transparent',
-                        color: checked ? 'var(--color-primary-foreground)' : 'transparent',
-                      }}
+                      className="flex h-4 w-4 flex-none items-center justify-center rounded-full border text-micro font-bold border-primary"
+                      style={{ background: checked ? 'var(--color-primary)' : 'transparent', color: checked ? 'var(--color-primary-foreground)' : 'transparent' }}
                       aria-hidden="true"
                     >
                       ✓
@@ -83,7 +78,7 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                       <span key={`${c}-${index}`} className="h-full flex-1" style={{ background: c }} title={c} />
                     ))}
                   </span>
-                  <span className="pms-helper block text-label" style={{ color: 'var(--color-ink-muted)' }}>
+                  <span className="pms-helper block text-label text-ink-muted">
                     {p.description}
                   </span>
                 </button>
@@ -92,10 +87,10 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
           </div>
 
           {/* Live Notification Preview Playground */}
-          <div className="mt-6 border-t pt-5" style={{ borderColor: 'var(--color-border)' }}>
+          <div className="mt-6 border-t pt-5 border-border">
             <div className="flex items-center justify-between mb-1">
               <h3 className="pms-label">Preview Toast Notifications</h3>
-              <span className="text-label font-medium" style={{ color: 'var(--color-ink-muted)' }}>
+              <span className="text-label font-medium text-ink-muted">
                 Live Demo
               </span>
             </div>
@@ -110,12 +105,8 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                     detail: 'Room 304 · Alex Morgan checked in successfully.',
                   })
                 }
-                className="flex items-center gap-2 text-left transition-all cursor-pointer"
-                style={{
-                  background: 'var(--color-surface)',
-                  borderColor: 'color-mix(in srgb, var(--color-success-text) 35%, var(--color-border))',
-                  color: 'var(--color-ink)',
-                }}
+                className="flex items-center gap-2 text-left transition-all cursor-pointer bg-surface text-ink"
+                style={{ borderColor: 'color-mix(in srgb, var(--color-success-text) 35%, var(--color-border))' }}
               >
                 <span className="h-2.5 w-2.5 rounded-full bg-success-text shadow-xs" />
                 <span>Success Toast</span>
@@ -128,12 +119,8 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                     detail: '3 departure rooms queued for immediate inspection.',
                   })
                 }
-                className="flex items-center gap-2 text-left transition-all cursor-pointer"
-                style={{
-                  background: 'var(--color-surface)',
-                  borderColor: 'color-mix(in srgb, var(--color-info-text) 35%, var(--color-border))',
-                  color: 'var(--color-ink)',
-                }}
+                className="flex items-center gap-2 text-left transition-all cursor-pointer bg-surface text-ink"
+                style={{ borderColor: 'color-mix(in srgb, var(--color-info-text) 35%, var(--color-border))' }}
               >
                 <span className="h-2.5 w-2.5 rounded-full bg-info-text shadow-xs" />
                 <span>Info Toast</span>
@@ -146,12 +133,8 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                     detail: 'Room 108 requested late checkout until 1:30 PM.',
                   })
                 }
-                className="flex items-center gap-2 text-left transition-all cursor-pointer"
-                style={{
-                  background: 'var(--color-surface)',
-                  borderColor: 'color-mix(in srgb, var(--color-warning-text) 35%, var(--color-border))',
-                  color: 'var(--color-ink)',
-                }}
+                className="flex items-center gap-2 text-left transition-all cursor-pointer bg-surface text-ink"
+                style={{ borderColor: 'color-mix(in srgb, var(--color-warning-text) 35%, var(--color-border))' }}
               >
                 <span className="h-2.5 w-2.5 rounded-full bg-warning-text shadow-xs" />
                 <span>Warning Toast</span>
@@ -172,12 +155,8 @@ export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () =>
                     },
                   })
                 }
-                className="flex items-center gap-2 text-left transition-all cursor-pointer"
-                style={{
-                  background: 'var(--color-surface)',
-                  borderColor: 'color-mix(in srgb, var(--color-danger-text) 35%, var(--color-border))',
-                  color: 'var(--color-ink)',
-                }}
+                className="flex items-center gap-2 text-left transition-all cursor-pointer bg-surface text-ink"
+                style={{ borderColor: 'color-mix(in srgb, var(--color-danger-text) 35%, var(--color-border))' }}
               >
                 <span className="h-2.5 w-2.5 rounded-full bg-danger-text shadow-xs" />
                 <span>Error Toast</span>

@@ -82,12 +82,7 @@ export function NightAudit({ go }: NightAuditProps) {
           <Button variant="secondary"
             type="button"
             onClick={() => setLogsModalOpen(true)}
-            className="flex items-center gap-2"
-            style={{
-              borderColor: 'var(--color-border)',
-              background: 'var(--color-surface)',
-              color: 'var(--color-ink)',
-            }}
+            className="flex items-center gap-2 border-border bg-surface text-ink"
           >
             <Lucide.ScrollText size={15} className="text-ink-muted" />
             <span>Audit Logs</span>
@@ -96,12 +91,7 @@ export function NightAudit({ go }: NightAuditProps) {
           <Button variant="secondary"
             type="button"
             onClick={() => go?.({ view: 'reports' })}
-            className="flex items-center gap-2"
-            style={{
-              borderColor: 'var(--color-border)',
-              background: 'var(--color-surface)',
-              color: 'var(--color-ink)',
-            }}
+            className="flex items-center gap-2 border-border bg-surface text-ink"
           >
             <span>View Reports</span>
           </Button>
@@ -110,18 +100,13 @@ export function NightAudit({ go }: NightAuditProps) {
 
       {/* ================= 2. 4-STEP WIZARD / PROGRESS BAR ================= */}
       <div
-        className="rounded-2xl border p-4 sm:p-5 shadow-2xs transition-all"
-        style={{
-          background: 'var(--color-surface)',
-          borderColor: 'var(--color-border)',
-        }}
+        className="rounded-2xl border p-4 sm:p-5 shadow-2xs transition-all bg-surface border-border"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
           {/* Step 1 */}
           <div className="flex items-center gap-3">
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-body flex-none text-white shadow-xs"
-              style={{ background: 'var(--color-primary)' }}
+              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-body flex-none text-white shadow-xs bg-primary"
             >
               1
             </div>
@@ -134,12 +119,8 @@ export function NightAudit({ go }: NightAuditProps) {
           {/* Step 2 */}
           <div className="flex items-center gap-3">
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-body flex-none border-2"
-              style={{
-                borderColor: 'color-mix(in srgb, var(--color-primary) 40%, transparent)',
-                color: 'var(--color-primary)',
-                background: 'color-mix(in srgb, var(--color-primary) 6%, transparent)',
-              }}
+              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-body flex-none border-2 text-primary"
+              style={{ borderColor: 'color-mix(in srgb, var(--color-primary) 40%, transparent)', background: 'color-mix(in srgb, var(--color-primary) 6%, transparent)' }}
             >
               2
             </div>
@@ -152,12 +133,8 @@ export function NightAudit({ go }: NightAuditProps) {
           {/* Step 3 */}
           <div className="flex items-center gap-3">
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-body flex-none border-2"
-              style={{
-                borderColor: 'color-mix(in srgb, var(--color-primary) 40%, transparent)',
-                color: 'var(--color-primary)',
-                background: 'color-mix(in srgb, var(--color-primary) 6%, transparent)',
-              }}
+              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-body flex-none border-2 text-primary"
+              style={{ borderColor: 'color-mix(in srgb, var(--color-primary) 40%, transparent)', background: 'color-mix(in srgb, var(--color-primary) 6%, transparent)' }}
             >
               3
             </div>
@@ -170,12 +147,8 @@ export function NightAudit({ go }: NightAuditProps) {
           {/* Step 4 */}
           <div className="flex items-center gap-3">
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-body flex-none border-2"
-              style={{
-                borderColor: 'color-mix(in srgb, var(--color-primary) 40%, transparent)',
-                color: 'var(--color-primary)',
-                background: 'color-mix(in srgb, var(--color-primary) 6%, transparent)',
-              }}
+              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-body flex-none border-2 text-primary"
+              style={{ borderColor: 'color-mix(in srgb, var(--color-primary) 40%, transparent)', background: 'color-mix(in srgb, var(--color-primary) 6%, transparent)' }}
             >
               4
             </div>
@@ -191,8 +164,7 @@ export function NightAudit({ go }: NightAuditProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 [&>*]:min-w-0">
         {/* KPI 1: Occupied Rooms */}
         <div
-          className="rounded-xl border p-3 shadow-xs flex items-center gap-3 transition-all"
-          style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+          className="rounded-xl border p-3 shadow-xs flex items-center gap-3 transition-all bg-surface border-border"
         >
           <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-none bg-info-bg text-info-text border border-info-border">
             <Lucide.Bed size={20} strokeWidth={2} />
@@ -206,8 +178,7 @@ export function NightAudit({ go }: NightAuditProps) {
 
         {/* KPI 2: Expected Arrivals */}
         <div
-          className="rounded-xl border p-3 shadow-xs flex items-center gap-3 transition-all"
-          style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+          className="rounded-xl border p-3 shadow-xs flex items-center gap-3 transition-all bg-surface border-border"
         >
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-none bg-primary/10 text-primary border border-primary/30">
             <Lucide.DoorOpen size={22} strokeWidth={2} />
@@ -223,8 +194,7 @@ export function NightAudit({ go }: NightAuditProps) {
 
         {/* KPI 3: Expected Departures */}
         <div
-          className="rounded-2xl border p-4 shadow-2xs flex items-center gap-3.5 transition-all"
-          style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+          className="rounded-2xl border p-4 shadow-2xs flex items-center gap-3.5 transition-all bg-surface border-border"
         >
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-none bg-success-bg text-success-text border border-success-border">
             <Lucide.DoorClosed size={22} strokeWidth={2} />
@@ -240,8 +210,7 @@ export function NightAudit({ go }: NightAuditProps) {
 
         {/* KPI 4: In-House Guests */}
         <div
-          className="rounded-2xl border p-4 shadow-2xs flex items-center gap-3.5 transition-all"
-          style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+          className="rounded-2xl border p-4 shadow-2xs flex items-center gap-3.5 transition-all bg-surface border-border"
         >
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-none bg-info-bg text-info-text border border-info-border">
             <Lucide.Users size={22} strokeWidth={2} />
@@ -255,8 +224,7 @@ export function NightAudit({ go }: NightAuditProps) {
 
         {/* KPI 5: Pending Issues */}
         <div
-          className="rounded-2xl border p-4 shadow-2xs flex items-center gap-3.5 transition-all"
-          style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+          className="rounded-2xl border p-4 shadow-2xs flex items-center gap-3.5 transition-all bg-surface border-border"
         >
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-none bg-danger-bg text-danger-text border border-danger-border">
             <Lucide.AlertCircle size={22} strokeWidth={2} />
@@ -267,8 +235,7 @@ export function NightAudit({ go }: NightAuditProps) {
             <Button variant="link"
               type="button"
               onClick={() => setOpenFoliosModalOpen(true)}
-              className="hover:underline cursor-pointer"
-              style={{ color: 'var(--color-primary)' }}
+              className="hover:underline cursor-pointer text-primary"
             >
               View details →
             </Button>
@@ -280,8 +247,7 @@ export function NightAudit({ go }: NightAuditProps) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* LEFT COLUMN: Pre-Audit Checklist (approx 68% / 8 cols) */}
         <div
-          className="lg:col-span-8 rounded-2xl border p-4 sm:p-5 shadow-2xs flex flex-col justify-between"
-          style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+          className="lg:col-span-8 rounded-2xl border p-4 sm:p-5 shadow-2xs flex flex-col justify-between bg-surface border-border"
         >
           <div>
             {/* Header with red pill */}
@@ -327,8 +293,7 @@ export function NightAudit({ go }: NightAuditProps) {
                   <Button variant="link"
                     type="button"
                     onClick={() => setOpenFoliosModalOpen(true)}
-                    className="hover:underline flex items-center gap-1 cursor-pointer"
-                    style={{ color: 'var(--color-primary)' }}
+                    className="hover:underline flex items-center gap-1 cursor-pointer text-primary"
                   >
                     <span>View guests</span>
                     <Lucide.ArrowRight size={13} />
@@ -355,8 +320,7 @@ export function NightAudit({ go }: NightAuditProps) {
                   <Button variant="link"
                     type="button"
                     onClick={() => setPendingPaymentsModalOpen(true)}
-                    className="hover:underline flex items-center gap-1 cursor-pointer"
-                    style={{ color: 'var(--color-primary)' }}
+                    className="hover:underline flex items-center gap-1 cursor-pointer text-primary"
                   >
                     <span>View bookings</span>
                     <Lucide.ArrowRight size={13} />
@@ -383,8 +347,7 @@ export function NightAudit({ go }: NightAuditProps) {
                   <Button variant="link"
                     type="button"
                     onClick={() => setUnpostedChargesModalOpen(true)}
-                    className="hover:underline flex items-center gap-1 cursor-pointer"
-                    style={{ color: 'var(--color-primary)' }}
+                    className="hover:underline flex items-center gap-1 cursor-pointer text-primary"
                   >
                     <span>Review charges</span>
                     <Lucide.ArrowRight size={13} />
@@ -454,8 +417,7 @@ export function NightAudit({ go }: NightAuditProps) {
 
         {/* RIGHT COLUMN: Audit Summary (approx 32% / 4 cols) */}
         <div
-          className="lg:col-span-4 rounded-2xl border p-4 sm:p-5 shadow-2xs flex flex-col justify-between gap-4"
-          style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+          className="lg:col-span-4 rounded-2xl border p-4 sm:p-5 shadow-2xs flex flex-col justify-between gap-4 bg-surface border-border"
         >
           <div>
             <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
@@ -534,8 +496,7 @@ export function NightAudit({ go }: NightAuditProps) {
             {/* Audit Date Callout Banner */}
             <div className="rounded-xl p-3 flex items-center gap-3 bg-info-bg/70 border border-info-border/60">
               <div
-                className="w-7 h-7 rounded-full flex items-center justify-center flex-none text-white text-label font-bold"
-                style={{ background: 'var(--color-primary)' }}
+                className="w-7 h-7 rounded-full flex items-center justify-center flex-none text-white text-label font-bold bg-primary"
               >
                 <Lucide.Info size={15} />
               </div>
@@ -562,19 +523,17 @@ export function NightAudit({ go }: NightAuditProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Table 1: In-House Guests with Balance */}
         <div
-          className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between"
-          style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+          className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between bg-surface border-border"
         >
           <div>
-            <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
+            <div className="flex items-center justify-between pb-3 border-b border-border">
               <h3 className="font-bold text-title text-ink">
                 In-House Guests with Balance
               </h3>
               <Button variant="link"
                 type="button"
                 onClick={() => setOpenFoliosModalOpen(true)}
-                className="hover:underline cursor-pointer"
-                style={{ color: 'var(--color-primary)' }}
+                className="hover:underline cursor-pointer text-primary"
               >
                 View all (3)
               </Button>
@@ -583,7 +542,7 @@ export function NightAudit({ go }: NightAuditProps) {
             <div className="pms-table-scroll overflow-x-auto">
               <table className="pms-table w-full text-left text-label mt-2">
                 <thead>
-                  <tr className="text-ink-muted text-label font-bold uppercase tracking-wider border-b" style={{ borderColor: 'var(--color-border)' }}>
+                  <tr className="text-ink-muted text-label font-bold uppercase tracking-wider border-b border-border">
                     <th className="py-2 pr-2">GUEST NAME</th>
                     <th className="py-2 px-2">ROOM</th>
                     <th className="py-2 px-2 text-right">BALANCE (₹)</th>
@@ -632,19 +591,17 @@ export function NightAudit({ go }: NightAuditProps) {
 
         {/* Table 2: Pending Payments */}
         <div
-          className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between"
-          style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+          className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between bg-surface border-border"
         >
           <div>
-            <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
+            <div className="flex items-center justify-between pb-3 border-b border-border">
               <h3 className="font-bold text-title text-ink">
                 Pending Payments
               </h3>
               <Button variant="link"
                 type="button"
                 onClick={() => setPendingPaymentsModalOpen(true)}
-                className="hover:underline cursor-pointer"
-                style={{ color: 'var(--color-primary)' }}
+                className="hover:underline cursor-pointer text-primary"
               >
                 View all (2)
               </Button>
@@ -653,7 +610,7 @@ export function NightAudit({ go }: NightAuditProps) {
             <div className="pms-table-scroll overflow-x-auto">
               <table className="pms-table w-full text-left text-label mt-2">
                 <thead>
-                  <tr className="text-ink-muted text-label font-bold uppercase tracking-wider border-b" style={{ borderColor: 'var(--color-border)' }}>
+                  <tr className="text-ink-muted text-label font-bold uppercase tracking-wider border-b border-border">
                     <th className="py-2 pr-2">BOOKING ID</th>
                     <th className="py-2 px-2">GUEST NAME</th>
                     <th className="py-2 px-2 text-right">AMOUNT (₹)</th>
@@ -681,19 +638,17 @@ export function NightAudit({ go }: NightAuditProps) {
 
         {/* Table 3: Recent Audit History */}
         <div
-          className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between"
-          style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+          className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between bg-surface border-border"
         >
           <div>
-            <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
+            <div className="flex items-center justify-between pb-3 border-b border-border">
               <h3 className="font-bold text-title text-ink">
                 Recent Audit History
               </h3>
               <Button variant="link"
                 type="button"
                 onClick={() => setLogsModalOpen(true)}
-                className="hover:underline cursor-pointer"
-                style={{ color: 'var(--color-primary)' }}
+                className="hover:underline cursor-pointer text-primary"
               >
                 View all
               </Button>
@@ -702,7 +657,7 @@ export function NightAudit({ go }: NightAuditProps) {
             <div className="pms-table-scroll overflow-x-auto">
               <table className="pms-table w-full text-left text-label mt-2">
                 <thead>
-                  <tr className="text-ink-muted text-label font-bold uppercase tracking-wider border-b" style={{ borderColor: 'var(--color-border)' }}>
+                  <tr className="text-ink-muted text-label font-bold uppercase tracking-wider border-b border-border">
                     <th className="py-2 pr-2">DATE</th>
                     <th className="py-2 px-2">STATUS</th>
                     <th className="py-2 px-2 text-right">TOTAL REVENUE (₹)</th>
@@ -836,7 +791,7 @@ export function NightAudit({ go }: NightAuditProps) {
           {!auditCompleted ? (
             <>
               {/* Step tracker in modal */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-page border" style={{ borderColor: 'var(--color-border)' }}>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-page border border-border">
                 {[
                   { step: 1, label: 'Pre-Audit' },
                   { step: 2, label: 'Post Charges' },
@@ -863,17 +818,17 @@ export function NightAudit({ go }: NightAuditProps) {
               </div>
 
               {auditStep === 1 && (
-                <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface" style={{ borderColor: 'var(--color-border)' }}>
+                <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface border-border">
                   <h4 className="font-bold text-title text-ink">Step 1: Pre-Audit Validation</h4>
                   <p className="text-ink-secondary leading-relaxed">
                     Checking departures, arrivals, in-house guest folios, and housekeeping room synchronization.
                   </p>
                   <div className="mt-2 flex flex-col gap-1.5 text-label">
-                    <div className="flex justify-between items-center py-1 border-b" style={{ borderColor: 'var(--color-divider)' }}>
+                    <div className="flex justify-between items-center py-1 border-b border-divider">
                       <span>Expected Departures Processed</span>
                       <span className="font-bold text-success-text">8 / 8 (Completed)</span>
                     </div>
-                    <div className="flex justify-between items-center py-1 border-b" style={{ borderColor: 'var(--color-divider)' }}>
+                    <div className="flex justify-between items-center py-1 border-b border-divider">
                       <span>Occupied Rooms Cleaned &amp; Inspected</span>
                       <span className="font-bold text-success-text">100% Up to date</span>
                     </div>
@@ -886,7 +841,7 @@ export function NightAudit({ go }: NightAuditProps) {
               )}
 
               {auditStep === 2 && (
-                <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface" style={{ borderColor: 'var(--color-border)' }}>
+                <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface border-border">
                   <h4 className="font-bold text-title text-ink">Step 2: Post Room &amp; Recurring Charges</h4>
                   <p className="text-ink-secondary leading-relaxed">
                     Automated posting engine will apply room tariff, GST, and daily recurring package charges across all 68 occupied guest rooms.
@@ -899,7 +854,7 @@ export function NightAudit({ go }: NightAuditProps) {
               )}
 
               {auditStep === 3 && (
-                <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface" style={{ borderColor: 'var(--color-border)' }}>
+                <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface border-border">
                   <h4 className="font-bold text-title text-ink">Step 3: Settle &amp; Verify Ledgers</h4>
                   <p className="text-ink-secondary leading-relaxed">
                     Balancing the Guest Ledger, City Ledger, and Deposit Ledger against payments captured today.
@@ -918,7 +873,7 @@ export function NightAudit({ go }: NightAuditProps) {
               )}
 
               {auditStep === 4 && (
-                <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface" style={{ borderColor: 'var(--color-border)' }}>
+                <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface border-border">
                   <h4 className="font-bold text-title text-ink">Step 4: Roll Over Business Date</h4>
                   <p className="text-ink-secondary leading-relaxed">
                     Final lock of financial transactions for <strong>Oct 14, 2026</strong>. System will advance the PMS operating date to <strong>Wednesday, Oct 15, 2026</strong>.
@@ -970,7 +925,7 @@ export function NightAudit({ go }: NightAuditProps) {
             { time: '12-Oct-2026 23:59', action: 'Day Closed: Business date rolled from Oct 12 to Oct 13', user: 'Admin (Karan)', status: 'Success' },
             { time: '11-Oct-2026 23:58', action: 'Day Closed: Business date rolled from Oct 11 to Oct 12', user: 'Manager (Sunita)', status: 'Success' },
           ].map((log, i) => (
-            <div key={i} className="p-3 rounded-xl border bg-page flex items-start justify-between gap-3" style={{ borderColor: 'var(--color-border)' }}>
+            <div key={i} className="p-3 rounded-xl border bg-page flex items-start justify-between gap-3 border-border">
               <div>
                 <p className="font-bold text-ink">{log.action}</p>
                 <p className="text-label text-ink-muted mt-0.5">By {log.user} • {log.time}</p>
@@ -997,8 +952,7 @@ export function NightAudit({ go }: NightAuditProps) {
                 setOpenFoliosModalOpen(false);
                 go?.({ view: 'folios' });
               }}
-              className="hover:underline cursor-pointer"
-              style={{ color: 'var(--color-primary)' }}
+              className="hover:underline cursor-pointer text-primary"
             >
               Open Folios &amp; Billing module →
             </Button>
@@ -1017,7 +971,7 @@ export function NightAudit({ go }: NightAuditProps) {
             { name: 'Sarah Wilson', room: '312', balance: '₹1,200.00', checkOut: 'Oct 16, 2026' },
             { name: 'Amit Kumar', room: '418', balance: '₹3,000.00', checkOut: 'Oct 17, 2026' },
           ].map((item, i) => (
-            <div key={i} className="p-3 rounded-xl border bg-page flex items-center justify-between gap-3" style={{ borderColor: 'var(--color-border)' }}>
+            <div key={i} className="p-3 rounded-xl border bg-page flex items-center justify-between gap-3 border-border">
               <div>
                 <p className="font-bold text-ink">{item.name} (Room {item.room})</p>
                 <p className="text-label text-ink-muted">Due checkout: {item.checkOut}</p>
@@ -1048,7 +1002,7 @@ export function NightAudit({ go }: NightAuditProps) {
             { id: 'BK123456', guest: 'John Smith', amount: '₹5,000.00', reason: 'Online Gateway Pre-Auth awaiting card capture' },
             { id: 'BK123789', guest: 'Priya Sharma', amount: '₹7,500.00', reason: 'Corporate direct bill awaiting company voucher' },
           ].map((item, i) => (
-            <div key={i} className="p-3 rounded-xl border bg-page flex items-center justify-between gap-3" style={{ borderColor: 'var(--color-border)' }}>
+            <div key={i} className="p-3 rounded-xl border bg-page flex items-center justify-between gap-3 border-border">
               <div>
                 <p className="font-bold text-ink">{item.id} • {item.guest}</p>
                 <p className="text-label text-ink-muted">{item.reason}</p>
@@ -1093,7 +1047,7 @@ export function NightAudit({ go }: NightAuditProps) {
             { room: '412', desc: 'Airport Pickup Cab', amount: '₹1,800.00' },
             { room: '501', desc: 'Spa Ayurvedic Therapy', amount: '₹2,500.00' },
           ].map((c, i) => (
-            <div key={i} className="p-3 rounded-xl border bg-page flex items-center justify-between gap-3" style={{ borderColor: 'var(--color-border)' }}>
+            <div key={i} className="p-3 rounded-xl border bg-page flex items-center justify-between gap-3 border-border">
               <div>
                 <p className="font-bold text-ink">Room {c.room} • {c.desc}</p>
               </div>

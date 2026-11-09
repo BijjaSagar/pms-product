@@ -20,30 +20,19 @@ export function ForbiddenPage({
   return (
     <div className="flex min-h-[75vh] items-center justify-center p-4 sm:p-8 pms-animate-fade-in">
       <div
-        className="relative w-full max-w-[560px] overflow-hidden rounded-3xl border p-6 sm:p-8 shadow-2xl backdrop-blur-md text-center"
-        style={{
-          background: 'var(--color-surface)',
-          borderColor: 'var(--color-border)',
-          boxShadow: 'var(--shadow-xl), 0 0 0 1px var(--color-border)',
-        }}
+        className="relative w-full max-w-[560px] overflow-hidden rounded-3xl border p-6 sm:p-8 shadow-2xl backdrop-blur-md text-center bg-surface border-border"
+        style={{ boxShadow: 'var(--shadow-xl), 0 0 0 1px var(--color-border)' }}
       >
         {/* Ambient background glow */}
         <div
-          className="absolute -top-24 -left-24 h-48 w-48 rounded-full blur-3xl pointer-events-none opacity-20"
-          style={{ background: 'var(--color-warning-text)' }}
+          className="absolute -top-24 -left-24 h-48 w-48 rounded-full blur-3xl pointer-events-none opacity-20 bg-warning-text"
         />
         <div
-          className="absolute -bottom-24 -right-24 h-48 w-48 rounded-full blur-3xl pointer-events-none opacity-20"
-          style={{ background: 'var(--color-primary)' }}
+          className="absolute -bottom-24 -right-24 h-48 w-48 rounded-full blur-3xl pointer-events-none opacity-20 bg-primary"
         />
 
         {/* Central Icon Badge */}
-        <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl shadow-md border"
-          style={{
-            background: 'var(--color-warning-bg)',
-            borderColor: 'var(--color-warning-border)',
-            color: 'var(--color-warning-text)',
-          }}
+        <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl shadow-md border bg-warning-bg border-warning-border text-warning-text"
         >
           <Lucide.ShieldAlert size={40} strokeWidth={1.8} />
           <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-warning-text text-warning-foreground shadow-sm">
@@ -52,12 +41,8 @@ export function ForbiddenPage({
         </div>
 
         {/* Status Pill */}
-        <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-bold tracking-wide uppercase mb-3"
-          style={{
-            background: 'var(--color-warning-bg)',
-            color: 'var(--color-warning-text)',
-            border: '1px solid var(--color-warning-border)',
-          }}
+        <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-bold tracking-wide uppercase mb-3 bg-warning-bg text-warning-text"
+          style={{ border: '1px solid var(--color-warning-border)' }}
         >
           <span className="h-1.5 w-1.5 rounded-full bg-warning-text animate-pulse" />
           <span>Security & Governance · 403 Forbidden</span>
@@ -70,15 +55,14 @@ export function ForbiddenPage({
 
         <p className="mt-2 text-body leading-relaxed text-ink-secondary max-w-[440px] mx-auto">
           Your staff role at <strong className="text-ink">{propertyName || 'this property'}</strong> does not include the required permission{' '}
-          <code className="rounded px-1.5 py-0.5 font-mono text-label bg-muted text-ink font-semibold border" style={{ borderColor: 'var(--color-border)' }}>
+          <code className="rounded px-1.5 py-0.5 font-mono text-label bg-muted text-ink font-semibold border border-border">
             {permission}
           </code>.
         </p>
 
         {/* User Identity Chip */}
         <div
-          className="my-5 flex items-center justify-center gap-2 rounded-xl border p-2.5 max-w-[360px] mx-auto text-label"
-          style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}
+          className="my-5 flex items-center justify-center gap-2 rounded-xl border p-2.5 max-w-[360px] mx-auto text-label border-border bg-muted-surface"
         >
           <Lucide.UserCheck size={14} className="text-ink-muted" />
           <span className="text-ink-secondary">Current Role:</span>
@@ -104,8 +88,7 @@ export function ForbiddenPage({
                 tone: 'info',
               });
             }}
-            className="w-full sm:w-auto transition-colors"
-            style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+            className="w-full sm:w-auto transition-colors border-border bg-surface"
           >
             Request Access
           </Button>
@@ -122,20 +105,12 @@ export function NotFoundPage({ onGo }: { onGo: (t: NavTarget) => void }) {
   return (
     <div className="flex min-h-[75vh] items-center justify-center p-4 sm:p-8 pms-animate-fade-in">
       <div
-        className="relative w-full max-w-[560px] overflow-hidden rounded-3xl border p-6 sm:p-8 shadow-2xl backdrop-blur-md text-center"
-        style={{
-          background: 'var(--color-surface)',
-          borderColor: 'var(--color-border)',
-          boxShadow: 'var(--shadow-xl), 0 0 0 1px var(--color-border)',
-        }}
+        className="relative w-full max-w-[560px] overflow-hidden rounded-3xl border p-6 sm:p-8 shadow-2xl backdrop-blur-md text-center bg-surface border-border"
+        style={{ boxShadow: 'var(--shadow-xl), 0 0 0 1px var(--color-border)' }}
       >
         {/* Central Icon Badge */}
-        <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl shadow-md border"
-          style={{
-            background: 'color-mix(in srgb, var(--color-primary) 12%, var(--color-surface))',
-            borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
-            color: 'var(--color-primary)',
-          }}
+        <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl shadow-md border text-primary"
+          style={{ background: 'color-mix(in srgb, var(--color-primary) 12%, var(--color-surface))', borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)' }}
         >
           <Lucide.Compass size={40} strokeWidth={1.8} />
           <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white shadow-sm">
@@ -144,12 +119,8 @@ export function NotFoundPage({ onGo }: { onGo: (t: NavTarget) => void }) {
         </div>
 
         {/* Status Pill */}
-        <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-bold tracking-wide uppercase mb-3"
-          style={{
-            background: 'color-mix(in srgb, var(--color-primary) 14%, transparent)',
-            color: 'var(--color-primary)',
-            border: '1px solid color-mix(in srgb, var(--color-primary) 25%, transparent)',
-          }}
+        <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-bold tracking-wide uppercase mb-3 text-primary"
+          style={{ background: 'color-mix(in srgb, var(--color-primary) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--color-primary) 25%, transparent)' }}
         >
           <span>Navigation Service · 404 Screen Not Found</span>
         </div>
@@ -174,8 +145,7 @@ export function NotFoundPage({ onGo }: { onGo: (t: NavTarget) => void }) {
               key={item.label}
               type="button"
               onClick={() => onGo({ view: item.view })}
-              className="flex items-center gap-2 transition-colors"
-              style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+              className="flex items-center gap-2 transition-colors border-border bg-surface"
             >
               <item.icon size={15} className="text-primary flex-none" />
               <span className="truncate">{item.label}</span>

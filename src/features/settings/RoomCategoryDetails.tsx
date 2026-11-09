@@ -5,17 +5,10 @@ import { roomListingApi } from '../../lib/api/pms';
 import type { MealPlanKey, RoomDetails, RoomInput } from '../../lib/api/pms';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
-import { Button, Checkbox, TextArea, TextField } from '../../components/primitives';
+import { Button, TextArea, TextField } from '../../components/primitives';
 import { Field } from '../../components/controls';
-
-const MEAL_PLANS: { key: MealPlanKey; description: string }[] = [
-  { key: 'EP', description: 'Room only' },
-  { key: 'CP', description: 'Room with breakfast' },
-  { key: 'MAP', description: 'Breakfast and one main meal' },
-  { key: 'AP', description: 'All meals' },
-  { key: 'MAPAI', description: 'MAP, all inclusive' },
-  { key: 'APAI', description: 'AP, all inclusive' },
-];
+import { MEAL_PLANS } from './mealPlanInfo';
+import { ToggleRow } from './SettingsKit';
 
 /**
  * A section starts read-only. While `draft` is non-null it is being edited;
@@ -37,6 +30,7 @@ function useSection<T>(save: (draft: T) => Promise<boolean>) {
 }
 
 function Section({
+  icon: Icon,
   title,
   editing,
   saving,
@@ -46,6 +40,7 @@ function Section({
   onSave,
   children,
 }: {
+  icon: Lucide.LucideIcon;
   title: string;
   editing: boolean;
   saving: boolean;
@@ -56,9 +51,14 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-xl border p-4 sm:p-5" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}>
+    <section className={`rounded-xl border bg-surface p-4 transition-colors sm:p-5 ${editing ? 'border-primary/50' : 'border-border'}`}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-divider pb-3">
-        <h3 className="text-title font-bold text-ink">{title}</h3>
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Icon size={16} aria-hidden="true" />
+          </span>
+          <h3 className="text-title font-bold text-ink">{title}</h3>
+        </div>
         {editing ? (
           <div className="flex gap-2">
             <Button variant="secondary" type="button" onClick={onCancel} disabled={saving}>
@@ -222,8 +222,8 @@ export function RoomCategoryDetails({
   const meals = useSection<MealPlanKey[]>((plans) => patch({ mealPlans: plans }));
   const mealPlans = meals.draft ?? room.mealPlans;
 
-  const number = (key: keyof OccupancyForm, label: string) => (
-    <Field label={label}>
+  const number = (key: keyof OccupancyForm, label: string, hint?: string) => (
+    <Field label={label} hint={hint}>
       <TextField
         type="number"
         min={0}
@@ -233,20 +233,23 @@ export function RoomCategoryDetails({
     </Field>
   );
 
-  const flag = (key: 'syncCategoryOnOta' | 'excludeFromRevenue' | 'excludeFromOccupancy' | 'excludeFromUpgrade', label: string) => (
-    <label className="flex cursor-pointer items-center gap-2.5 text-label font-medium text-ink">
-      <Checkbox
-        type="checkbox"
-        checked={occupancyForm[key]}
-        onChange={(e) => occupancy.setDraft({ ...occupancyForm, [key]: e.target.checked })}
-      />
-      <span>{label}</span>
-    </label>
+  const flag = (
+    key: 'syncCategoryOnOta' | 'excludeFromRevenue' | 'excludeFromOccupancy' | 'excludeFromUpgrade',
+    label: string,
+    description: string,
+  ) => (
+    <ToggleRow
+      label={label}
+      description={description}
+      checked={occupancyForm[key]}
+      onChange={(checked) => occupancy.setDraft({ ...occupancyForm, [key]: checked })}
+    />
   );
 
   return (
     <div className="flex flex-col gap-4">
       <Section
+        icon={Lucide.Tag}
         title="Category Details"
         editing={details.draft !== null}
         saving={details.saving}
@@ -286,6 +289,7 @@ export function RoomCategoryDetails({
       </Section>
 
       <Section
+        icon={Lucide.Gift}
         title="Inclusions"
         editing={inclusions.draft !== null}
         saving={inclusions.saving}
@@ -304,7 +308,8 @@ export function RoomCategoryDetails({
       </Section>
 
       <Section
-        title="Occupancy Details"
+        icon={Lucide.Users}
+        title="Occupancy"
         editing={occupancy.draft !== null}
         saving={occupancy.saving}
         canEdit={canEdit}
@@ -313,23 +318,24 @@ export function RoomCategoryDetails({
         onSave={() => void occupancy.commit()}
       >
         <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-          {number('baseOccupancy', 'Base Occupancy (Minimum occupancy at which room sells):')}
-          {number('idealOccupancy', 'Ideal Occupancy (Generally total number of beds in room):')}
-          {number('maxAdults', 'Max Adults')}
-          {number('maxChildren', 'Max Children')}
-          {number('defaultChildren', 'Default Number of Children')}
-          {number('maxOccupancy', 'Total Number of Guests')}
+          {number('baseOccupancy', 'Base occupancy', 'Minimum occupancy at which the room sells')}
+          {number('idealOccupancy', 'Ideal occupancy', 'Generally the total number of beds in the room')}
+          {number('maxAdults', 'Max adults')}
+          {number('maxChildren', 'Max children')}
+          {number('defaultChildren', 'Default children')}
+          {number('maxOccupancy', 'Total guests')}
         </div>
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {flag('syncCategoryOnOta', 'Sync Category on OTA')}
-          {flag('excludeFromRevenue', 'Exclude From Revenue')}
-          {flag('excludeFromOccupancy', 'Exclude From Occupancy')}
-          {flag('excludeFromUpgrade', 'Exclude From Upgrade')}
+        <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+          {flag('syncCategoryOnOta', 'Sync category on OTA', 'Publish this category to connected channels')}
+          {flag('excludeFromRevenue', 'Exclude from revenue', 'Left out of revenue reports')}
+          {flag('excludeFromOccupancy', 'Exclude from occupancy', 'Left out of occupancy figures')}
+          {flag('excludeFromUpgrade', 'Exclude from upgrade', 'Not offered as an upgrade')}
         </div>
       </Section>
 
       <Section
-        title="Meal Plan(s)"
+        icon={Lucide.Utensils}
+        title="Meal Plans"
         editing={meals.draft !== null}
         saving={meals.saving}
         canEdit={canEdit}
@@ -337,20 +343,17 @@ export function RoomCategoryDetails({
         onCancel={meals.cancel}
         onSave={() => void meals.commit()}
       >
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
           {MEAL_PLANS.map(({ key, description }) => (
-            <label key={key} className="flex cursor-pointer items-center gap-2.5 text-label font-medium text-ink">
-              <Checkbox
-                type="checkbox"
-                checked={mealPlans.includes(key)}
-                onChange={(e) =>
-                  meals.setDraft(e.target.checked ? [...mealPlans, key] : mealPlans.filter((plan) => plan !== key))
-                }
-              />
-              <span>
-                <span className="font-bold">{key}</span> <span className="font-normal text-ink-secondary">- {description}</span>
-              </span>
-            </label>
+            <ToggleRow
+              key={key}
+              label={key}
+              description={description}
+              checked={mealPlans.includes(key)}
+              onChange={(checked) =>
+                meals.setDraft(checked ? [...mealPlans, key] : mealPlans.filter((plan) => plan !== key))
+              }
+            />
           ))}
         </div>
       </Section>

@@ -5,14 +5,19 @@ import type { PropertyTermsDetails } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
-import { Button, Checkbox, TextArea } from '../../components/primitives';
+import { TextArea } from '../../components/primitives';
+import { Field } from '../../components/controls';
+import { Card, CardTitle } from '../../components/ui';
 import { PanelLoadState } from '../../components/Skeleton';
+import { ReadOnlyNotice, SettingsHeader, ToggleRow, UnsavedBar } from './SettingsKit';
 
 const MAX_LENGTH = 10_000;
 
 interface TermsBlock {
   enabledKey: 'includeInclusions' | 'includeBookingTerms' | 'includeCheckInTerms';
   textKey: 'inclusions' | 'bookingTerms' | 'checkInTerms';
+  title: string;
+  icon: Lucide.LucideIcon;
   /** The sentence beside the checkbox. */
   switchLabel: string;
   /** The label above the editor once the box is checked. */
@@ -23,18 +28,24 @@ const BLOCKS: TermsBlock[] = [
   {
     enabledKey: 'includeInclusions',
     textKey: 'inclusions',
+    title: 'Inclusions',
+    icon: Lucide.Gift,
     switchLabel: 'Add Standard/Common complimentary inclusions.',
     editorLabel: 'Define the inclusions:',
   },
   {
     enabledKey: 'includeBookingTerms',
     textKey: 'bookingTerms',
+    title: 'Booking Terms & Conditions',
+    icon: Lucide.ScrollText,
     switchLabel: 'Add Standard/Common Terms & Conditions while booking a room at your property.',
     editorLabel: 'Define Standard/Common Terms & Conditions:',
   },
   {
     enabledKey: 'includeCheckInTerms',
     textKey: 'checkInTerms',
+    title: 'Check-in Terms & Conditions',
+    icon: Lucide.KeyRound,
     switchLabel: 'Add Standard/Common Terms & Conditions to show while check in at your property.',
     editorLabel: 'Define Standard/Common Check-in Terms & Conditions:',
   },
@@ -63,7 +74,10 @@ function TermsForm({
   onSaved: () => void;
 }) {
   const [form, setForm] = useState<FormState>(() => toForm(terms));
+  // What the server holds; the form is dirty while it differs from this.
+  const [baseline, setBaseline] = useState<FormState>(() => toForm(terms));
   const [saving, setSaving] = useState(false);
+  const dirty = JSON.stringify(form) !== JSON.stringify(baseline);
 
   const handleSave = async () => {
     const empty = BLOCKS.find((block) => form[block.enabledKey] && form[block.textKey].trim() === '');
@@ -81,7 +95,9 @@ function TermsForm({
         includeCheckInTerms: form.includeCheckInTerms,
         checkInTerms: form.checkInTerms.trim(),
       });
-      setForm(toForm(saved));
+      const next = toForm(saved);
+      setForm(next);
+      setBaseline(next);
       onSaved();
       toast('Terms and inclusions saved', { tone: 'success' });
     } catch (err) {
@@ -92,71 +108,44 @@ function TermsForm({
   };
 
   return (
-    <fieldset
-      disabled={!canEdit}
-      title={canEdit ? undefined : 'Only administrators can change these terms'}
-      className="m-0 min-w-0 border-0 p-0"
-    >
-      <section
-        className="rounded-2xl border p-5 shadow-sm sm:p-6"
-        style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
-      >
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-divider pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/20">
-              <Lucide.ScrollText size={17} strokeWidth={2.4} />
-            </div>
-            <h2 className="text-title font-bold tracking-tight text-ink">General Terms and Conditions</h2>
-          </div>
-          <Button
-            variant="primary"
-            type="button"
-            onClick={() => void handleSave()}
-            disabled={saving || !canEdit}
-            className="w-fit disabled:opacity-50"
-          >
-            Save Changes
-          </Button>
-        </div>
+    <fieldset disabled={!canEdit} className="m-0 min-w-0 border-0 p-0">
+      <div className="flex flex-col gap-5">
+        <SettingsHeader title="Terms and Inclusions" description="Standard text shown to guests when they book and when they check in" />
+        {!canEdit ? <ReadOnlyNotice what="these terms" /> : null}
 
-        <div className="flex flex-col gap-5">
-          {BLOCKS.map((block) => {
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:items-start">
+          {BLOCKS.map((block, index) => {
             const enabled = form[block.enabledKey];
             const text = form[block.textKey];
             return (
-              <div key={block.enabledKey} className="flex flex-col gap-3">
-                <label className="flex cursor-pointer items-start gap-2.5 text-body font-medium text-ink">
-                  <Checkbox
-                    type="checkbox"
+              <Card key={block.enabledKey} className={index === 0 ? 'xl:col-span-2' : ''}>
+                <CardTitle icon={block.icon} title={block.title} />
+                <div className="flex flex-col gap-3">
+                  <ToggleRow
+                    label={block.switchLabel}
                     checked={enabled}
-                    onChange={(e) => setForm((prev) => ({ ...prev, [block.enabledKey]: e.target.checked }))}
-                    className="mt-0.5"
+                    onChange={(checked) => setForm((prev) => ({ ...prev, [block.enabledKey]: checked }))}
                   />
-                  <span>{block.switchLabel}</span>
-                </label>
-
-                {enabled ? (
-                  <div className="ml-7">
-                    <label className="mb-1.5 block text-label font-medium text-ink">
-                      {block.editorLabel}
+                  {enabled ? (
+                    <Field label={block.editorLabel.replace(/:$/, '')} hint={`${text.length.toLocaleString('en-US')} / ${MAX_LENGTH.toLocaleString('en-US')} characters`}>
                       <TextArea
                         rows={6}
                         value={text}
                         onChange={(e) => setForm((prev) => ({ ...prev, [block.textKey]: e.target.value.slice(0, MAX_LENGTH) }))}
-                        className="mt-1.5 w-full font-normal focus:outline-none focus:ring-2"
-                        style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+                        className="min-h-[140px] font-normal"
                       />
-                    </label>
-                    <p className="text-right text-label text-ink-secondary">
-                      Characters: {text.length} / {MAX_LENGTH}
-                    </p>
-                  </div>
-                ) : null}
-              </div>
+                    </Field>
+                  ) : null}
+                </div>
+              </Card>
             );
           })}
         </div>
-      </section>
+
+        {canEdit ? (
+          <UnsavedBar dirty={dirty} saving={saving} onSave={() => void handleSave()} onDiscard={() => setForm(baseline)} />
+        ) : null}
+      </div>
     </fieldset>
   );
 }

@@ -222,12 +222,10 @@ export function Invoices() {
         {open ? (
           <div className="flex flex-col gap-4">
             <div
-              className="rounded-2xl border p-5 shadow-xs"
-              style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+              className="rounded-2xl border p-5 shadow-xs border-border bg-surface"
             >
               <div
-                className="flex flex-wrap items-start justify-between gap-3 border-b pb-4"
-                style={{ borderColor: 'var(--color-border)' }}
+                className="flex flex-wrap items-start justify-between gap-3 border-b pb-4 border-border"
               >
                 <div>
                   <p className="text-disp2 font-bold text-ink">
@@ -261,7 +259,7 @@ export function Invoices() {
                 </div>
               </div>
 
-              <div className="pms-table-scroll overflow-x-auto rounded-xl border mt-2" style={{ borderColor: 'var(--color-border)' }}>
+              <div className="pms-table-scroll overflow-x-auto rounded-xl border mt-2 border-border">
                 <table className="pms-table">
                   <thead>
                     <tr>
@@ -283,8 +281,7 @@ export function Invoices() {
               </div>
 
               <div
-                className="pms-summary-row mt-4 border-t pt-3"
-                style={{ borderColor: 'var(--color-border)' }}
+                className="pms-summary-row mt-4 border-t pt-3 border-border"
               >
                 <span className="font-bold text-title text-ink">Total Invoiced</span>
                 <span className="tnum text-disp3 font-bold text-ink">

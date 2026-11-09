@@ -39,18 +39,15 @@ export function LoginPage() {
 
   return (
     <div
-      className="relative flex h-dvh max-h-dvh min-h-dvh w-full flex-col justify-between overflow-hidden p-3 sm:p-5 lg:p-6 select-none"
-      style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}
+      className="relative flex h-dvh max-h-dvh min-h-dvh w-full flex-col justify-between overflow-hidden p-3 sm:p-5 lg:p-6 select-none bg-page text-ink"
     >
       {/* Background luxury ambient glow */}
       <div
-        className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full opacity-20 blur-3xl"
-        style={{ background: 'var(--color-primary)' }}
+        className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full opacity-20 blur-3xl bg-primary"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute -bottom-20 -right-20 h-72 w-72 rounded-full opacity-15 blur-3xl"
-        style={{ background: 'var(--color-primary)' }}
+        className="pointer-events-none absolute -bottom-20 -right-20 h-72 w-72 rounded-full opacity-15 blur-3xl bg-primary"
         aria-hidden="true"
       />
 
@@ -59,11 +56,7 @@ export function LoginPage() {
         {/* Brand mark */}
         <div className="flex items-center gap-2.5">
           <div
-            className="flex h-8 w-8 items-center justify-center rounded-xl font-brand text-disp2 font-bold shadow-xs transition-transform hover:scale-105 sm:h-9 sm:w-9"
-            style={{
-              background: 'var(--color-primary)',
-              color: 'var(--color-primary-foreground)',
-            }}
+            className="flex h-8 w-8 items-center justify-center rounded-xl font-brand text-disp2 font-bold shadow-xs transition-transform hover:scale-105 sm:h-9 sm:w-9 bg-primary text-primary-foreground"
           >
             T
           </div>
@@ -157,11 +150,7 @@ export function LoginPage() {
             {/* Mobile-only brand badge */}
             <div className="mb-2.5 flex items-center gap-2 lg:hidden">
               <div
-                className="flex h-7 w-7 items-center justify-center rounded-lg font-brand text-body font-bold"
-                style={{
-                  background: 'var(--color-primary)',
-                  color: 'var(--color-primary-foreground)',
-                }}
+                className="flex h-7 w-7 items-center justify-center rounded-lg font-brand text-body font-bold bg-primary text-primary-foreground"
               >
                 T
               </div>

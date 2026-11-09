@@ -1,14 +1,17 @@
 import { useCallback, useState } from 'react';
-import type { ReactNode } from 'react';
+import * as Lucide from 'lucide-react';
 import { postMasterSettingsApi } from '../../lib/api/pms';
 import type { PostMasterSettingsDetails } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
-import { Button, TextField } from '../../components/primitives';
+import { TextField } from '../../components/primitives';
+import { Field } from '../../components/controls';
 import { PanelLoadState } from '../../components/Skeleton';
+import { FormSection, ReadOnlyNotice, SettingsHeader, UnsavedBar } from './SettingsKit';
 
 type LimitKey = keyof PostMasterSettingsDetails;
+type LimitForm = Record<LimitKey, string>;
 
 interface LimitField {
   key: LimitKey;
@@ -17,24 +20,25 @@ interface LimitField {
 }
 
 const PROPERTY_LEVEL: LimitField[] = [
-  { key: 'maxOpenPmReservations', label: 'Max Number of Open PM Reservations :', max: 100_000 },
-  { key: 'pmOpenTotalGrossAmount', label: 'PM Open Total Gross Amount :', max: 2_000_000_000 },
+  { key: 'maxOpenPmReservations', label: 'Max number of open PM reservations', max: 100_000 },
+  { key: 'pmOpenTotalGrossAmount', label: 'PM open total gross amount', max: 2_000_000_000 },
 ];
 
 const RESERVATION_LEVEL: LimitField[] = [
-  { key: 'maxRooms', label: 'Max Number of Rooms :', max: 10_000 },
-  { key: 'maxNights', label: 'Max Number of Nights :', max: 3_650 },
-  { key: 'maxRoomNights', label: 'Max Number of Room Nights :', max: 1_000_000 },
-  { key: 'maxReservationGrossAmount', label: 'Max Reservation Gross Amount :', max: 2_000_000_000 },
+  { key: 'maxRooms', label: 'Max number of rooms', max: 10_000 },
+  { key: 'maxNights', label: 'Max number of nights', max: 3_650 },
+  { key: 'maxRoomNights', label: 'Max number of room nights', max: 1_000_000 },
+  { key: 'maxReservationGrossAmount', label: 'Max reservation gross amount', max: 2_000_000_000 },
 ];
 
-function Heading({ children }: { children: ReactNode }) {
-  return (
-    <h2 className="border-b pb-2 text-disp3 font-medium text-ink" style={{ borderColor: 'var(--color-border-subtle)' }}>
-      {children}
-    </h2>
-  );
-}
+const toForm = (s: PostMasterSettingsDetails): LimitForm => ({
+  maxOpenPmReservations: String(s.maxOpenPmReservations),
+  pmOpenTotalGrossAmount: String(s.pmOpenTotalGrossAmount),
+  maxRooms: String(s.maxRooms),
+  maxNights: String(s.maxNights),
+  maxRoomNights: String(s.maxRoomNights),
+  maxReservationGrossAmount: String(s.maxReservationGrossAmount),
+});
 
 function PostMasterForm({
   propertyId,
@@ -45,22 +49,18 @@ function PostMasterForm({
   settings: PostMasterSettingsDetails;
   canEdit: boolean;
 }) {
-  const [form, setForm] = useState<Record<LimitKey, string>>(() => ({
-    maxOpenPmReservations: String(settings.maxOpenPmReservations),
-    pmOpenTotalGrossAmount: String(settings.pmOpenTotalGrossAmount),
-    maxRooms: String(settings.maxRooms),
-    maxNights: String(settings.maxNights),
-    maxRoomNights: String(settings.maxRoomNights),
-    maxReservationGrossAmount: String(settings.maxReservationGrossAmount),
-  }));
+  const [form, setForm] = useState<LimitForm>(() => toForm(settings));
+  // What the server holds; the form is dirty while it differs from this.
+  const [baseline, setBaseline] = useState<LimitForm>(() => toForm(settings));
   const [saving, setSaving] = useState(false);
+  const dirty = JSON.stringify(form) !== JSON.stringify(baseline);
 
   const handleSave = async () => {
     const body: Partial<PostMasterSettingsDetails> = {};
     for (const { key, label, max } of [...PROPERTY_LEVEL, ...RESERVATION_LEVEL]) {
       const n = Number(form[key]);
       if (form[key].trim() === '' || !Number.isInteger(n) || n < 1 || n > max) {
-        toast(`Check ${label.replace(' :', '')}`, { detail: `Use a whole number from 1 to ${max.toLocaleString('en-US')}.`, tone: 'warning' });
+        toast(`Check ${label.toLowerCase()}`, { detail: `Use a whole number from 1 to ${max.toLocaleString('en-US')}.`, tone: 'warning' });
         return;
       }
       body[key] = n;
@@ -68,7 +68,9 @@ function PostMasterForm({
     setSaving(true);
     try {
       const saved = await postMasterSettingsApi.update(propertyId, body);
-      setForm(Object.fromEntries(Object.entries(saved).map(([k, v]) => [k, String(v)])) as Record<LimitKey, string>);
+      const next = toForm(saved);
+      setForm(next);
+      setBaseline(next);
       toast('Post master settings saved', { tone: 'success' });
     } catch (err) {
       toast('Could not save the post master settings', { detail: displayApiError(err), tone: 'danger' });
@@ -77,47 +79,38 @@ function PostMasterForm({
     }
   };
 
-  const rows = (fields: LimitField[]) =>
-    fields.map(({ key, label }) => (
-      <div key={key} className="grid grid-cols-1 items-center gap-2 px-3 py-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-6">
-        <label htmlFor={`pm-${key}`} className="text-body text-ink-secondary">
-          {label}
-        </label>
+  const fields = (list: LimitField[]) =>
+    list.map(({ key, label, max }) => (
+      <Field key={key} label={label} hint={`1 to ${max.toLocaleString('en-US')}`}>
         <TextField
-          id={`pm-${key}`}
           type="number"
+          inputMode="numeric"
           min={1}
+          max={max}
           value={form[key]}
           onChange={(e) => setForm({ ...form, [key]: e.target.value })}
         />
-      </div>
+      </Field>
     ));
 
-  const adminOnly = 'Only administrators can change post master settings';
-
   return (
-    <fieldset disabled={!canEdit} title={canEdit ? undefined : adminOnly} className="m-0 min-w-0 border-0 p-0">
-      <div className="flex w-full max-w-3xl flex-col gap-3">
-        <Heading>Property Level Settings:</Heading>
-        {rows(PROPERTY_LEVEL)}
+    <fieldset disabled={!canEdit} className="m-0 min-w-0 border-0 p-0">
+      <div className="flex flex-col gap-5">
+        <SettingsHeader title="Post Master Settings" description="Limits on open post master reservations and on a single reservation" />
+        {!canEdit ? <ReadOnlyNotice what="post master settings" /> : null}
 
-        <div className="mt-3">
-          <Heading>Per Reservation Level Settings:</Heading>
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:items-start">
+          <FormSection icon={Lucide.Building2} title="Property Level" subtitle="Limits across the whole property">
+            {fields(PROPERTY_LEVEL)}
+          </FormSection>
+          <FormSection icon={Lucide.CalendarRange} title="Per Reservation" subtitle="Limits on a single reservation">
+            {fields(RESERVATION_LEVEL)}
+          </FormSection>
         </div>
-        {rows(RESERVATION_LEVEL)}
 
-        <div className="px-3 pt-2">
-          <Button
-            variant="primary"
-            type="button"
-            onClick={() => void handleSave()}
-            disabled={saving || !canEdit}
-            title={canEdit ? undefined : adminOnly}
-            className="disabled:opacity-50"
-          >
-            Save
-          </Button>
-        </div>
+        {canEdit ? (
+          <UnsavedBar dirty={dirty} saving={saving} onSave={() => void handleSave()} onDiscard={() => setForm(baseline)} />
+        ) : null}
       </div>
     </fieldset>
   );
@@ -128,9 +121,7 @@ export function PostMasterSettingsTab({ propertyId, canEdit }: { propertyId: str
   const resource = useApiResource(load);
 
   if (!resource.data) {
-    return (
-      <PanelLoadState error={resource.error} label="Loading post master settings" />
-    );
+    return <PanelLoadState error={resource.error} label="Loading post master settings" />;
   }
 
   return <PostMasterForm key={propertyId} propertyId={propertyId} settings={resource.data} canEdit={canEdit} />;

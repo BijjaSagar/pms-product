@@ -30,7 +30,7 @@ export function RateRestrictionsPanel({ dates, minStays, maxStays, closedToArriv
 
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="restrictions-title">
-      <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 border-border">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-danger-text to-danger-border text-white shadow-xs shadow-danger-text/20">
             <Lucide.ShieldAlert size={18} strokeWidth={2.4} />
@@ -47,20 +47,20 @@ export function RateRestrictionsPanel({ dates, minStays, maxStays, closedToArriv
 
       <div className="grid gap-3 p-4 sm:grid-cols-3 sm:p-5">
         {counts.map(({ label, count, icon: Icon, tone }) => (
-          <div key={label} className="flex items-center gap-3 rounded-card border p-3.5" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
+          <div key={label} className="flex items-center gap-3 rounded-card border p-3.5 border-border bg-muted-surface">
             <span className="flex h-9 w-9 items-center justify-center rounded-control" style={{ color: `var(--color-${tone}-text)`, background: `var(--color-${tone}-bg)` }}><Icon size={16} /></span>
             <div><div className="tnum text-disp2 font-bold text-ink">{count}</div><div className="text-label text-ink-secondary">{label} dates</div></div>
           </div>
         ))}
       </div>
 
-      <div className="border-t" style={{ borderColor: 'var(--color-divider)' }}>
+      <div className="border-t border-divider">
         <div className="flex items-center justify-between px-4 py-3 sm:px-5">
           <h3 className="text-title font-semibold text-ink">Active rules in this window</h3>
           <span className="text-label text-ink-muted">{restrictions.length} rules</span>
         </div>
         {restrictions.length ? (
-          <ul className="divide-y" style={{ borderColor: 'var(--color-divider)' }}>
+          <ul className="divide-y border-divider">
             {restrictions.map(({ id, date, label, detail, tone, icon: Icon }) => (
               <li key={id} className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
                 <div className="flex min-w-0 items-center gap-3">

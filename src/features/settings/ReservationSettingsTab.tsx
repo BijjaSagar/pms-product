@@ -1,15 +1,14 @@
 import { useCallback, useState } from 'react';
-import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
 import { grcSettingsApi, reservationSettingsApi } from '../../lib/api/pms';
 import type { GrcPrintDetails, ReservationSettingsDetails } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
-import { Button, Checkbox, TextField } from '../../components/primitives';
+import { TextField } from '../../components/primitives';
 import { Field } from '../../components/controls';
-import { Card, CardTitle } from '../../components/ui';
 import { PanelLoadState } from '../../components/Skeleton';
+import { FormSection, ReadOnlyNotice, SettingsHeader, ToggleRow, UnsavedBar } from './SettingsKit';
 
 type FlagKey = 'considerDirtyRoomForParkingLot' | 'softBlockForDoNotMove' | 'allowZeroRateBookings' | 'moveCheckInCheckOutBooking';
 
@@ -34,9 +33,9 @@ interface ReservationForm {
 type TextKey = Exclude<keyof ReservationForm, 'flags'>;
 
 const FLAGS: { key: FlagKey; label: string }[] = [
-  { key: 'considerDirtyRoomForParkingLot', label: 'Consider Dirty Room For Parking Lot' },
+  { key: 'considerDirtyRoomForParkingLot', label: 'Consider dirty room for parking lot' },
   { key: 'softBlockForDoNotMove', label: 'Soft block for do not move' },
-  { key: 'allowZeroRateBookings', label: 'Allow Zero-Rate Bookings' },
+  { key: 'allowZeroRateBookings', label: 'Allow zero-rate bookings' },
   { key: 'moveCheckInCheckOutBooking', label: 'Move check-in/check-out booking' },
 ];
 
@@ -62,15 +61,6 @@ const toForm = (r: ReservationSettingsDetails, g: GrcPrintDetails): ReservationF
   },
 });
 
-function Section({ icon, title, children }: { icon: Lucide.LucideIcon; title: string; children: ReactNode }) {
-  return (
-    <Card>
-      <CardTitle icon={icon} title={title} />
-      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">{children}</div>
-    </Card>
-  );
-}
-
 function ReservationSettingsForm({
   propertyId,
   settings,
@@ -83,10 +73,13 @@ function ReservationSettingsForm({
   canEdit: boolean;
 }) {
   const [form, setForm] = useState<ReservationForm>(() => toForm(settings, grc));
+  // What the server holds; the form is dirty while it differs from this.
+  const [baseline, setBaseline] = useState<ReservationForm>(() => toForm(settings, grc));
   const [saving, setSaving] = useState(false);
+  const dirty = JSON.stringify(form) !== JSON.stringify(baseline);
 
-  const text = (key: TextKey, label: string, opts: { number?: boolean; maxLength?: number } = {}) => (
-    <Field label={label}>
+  const text = (key: TextKey, label: string, opts: { number?: boolean; maxLength?: number; hint?: string } = {}) => (
+    <Field label={label} hint={opts.hint}>
       <TextField
         type={opts.number ? 'number' : 'text'}
         min={opts.number ? 0 : undefined}
@@ -148,7 +141,9 @@ function ReservationSettingsForm({
           postfixNo: n.postfixNo,
         }),
       ]);
-      setForm(toForm(savedSettings, savedGrc));
+      const next = toForm(savedSettings, savedGrc);
+      setForm(next);
+      setBaseline(next);
       toast('Reservation settings saved', { tone: 'success' });
     } catch (err) {
       toast('Could not save the reservation settings', { detail: displayApiError(err), tone: 'danger' });
@@ -157,66 +152,52 @@ function ReservationSettingsForm({
     }
   };
 
-  const adminOnly = 'Only administrators can change reservation settings';
-
   return (
-    <fieldset disabled={!canEdit} title={canEdit ? undefined : adminOnly} className="m-0 min-w-0 border-0 p-0">
+    <fieldset disabled={!canEdit} className="m-0 min-w-0 border-0 p-0">
       <div className="flex flex-col gap-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-title font-bold text-ink">Reservation Settings</h2>
-            <p className="mt-0.5 text-label text-ink-secondary">Numbering, guest ages and booking rules</p>
-          </div>
-          <Button
-            variant="primary"
-            type="button"
-            onClick={() => void handleSave()}
-            disabled={saving || !canEdit}
-            title={canEdit ? undefined : adminOnly}
-            className="w-fit disabled:opacity-50"
-          >
-            Save Changes
-          </Button>
-        </div>
+        <SettingsHeader title="Reservation Settings" description="Numbering, guest ages and booking rules" />
+        {!canEdit ? <ReadOnlyNotice what="reservation settings" /> : null}
 
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:items-start">
-          <Section icon={Lucide.Hash} title="Reservation Numbering">
-            {text('reservationPrefix', 'Reservation Prefix', { maxLength: 20 })}
-            {text('maxReservationNumber', 'Max Reservation Number', { number: true })}
-          </Section>
+          <FormSection icon={Lucide.Hash} title="Reservation Numbering" subtitle="How booking numbers are issued">
+            {text('reservationPrefix', 'Reservation prefix', { maxLength: 20 })}
+            {text('maxReservationNumber', 'Max reservation number', { number: true })}
+          </FormSection>
 
-          <Section icon={Lucide.ClipboardList} title="GRC Numbering">
-            {text('grcPrefix', 'GRC Prefix', { maxLength: 20 })}
-            {text('maxGrcNumber', 'Max GRC Number', { number: true })}
-            {text('grcInfix', 'GRC Infix', { maxLength: 20 })}
-            {text('grcPostfixDigits', 'GRC Postfix Digits', { number: true })}
-          </Section>
+          <FormSection icon={Lucide.ClipboardList} title="GRC Numbering" subtitle="Numbers printed on guest registration cards">
+            {text('grcPrefix', 'GRC prefix', { maxLength: 20 })}
+            {text('maxGrcNumber', 'Max GRC number', { number: true })}
+            {text('grcInfix', 'GRC infix', { maxLength: 20 })}
+            {text('grcPostfixDigits', 'GRC postfix digits', { number: true, hint: '1 to 12 digits' })}
+          </FormSection>
 
-          <Section icon={Lucide.Baby} title="Guest Ages">
+          <FormSection icon={Lucide.Baby} title="Guest Ages" subtitle="Whole years, 0 to 17">
             {text('infantCount', 'Infant count', { number: true })}
             {text('infantDisplayText', 'Infant display text', { maxLength: 20 })}
             {text('infantMinAge', 'Minimum age of infant', { number: true })}
             {text('infantMaxAge', 'Maximum age of infant', { number: true })}
             {text('chargeableChildMinAge', 'Minimum age of chargeable child', { number: true })}
             {text('chargeableChildMaxAge', 'Maximum age of chargeable child', { number: true })}
-          </Section>
+          </FormSection>
 
-          <Section icon={Lucide.CalendarCheck} title="Stay & Booking Rules">
-            {text('daysBetweenCheckInCheckOut', 'Days between Check in and Check out', { number: true })}
-            <div className="flex flex-col gap-3 sm:col-span-2">
+          <FormSection icon={Lucide.CalendarCheck} title="Stay & Booking Rules" subtitle="How bookings and rooms are treated">
+            {text('daysBetweenCheckInCheckOut', 'Days between check-in and check-out', { number: true, hint: '1 to 365 days' })}
+            <div className="flex flex-col gap-2.5 sm:col-span-2">
               {FLAGS.map(({ key, label }) => (
-                <label key={key} className="flex cursor-pointer items-center gap-2.5 text-label font-medium text-ink">
-                  <Checkbox
-                    type="checkbox"
-                    checked={form.flags[key]}
-                    onChange={(e) => setForm({ ...form, flags: { ...form.flags, [key]: e.target.checked } })}
-                  />
-                  <span>{label}</span>
-                </label>
+                <ToggleRow
+                  key={key}
+                  label={label}
+                  checked={form.flags[key]}
+                  onChange={(checked) => setForm({ ...form, flags: { ...form.flags, [key]: checked } })}
+                />
               ))}
             </div>
-          </Section>
+          </FormSection>
         </div>
+
+        {canEdit ? (
+          <UnsavedBar dirty={dirty} saving={saving} onSave={() => void handleSave()} onDiscard={() => setForm(baseline)} />
+        ) : null}
       </div>
     </fieldset>
   );

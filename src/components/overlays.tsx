@@ -103,7 +103,7 @@ export function Modal({
         }}
       >
         <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-1" style={{ background: 'linear-gradient(90deg, var(--color-primary), var(--color-soft))' }} />
-        <div className="flex items-start justify-between gap-3 border-b px-4 py-4 sm:px-5" style={{ borderColor: 'var(--color-border)', background: 'color-mix(in srgb, var(--color-muted-surface) 48%, var(--color-surface))' }}>
+        <div className="flex items-start justify-between gap-3 border-b px-4 py-4 sm:px-5 border-border" style={{ background: 'color-mix(in srgb, var(--color-muted-surface) 48%, var(--color-surface))' }}>
           <div className="min-w-0">
             <h2 className="pms-section-title truncate">{title}</h2>
             {subtitle ? <p className="pms-helper mt-0.5 text-pretty">{subtitle}</p> : null}
@@ -114,7 +114,7 @@ export function Modal({
         </div>
         <div className="overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
         {footer ? (
-          <div className="flex justify-end gap-2 border-t px-4 py-3 sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
+          <div className="flex justify-end gap-2 border-t px-4 py-3 sm:px-5 border-border">
             {footer}
           </div>
         ) : null}
@@ -147,10 +147,10 @@ export function Drawer({
       <aside
         ref={panelRef}
         tabIndex={-1}
-        className="absolute right-0 top-0 flex h-full w-full flex-col border-l sm:max-w-[520px]"
-        style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)', boxShadow: 'var(--shadow-2xl)', maxWidth: 'min(520px, 100vw)' }}
+        className="absolute right-0 top-0 flex h-full w-full flex-col border-l sm:max-w-[520px] bg-surface border-border"
+        style={{ boxShadow: 'var(--shadow-2xl)', maxWidth: 'min(520px, 100vw)' }}
       >
-        <div className="flex items-start justify-between gap-3 border-b px-4 py-4 sm:px-5" style={{ borderColor: 'var(--color-border)', background: 'color-mix(in srgb, var(--color-muted-surface) 48%, var(--color-surface))' }}>
+        <div className="flex items-start justify-between gap-3 border-b px-4 py-4 sm:px-5 border-border" style={{ background: 'color-mix(in srgb, var(--color-muted-surface) 48%, var(--color-surface))' }}>
           <div className="min-w-0">
             <h2 className="pms-section-title truncate">{title}</h2>
             {subtitle ? <p className="pms-helper mt-0.5 text-pretty">{subtitle}</p> : null}
@@ -213,7 +213,7 @@ export function ConfirmDialog({
         </>
       }
     >
-      <p className="text-body" style={{ color: 'var(--color-ink-secondary)' }}>
+      <p className="text-body text-ink-secondary">
         {body}
       </p>
       {note ? <p className="pms-helper mt-2">{note}</p> : null}

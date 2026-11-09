@@ -35,7 +35,7 @@ export function BulkUpdatePanel({ startDate, endDate, onApply }: Props) {
 
   return (
     <section className="pms-card overflow-hidden" aria-labelledby="bulk-update-title">
-      <div className="flex items-center gap-2.5 border-b px-4 py-4 sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="flex items-center gap-2.5 border-b px-4 py-4 sm:px-5 border-border">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
           <Lucide.Edit3 size={18} strokeWidth={2.4} />
         </div>
@@ -58,13 +58,13 @@ export function BulkUpdatePanel({ startDate, endDate, onApply }: Props) {
           <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">
             Minimum stay override <span className="relative"><TextField type="number" min={1} max={30} value={minStay} onChange={(event) => setMinStay(event.target.value)} placeholder="No change" className={`${inputClass('')}`} /><span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted">nights</span></span>
           </label>
-          <label className="flex items-center gap-2.5 rounded-control border p-3 text-label font-medium text-ink sm:col-span-2" style={{ borderColor: 'var(--color-border)' }}>
+          <label className="flex items-center gap-2.5 rounded-control border p-3 text-label font-medium text-ink sm:col-span-2 border-border">
             <Checkbox type="checkbox" checked={weekendsOnly} onChange={(event) => setWeekendsOnly(event.target.checked)} />
             Apply to weekends only
           </label>
           {error && <p className="text-label font-medium text-danger-text sm:col-span-2" role="alert">{error}</p>}
         </div>
-        <aside className="flex flex-col justify-between gap-4 rounded-card border p-4" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
+        <aside className="flex flex-col justify-between gap-4 rounded-card border p-4 border-border bg-muted-surface">
           <div>
             <span className="flex h-10 w-10 items-center justify-center rounded-control bg-primary/10 text-primary"><Lucide.Zap size={18} /></span>
             <h3 className="mt-3 text-title font-semibold text-ink">Preview before applying</h3>
@@ -75,7 +75,7 @@ export function BulkUpdatePanel({ startDate, endDate, onApply }: Props) {
           </Button>
         </aside>
       </form>
-      <div className="flex items-start gap-2 border-t px-4 py-3 text-label text-ink-muted sm:px-5" style={{ borderColor: 'var(--color-divider)' }}>
+      <div className="flex items-start gap-2 border-t px-4 py-3 text-label text-ink-muted sm:px-5 border-divider">
         <Lucide.Info size={14} className="mt-0.5 flex-none text-info-text" />
         <p>Updates change the in-memory demo calendar only. Nothing is sent to a live channel service.</p>
       </div>
