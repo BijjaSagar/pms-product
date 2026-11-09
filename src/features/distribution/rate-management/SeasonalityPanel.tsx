@@ -18,7 +18,7 @@ export function SeasonalityPanel({ seasons, onAdd, onToggleStatus }: Props) {
             <Lucide.SunMedium size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="seasonality-title" className="text-body font-bold text-ink tracking-tight">Seasonal Pricing</h2>
+            <h2 id="seasonality-title" className="text-title font-bold text-ink tracking-tight">Seasonal Pricing</h2>
             <p className="text-label text-ink-muted mt-0.5">Set date-based adjustments for holidays, demand peaks and low seasons</p>
           </div>
         </div>
@@ -40,7 +40,7 @@ export function SeasonalityPanel({ seasons, onAdd, onToggleStatus }: Props) {
                       <Lucide.CalendarRange size={17} />
                     </span>
                     <div className="min-w-0">
-                      <h3 className="truncate text-body font-semibold text-ink">{season.name}</h3>
+                      <h3 className="truncate text-title font-semibold text-ink">{season.name}</h3>
                       <p className="mt-0.5 text-label text-ink-muted">{formatSeasonPeriod(season.startDate, season.endDate)}</p>
                     </div>
                   </div>

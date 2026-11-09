@@ -60,8 +60,8 @@ export function CardTitle({
   badge?: ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider/80">
-      <div className="flex items-center gap-2.5 min-w-0">
+    <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider/80">
+      <div className="flex min-w-0 items-center gap-2.5">
         {Icon ? (
           <div className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl text-white shadow-xs ${iconBg}`}>
             <Icon size={17} strokeWidth={2.4} />
@@ -69,7 +69,7 @@ export function CardTitle({
         ) : null}
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-body font-bold text-ink tracking-tight">{title}</h2>
+            <h2 className="text-title font-bold text-ink tracking-tight">{title}</h2>
             {badge}
           </div>
           {subtitle ? <p className="text-label text-ink-muted mt-0.5">{subtitle}</p> : null}

@@ -272,7 +272,7 @@ export function RateManagement() {
   ];
 
   return (
-    <div className="flex w-full flex-col gap-5 pb-8">
+    <div className="pms-page">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20 mt-0.5">
@@ -391,7 +391,7 @@ export function RateManagement() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-2.5">
                         <span className="flex h-9 w-9 flex-none items-center justify-center rounded-control bg-primary/10 text-primary"><Lucide.Tag size={16} /></span>
-                        <div className="min-w-0"><p className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Selected rate plan</p><h2 id="selected-plan-title" className="mt-0.5 truncate text-body font-bold text-ink">{selectedPlan.name}</h2></div>
+                        <div className="min-w-0"><p className="text-micro font-semibold uppercase tracking-wider text-ink-muted">Selected rate plan</p><h2 id="selected-plan-title" className="mt-0.5 truncate text-title font-bold text-ink">{selectedPlan.name}</h2></div>
                       </div>
                       <span className={`tnum rounded-full px-2.5 py-1 text-label font-bold ${selectedPlan.adjustmentPct < 0 ? 'bg-success-bg text-success-text' : selectedPlan.adjustmentPct > 0 ? 'bg-warning-bg text-warning-text' : 'bg-muted-surface text-ink-secondary'}`}>{selectedPlan.adjustmentPct > 0 ? '+' : ''}{selectedPlan.adjustmentPct}%</span>
                     </div>

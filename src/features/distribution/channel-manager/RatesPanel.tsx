@@ -29,7 +29,7 @@ export function RatesPanel({ channels, performance, channelFilter, onChannelFilt
             <Lucide.TrendingUp size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="channel-performance-title" className="text-body font-bold text-ink tracking-tight">Channel Performance</h2>
+            <h2 id="channel-performance-title" className="text-title font-bold text-ink tracking-tight">Channel Performance</h2>
             <p className="text-label text-ink-muted mt-0.5">Booking contribution and channel revenue · last 30 days</p>
           </div>
         </div>

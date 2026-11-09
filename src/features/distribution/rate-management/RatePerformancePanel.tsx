@@ -28,7 +28,7 @@ export function RatePerformancePanel() {
             <Lucide.LineChart size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="rate-performance-title" className="text-body font-bold text-ink tracking-tight">Rate Performance</h2>
+            <h2 id="rate-performance-title" className="text-title font-bold text-ink tracking-tight">Rate Performance</h2>
             <p className="text-label text-ink-muted mt-0.5">Rate and occupancy outlook · next 14 days</p>
           </div>
         </div>

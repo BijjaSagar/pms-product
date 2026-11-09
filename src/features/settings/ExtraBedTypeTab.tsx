@@ -7,6 +7,7 @@ import { toast } from '../../utils/toast';
 import { Checkbox } from '../../components/primitives';
 import { Card, CardTitle, TableContainer } from '../../components/ui';
 import { RoomPicker } from './RoomPicker';
+import { TableStateRows } from '../../components/Skeleton';
 
 /** The extra bed table of one room. Keyed by room, so a new room starts clean. */
 function RoomExtraBedTypes({ propertyId, roomId, canEdit }: { propertyId: string; roomId: string; canEdit: boolean }) {
@@ -56,11 +57,7 @@ function RoomExtraBedTypes({ propertyId, roomId, canEdit }: { propertyId: string
                 </tr>
               ))
             ) : (
-              <tr>
-                <td colSpan={2} className="py-8 text-center text-label text-ink-muted">
-                  {resource.error ?? 'Loading bed types…'}
-                </td>
-              </tr>
+              <TableStateRows cols={2} loading={resource.loading} error={resource.error} empty="No records yet." />
             )}
           </tbody>
         </table>

@@ -8,6 +8,7 @@ import { toast } from '../../utils/toast';
 import { Checkbox } from '../../components/primitives';
 import { Card, CardTitle, TableContainer } from '../../components/ui';
 import { RoomPicker } from './RoomPicker';
+import { TableStateRows } from '../../components/Skeleton';
 
 const SMOKING_POLICIES: { key: SmokingPolicyKey; name: string }[] = [
   { key: 'ALL_NON_SMOKING', name: 'All rooms non smoking' },
@@ -113,11 +114,7 @@ function RoomAmenities({ propertyId, roomId, canEdit }: { propertyId: string; ro
                     );
                   })
                 ) : (
-                  <tr>
-                    <td colSpan={3} className="py-8 text-center text-label text-ink-muted">
-                      {resource.error ?? 'Loading amenities…'}
-                    </td>
-                  </tr>
+                  <TableStateRows cols={3} loading={resource.loading} error={resource.error} empty="No records yet." />
                 )}
               </tbody>
             </table>

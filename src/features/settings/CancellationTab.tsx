@@ -9,6 +9,7 @@ import { Button, IconButton, TextField } from '../../components/primitives';
 import { Field } from '../../components/controls';
 import { Modal } from '../../components/overlays';
 import { Card, CardTitle, TableContainer } from '../../components/ui';
+import { TableStateRows } from '../../components/Skeleton';
 
 /** What the dialog works on. `id` is null while a new rule is being added. */
 interface RuleForm {
@@ -133,11 +134,7 @@ export function CancellationTab({ propertyId, canEdit }: { propertyId: string; c
                 </tr>
               ))}
               {rules.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="py-8 text-center text-label text-ink-muted">
-                    {resource.error ?? (resource.loading ? 'Loading cancellation rules…' : 'No cancellation rules yet.')}
-                  </td>
-                </tr>
+                <TableStateRows cols={4} loading={resource.loading} error={resource.error} empty="No cancellation rules yet." />
               )}
             </tbody>
           </table>

@@ -1,5 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Header, Sidebar } from './components/layout';
+import { PageSkeleton } from './components/Skeleton';
+import { Header } from './components/layout/Header';
+import { Sidebar } from './components/layout/Sidebar';
 import type { NavTarget } from './config/navigation';
 import { viewPermission } from './config/navigation';
 import { ThemeSwatcher } from './theme/ThemeSwatcher';
@@ -44,22 +46,6 @@ const Reports = lazy(() => import('./features/analytics/ReportsPage').then((m) =
 const Staff = lazy(() => import('./features/staff/StaffPage').then((m) => ({ default: m.Staff })));
 const Settings = lazy(() => import('./features/settings/SettingsPage').then((m) => ({ default: m.Settings })));
 const LoginPage = lazy(() => import('./features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
-
-function PageFallback() {
-  return (
-    <div className="flex flex-col gap-3" aria-busy="true" aria-label="Loading page">
-      <div className="pms-card p-4 sm:p-5">
-        <div className="pms-skeleton h-5 w-40 rounded-full" />
-        <div className="pms-skeleton mt-2 h-4 w-64 max-w-full rounded-full" />
-      </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="pms-card pms-skeleton min-h-[112px] p-4" />
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function Shell() {
   const { me, can } = useAuth();
@@ -113,7 +99,7 @@ function Shell() {
       case 'room-overview':
         return <Rooms initialViewMode="grid" focusId={target.focusId} />;
       case 'room-types':
-        return <Settings initialTab="room-settings" onOpenThemes={() => setSwatcherOpen(true)} />;
+        return <Settings initialTab="room-setup-2" onOpenThemes={() => setSwatcherOpen(true)} />;
       case 'status-board':
         return <Rooms initialViewMode="timeline" />;
       case 'folios':
@@ -166,7 +152,7 @@ function Shell() {
           className="pms-app-scroll flex min-h-0 flex-1 flex-col overflow-x-clip overflow-y-auto"
         >
           <main id="pms-main" tabIndex={-1} key={`${me?.activePropertyId ?? ''}-${view}-${target.focusId ?? ''}-${target.query ?? ''}-${target.draft?.roomNumber ?? ''}-${target.draft?.checkIn ?? ''}`} className={`pms-animate-fade-in mx-auto w-full flex-1 px-4 py-4 lg:px-6 lg:py-6 max-w-[1600px] 2xl:max-w-[1760px]`} style={{ background: 'var(--color-page)' }}>
-            <Suspense fallback={<PageFallback />}>{page}</Suspense>
+            <Suspense fallback={<PageSkeleton />}>{page}</Suspense>
           </main>
           <footer
             className="border-t px-4 py-3.5 lg:px-6"
@@ -235,7 +221,7 @@ function AuthenticatedApp() {
   if (!me) {
     return (
       <>
-        <Suspense fallback={<PageFallback />}>
+        <Suspense fallback={<PageSkeleton />}>
           <LoginPage />
         </Suspense>
         {/* The shell mounts its own Toaster; the login page needs one for sign-in errors. */}

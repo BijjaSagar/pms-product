@@ -7,6 +7,7 @@ import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
 import { TextField } from '../../components/primitives';
 import { Card, CardTitle, TableContainer } from '../../components/ui';
+import { TableStateRows } from '../../components/Skeleton';
 
 type NameField = 'displayName' | 'shortDisplayName';
 
@@ -123,11 +124,7 @@ export function MealPlansTab({ propertyId, canEdit }: { propertyId: string; canE
                 );
               })
             ) : (
-              <tr>
-                <td colSpan={4} className="py-8 text-center text-label text-ink-muted">
-                  {resource.error ?? 'Loading meal plans…'}
-                </td>
-              </tr>
+              <TableStateRows cols={4} loading={resource.loading} error={resource.error} empty="No records yet." />
             )}
           </tbody>
         </table>

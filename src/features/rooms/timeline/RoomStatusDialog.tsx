@@ -93,7 +93,7 @@ export function RoomStatusDialog({
           </dl>
 
           <section aria-labelledby="room-status-change">
-            <h3 id="room-status-change" className="mb-2 text-label font-semibold text-ink">
+            <h3 id="room-status-change" className="mb-2 text-title font-semibold text-ink">
               Change status
             </h3>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">

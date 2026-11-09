@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { Skeleton } from '../../components/Skeleton';
 import * as Lucide from 'lucide-react';
 import { Avatar, Badge, Card, CardTitle } from '../../components/ui';
 import { BarChart, DonutChart } from '../../components/charts';
@@ -8,7 +9,7 @@ import { inputClass } from '../../utils/styling';
 import type { NavTarget } from '../../config/navigation';
 import { auditApi, nightAuditApi, reportsApi } from '../../lib/api/pms';
 import { apiReservationStatus } from '../../lib/api/adapters';
-import { formatCurrency } from '../../lib/api/format';
+import { formatCurrency } from '../../utils/currency';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { useAuth } from '../../features/auth/AuthContext';
 import { newIdempotencyKey, displayApiError, downloadApiFile } from '../../lib/api/client';
@@ -151,7 +152,7 @@ export function Reports({
   const revenue = data?.revenue;
 
   return (
-    <div className="w-full flex flex-col gap-4 text-ink font-sans pb-10">
+    <div className="pms-page">
       {/* ================= 1. PAGE HEADER ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">
@@ -233,7 +234,7 @@ export function Reports({
       {activeTab === 'overview' && (
         <div className="flex flex-col gap-4">
           {/* 4 Executive KPI Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 [&>*]:min-w-0">
             {/* Occupancy Rate */}
             <div
               onClick={() => setActiveTab('occupancy')}
@@ -247,10 +248,10 @@ export function Reports({
               </div>
               <div className="mt-2">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-disp3 font-black text-ink tnum">{occupancy?.occupancyPct ?? 0}%</span>
+                  <span className="text-disp3 font-black text-ink tnum">{occupancy ? `${occupancy.occupancyPct}%` : "—"}</span>
                 </div>
                 <p className="text-label text-ink-muted mt-0.5">
-                  {data?.flash.rooms.ready ?? 10} rooms available tonight
+                  {data?.flash.rooms.ready ?? "—"} rooms available tonight
                 </p>
               </div>
             </div>
@@ -269,11 +270,11 @@ export function Reports({
               <div className="mt-2">
                 <div className="flex items-baseline gap-2">
                   <span className="text-disp3 font-black text-ink tnum">
-                    {revenue ? formatCurrency(Number(revenue.grossRevenue), currencyCode) : '₹1,48,200'}
+                    {revenue ? formatCurrency(Number(revenue.grossRevenue), currencyCode) : <Skeleton className="h-6 w-36" />}
                   </span>
                 </div>
                 <p className="text-label text-ink-muted mt-0.5">
-                  Net collected: {revenue ? formatCurrency(Number(revenue.paymentsNetCollected), currencyCode) : '₹1,24,000'}
+                  Net collected: {revenue ? formatCurrency(Number(revenue.paymentsNetCollected), currencyCode) : <Skeleton className="!inline-block h-3 w-20 align-middle" />}
                 </p>
               </div>
             </div>
@@ -292,14 +293,14 @@ export function Reports({
               <div className="mt-2">
                 <div className="flex items-baseline gap-2">
                   <span className="text-disp3 font-black text-ink tnum">
-                    {revenue ? formatCurrency(Number(revenue.adr), currencyCode) : '₹4,850'}
+                    {revenue ? formatCurrency(Number(revenue.adr), currencyCode) : <Skeleton className="h-6 w-28" />}
                   </span>
                   <span className="text-micro font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md">
                     Target: ₹4,500
                   </span>
                 </div>
                 <p className="text-label text-ink-muted mt-0.5">
-                  RevPAR: {revenue ? formatCurrency(Number(revenue.revpar), currencyCode) : '₹3,298'}
+                  RevPAR: {revenue ? formatCurrency(Number(revenue.revpar), currencyCode) : <Skeleton className="!inline-block h-3 w-16 align-middle" />}
                 </p>
               </div>
             </div>
@@ -318,17 +319,17 @@ export function Reports({
               <div className="mt-2">
                 <div className="flex items-center gap-3">
                   <div>
-                    <span className="text-disp2 font-black text-ink tnum">{data?.flash.arrivals.length ?? 8}</span>
+                    <span className="text-disp2 font-black text-ink tnum">{data?.flash.arrivals.length ?? "—"}</span>
                     <span className="text-micro font-bold text-ink-muted ml-1">Arrivals</span>
                   </div>
                   <span className="text-ink-disabled">/</span>
                   <div>
-                    <span className="text-disp2 font-black text-ink tnum">{data?.flash.departures.length ?? 7}</span>
+                    <span className="text-disp2 font-black text-ink tnum">{data?.flash.departures.length ?? "—"}</span>
                     <span className="text-micro font-bold text-ink-muted ml-1">Departures</span>
                   </div>
                 </div>
                 <p className="text-label text-ink-muted mt-0.5">
-                  {data?.flash.inHouseCount ?? 34} currently in-house
+                  {data?.flash.inHouseCount ?? "—"} currently in-house
                 </p>
               </div>
             </div>
@@ -345,7 +346,7 @@ export function Reports({
                       <Lucide.BarChart3 size={18} strokeWidth={2.4} />
                     </div>
                     <div>
-                      <h2 className="text-body font-bold text-ink tracking-tight">Occupancy & ADR Demand Forecast (14 Days)</h2>
+                      <h2 className="text-title font-bold text-ink tracking-tight">Occupancy & ADR Demand Forecast (14 Days)</h2>
                       <p className="text-label text-ink-muted">Demand forecast and projected Average Daily Rate</p>
                     </div>
                   </div>
@@ -401,7 +402,7 @@ export function Reports({
                     {OCCUPANCY_CHART_DATA.map((item, idx) => (
                       <div key={idx} className="flex flex-col items-center flex-1 h-full justify-end group relative">
                         {/* Tooltip on hover */}
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5 text-micro font-bold bg-ink text-white rounded-md px-1.5 py-0.5 pointer-events-none z-30 whitespace-nowrap shadow-md">
+                        <div className="hidden group-hover:block absolute -top-5 text-micro font-bold bg-ink text-white rounded-md px-1.5 py-0.5 pointer-events-none z-30 whitespace-nowrap shadow-md">
                           {item.day}: {item.occ}% · ₹{item.adr}
                         </div>
                         {/* The bar */}
@@ -456,7 +457,7 @@ export function Reports({
                       <Lucide.BedDouble size={18} strokeWidth={2.4} />
                     </div>
                     <div>
-                      <h2 className="text-body font-bold text-ink tracking-tight">Room Status Breakdown</h2>
+                      <h2 className="text-title font-bold text-ink tracking-tight">Room Status Breakdown</h2>
                       <p className="text-label text-ink-muted">Live operational room allocation</p>
                     </div>
                   </div>
@@ -649,7 +650,7 @@ export function Reports({
           {/* Top Controls Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface rounded-2xl border border-border/90 p-4 shadow-2xs">
             <div>
-              <h2 className="text-body font-bold text-ink tracking-tight flex items-center gap-2">
+              <h2 className="text-title font-bold text-ink tracking-tight flex items-center gap-2">
                 <Lucide.BedDouble className="text-[var(--color-primary)]" size={18} />
                 <span>Occupancy Trends & Utilization</span>
               </h2>
@@ -685,7 +686,7 @@ export function Reports({
           </div>
 
           {/* 4 Occupancy Metric Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3 [&>*]:min-w-0">
             {[
               { label: 'Occupancy Rate', value: occupancy ? `${occupancy.occupancyPct}%` : '—', icon: Lucide.TrendingUp, color: 'text-[var(--color-primary)]', bg: 'bg-primary/10' },
               { label: 'Total Room Nights', value: occupancy?.nights ?? '—', icon: Lucide.Moon, color: 'text-ink', bg: 'bg-muted-surface' },
@@ -793,7 +794,7 @@ export function Reports({
           {/* Top Controls Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface rounded-2xl border border-border/90 p-4 shadow-2xs">
             <div>
-              <h2 className="text-body font-bold text-ink tracking-tight flex items-center gap-2">
+              <h2 className="text-title font-bold text-ink tracking-tight flex items-center gap-2">
                 <Lucide.TrendingUp className="text-success-text" size={18} />
                 <span>Revenue & Financial Analytics</span>
               </h2>
@@ -945,7 +946,7 @@ export function Reports({
           {/* Top Controls Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface rounded-2xl border border-border/90 p-4 shadow-2xs">
             <div>
-              <h2 className="text-body font-bold text-ink tracking-tight flex items-center gap-2">
+              <h2 className="text-title font-bold text-ink tracking-tight flex items-center gap-2">
                 <Lucide.ArrowLeftRight className="text-[var(--color-primary)]" size={18} />
                 <span>Daily Guest Movements Manifest</span>
               </h2>
@@ -1000,7 +1001,7 @@ export function Reports({
           </div>
 
           {/* 4 Movement Metric Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3 [&>*]:min-w-0">
             {[
               { label: 'Expected Arrivals', value: arrivals.length, icon: Lucide.ArrowDownLeft, color: 'text-primary', bg: 'bg-primary/10' },
               { label: 'Expected Departures', value: departures.length, icon: Lucide.ArrowUpRight, color: 'text-warning-text', bg: 'bg-warning-bg' },

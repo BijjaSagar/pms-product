@@ -27,5 +27,6 @@ export function useApiResource<T>(loader: () => Promise<T>, deps: readonly unkno
 
   const current = result?.key === key ? result.data : null;
   const error = failure?.key === key ? failure.message : null;
-  return { data: current, loading: current === null && error === null, error, refresh };
+  // initialLoading is true only until the first response, so a refresh() does not blank a page that is already showing data.
+  return { data: current, loading: current === null && error === null, initialLoading: result === null && error === null, error, refresh };
 }

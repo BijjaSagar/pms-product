@@ -22,7 +22,7 @@ export function ChannelRestrictionsPanel({ settings, onChange }: Props) {
           <Lucide.Sliders size={18} strokeWidth={2.4} />
         </div>
         <div>
-          <h2 id="sync-rules-title" className="text-body font-bold text-ink tracking-tight">Sync Rules</h2>
+          <h2 id="sync-rules-title" className="text-title font-bold text-ink tracking-tight">Sync Rules</h2>
           <p className="text-label text-ink-muted mt-0.5">Choose which property changes are sent to connected channels</p>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CardSkeleton } from '../../../components/Skeleton';
 import * as Lucide from 'lucide-react';
 import type { RoomDetails } from '../../../lib/api/pms';
 import { toast } from '../../../utils/toast';
@@ -7,7 +8,6 @@ import { Field } from '../../../components/controls';
 import { Modal } from '../../../components/overlays';
 import { Card, CardTitle } from '../../../components/ui';
 import type { FloorPlan } from './types';
-import { StatStrip, StatTile } from './RoomSettingsKit';
 import { MAX_FLOORS, MAX_ROOMS_PER_FLOOR, boxKey, parseCount, roomNumber } from './floorPlan';
 
 interface FloorsSectionProps {
@@ -65,11 +65,6 @@ export function FloorsSection({
   const assignedTo = (roomId: string) => drawn.filter((b) => plan.assigned[boxKey(b.floor, b.index)] === roomId).length;
   const roomName = (id: string) => rooms.find((r) => r.id === id)?.name ?? 'Removed room';
 
-  const assignedCount = drawn.filter((b) => {
-    const id = plan.assigned[boxKey(b.floor, b.index)];
-    return id && rooms.some((r) => r.id === id);
-  }).length;
-
   const setFloorRooms = (floor: number, raw: string) =>
     onPlanChange({ ...plan, roomsPerFloor: { ...plan.roomsPerFloor, [floor]: parseCount(raw, MAX_ROOMS_PER_FLOOR) } });
 
@@ -98,25 +93,6 @@ export function FloorsSection({
 
   return (
     <div className="flex flex-col gap-5">
-      <StatStrip>
-        <StatTile label="Floors" icon={Lucide.Layers} tone="info" value={floorCount} caption="In the floor plan" />
-        <StatTile
-          label="Rooms on Plan"
-          icon={Lucide.DoorOpen}
-          tone={overTotal ? 'danger' : 'success'}
-          value={totalRooms ? `${drawn.length} / ${totalRooms}` : drawn.length}
-          caption={totalRooms ? 'Boxes of the property total' : 'Boxes across all floors'}
-        />
-        <StatTile label="Assigned" icon={Lucide.BedDouble} tone="primary" value={assignedCount} caption="Linked to a room offering" />
-        <StatTile
-          label="Unassigned"
-          icon={Lucide.CircleDashed}
-          tone="warning"
-          value={drawn.length - assignedCount}
-          caption="Boxes still to link"
-        />
-      </StatStrip>
-
       <Card>
         <CardTitle
           title="Floor Management"
@@ -243,7 +219,7 @@ export function FloorsSection({
           </ol>
         )}
 
-        {loading && <p className="mt-3 text-label text-ink-muted">Loading rooms…</p>}
+        {loading && <div className="mt-3"><CardSkeleton lines={3} label="Loading rooms" /></div>}
       </Card>
 
       <Modal

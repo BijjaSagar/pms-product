@@ -58,7 +58,7 @@ function Section({
   return (
     <section className="rounded-xl border p-4 sm:p-5" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-divider pb-3">
-        <h3 className="text-body font-bold text-ink">{title}</h3>
+        <h3 className="text-title font-bold text-ink">{title}</h3>
         {editing ? (
           <div className="flex gap-2">
             <Button variant="secondary" type="button" onClick={onCancel} disabled={saving}>

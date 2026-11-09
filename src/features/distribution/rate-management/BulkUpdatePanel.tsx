@@ -40,7 +40,7 @@ export function BulkUpdatePanel({ startDate, endDate, onApply }: Props) {
           <Lucide.Edit3 size={18} strokeWidth={2.4} />
         </div>
         <div>
-          <h2 id="bulk-update-title" className="text-body font-bold text-ink tracking-tight">Bulk Rate Update</h2>
+          <h2 id="bulk-update-title" className="text-title font-bold text-ink tracking-tight">Bulk Rate Update</h2>
           <p className="text-label text-ink-muted mt-0.5">Apply an adjustment to the current rate calendar without editing dates one by one</p>
         </div>
       </div>
@@ -67,7 +67,7 @@ export function BulkUpdatePanel({ startDate, endDate, onApply }: Props) {
         <aside className="flex flex-col justify-between gap-4 rounded-card border p-4" style={{ borderColor: 'var(--color-border)', background: 'var(--color-muted-surface)' }}>
           <div>
             <span className="flex h-10 w-10 items-center justify-center rounded-control bg-primary/10 text-primary"><Lucide.Zap size={18} /></span>
-            <h3 className="mt-3 text-body font-semibold text-ink">Preview before applying</h3>
+            <h3 className="mt-3 text-title font-semibold text-ink">Preview before applying</h3>
             <p className="mt-1 text-label leading-relaxed text-ink-secondary">The percentage is applied to rates in the selected period. Weekend-only mode skips weekdays.</p>
           </div>
           <Button variant="primary" type="submit" className="w-full">

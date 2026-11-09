@@ -93,7 +93,7 @@ export function RateCalendarPanel({
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 id="rate-calendar-title" className="text-body font-bold tracking-tight text-ink">Rate Calendar</h2>
+              <h2 id="rate-calendar-title" className="text-title font-bold tracking-tight text-ink">Rate Calendar</h2>
               <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
@@ -135,17 +135,17 @@ export function RateCalendarPanel({
         <table className="pms-matrix-table min-w-[1120px] w-full border-collapse text-label">
           <thead>
             <tr>
-              <th className="sticky left-0 z-20 min-w-[160px] border-r px-4 py-3 text-left text-micro font-bold uppercase tracking-wider text-ink-muted" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}>
+              <th className="sticky left-0 z-20 min-w-[160px] border-r px-4 py-3 text-left text-label font-bold uppercase tracking-wider text-ink-muted" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}>
                 Rate / restriction
               </th>
               {dates.map((date) => (
                 <th key={date.iso} className={`min-w-[58px] border-r px-1.5 py-2 text-center ${date.isWeekend ? 'bg-danger-bg/50' : ''}`} style={{ borderColor: 'var(--color-divider)' }}>
-                  <span className="block text-micro font-medium text-ink-muted">{date.weekday}</span>
-                  <span className={`mt-0.5 block text-body font-bold ${date.iso === businessDate ? 'text-primary' : 'text-ink'}`}>{date.day}</span>
-                  <span className="block text-micro font-medium text-ink-muted">{date.month}</span>
+                  <span className="block text-label font-medium text-ink-muted">{date.weekday}</span>
+                  <span className={`mt-0.5 block text-label font-bold ${date.iso === businessDate ? 'text-primary' : 'text-ink'}`}>{date.day}</span>
+                  <span className="block text-label font-medium text-ink-muted">{date.month}</span>
                 </th>
               ))}
-              <th className="w-12 px-1 py-2 text-center text-micro font-semibold text-ink-muted">Copy</th>
+              <th className="w-12 px-1 py-2 text-center text-label font-semibold text-ink-muted">Copy</th>
             </tr>
           </thead>
           <tbody>

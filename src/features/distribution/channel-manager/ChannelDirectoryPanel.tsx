@@ -37,7 +37,7 @@ export function ChannelDirectoryPanel({ channels, selectedChannelId, syncingChan
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 id="channel-directory-title" className="text-body font-bold text-ink tracking-tight">Channel Connections</h2>
+              <h2 id="channel-directory-title" className="text-title font-bold text-ink tracking-tight">Channel Connections</h2>
               <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
@@ -84,7 +84,7 @@ export function ChannelDirectoryPanel({ channels, selectedChannelId, syncingChan
                       <span className="min-w-0"><span className="block truncate font-semibold text-ink">{channel.name}</span><span className="mt-0.5 block text-micro uppercase tracking-wider text-ink-muted">{channel.code}</span></span>
                     </ListItem>
                   </td>
-                  <td><span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-micro font-semibold" style={statusStyle}><span className={`h-1.5 w-1.5 rounded-full ${channel.status === 'connected' ? 'bg-success-text' : channel.status === 'error' ? 'bg-danger-text' : 'bg-ink-disabled'}`} />{STATUS_LABEL[channel.status]}</span></td>
+                  <td><span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-label font-semibold" style={statusStyle}><span className={`h-1.5 w-1.5 rounded-full ${channel.status === 'connected' ? 'bg-success-text' : channel.status === 'error' ? 'bg-danger-text' : 'bg-ink-disabled'}`} />{STATUS_LABEL[channel.status]}</span></td>
                   <td className="tnum font-medium">{channel.activeRooms}</td>
                   <td className="tnum font-medium">{channel.bookingsMtd}</td>
                   <td>

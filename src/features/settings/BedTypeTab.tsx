@@ -8,6 +8,7 @@ import { toast } from '../../utils/toast';
 import { Checkbox, TextField } from '../../components/primitives';
 import { Card, CardTitle, TableContainer } from '../../components/ui';
 import { RoomPicker } from './RoomPicker';
+import { TableStateRows } from '../../components/Skeleton';
 
 const MAX_BEDS = 50;
 
@@ -102,11 +103,7 @@ function RoomBedTypes({ propertyId, roomId, canEdit }: { propertyId: string; roo
                 );
               })
             ) : (
-              <tr>
-                <td colSpan={4} className="py-8 text-center text-label text-ink-muted">
-                  {resource.error ?? 'Loading bed types…'}
-                </td>
-              </tr>
+              <TableStateRows cols={4} loading={resource.loading} error={resource.error} empty="No records yet." />
             )}
           </tbody>
         </table>

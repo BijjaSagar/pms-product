@@ -19,7 +19,7 @@ export function ChannelMappingPanel({ channels, connectedChannelIds, plans, onTo
             <Lucide.Globe size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="channel-mapping-title" className="text-body font-bold text-ink tracking-tight">Channel Mapping</h2>
+            <h2 id="channel-mapping-title" className="text-title font-bold text-ink tracking-tight">Channel Mapping</h2>
             <p className="text-label text-ink-muted mt-0.5">Control distribution and review which rate plans are available on each channel</p>
           </div>
         </div>
@@ -38,7 +38,7 @@ export function ChannelMappingPanel({ channels, connectedChannelIds, plans, onTo
                 {/* palette-allow: Booking.com yellow brand contrast check */}
                 <span className="flex h-10 w-10 flex-none items-center justify-center rounded-control text-body font-extrabold shadow-xs" style={{ color: channel.color === '#FFCC00' ? 'var(--color-ink)' : 'var(--color-primary-foreground)', background: channel.color }} aria-hidden="true">{channel.abbreviation}</span>
                 <div className="min-w-0">
-                  <h3 className="truncate text-body font-semibold text-ink">{channel.name}</h3>
+                  <h3 className="truncate text-title font-semibold text-ink">{channel.name}</h3>
                   <p className="mt-0.5 truncate text-label text-ink-muted">{channel.description}</p>
                 </div>
               </div>

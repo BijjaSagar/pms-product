@@ -11,6 +11,7 @@ import { ConfirmDialog } from '../../components/overlays';
 import { useTheme } from '../../theme/useTheme';
 import { PRESET_LIST } from '../../theme/presets';
 import { AuthImage } from './AuthImage';
+import { PanelLoadState } from '../../components/Skeleton';
 
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 const LOGO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -128,7 +129,7 @@ function BrandingForm({
     >
       <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3.5 sm:px-5" style={{ borderColor: 'var(--color-border)' }}>
         <div>
-          <h2 className="text-body font-bold text-ink">Branding</h2>
+          <h2 className="text-title font-bold text-ink">Branding</h2>
           <p className="mt-0.5 text-label text-ink-secondary">How your property appears on the booking engine</p>
         </div>
         <Button
@@ -306,12 +307,7 @@ export function BrandingTab({ propertyId, canEdit, onOpenThemes }: { propertyId:
 
   if (!resource.data) {
     return (
-      <div
-        className="rounded-2xl border p-8 text-center text-body text-ink-secondary shadow-sm"
-        style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
-      >
-        {resource.error ?? 'Loading branding…'}
-      </div>
+      <PanelLoadState error={resource.error} label="Loading branding" />
     );
   }
 

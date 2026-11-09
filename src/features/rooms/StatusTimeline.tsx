@@ -97,7 +97,7 @@ export function StatusTimeline({
     <div className="flex flex-col gap-3.5">
       <section className="pms-card overflow-hidden" aria-label="Room status timeline">
         <header className="flex flex-col gap-1 border-b border-divider px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-          <h2 className="text-body font-semibold text-ink">Room status timeline</h2>
+          <h2 className="text-title font-semibold text-ink">Room status timeline</h2>
           <p className="tnum text-label text-ink-secondary">
             {formatClock(START_HOUR)} – {formatClock(END_HOUR)} · {visibleRows.length} of {rows.length} rooms
           </p>

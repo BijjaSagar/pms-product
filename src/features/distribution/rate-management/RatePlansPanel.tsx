@@ -35,7 +35,7 @@ export function RatePlansPanel({ plans, onCreate, onEdit, onToggleStatus }: Prop
             <Lucide.Layers size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="rate-plans-title" className="text-body font-bold text-ink tracking-tight">Rate Plans</h2>
+            <h2 id="rate-plans-title" className="text-title font-bold text-ink tracking-tight">Rate Plans</h2>
             <p className="text-label text-ink-muted mt-0.5">Manage pricing rules, eligibility and channel distribution</p>
           </div>
         </div>

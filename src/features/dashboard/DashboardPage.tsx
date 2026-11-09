@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { PageSkeleton } from '../../components/Skeleton';
 import * as Lucide from 'lucide-react';
 import type { NavTarget } from '../../config/navigation';
 import { folioApi, frontDeskApi, operationsApi, reportsApi, reservationApi } from '../../lib/api/pms';
@@ -451,8 +452,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
   }, [payments]);
 
 
+  if (resource.initialLoading) return <PageSkeleton />;
+
   return (
-    <div className="w-full text-label text-ink font-sans pb-8 flex flex-col gap-4">
+    <div className="pms-page text-label">
       {/* ================= 1. PAGE HEADER ================= */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Left Welcome Title */}
@@ -479,15 +482,15 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         <div className="lg:col-span-6 bg-surface rounded-2xl border border-border/80 p-5 shadow-xs flex flex-col justify-between h-full">
           <div>
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
                   <Lucide.Clock size={17} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-body font-bold text-ink tracking-tight">Today&apos;s Activity Timeline</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-label font-bold text-success-text border border-success-border/60">
+                    <h2 className="text-title font-bold text-ink tracking-tight">Today&apos;s Activity Timeline</h2>
+                    <span className="flex items-center gap-1 rounded-full bg-success-bg px-1.5 py-px text-micro font-bold text-success-text border border-success-border/60">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
@@ -520,7 +523,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   key={tab.key}
                   type="button"
                   onClick={() => setTimelineTab(tab.key)}
-                  className={`flex-1 min-w-[70px] transition-all cursor-pointer text-center ${timelineTab === tab.key
+                  className={`flex-1 min-w-[70px] text-label transition-all cursor-pointer text-center ${timelineTab === tab.key
  ? 'bg-surface text-ink shadow-2xs border border-border/50'
  : 'text-ink-secondary hover:text-ink'
  }`}
@@ -556,15 +559,15 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         {/* Meta Row: Time, Room, Status, Action */}
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                            <span className="font-mono text-label font-bold text-ink bg-muted-surface/90 border border-border/60 px-2 py-0.5 rounded-md shadow-2xs">
+                            <span className="font-mono text-micro font-bold text-ink bg-muted-surface/90 border border-border/60 px-1.5 py-px rounded-md shadow-2xs">
                               {item.time}
                             </span>
                             {item.room && (
-                              <span className="text-label font-semibold text-ink bg-muted-surface/80 px-2 py-0.5 rounded-md">
+                              <span className="text-micro font-semibold text-ink bg-muted-surface/80 px-1.5 py-px rounded-md">
                                 {item.room}
                               </span>
                             )}
-                            <span className={`inline-flex items-center gap-1 text-label font-bold px-2 py-0.5 rounded-full border ${item.statusTone}`}>
+                            <span className={`inline-flex items-center gap-1 text-micro font-bold px-1.5 py-px rounded-full border ${item.statusTone}`}>
                               {item.status}
                             </span>
                           </div>
@@ -578,7 +581,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                                 go(item.target);
                               }
                             }}
-                            className={`flex-none border shadow-2xs transition-all cursor-pointer hover:shadow-xs active:scale-95 flex items-center gap-1 ${item.actionTone}`}
+                            className={`flex-none text-label border shadow-2xs transition-all cursor-pointer hover:shadow-xs active:scale-95 flex items-center gap-1 ${item.actionTone}`}
                           >
                             <span>{item.actionLabel}</span>
                             <Lucide.ArrowRight size={12} />
@@ -587,7 +590,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
                         {/* Title & Detail */}
                         <div className="mt-1.5">
-                          <h4 className="text-body font-bold text-ink group-hover:text-[var(--color-primary)] transition-colors">
+                          <h4 className="text-label font-bold text-ink group-hover:text-[var(--color-primary)] transition-colors">
                             {item.title}
                           </h4>
                           <p className="text-label text-ink-secondary mt-0.5 truncate">
@@ -626,15 +629,15 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
             <div className="min-w-0">
               {/* Header */}
-              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-success-text to-success-border text-white shadow-xs shadow-success-text/20">
                     <Lucide.DoorOpen size={17} strokeWidth={2.4} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-body font-bold text-ink tracking-tight">Pending Check-ins</h2>
-                      <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-label font-bold text-success-text border border-success-border/60">
+                      <h2 className="text-title font-bold text-ink tracking-tight">Pending Check-ins</h2>
+                      <span className="flex items-center gap-1 rounded-full bg-success-bg px-1.5 py-px text-micro font-bold text-success-text border border-success-border/60">
                         <span className="relative flex h-1.5 w-1.5">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
@@ -682,7 +685,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                               <div className="flex items-center gap-1.5">
                                 <span className="font-semibold text-ink text-label truncate max-w-[130px]">{r.guest}</span>
                                 {r.isVip && (
-                                  <span className="px-1.5 py-0.5 rounded text-label font-semibold bg-primary/10 text-primary border border-primary/30">
+                                  <span className="px-1 py-px rounded text-micro font-semibold bg-primary/10 text-primary border border-primary/30">
                                     VIP
                                   </span>
                                 )}
@@ -693,7 +696,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         </td>
                         <td className="whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
-                            <span className={`font-bold text-label px-2 py-0.5 rounded-md border ${r.room === 'Unassigned'
+                            <span className={`font-bold text-micro px-1.5 py-px rounded-md border ${r.room === 'Unassigned'
                               ? 'text-warning-text bg-warning-bg border-warning-border/80'
                               : 'text-ink bg-muted-surface border-border/60'
                               }`}>
@@ -743,15 +746,15 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
           <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
             <div className="min-w-0">
               {/* Header */}
-              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-warning-text to-warning-border text-white shadow-xs shadow-warning-text/20">
                     <Lucide.DoorClosed size={17} strokeWidth={2.4} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-body font-bold text-ink tracking-tight">Pending Check-outs</h2>
-                      <span className="flex items-center gap-1.5 rounded-full bg-warning-bg px-2.5 py-0.5 text-label font-bold text-warning-text border border-warning-border/60">
+                      <h2 className="text-title font-bold text-ink tracking-tight">Pending Check-outs</h2>
+                      <span className="flex items-center gap-1 rounded-full bg-warning-bg px-1.5 py-px text-micro font-bold text-warning-text border border-warning-border/60">
                         <span className="relative flex h-1.5 w-1.5">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning-text opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-warning-text"></span>
@@ -799,7 +802,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                               <div className="flex items-center gap-1.5">
                                 <span className="font-semibold text-ink text-label truncate max-w-[130px]">{d.guest}</span>
                                 {d.isLateCheckout && (
-                                  <span className="px-1.5 py-0.5 rounded text-label font-semibold bg-primary/10 text-primary border border-primary/30">
+                                  <span className="px-1 py-px rounded text-micro font-semibold bg-primary/10 text-primary border border-primary/30">
                                     Late
                                   </span>
                                 )}
@@ -810,7 +813,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         </td>
                         <td className="whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-label px-2 py-0.5 rounded-md border text-ink bg-muted-surface border-border/60">
+                            <span className="font-bold text-micro px-1.5 py-px rounded-md border text-ink bg-muted-surface border-border/60">
                               Room {d.room}
                             </span>
                             <span className={`inline-flex items-center gap-1 text-label font-medium ${d.status === 'Inspected'
@@ -877,15 +880,15 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div className="min-w-0">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20">
                   <Lucide.CalendarDays size={17} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-body font-bold text-ink tracking-tight">Recent Reservations</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-info-bg px-2.5 py-0.5 text-label font-bold text-info-text border border-info-border/60">
+                    <h2 className="text-title font-bold text-ink tracking-tight">Recent Reservations</h2>
+                    <span className="flex items-center gap-1 rounded-full bg-info-bg px-1.5 py-px text-micro font-bold text-info-text border border-info-border/60">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-info-text opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-info-text"></span>
@@ -941,7 +944,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         <span className="text-label text-ink-secondary block">{r.dates}</span>
                       </td>
                       <td className="whitespace-nowrap text-center">
-                        <Badge tone={r.status === 'Confirmed' ? 'success' : r.status === 'Pending' ? 'warning' : 'neutral'}>
+                        <Badge size="sm" tone={r.status === 'Confirmed' ? 'success' : r.status === 'Pending' ? 'warning' : 'neutral'}>
                           {r.status}
                         </Badge>
                       </td>
@@ -981,15 +984,15 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div className="min-w-0">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
                   <Lucide.ReceiptText size={17} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-body font-bold text-ink tracking-tight">Recent Transactions</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-label font-bold text-primary border border-primary/30">
+                    <h2 className="text-title font-bold text-ink tracking-tight">Recent Transactions</h2>
+                    <span className="flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-px text-micro font-bold text-primary border border-primary/30">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
@@ -1045,7 +1048,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                         <span className="text-label text-ink-secondary block">{p.method}</span>
                       </td>
                       <td className="whitespace-nowrap text-center">
-                        <Badge tone={p.status === 'Paid' ? 'success' : 'warning'}>
+                        <Badge size="sm" tone={p.status === 'Paid' ? 'success' : 'warning'}>
                           {p.status}
                         </Badge>
                       </td>
@@ -1090,15 +1093,15 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         <div className="flex-1 bg-surface rounded-2xl border border-border/80 p-5 shadow-xs flex flex-col justify-between">
           <div>
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-info-text to-info-border text-white shadow-xs shadow-info-text/20">
                   <Lucide.Sparkles size={17} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-body font-bold text-ink tracking-tight">Housekeeping Progress</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-info-bg px-2.5 py-0.5 text-label font-bold text-info-text border border-info-border/60">
+                    <h2 className="text-title font-bold text-ink tracking-tight">Housekeeping Progress</h2>
+                    <span className="flex items-center gap-1 rounded-full bg-info-bg px-1.5 py-px text-micro font-bold text-info-text border border-info-border/60">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-info-text opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-info-text"></span>
@@ -1211,15 +1214,15 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         <div className="flex-1 bg-surface rounded-2xl border border-border/80 p-5 shadow-xs flex flex-col justify-between">
           <div>
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
                   <Lucide.ClipboardList size={17} strokeWidth={2.4} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-body font-bold text-ink tracking-tight">Department Tasks</h2>
-                    <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-label font-bold text-primary border border-primary/30">
+                    <h2 className="text-title font-bold text-ink tracking-tight">Department Tasks</h2>
+                    <span className="flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-px text-micro font-bold text-primary border border-primary/30">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
@@ -1244,7 +1247,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-warning-bg px-2 py-0.5 text-label font-bold text-warning-text">
+                  <span className="rounded-full bg-warning-bg px-1.5 py-px text-micro font-bold text-warning-text">
                     High
                   </span>
                   <Button variant="secondary"
@@ -1267,7 +1270,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-warning-bg px-2 py-0.5 text-label font-bold text-warning-text">
+                  <span className="rounded-full bg-warning-bg px-1.5 py-px text-micro font-bold text-warning-text">
                     Attention
                   </span>
                   <Button variant="secondary"
@@ -1290,7 +1293,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-[var(--color-muted-surface)] px-2 py-0.5 text-label font-bold text-[var(--color-primary)]">
+                  <span className="rounded-full bg-[var(--color-muted-surface)] px-1.5 py-px text-micro font-bold text-[var(--color-primary)]">
                     VIP Elite
                   </span>
                   <Button variant="secondary"

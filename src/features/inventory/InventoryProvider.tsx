@@ -1,4 +1,5 @@
 import { useCallback, useMemo, type ReactNode } from 'react';
+import { CardSkeleton } from '../../components/Skeleton';
 import { store } from '../../data/store';
 import { Button } from '../../components/primitives';
 import { displayApiError } from '../../lib/api/client';
@@ -45,7 +46,7 @@ export function InventoryProvider({ propertyId, children }: { propertyId: string
   if (initial.data === null) {
     return (
       <main className="flex h-dvh items-center justify-center" style={{ background: 'var(--color-page)', color: 'var(--color-ink)' }}>
-        <p className="pms-helper">Loading rooms…</p>
+        <div className="w-full max-w-md px-4"><CardSkeleton lines={4} label="Loading rooms" /></div>
       </main>
     );
   }

@@ -2,7 +2,7 @@ import { Button } from '../../components/primitives';
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import type { NavTarget } from '../../config/navigation';
-import { toast } from '../../utils';
+import { toast } from '../../utils/toast';
 import { Modal } from '../../components/overlays';
 
 interface NightAuditProps {
@@ -52,7 +52,7 @@ export function NightAudit({ go }: NightAuditProps) {
   };
 
   return (
-    <div className="flex flex-col gap-4 pb-10">
+    <div className="pms-page">
       {/* ================= 1. HEADER SECTION ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-start gap-3">
@@ -188,7 +188,7 @@ export function NightAudit({ go }: NightAuditProps) {
       </div>
 
       {/* ================= 3. TOP KPI CARDS ROW (5 CARDS) ================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 [&>*]:min-w-0">
         {/* KPI 1: Occupied Rooms */}
         <div
           className="rounded-xl border p-3 shadow-xs flex items-center gap-3 transition-all"
@@ -291,7 +291,7 @@ export function NightAudit({ go }: NightAuditProps) {
                   <Lucide.ShieldAlert size={17} strokeWidth={2.4} />
                 </div>
                 <div>
-                  <h2 className="text-body font-bold text-ink tracking-tight">
+                  <h2 className="text-title font-bold text-ink tracking-tight">
                     Pre-Audit Checklist
                   </h2>
                   <p className="text-label text-ink-muted mt-0.5">
@@ -458,13 +458,13 @@ export function NightAudit({ go }: NightAuditProps) {
           style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
         >
           <div>
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
                   <Lucide.BarChart2 size={17} strokeWidth={2.4} />
                 </div>
                 <div>
-                  <h2 className="text-body font-bold text-ink tracking-tight">
+                  <h2 className="text-title font-bold text-ink tracking-tight">
                     Audit Summary <span className="font-normal text-label text-ink-muted">(Oct 14, 2026)</span>
                   </h2>
                   <p className="text-label text-ink-muted mt-0.5">End-of-day operational totals</p>
@@ -567,7 +567,7 @@ export function NightAudit({ go }: NightAuditProps) {
         >
           <div>
             <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
-              <h3 className="font-bold text-label sm:text-body text-ink">
+              <h3 className="font-bold text-title text-ink">
                 In-House Guests with Balance
               </h3>
               <Button variant="link"
@@ -637,7 +637,7 @@ export function NightAudit({ go }: NightAuditProps) {
         >
           <div>
             <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
-              <h3 className="font-bold text-label sm:text-body text-ink">
+              <h3 className="font-bold text-title text-ink">
                 Pending Payments
               </h3>
               <Button variant="link"
@@ -686,7 +686,7 @@ export function NightAudit({ go }: NightAuditProps) {
         >
           <div>
             <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
-              <h3 className="font-bold text-label sm:text-body text-ink">
+              <h3 className="font-bold text-title text-ink">
                 Recent Audit History
               </h3>
               <Button variant="link"
@@ -864,7 +864,7 @@ export function NightAudit({ go }: NightAuditProps) {
 
               {auditStep === 1 && (
                 <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface" style={{ borderColor: 'var(--color-border)' }}>
-                  <h4 className="font-bold text-body text-ink">Step 1: Pre-Audit Validation</h4>
+                  <h4 className="font-bold text-title text-ink">Step 1: Pre-Audit Validation</h4>
                   <p className="text-ink-secondary leading-relaxed">
                     Checking departures, arrivals, in-house guest folios, and housekeeping room synchronization.
                   </p>
@@ -887,7 +887,7 @@ export function NightAudit({ go }: NightAuditProps) {
 
               {auditStep === 2 && (
                 <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface" style={{ borderColor: 'var(--color-border)' }}>
-                  <h4 className="font-bold text-body text-ink">Step 2: Post Room &amp; Recurring Charges</h4>
+                  <h4 className="font-bold text-title text-ink">Step 2: Post Room &amp; Recurring Charges</h4>
                   <p className="text-ink-secondary leading-relaxed">
                     Automated posting engine will apply room tariff, GST, and daily recurring package charges across all 68 occupied guest rooms.
                   </p>
@@ -900,7 +900,7 @@ export function NightAudit({ go }: NightAuditProps) {
 
               {auditStep === 3 && (
                 <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface" style={{ borderColor: 'var(--color-border)' }}>
-                  <h4 className="font-bold text-body text-ink">Step 3: Settle &amp; Verify Ledgers</h4>
+                  <h4 className="font-bold text-title text-ink">Step 3: Settle &amp; Verify Ledgers</h4>
                   <p className="text-ink-secondary leading-relaxed">
                     Balancing the Guest Ledger, City Ledger, and Deposit Ledger against payments captured today.
                   </p>
@@ -919,7 +919,7 @@ export function NightAudit({ go }: NightAuditProps) {
 
               {auditStep === 4 && (
                 <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface" style={{ borderColor: 'var(--color-border)' }}>
-                  <h4 className="font-bold text-body text-ink">Step 4: Roll Over Business Date</h4>
+                  <h4 className="font-bold text-title text-ink">Step 4: Roll Over Business Date</h4>
                   <p className="text-ink-secondary leading-relaxed">
                     Final lock of financial transactions for <strong>Oct 14, 2026</strong>. System will advance the PMS operating date to <strong>Wednesday, Oct 15, 2026</strong>.
                   </p>
@@ -937,7 +937,7 @@ export function NightAudit({ go }: NightAuditProps) {
               <div className="w-14 h-14 rounded-full bg-success-bg text-success-text flex items-center justify-center">
                 <Lucide.CheckCircle2 size={32} />
               </div>
-              <h3 className="font-extrabold text-body text-ink">Night Audit Completed!</h3>
+              <h3 className="font-extrabold text-title text-ink">Night Audit Completed!</h3>
               <p className="text-ink-secondary max-w-sm text-label leading-relaxed">
                 The business day has been successfully closed. All room charges have posted, ledger accounts are balanced, and the system business date has advanced to <strong>Wednesday, Oct 15, 2026</strong>.
               </p>

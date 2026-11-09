@@ -9,6 +9,7 @@ import { toast } from '../../utils/toast';
 import { Button, Checkbox, TextField } from '../../components/primitives';
 import { Field } from '../../components/controls';
 import { Card, CardTitle } from '../../components/ui';
+import { PanelLoadState } from '../../components/Skeleton';
 
 type FlagKey = 'considerDirtyRoomForParkingLot' | 'softBlockForDoNotMove' | 'allowZeroRateBookings' | 'moveCheckInCheckOutBooking';
 
@@ -163,7 +164,7 @@ function ReservationSettingsForm({
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-body font-bold text-ink">Reservation Settings</h2>
+            <h2 className="text-title font-bold text-ink">Reservation Settings</h2>
             <p className="mt-0.5 text-label text-ink-secondary">Numbering, guest ages and booking rules</p>
           </div>
           <Button
@@ -230,12 +231,7 @@ export function ReservationSettingsTab({ propertyId, canEdit }: { propertyId: st
 
   if (!resource.data) {
     return (
-      <div
-        className="rounded-2xl border p-8 text-center text-body text-ink-secondary shadow-sm"
-        style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
-      >
-        {resource.error ?? 'Loading reservation settings…'}
-      </div>
+      <PanelLoadState error={resource.error} label="Loading reservation settings" />
     );
   }
 

@@ -22,7 +22,7 @@ export function MappingPanel({ mappings, channels, onChange, onAdd, onSave }: Pr
             <Lucide.GitMerge size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="mapping-title" className="text-body font-bold text-ink tracking-tight">Room & Rate Mapping</h2>
+            <h2 id="mapping-title" className="text-title font-bold text-ink tracking-tight">Room & Rate Mapping</h2>
             <p className="text-label text-ink-muted mt-0.5">Match internal inventory and rate plans to each channel’s product codes</p>
           </div>
         </div>
