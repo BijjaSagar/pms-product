@@ -2,20 +2,12 @@
 @import './theme/tokens.css';
 
 
-/* Responsive type scale. One ladder for every page; bands match the layout
-   breakpoints: phone <768, tablet 768-1023, desktop 1024-1439, large 1440+. */
+/* One fixed type ladder for every page and breakpoint: micro 10 (badges),
+   label 12 (tables, helpers, controls), body 13, title 14 (section headings),
+   disp2/disp3 (KPI values, page titles). */
 :root {
-  --fs-micro: 10px; --fs-label: 12px; --fs-body: 14px;
-  --fs-title: 16px; --fs-disp2: 20px; --fs-disp3: 24px;
-}
-@media (min-width: 768px) and (max-width: 1023px) {
-  :root { --fs-label: 11px; --fs-body: 13px; --fs-title: 15px; --fs-disp2: 18px; --fs-disp3: 22px; }
-}
-@media (min-width: 1024px) and (max-width: 1439px) {
-  :root { --fs-label: 11px; --fs-body: 12px; --fs-title: 14px; --fs-disp2: 18px; --fs-disp3: 22px; }
-}
-@media (min-width: 1440px) {
-  :root { --fs-label: 12px; --fs-body: 13px; --fs-title: 15px; --fs-disp2: 18px; --fs-disp3: 22px; }
+  --fs-micro: 10px; --fs-label: 12px; --fs-body: 13px;
+  --fs-title: 14px; --fs-disp2: 18px; --fs-disp3: 22px;
 }
 
 @theme {
@@ -967,4 +959,16 @@ li .rounded-control.border {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* Page root: one vertical rhythm (16px between sections, 32px bottom room)
+   shared by every screen so spacing never drifts per page. */
+.pms-page {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 2rem;
+  color: var(--color-ink);
 }

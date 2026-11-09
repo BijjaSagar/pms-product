@@ -6,6 +6,7 @@ import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
 import { Button, Checkbox, TextArea } from '../../components/primitives';
+import { PanelLoadState } from '../../components/Skeleton';
 
 const MAX_LENGTH = 10_000;
 
@@ -105,7 +106,7 @@ function TermsForm({
             <div className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/20">
               <Lucide.ScrollText size={17} strokeWidth={2.4} />
             </div>
-            <h2 className="text-body font-bold tracking-tight text-ink">General Terms and Conditions</h2>
+            <h2 className="text-title font-bold tracking-tight text-ink">General Terms and Conditions</h2>
           </div>
           <Button
             variant="primary"
@@ -166,12 +167,7 @@ export function TermsInclusionsTab({ propertyId, canEdit }: { propertyId: string
 
   if (!resource.data) {
     return (
-      <div
-        className="rounded-2xl border p-8 text-center text-body text-ink-secondary shadow-sm"
-        style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
-      >
-        {resource.error ?? 'Loading terms and inclusions…'}
-      </div>
+      <PanelLoadState error={resource.error} label="Loading terms and inclusions" />
     );
   }
 

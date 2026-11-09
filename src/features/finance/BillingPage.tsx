@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { PageSkeleton } from '../../components/Skeleton';
 import * as Lucide from 'lucide-react';
 import { Modal } from '../../components/overlays';
 import { toast } from '../../utils/toast';
@@ -6,7 +7,7 @@ import { folioApi, frontDeskApi, type FolioDetailRow, type StayRow } from '../..
 import { BUSINESS_DATE, GUESTS } from '../../data/catalog';
 import { addDays, nightsBetween } from '../../data/model';
 import { useApiResource } from '../../lib/api/useApiResource';
-import { formatINR, formatNumber } from '../../utils';
+import { formatINR, formatNumber } from '../../utils/currency';
 import { Button, Checkbox, IconButton, ListItem, SelectField, TextField } from '../../components/primitives';
 
 // Types
@@ -729,6 +730,8 @@ export function Billing() {
     }
   };
 
+  if (resource.initialLoading) return <PageSkeleton />;
+
   if (!currentGuest) {
     return (
       <div className="pms-card p-6 text-center text-body text-ink-secondary">
@@ -738,7 +741,7 @@ export function Billing() {
   }
 
   return (
-    <div className="flex flex-col gap-4 pb-8">
+    <div className="pms-page">
       {/* 1. TOP HEADER & GUEST SELECTOR */}
       <div className="flex flex-col gap-4">
         {/* Title & Action Buttons Row */}
@@ -865,7 +868,7 @@ export function Billing() {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h2 className="text-body font-bold text-ink truncate">{currentGuest.name}</h2>
+              <h2 className="text-title font-bold text-ink truncate">{currentGuest.name}</h2>
               <span className="px-2.5 py-0.5 rounded-full text-label font-semibold bg-info-bg text-info-text border border-info-border">
                 {currentGuest.status}
               </span>
@@ -909,7 +912,7 @@ export function Billing() {
           <div>
             <p className="font-semibold text-ink-muted text-label uppercase tracking-wider">Reservation</p>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="font-bold text-ink text-body sm:text-title">{currentGuest.reservationCode}</span>
+              <span className="font-bold text-ink text-title">{currentGuest.reservationCode}</span>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-label font-bold bg-success-bg text-success-text border border-success-border">
                 <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
                 <span>{currentGuest.reservationStatus}</span>
@@ -1135,7 +1138,7 @@ export function Billing() {
                             <div className="flex items-center gap-3">
                               {renderItemIcon(tx.iconType)}
                               <div>
-                                <div className="font-bold text-ink text-body">{tx.title}</div>
+                                <div className="font-bold text-ink text-label">{tx.title}</div>
                                 <div className="text-label text-ink-muted">{tx.detail}</div>
                               </div>
                             </div>
@@ -1149,17 +1152,17 @@ export function Billing() {
                           </td>
 
                           {/* Charges */}
-                          <td className="py-2.5 px-3 text-right whitespace-nowrap font-semibold text-ink text-body">
+                          <td className="py-2.5 px-3 text-right whitespace-nowrap font-semibold text-ink text-label">
                             {tx.charge > 0 ? formatNumber(tx.charge) : '—'}
                           </td>
 
                           {/* Credits */}
-                          <td className="py-2.5 px-3 text-right whitespace-nowrap font-semibold text-success-text text-body">
+                          <td className="py-2.5 px-3 text-right whitespace-nowrap font-semibold text-success-text text-label">
                             {tx.credit > 0 ? formatNumber(tx.credit) : '—'}
                           </td>
 
                           {/* Running Balance */}
-                          <td className="py-2.5 px-3 text-right whitespace-nowrap font-bold text-ink text-body">
+                          <td className="py-2.5 px-3 text-right whitespace-nowrap font-bold text-ink text-label">
                             {formatNumber(tx.balance)}
                           </td>
 
@@ -1292,13 +1295,13 @@ export function Billing() {
               className="rounded-2xl border p-4 sm:p-5 shadow-xs flex flex-col gap-4"
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
-              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-success-text to-success-border text-white shadow-xs shadow-success-text/20">
                     <Lucide.ReceiptText size={17} strokeWidth={2.4} />
                   </div>
                   <div>
-                    <h3 className="text-body font-bold text-ink tracking-tight">Folio Summary</h3>
+                    <h3 className="text-title font-bold text-ink tracking-tight">Folio Summary</h3>
                     <p className="text-label text-ink-muted mt-0.5">Department breakdown & balances</p>
                   </div>
                 </div>
@@ -1467,7 +1470,7 @@ export function Billing() {
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
               <div className="flex items-center justify-between">
-                <h4 className="font-bold text-ink text-body">Payment Details</h4>
+                <h4 className="font-bold text-ink text-title">Payment Details</h4>
                 <Button variant="link"
                   type="button"
                   onClick={() => {
@@ -1523,7 +1526,7 @@ export function Billing() {
               className="rounded-2xl border p-4 sm:p-5 shadow-xs flex flex-col gap-3"
               style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
-              <h4 className="font-bold text-ink text-body">Quick Actions</h4>
+              <h4 className="font-bold text-ink text-title">Quick Actions</h4>
               <div className="grid grid-cols-3 gap-2">
                 <Button variant="secondary"
                   type="button"
@@ -1573,13 +1576,13 @@ export function Billing() {
       {/* OTHER TABS CONTENT (Room Folios, Payments, Statements, History) */}
       {activeTab === 'Room Folios (1)' ? (
         <div className="p-6 rounded-2xl border bg-surface flex flex-col gap-4" style={{ borderColor: 'var(--color-border)' }}>
-          <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20">
                 <Lucide.BedDouble size={17} strokeWidth={2.4} />
               </div>
               <div>
-                <h3 className="text-body font-bold text-ink tracking-tight">Room Folio 1 — {currentGuest.room}</h3>
+                <h3 className="text-title font-bold text-ink tracking-tight">Room Folio 1 — {currentGuest.room}</h3>
                 <p className="text-label text-ink-muted mt-0.5">Master room tariff and lodging charges for {currentGuest.stayDates}</p>
               </div>
             </div>
@@ -1600,13 +1603,13 @@ export function Billing() {
 
       {activeTab === 'Payments' ? (
         <div className="rounded-2xl border bg-surface p-5 shadow-xs flex flex-col gap-4" style={{ borderColor: 'var(--color-border)' }}>
-          <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
                 <Lucide.CreditCard size={17} strokeWidth={2.4} />
               </div>
               <div>
-                <h3 className="text-body font-bold text-ink tracking-tight">Payment Transactions &amp; Vouchers</h3>
+                <h3 className="text-title font-bold text-ink tracking-tight">Payment Transactions &amp; Vouchers</h3>
                 <p className="text-label text-ink-muted mt-0.5">All successful receipts and settlement transactions on record</p>
               </div>
             </div>
@@ -1652,13 +1655,13 @@ export function Billing() {
 
       {activeTab === 'Statements' ? (
         <div className="rounded-2xl border bg-surface p-6 shadow-xs flex flex-col gap-4" style={{ borderColor: 'var(--color-border)' }}>
-          <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
                 <Lucide.FileSpreadsheet size={17} strokeWidth={2.4} />
               </div>
               <div>
-                <h3 className="text-body font-bold text-ink tracking-tight">Guest Account Statement</h3>
+                <h3 className="text-title font-bold text-ink tracking-tight">Guest Account Statement</h3>
                 <p className="text-label text-ink-muted mt-0.5">Detailed line-by-line financial statement for checkout presentation</p>
               </div>
             </div>
@@ -1702,14 +1705,14 @@ export function Billing() {
 
       {activeTab === 'History' || activeTab === 'Other Folios (0)' ? (
         <div className="rounded-2xl border bg-surface p-6 shadow-xs flex flex-col gap-3" style={{ borderColor: 'var(--color-border)' }}>
-          <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-divider">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
                 <Lucide.Clock size={17} strokeWidth={2.4} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-body font-bold text-ink tracking-tight">Folio Audit Timeline</h3>
+                  <h3 className="text-title font-bold text-ink tracking-tight">Folio Audit Timeline</h3>
                   <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
                     <span className="relative flex h-1.5 w-1.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
@@ -1990,7 +1993,7 @@ export function Billing() {
           <div className="p-4 rounded-xl border bg-surface flex flex-col gap-3" style={{ borderColor: 'var(--color-border)' }}>
             <div className="flex justify-between items-start border-b pb-3" style={{ borderColor: 'var(--color-divider)' }}>
               <div>
-                <h4 className="font-bold text-body text-ink">TRIOUNITY GRAND HOTEL &amp; SUITES</h4>
+                <h4 className="font-bold text-title text-ink">TRIOUNITY GRAND HOTEL &amp; SUITES</h4>
                 <p className="text-label text-ink-muted">GSTIN: 27AABCT3518Q1ZV · Licensed PMS Hotel</p>
               </div>
               <div className="text-right">

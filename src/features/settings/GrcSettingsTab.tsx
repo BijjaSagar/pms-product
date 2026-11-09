@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { PanelLoadState } from '../../components/Skeleton';
 import * as Lucide from 'lucide-react';
 import { grcSettingsApi } from '../../lib/api/pms';
 import type { GrcPrintDetails } from '../../lib/api/pms';
@@ -10,6 +11,7 @@ import { Field } from '../../components/controls';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import type { SegmentOption } from '../../components/SegmentedControl';
 import { Card, CardTitle, TableContainer } from '../../components/ui';
+import { TableStateRows } from '../../components/Skeleton';
 
 type GrcTab = 'settings' | 'print';
 
@@ -67,11 +69,7 @@ function GrcFields({ propertyId, canEdit }: { propertyId: string; canEdit: boole
                   </tr>
                 ))
               ) : (
-                <tr>
-                  <td colSpan={2} className="py-8 text-center text-label text-ink-muted">
-                    {resource.error ?? 'Loading fields…'}
-                  </td>
-                </tr>
+                <TableStateRows cols={2} loading={resource.loading} error={resource.error} empty="No records yet." />
               )}
             </tbody>
           </table>
@@ -170,7 +168,7 @@ function PrintDetails({ propertyId, print, canEdit }: { propertyId: string; prin
     <div className="flex w-full max-w-3xl flex-col gap-5">
       <Card>
         <div className="mb-3 flex items-center justify-between gap-3">
-          <h2 className="text-body font-bold text-ink">GRC Tracker Number</h2>
+          <h2 className="text-title font-bold text-ink">GRC Tracker Number</h2>
           {tracker ? (
             <div className="flex gap-2">
               <Button variant="secondary" type="button" onClick={() => setTracker(null)} disabled={saving}>
@@ -203,7 +201,7 @@ function PrintDetails({ propertyId, print, canEdit }: { propertyId: string; prin
 
       <Card>
         <div className="mb-3 flex items-center justify-between gap-3">
-          <h2 className="text-body font-bold text-ink">Print Header</h2>
+          <h2 className="text-title font-bold text-ink">Print Header</h2>
           <Button
             variant="primary"
             type="button"
@@ -229,7 +227,7 @@ function GrcPrint({ propertyId, canEdit }: { propertyId: string; canEdit: boolea
   const load = useCallback(() => grcSettingsApi.print(propertyId), [propertyId]);
   const resource = useApiResource(load);
   if (!resource.data) {
-    return <p className="py-8 text-label text-ink-muted">{resource.error ?? 'Loading print details…'}</p>;
+    return <PanelLoadState error={resource.error} label="Loading print details" lines={3} />;
   }
   return <PrintDetails propertyId={propertyId} print={resource.data} canEdit={canEdit} />;
 }

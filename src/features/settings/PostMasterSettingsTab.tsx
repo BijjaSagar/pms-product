@@ -6,6 +6,7 @@ import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
 import { Button, TextField } from '../../components/primitives';
+import { PanelLoadState } from '../../components/Skeleton';
 
 type LimitKey = keyof PostMasterSettingsDetails;
 
@@ -128,12 +129,7 @@ export function PostMasterSettingsTab({ propertyId, canEdit }: { propertyId: str
 
   if (!resource.data) {
     return (
-      <div
-        className="rounded-2xl border p-8 text-center text-body text-ink-secondary shadow-sm"
-        style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
-      >
-        {resource.error ?? 'Loading post master settings…'}
-      </div>
+      <PanelLoadState error={resource.error} label="Loading post master settings" />
     );
   }
 

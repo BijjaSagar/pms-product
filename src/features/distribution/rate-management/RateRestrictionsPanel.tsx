@@ -36,7 +36,7 @@ export function RateRestrictionsPanel({ dates, minStays, maxStays, closedToArriv
             <Lucide.ShieldAlert size={18} strokeWidth={2.4} />
           </div>
           <div>
-            <h2 id="restrictions-title" className="text-body font-bold text-ink tracking-tight">Restrictions & Availability</h2>
+            <h2 id="restrictions-title" className="text-title font-bold text-ink tracking-tight">Restrictions & Availability</h2>
             <p className="text-label text-ink-muted mt-0.5">Review arrival, departure, stop-sell and stay-length rules in the selected date window</p>
           </div>
         </div>
@@ -56,7 +56,7 @@ export function RateRestrictionsPanel({ dates, minStays, maxStays, closedToArriv
 
       <div className="border-t" style={{ borderColor: 'var(--color-divider)' }}>
         <div className="flex items-center justify-between px-4 py-3 sm:px-5">
-          <h3 className="text-body font-semibold text-ink">Active rules in this window</h3>
+          <h3 className="text-title font-semibold text-ink">Active rules in this window</h3>
           <span className="text-label text-ink-muted">{restrictions.length} rules</span>
         </div>
         {restrictions.length ? (

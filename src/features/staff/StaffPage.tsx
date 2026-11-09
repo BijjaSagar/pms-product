@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { TableSkeletonRows } from '../../components/Skeleton';
 import * as Lucide from 'lucide-react';
 import { Avatar, Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../../components/ui';
 import { Field, Pagination } from '../../components/controls';
@@ -118,7 +119,7 @@ export function Staff() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="pms-page">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">
@@ -319,9 +320,10 @@ export function Staff() {
                   </td>
                 </tr>
               ))}
+              {resource.loading ? <TableSkeletonRows cols={7} /> : null}
             </tbody>
           </table>
-          {filtered.length === 0 ? <p className="pms-helper py-8 text-center text-label text-ink-secondary">No registered users match your query.</p> : null}
+          {!resource.loading && filtered.length === 0 ? <p className="pms-helper py-8 text-center text-label text-ink-secondary">No registered users match your query.</p> : null}
         </TableContainer>
 
         <div className="mt-4 pt-1">

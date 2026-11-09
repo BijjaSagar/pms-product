@@ -48,12 +48,12 @@ function nextDayIso(iso: string): string {
 
 // Shared form classes. Inputs use the theme's pms-input so focus rings, hover
 // and radius match the rest of the app; 16px text on phones stops iOS zooming.
-const labelClass = "block text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-medium text-ink-muted tracking-wide mb-1.5";
+const labelClass = "block text-label font-medium text-ink-muted tracking-wide mb-1.5";
 const fieldClass =
-  "pms-input w-full min-h-[34px] md:min-h-[32px] px-2.5 py-1 text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-semibold";
+  "pms-input w-full min-h-[34px] md:min-h-[32px] px-2.5 py-1 text-title font-semibold";
 const selectClass = `${fieldClass} cursor-pointer`;
 const iconFieldClass = `${fieldClass} pl-8 pr-3`;
-const textareaClass = "pms-input w-full px-2.5 py-1.5 text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-semibold resize-none";
+const textareaClass = "pms-input w-full px-2.5 py-1.5 text-title font-semibold resize-none";
 
 export function NewReservation({
   go,
@@ -829,23 +829,23 @@ export function NewReservation({
             <Lucide.CheckCircle2 size={44} />
           </div>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-success-bg border border-success-border text-success-text text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold mb-3 uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-success-bg border border-success-border text-success-text text-label font-bold mb-3 uppercase tracking-wider">
             <Lucide.ShieldCheck size={14} />
             Folio Verified & Confirmed
           </div>
 
-          <h2 className="text-[20px] md:max-[1023px]:text-[18px] lg:max-[1439px]:text-[18px] min-[1440px]:text-[18px] font-extrabold tracking-tight text-ink">
+          <h2 className="text-disp2 font-extrabold tracking-tight text-ink">
             Booking ID #{confirmedBooking.code}
           </h2>
           {confirmedBooking.referenceId && (
-            <p className="mt-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] text-ink-secondary">
+            <p className="mt-1 text-label text-ink-secondary">
               Reference ID:{" "}
               <span className="font-mono font-semibold text-ink">
                 {confirmedBooking.referenceId}
               </span>
             </p>
           )}
-          <p className="max-w-lg mx-auto text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] text-ink-secondary mt-2">
+          <p className="max-w-lg mx-auto text-label text-ink-secondary mt-2">
             Reservation successfully saved for{" "}
             <strong className="text-ink">{confirmedBooking.guest}</strong>. Room
             lines, billing routes, add-ons, and payments are saved to the PMS.
@@ -854,46 +854,46 @@ export function NewReservation({
           {/* Quick Summary Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto mt-6 text-left">
             <div className="p-3.5 rounded-xl border border-divider bg-page/70">
-              <span className="block text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold text-ink-muted uppercase">
+              <span className="block text-micro font-bold text-ink-muted uppercase">
                 Check-in
               </span>
-              <span className="text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink mt-0.5 block">
+              <span className="text-label font-bold text-ink mt-0.5 block">
                 {checkInDate}
               </span>
-              <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] text-ink-secondary">
+              <span className="text-micro text-ink-secondary">
                 {checkInTime} hrs
               </span>
             </div>
             <div className="p-3.5 rounded-xl border border-divider bg-page/70">
-              <span className="block text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold text-ink-muted uppercase">
+              <span className="block text-micro font-bold text-ink-muted uppercase">
                 Check-out
               </span>
-              <span className="text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink mt-0.5 block">
+              <span className="text-label font-bold text-ink mt-0.5 block">
                 {checkOutDate}
               </span>
-              <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] text-ink-secondary">
+              <span className="text-micro text-ink-secondary">
                 {checkOutTime} hrs
               </span>
             </div>
             <div className="p-3.5 rounded-xl border border-divider bg-page/70">
-              <span className="block text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold text-ink-muted uppercase">
+              <span className="block text-micro font-bold text-ink-muted uppercase">
                 Allotment
               </span>
-              <span className="text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink mt-0.5 block">
+              <span className="text-label font-bold text-ink mt-0.5 block">
                 {confirmedBooking.rooms} Room(s)
               </span>
-              <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] text-ink-secondary">
+              <span className="text-micro text-ink-secondary">
                 {confirmedBooking.nights} Night(s)
               </span>
             </div>
             <div className="p-3.5 rounded-xl border border-divider bg-page/70">
-              <span className="block text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold text-ink-muted uppercase">
+              <span className="block text-micro font-bold text-ink-muted uppercase">
                 Total Bill
               </span>
-              <span className="text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-success-text font-mono mt-0.5 block">
+              <span className="text-label font-bold text-success-text font-mono mt-0.5 block">
                 ₹{confirmedBooking.total.toLocaleString("en-IN")}.00
               </span>
-              <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] text-ink-secondary font-semibold">
+              <span className="text-micro text-ink-secondary font-semibold">
                 {outstanding === 0
                   ? "Fully Settled"
                   : `₹${outstanding.toLocaleString("en-IN")} Due`}
@@ -905,7 +905,7 @@ export function NewReservation({
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <button
               type="button"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold bg-[var(--color-primary)] hover:opacity-95 text-white shadow-sm transition-all text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] cursor-pointer"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold bg-[var(--color-primary)] hover:opacity-95 text-white shadow-sm transition-all text-label cursor-pointer"
               onClick={() => go({ view: "reservations" })}
             >
               <Lucide.CalendarDays size={15} />
@@ -913,7 +913,7 @@ export function NewReservation({
             </button>
             <button
               type="button"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold border border-border bg-surface hover:bg-page text-ink shadow-xs transition-colors text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold border border-border bg-surface hover:bg-page text-ink shadow-xs transition-colors text-label cursor-pointer"
               onClick={() => window.print()}
             >
               <Lucide.Printer size={15} className="text-ink-secondary" />
@@ -921,7 +921,7 @@ export function NewReservation({
             </button>
             <button
               type="button"
-              className="px-4 py-2.5 rounded-xl font-semibold border border-border bg-surface hover:bg-page text-ink shadow-xs transition-colors text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] cursor-pointer"
+              className="px-4 py-2.5 rounded-xl font-semibold border border-border bg-surface hover:bg-page text-ink shadow-xs transition-colors text-label cursor-pointer"
               onClick={() => {
                 setConfirmedBooking(null);
                 setBookingId("");
@@ -938,7 +938,7 @@ export function NewReservation({
   }
 
   return (
-    <div className="w-full min-w-0 text-ink font-sans flex flex-col gap-4 pb-4">
+    <div className="pms-page">
       {roomTypes.length === 0 && (
         <div className="flex items-center gap-2 rounded-xl border border-warning-border bg-warning-bg p-3 text-label text-warning-text">
           <Lucide.AlertTriangle size={16} />
@@ -956,12 +956,12 @@ export function NewReservation({
           <div className="bg-gradient-to-r from-primary via-primary-hover to-dark-accent p-3 md:p-4 text-primary-foreground border-b border-dark-accent lg:sticky lg:top-0 lg:z-10">
             <div className="grid grid-cols-2 gap-2 md:gap-3">
               <div className="min-w-0 border-r border-primary-foreground/25 pr-2 md:pr-3">
-                <span className="block text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold tracking-wider text-primary-foreground/75 uppercase">
+                <span className="block text-micro font-bold tracking-wider text-primary-foreground/75 uppercase">
                   BOOKING ID
                 </span>
                 <div className="mt-0.5 md:mt-1 flex min-w-0 items-center justify-between gap-1">
                   <span
-                    className="min-w-0 truncate text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold font-mono"
+                    className="min-w-0 truncate text-label font-bold font-mono"
                     title={bookingId || "Auto on save"}
                   >
                     {bookingId || "Auto on save"}
@@ -986,11 +986,11 @@ export function NewReservation({
                 </div>
               </div>
               <div className="min-w-0 pl-1 md:pl-0">
-                <span className="block text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold tracking-wider text-primary-foreground/75 uppercase">
+                <span className="block text-micro font-bold tracking-wider text-primary-foreground/75 uppercase">
                   REFERENCE ID
                 </span>
                 <span
-                  className="mt-0.5 md:mt-1 block truncate text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold font-mono"
+                  className="mt-0.5 md:mt-1 block truncate text-label font-bold font-mono"
                   title={externalReferenceId || "No external reference"}
                 >
                   {externalReferenceId || "—"}
@@ -1006,25 +1006,25 @@ export function NewReservation({
               <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 text-center">
                 {/* Check In */}
                 <div className="text-left min-w-0">
-                  <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold text-ink-muted uppercase tracking-wider whitespace-nowrap block">
+                  <span className="text-micro font-bold text-ink-muted uppercase tracking-wider whitespace-nowrap block">
                     CHECK-IN
                   </span>
                   <div className="flex items-baseline gap-1 mt-0.5">
-                    <span className="text-[20px] md:max-[1023px]:text-[18px] lg:max-[1439px]:text-[18px] min-[1440px]:text-[18px] font-black text-ink leading-none">
+                    <span className="text-disp2 font-black text-ink leading-none">
                       {inDate.day}
                     </span>
-                    <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold text-ink-secondary uppercase">
+                    <span className="text-micro font-bold text-ink-secondary uppercase">
                       {inDate.month}
                     </span>
                   </div>
-                  <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-semibold text-ink-muted mt-1 block truncate">
+                  <span className="text-micro font-semibold text-ink-muted mt-1 block truncate">
                     {inDate.weekday} · {checkInTime}
                   </span>
                 </div>
 
                 {/* Duration Badge with line */}
                 <div className="flex min-w-[72px] flex-col items-center px-1">
-                  <div className="flex items-center gap-1 whitespace-nowrap rounded-full border border-border bg-surface px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold text-ink shadow-2xs">
+                  <div className="flex items-center gap-1 whitespace-nowrap rounded-full border border-border bg-surface px-1.5 md:px-2 py-0.5 md:py-1 text-micro font-bold text-ink shadow-2xs">
                     <Lucide.Moon size={10} className="text-primary shrink-0" />
                     <span className="truncate">
                       {nightsCount} {nightsCount === 1 ? "Night" : "Nights"}
@@ -1037,25 +1037,25 @@ export function NewReservation({
                       className="text-ink-muted absolute bg-surface px-0.5"
                     />
                   </div>
-                  <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] text-ink-muted font-medium">
+                  <span className="text-micro text-ink-muted font-medium">
                     Allotment
                   </span>
                 </div>
 
                 {/* Check Out */}
                 <div className="text-right min-w-0">
-                  <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold text-ink-muted uppercase tracking-wider whitespace-nowrap block">
+                  <span className="text-micro font-bold text-ink-muted uppercase tracking-wider whitespace-nowrap block">
                     CHECK-OUT
                   </span>
                   <div className="flex items-baseline justify-end gap-1 mt-0.5">
-                    <span className="text-[20px] md:max-[1023px]:text-[18px] lg:max-[1439px]:text-[18px] min-[1440px]:text-[18px] font-black text-ink leading-none">
+                    <span className="text-disp2 font-black text-ink leading-none">
                       {outDate.day}
                     </span>
-                    <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold text-ink-secondary uppercase">
+                    <span className="text-micro font-bold text-ink-secondary uppercase">
                       {outDate.month}
                     </span>
                   </div>
-                  <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-semibold text-ink-muted mt-1 block truncate">
+                  <span className="text-micro font-semibold text-ink-muted mt-1 block truncate">
                     {outDate.weekday} · {checkOutTime}
                   </span>
                 </div>
@@ -1063,7 +1063,7 @@ export function NewReservation({
             </div>
 
             <p
-              className="break-words text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-semibold tracking-wide text-ink-secondary"
+              className="break-words text-label font-semibold tracking-wide text-ink-secondary"
               aria-label="Room summary"
             >
               {requirements.length}-
@@ -1080,16 +1080,16 @@ export function NewReservation({
             {/* Guest Profile Chip with Confirmed Stamp Overlay */}
             <div className="relative flex items-center justify-between gap-2 rounded-xl border border-divider bg-surface p-2.5 md:p-3 shadow-2xs">
               <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-2.5 relative z-10">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-white font-bold text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] shrink-0 shadow-2xs">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-white font-bold text-label shrink-0 shadow-2xs">
                   {guestName ? guestName.charAt(0).toUpperCase() : "G"}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="truncate text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink" title={guestName}>
+                    <span className="truncate text-label font-bold text-ink" title={guestName}>
                       {guestName || "Unnamed Guest"}
                     </span>
                   </div>
-                  <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] text-ink-secondary font-medium truncate block">
+                  <span className="text-micro text-ink-secondary font-medium truncate block">
                     {guestContact || "No contact"}
                   </span>
                 </div>
@@ -1110,8 +1110,8 @@ export function NewReservation({
                 <div className="relative inline-flex items-center justify-center p-1 rounded-full border-2 border-dashed border-success-text bg-success-bg/25 rotate-[-12deg]">
                   <div className="flex flex-col h-13 w-13 items-center justify-center rounded-full border-2 border-success-text text-success-text text-center">
                     <Lucide.ShieldCheck size={13} className="text-success-text" />
-                    <span className="font-black text-[7px] uppercase tracking-wider mt-0.5 leading-none">CONFIRMED</span>
-                    <span className="text-[7px] font-bold text-success-text/90 font-mono mt-0.5">FRONT DESK</span>
+                    <span className="font-black text-micro uppercase tracking-wider mt-0.5 leading-none">CONFIRMED</span>
+                    <span className="text-micro font-bold text-success-text/90 font-mono mt-0.5">FRONT DESK</span>
                   </div>
                 </div>
               </div>
@@ -1122,20 +1122,20 @@ export function NewReservation({
             <div className="border-y border-divider py-2.5 md:py-3">
               <div className="grid grid-cols-2 divide-x divide-divider">
                 <div className="pr-3 min-w-0">
-                  <span className="block text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+                  <span className="block text-micro font-bold uppercase tracking-wider text-ink-muted">
                     Total Bill
                   </span>
-                  <span className="mt-1 block text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-extrabold font-mono text-ink truncate">
+                  <span className="mt-1 block text-title font-extrabold font-mono text-ink truncate">
                     ₹{totalBill.toLocaleString("en-IN")}.00
                   </span>
                 </div>
                 <div className="pl-3 min-w-0">
-                  <span className="block text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+                  <span className="block text-micro font-bold uppercase tracking-wider text-ink-muted">
                     Outstanding
                   </span>
                   <div className="mt-1 flex items-center gap-1.5 min-w-0">
                     <span
-                      className={`text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-extrabold font-mono truncate ${outstanding > 0 ? "text-warning-text" : "text-success-text"}`}
+                      className={`text-title font-extrabold font-mono truncate ${outstanding > 0 ? "text-warning-text" : "text-success-text"}`}
                     >
                       ₹{outstanding.toLocaleString("en-IN")}.00
                     </span>
@@ -1175,7 +1175,7 @@ export function NewReservation({
                   size={13}
                   className="text-ink-secondary group-hover:text-[var(--color-primary)] transition-colors shrink-0"
                 />
-                <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold mt-1 text-ink truncate w-full">
+                <span className="text-micro font-bold mt-1 text-ink truncate w-full">
                   DIRECT
                 </span>
               </button>
@@ -1189,7 +1189,7 @@ export function NewReservation({
                 title="Collect Payment"
               >
                 <Lucide.Banknote size={13} className="text-warning-text shrink-0" />
-                <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold mt-1 text-ink truncate w-full">
+                <span className="text-micro font-bold mt-1 text-ink truncate w-full">
                   ₹ PAY
                 </span>
               </button>
@@ -1199,7 +1199,7 @@ export function NewReservation({
                 title="Assigned Rooms"
               >
                 <Lucide.BedDouble size={13} className="text-primary shrink-0" />
-                <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold mt-1 text-ink truncate w-full">
+                <span className="text-micro font-bold mt-1 text-ink truncate w-full">
                   ROOMS
                 </span>
               </button>
@@ -1209,7 +1209,7 @@ export function NewReservation({
                 title="Guest ID Verification"
               >
                 <Lucide.CreditCard size={13} className="text-success-text shrink-0" />
-                <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold mt-1 text-ink truncate w-full">
+                <span className="text-micro font-bold mt-1 text-ink truncate w-full">
                   ID / CARD
                 </span>
               </button>
@@ -1224,7 +1224,7 @@ export function NewReservation({
             <button
               type="button"
               onClick={() => setActiveTab("general")}
-              className={`flex flex-1 md:flex-none min-h-[40px] items-center justify-center gap-1.5 whitespace-normal md:whitespace-nowrap text-center leading-tight px-3 md:px-4 py-2 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold rounded-xl transition-all cursor-pointer ${activeTab === "general"
+              className={`flex flex-1 md:flex-none min-h-[40px] items-center justify-center gap-1.5 whitespace-normal md:whitespace-nowrap text-center leading-tight px-3 md:px-4 py-2 text-label font-bold rounded-xl transition-all cursor-pointer ${activeTab === "general"
                 ? "bg-surface text-ink shadow-sm border border-border/60"
                 : "text-ink-secondary hover:text-ink"
                 }`}
@@ -1242,7 +1242,7 @@ export function NewReservation({
             <button
               type="button"
               onClick={() => setActiveTab("outlet")}
-              className={`flex flex-1 md:flex-none min-h-[40px] items-center justify-center gap-1.5 whitespace-normal md:whitespace-nowrap text-center leading-tight px-3 md:px-4 py-2 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold rounded-xl transition-all cursor-pointer ${activeTab === "outlet"
+              className={`flex flex-1 md:flex-none min-h-[40px] items-center justify-center gap-1.5 whitespace-normal md:whitespace-nowrap text-center leading-tight px-3 md:px-4 py-2 text-label font-bold rounded-xl transition-all cursor-pointer ${activeTab === "outlet"
                 ? "bg-surface text-ink shadow-sm border border-border/60"
                 : "text-ink-secondary hover:text-ink"
                 }`}
@@ -1265,23 +1265,23 @@ export function NewReservation({
               <section className="min-w-0 bg-surface rounded-2xl md:rounded-3xl border border-border/80 p-4 md:p-5 min-[1440px]:p-6 shadow-xs flex flex-col gap-4">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider pb-3">
                   <div className="flex min-w-0 items-center gap-2.5">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] shadow-xs shadow-primary/20">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-label shadow-xs shadow-primary/20">
                       1
                     </span>
                     <div>
-                      <h2 className="text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-bold text-ink-secondary tracking-tight">
+                      <h2 className="text-title font-bold text-ink-secondary tracking-tight">
                         Booking Details & Rate Plan
                       </h2>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold text-ink-muted uppercase tracking-wider">
+                    <span className="text-micro font-bold text-ink-muted uppercase tracking-wider">
                       Status:
                     </span>
                     <select
                       value={bookingType}
                       onChange={(e) => setBookingType(e.target.value)}
-                      className="pms-input w-auto min-h-[34px] md:min-h-[32px] px-2.5 py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-semibold cursor-pointer"
+                      className="pms-input w-auto min-h-[34px] md:min-h-[32px] px-2.5 py-1 text-label font-semibold cursor-pointer"
                     >
                       <option value="Confirmed">Confirmed</option>
                       <option value="Guaranteed">Guaranteed</option>
@@ -1620,7 +1620,7 @@ export function NewReservation({
                       }}
                       className="w-4 h-4 rounded border-border text-[var(--color-primary)] focus:ring-[var(--color-primary)]/20"
                     />
-                    <span className="text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-semibold text-ink">
+                    <span className="text-label font-semibold text-ink">
                       Same Plan for All Rooms
                     </span>
                   </label>
@@ -1773,17 +1773,17 @@ export function NewReservation({
               <section className="min-w-0 bg-surface rounded-2xl md:rounded-3xl border border-border/80 p-4 md:p-5 min-[1440px]:p-6 shadow-xs flex flex-col gap-4">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider pb-3">
                   <div className="flex min-w-0 items-center gap-2.5">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] shadow-xs shadow-primary/20">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-label shadow-xs shadow-primary/20">
                       3
                     </span>
                     <div>
-                      <h2 className="text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-bold text-ink-secondary tracking-tight">
+                      <h2 className="text-title font-bold text-ink-secondary tracking-tight">
                         Guest Reservation Card
                       </h2>
                     </div>
                   </div>
 
-                  <span className="text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink-secondary bg-page border border-border/80 px-2.5 py-1 rounded-lg">
+                  <span className="text-label font-bold text-ink-secondary bg-page border border-border/80 px-2.5 py-1 rounded-lg">
                     Primary Resident
                   </span>
                 </div>
@@ -1791,8 +1791,8 @@ export function NewReservation({
                 {primaryGuestId ? (
                   <div className="flex items-center gap-2">
                     <div className="min-w-0 flex-1 rounded-xl border border-border/80 bg-surface px-3 py-2.5">
-                      <p className="truncate text-[12px] font-bold text-ink">{guestName}</p>
-                      <p className="tnum truncate text-[12px] text-ink-secondary">
+                      <p className="truncate text-label font-bold text-ink">{guestName}</p>
+                      <p className="tnum truncate text-label text-ink-secondary">
                         {[guestContact, guestEmail].filter(Boolean).join(" · ") || "No contact details"}
                       </p>
                     </div>
@@ -1848,9 +1848,9 @@ export function NewReservation({
                     {trimmedGuestQuery && (
                       <ul className="flex flex-col divide-y divide-divider overflow-hidden rounded-xl border border-border/80">
                         {guestMatches.loading ? (
-                          <li className="px-3 py-2 text-[12px] text-ink-secondary">Searching Guests…</li>
+                          <li className="px-3 py-2 text-label text-ink-secondary">Searching Guests…</li>
                         ) : guestMatches.error ? (
-                          <li role="alert" className="px-3 py-2 text-[12px] text-danger-text">
+                          <li role="alert" className="px-3 py-2 text-label text-danger-text">
                             Could not search Guests: {guestMatches.error}
                           </li>
                         ) : guestMatches.data && guestMatches.data.length > 0 ? (
@@ -1862,17 +1862,17 @@ export function NewReservation({
                                 className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-page cursor-pointer"
                               >
                                 <span className="min-w-0">
-                                  <span className="block truncate text-[13px] font-semibold text-ink">{guest.name}</span>
-                                  <span className="block truncate text-[12px] text-ink-secondary">
+                                  <span className="block truncate text-body font-semibold text-ink">{guest.name}</span>
+                                  <span className="block truncate text-label text-ink-secondary">
                                     {[guest.phone, guest.email].filter(Boolean).join(" · ") || "No contact details"}
                                   </span>
                                 </span>
-                                <span className="tnum flex-none text-[11px] font-mono text-ink-secondary">{guest.id}</span>
+                                <span className="tnum flex-none text-label font-mono text-ink-secondary">{guest.id}</span>
                               </button>
                             </li>
                           ))
                         ) : (
-                          <li className="px-3 py-2 text-[12px] text-ink-secondary">
+                          <li className="px-3 py-2 text-label text-ink-secondary">
                             No Guest matches "{trimmedGuestQuery}". Add them as a new Guest below.
                           </li>
                         )}
@@ -1900,11 +1900,11 @@ export function NewReservation({
               <section className="min-w-0 bg-surface rounded-2xl md:rounded-3xl border border-border/80 p-4 md:p-5 min-[1440px]:p-6 shadow-xs flex flex-col gap-4">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider pb-3">
                   <div className="flex min-w-0 items-center gap-2.5">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] shadow-xs shadow-primary/20">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white font-bold text-label shadow-xs shadow-primary/20">
                       4
                     </span>
                     <div>
-                      <h2 className="text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-bold text-ink-secondary tracking-tight">
+                      <h2 className="text-title font-bold text-ink-secondary tracking-tight">
                         Payments & Master Folio Summary
                       </h2>
                     </div>
@@ -1916,7 +1916,7 @@ export function NewReservation({
                       setCollectAmount(String(outstanding));
                       setCollectModalOpen(true);
                     }}
-                    className="flex flex-none items-center gap-1.5 rounded-xl bg-warning-text px-3 py-1.5 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-white shadow-xs transition-all hover:bg-warning-text cursor-pointer"
+                    className="flex flex-none items-center gap-1.5 rounded-xl bg-warning-text px-3 py-1.5 text-label font-bold text-white shadow-xs transition-all hover:bg-warning-text cursor-pointer"
                   >
                     <Lucide.Banknote size={13} />
                     <span>Collect Payment</span>
@@ -1937,13 +1937,13 @@ export function NewReservation({
                 {/* Payments Recorded List */}
                 {paymentsList.length > 0 ? (
                   <div className="flex flex-col gap-2">
-                    <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold text-ink-muted uppercase tracking-wider">
+                    <span className="text-micro font-bold text-ink-muted uppercase tracking-wider">
                       Recorded Transactions
                     </span>
                     {paymentsList.map((p) => (
                       <div
                         key={p.id}
-                        className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/80 bg-page/60 p-3 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px]"
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/80 bg-page/60 p-3 text-label"
                       >
                         <div className="flex min-w-0 flex-1 items-center gap-2.5">
                           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-success-bg text-success-text">
@@ -1953,7 +1953,7 @@ export function NewReservation({
                             <span className="font-bold text-ink block">
                               {p.method}
                             </span>
-                            <span className="break-words text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] text-ink-secondary font-mono">
+                            <span className="break-words text-micro text-ink-secondary font-mono">
                               Ref: {p.ref} · {p.time}
                             </span>
                           </div>
@@ -1965,7 +1965,7 @@ export function NewReservation({
                     ))}
                   </div>
                 ) : (
-                  <div className="rounded-2xl border border-dashed border-border p-4 text-center text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] text-ink-secondary bg-page/30">
+                  <div className="rounded-2xl border border-dashed border-border p-4 text-center text-label text-ink-secondary bg-page/30">
                     No advance payments recorded yet. Click{" "}
                     <strong>Collect Payment</strong> to record an advance or
                     deposit.
@@ -1977,7 +1977,7 @@ export function NewReservation({
                     type="checkbox"
                     className="w-4 h-4 rounded border-border text-[var(--color-primary)] focus:ring-[var(--color-primary)]/20"
                   />
-                  <span className="text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-semibold text-ink">
+                  <span className="text-label font-semibold text-ink">
                     Pay at Hotel
                   </span>
                 </label>
@@ -1997,7 +1997,7 @@ export function NewReservation({
                 </div>
 
                 {/* Itemized Bill Summary Table */}
-                <div className="rounded-2xl border border-border/90 bg-surface p-3 md:p-4 flex flex-col gap-2 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px]">
+                <div className="rounded-2xl border border-border/90 bg-surface p-3 md:p-4 flex flex-col gap-2 text-label">
                   <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-ink-secondary">
                     <span className="min-w-0 flex-1">
                       Room Charges ({requirements.length} room(s), {nightsCount}{" "}
@@ -2025,12 +2025,12 @@ export function NewReservation({
                   <div className="flex flex-wrap items-center justify-between gap-2 text-ink-secondary">
                     <div className="flex min-w-0 flex-1 items-center gap-1.5">
                       <span>Discount Applied</span>
-                      <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] text-ink-muted font-medium">
+                      <span className="text-micro text-ink-muted font-medium">
                         (Editable)
                       </span>
                     </div>
                     <div className="flex flex-none items-center gap-1">
-                      <span className="text-ink-muted font-mono text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px]">
+                      <span className="text-ink-muted font-mono text-label">
                         -₹
                       </span>
                       <input
@@ -2043,7 +2043,7 @@ export function NewReservation({
                           )
                         }
                         placeholder="0"
-                        className="pms-input w-24 min-h-[32px] px-2 py-1 text-right font-mono font-bold text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px]"
+                        className="pms-input w-24 min-h-[32px] px-2 py-1 text-right font-mono font-bold text-title"
                       />
                     </div>
                   </div>
@@ -2073,9 +2073,9 @@ export function NewReservation({
 
                   <div className="h-[1px] bg-border my-1" />
 
-                  <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 pt-0.5 text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-extrabold text-ink">
+                  <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 pt-0.5 text-title font-extrabold text-ink">
                     <span className="min-w-0 flex-1">Net Payable at Hotel</span>
-                    <span className="shrink-0 text-right font-mono text-[16px] md:max-[1023px]:text-[15px] lg:max-[1439px]:text-[14px] min-[1440px]:text-[15px] text-[var(--color-primary)]">
+                    <span className="shrink-0 text-right font-mono text-title text-[var(--color-primary)]">
                       ₹{outstanding.toLocaleString("en-IN")}.00
                     </span>
                   </div>
@@ -2114,11 +2114,11 @@ export function NewReservation({
                 <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-warning-bg text-warning-text">
                   <Lucide.CheckSquare size={15} />
                 </div>
-                <h3 className="min-w-0 flex-1 text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-bold text-ink uppercase tracking-wider">
+                <h3 className="min-w-0 flex-1 text-title font-bold text-ink uppercase tracking-wider">
                   Checklist & Tasks
                 </h3>
               </div>
-              <span className="flex-none text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted-surface text-ink">
+              <span className="flex-none text-micro font-bold px-2 py-0.5 rounded-full bg-muted-surface text-ink">
                 {tasks.filter((t) => t.done).length}/{tasks.length} Done
               </span>
             </div>
@@ -2144,7 +2144,7 @@ export function NewReservation({
                     {task.done && <Lucide.Check size={11} />}
                   </button>
                   <span
-                    className={`min-w-0 flex-1 break-words text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] ${task.done
+                    className={`min-w-0 flex-1 break-words text-label ${task.done
                       ? "line-through text-ink-muted font-normal"
                       : "font-semibold text-ink"
                       }`}
@@ -2187,14 +2187,14 @@ export function NewReservation({
             type="button"
             onClick={() => setIssueModalOpen(true)}
             aria-label="Report issue"
-            className="flex items-center gap-1.5 px-3 min-h-[34px] md:min-h-[32px] py-1 rounded-xl border border-danger-border bg-danger-bg/70 hover:bg-danger-bg/80 text-danger-text text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 min-h-[34px] md:min-h-[32px] py-1 rounded-xl border border-danger-border bg-danger-bg/70 hover:bg-danger-bg/80 text-danger-text text-label font-bold transition-colors cursor-pointer"
           >
             <Lucide.AlertCircle size={14} />
             <span className="hidden md:inline">Report Issue</span>
           </button>
 
           {/* Center: Live Total Ticker */}
-          <div className="hidden md:flex items-center gap-2 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold px-3 py-1.5 rounded-xl bg-page border border-border/60">
+          <div className="hidden md:flex items-center gap-2 text-label font-bold px-3 py-1.5 rounded-xl bg-page border border-border/60">
             <span className="text-ink-secondary">
               {requirements.length} Room(s) · {nightsCount} Night(s)
             </span>
@@ -2209,7 +2209,7 @@ export function NewReservation({
             <button
               type="button"
               onClick={() => go({ view: "reservations" })}
-              className="rounded-xl border border-border bg-surface px-2.5 min-h-[34px] md:min-h-[32px] py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink transition-colors hover:bg-page cursor-pointer md:px-3.5"
+              className="rounded-xl border border-border bg-surface px-2.5 min-h-[34px] md:min-h-[32px] py-1 text-label font-bold text-ink transition-colors hover:bg-page cursor-pointer md:px-3.5"
             >
               Cancel
             </button>
@@ -2219,7 +2219,7 @@ export function NewReservation({
                 setCollectAmount(String(outstanding));
                 setCollectModalOpen(true);
               }}
-              className="flex items-center gap-1.5 rounded-xl bg-warning-text px-3 min-h-[34px] md:min-h-[32px] py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-white shadow-xs transition-all hover:bg-warning-text active:bg-warning-text cursor-pointer md:px-4"
+              className="flex items-center gap-1.5 rounded-xl bg-warning-text px-3 min-h-[34px] md:min-h-[32px] py-1 text-label font-bold text-white shadow-xs transition-all hover:bg-warning-text active:bg-warning-text cursor-pointer md:px-4"
             >
               <Lucide.Banknote size={14} />
               <span>Save & Pay</span>
@@ -2228,7 +2228,7 @@ export function NewReservation({
               type="button"
               disabled={savingReservation}
               onClick={() => void handleConfirmReservation(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-[var(--color-primary)] px-3 min-h-[34px] md:min-h-[32px] py-1 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-white shadow-md shadow-[var(--color-primary)]/20 transition-all hover:opacity-95 cursor-pointer md:px-5"
+              className="flex items-center gap-1.5 rounded-xl bg-[var(--color-primary)] px-3 min-h-[34px] md:min-h-[32px] py-1 text-label font-bold text-white shadow-md shadow-[var(--color-primary)]/20 transition-all hover:opacity-95 cursor-pointer md:px-5"
             >
               {savingReservation ? (
                 <Lucide.LoaderCircle size={14} className="animate-spin" />
@@ -2289,7 +2289,7 @@ export function NewReservation({
                       key={method}
                       type="button"
                       onClick={() => setCollectMethod(method)}
-                      className={`py-2 px-3 rounded-xl border text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold transition-all cursor-pointer ${collectMethod === method
+                      className={`py-2 px-3 rounded-xl border text-label font-bold transition-all cursor-pointer ${collectMethod === method
                         ? "bg-[var(--color-primary)] text-white border-transparent shadow-xs"
                         : "bg-surface border-border text-ink hover:bg-page"
                         }`}

@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { PanelLoadState } from '../../components/Skeleton';
 import * as Lucide from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { propertyApi, adminApi } from '../../lib/api/pms';
@@ -20,15 +21,12 @@ import { PropertyAmenitiesTab } from './PropertyAmenitiesTab';
 import { ReservationSettingsTab } from './ReservationSettingsTab';
 import { RoomSetup2Tab } from './RoomSetup2Tab';
 import { TermsInclusionsTab } from './TermsInclusionsTab';
-import { RoomSettingsTab } from './room-settings/RoomSettingsTab';
 
 type SettingsTab =
   | 'general'
   | 'terms-inclusions'
   | 'terms-cancellations'
-  | 'room-settings'
   | 'room-setup-2'
-  | 'rooms-rates'
   | 'property-amenities'
   | 'category-amenities'
   | 'bed-type'
@@ -83,11 +81,8 @@ export function Settings({
 
   const resource = useApiResource(loadSettings);
   const property = resource.data?.property;
-  const currencyCode = property?.defaultCurrency ?? 'INR';
 
-  const [activeTab, setActiveTab] = useState<SettingsTab>(
-    initialTab === 'rooms-rates' ? 'room-settings' : initialTab
-  );
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
   const [saving, setSaving] = useState(false);
 
   // Active Tax rule
@@ -104,8 +99,7 @@ export function Settings({
         { id: 'general', label: 'Property Details', icon: Lucide.Building2 },
         { id: 'terms-inclusions', label: 'Terms and Inclusions', icon: Lucide.ListChecks },
         { id: 'terms-cancellations', label: 'Cancellation', icon: Lucide.CalendarX },
-        { id: 'room-settings', label: 'Room Setup', icon: Lucide.Layers },
-        { id: 'room-setup-2', label: 'Room Setup 2', icon: Lucide.ListOrdered },
+        { id: 'room-setup-2', label: 'Room Setup', icon: Lucide.ListOrdered },
         { id: 'property-amenities', label: 'Property Amenities', icon: Lucide.Star },
         { id: 'category-amenities', label: 'Category Amenities', icon: Lucide.Tags },
         { id: 'bed-type', label: 'Bed Type', icon: Lucide.BedDouble },
@@ -140,7 +134,7 @@ export function Settings({
   const activeLabel = NAV_GROUPS.flatMap((g) => g.items).find((i) => i.id === activeTab)?.label ?? '';
 
   return (
-    <div className="flex flex-col gap-4 pms-animate-fade-in pb-8">
+    <div className="pms-page pms-animate-fade-in">
       <div className="flex flex-col lg:flex-row lg:items-start gap-5">
       {/* ================= SETTINGS SIDEBAR ================= */}
       <aside
@@ -210,9 +204,11 @@ export function Settings({
             }}
           />
         ) : (
-          <div className="rounded-2xl border p-8 text-center text-body text-ink-secondary shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            {resource.loading ? 'Loading property…' : 'No property is selected.'}
-          </div>
+          resource.loading ? (
+          <PanelLoadState label="Loading property" />
+        ) : (
+          <div className="pms-card p-8 text-center text-body text-ink-secondary">No property is selected.</div>
+        )
         ))}
 
       {/* ================= TERMS AND INCLUSIONS TAB ================= */}
@@ -239,7 +235,7 @@ export function Settings({
       {activeTab === 'policies' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-body font-semibold text-ink mb-1">Booking & Cancellation Policies</h2>
+            <h2 className="text-title font-semibold text-ink mb-1">Booking & Cancellation Policies</h2>
             <p className="text-label text-ink-secondary mb-4">Guest-facing terms applied on confirmed bookings</p>
             <div className="flex flex-col gap-3">
               <div>
@@ -277,7 +273,7 @@ export function Settings({
           </div>
 
           <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-body font-semibold text-ink mb-1">Stay Rules & Check-in Requirements</h2>
+            <h2 className="text-title font-semibold text-ink mb-1">Stay Rules & Check-in Requirements</h2>
             <p className="text-label text-ink-secondary mb-4">Standard hospitality verification procedures</p>
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--color-border-subtle)' }}>
@@ -310,7 +306,7 @@ export function Settings({
       {activeTab === 'taxes' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-body font-semibold text-ink mb-1">Active Tax Rules</h2>
+            <h2 className="text-title font-semibold text-ink mb-1">Active Tax Rules</h2>
             <p className="text-label text-ink-secondary mb-4">Taxes applied dynamically to folios and invoices</p>
             <div className="flex flex-col gap-3">
               <div>
@@ -352,7 +348,7 @@ export function Settings({
           </div>
 
           <div className="rounded-2xl border p-5 sm:p-6 shadow-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h2 className="text-body font-semibold text-ink mb-1">Invoice Details & Legal Header</h2>
+            <h2 className="text-title font-semibold text-ink mb-1">Invoice Details & Legal Header</h2>
             <p className="text-label text-ink-secondary mb-4">Printed information on guest folios & receipts</p>
             <div className="flex flex-col gap-3">
               <div>
@@ -384,11 +380,6 @@ export function Settings({
             No property is selected.
           </div>
         ))}
-
-      {/* ================= ROOM SETTINGS TAB ================= */}
-      {activeTab === 'room-settings' && (
-        <RoomSettingsTab currencyCode={currencyCode} />
-      )}
 
       {/* ================= ROOM SETUP 2 TAB ================= */}
       {activeTab === 'room-setup-2' &&
@@ -496,7 +487,7 @@ export function Settings({
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-3">
             <Lucide.Sliders size={26} />
           </div>
-          <h2 className="text-body font-semibold text-ink">{activeLabel}</h2>
+          <h2 className="text-title font-semibold text-ink">{activeLabel}</h2>
           <p className="text-body text-ink-secondary max-w-md mx-auto mt-1 mb-5">
             Manage your hotel's {activeLabel.toLowerCase()} here. This section is coming soon.
           </p>

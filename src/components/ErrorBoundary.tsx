@@ -64,7 +64,7 @@ export function PanelCrashFallback({ reset, onClose }: { reset: () => void; onCl
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-warning-bg text-warning-text border border-warning-border">
               <Lucide.AlertTriangle size={18} />
             </span>
-            <h2 className="text-body font-bold text-ink">Panel Failed to Render</h2>
+            <h2 className="text-title font-bold text-ink">Panel Failed to Render</h2>
           </div>
           <IconButton variant="ghost"
             type="button"

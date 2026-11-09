@@ -11,6 +11,7 @@ import { ConfirmDialog, Modal } from '../../components/overlays';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import type { SegmentOption } from '../../components/SegmentedControl';
 import { Card, CardTitle, TableContainer } from '../../components/ui';
+import { TableStateRows } from '../../components/Skeleton';
 
 type HkTab = 'configuration' | 'room-assignment';
 
@@ -224,11 +225,7 @@ function Configuration({ propertyId, canEdit }: { propertyId: string; canEdit: b
                 </tr>
               ))}
               {statuses.length === 0 && (
-                <tr>
-                  <td colSpan={11} className="py-8 text-center text-label text-ink-muted">
-                    {resource.error ?? (resource.loading ? 'Loading housekeeping statuses…' : 'No housekeeping statuses yet.')}
-                  </td>
-                </tr>
+                <TableStateRows cols={11} loading={resource.loading} error={resource.error} empty="No housekeeping statuses yet." />
               )}
             </tbody>
           </table>

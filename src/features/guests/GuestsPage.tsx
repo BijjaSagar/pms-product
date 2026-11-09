@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { PanelLoadState, TableSkeletonRows } from '../../components/Skeleton';
 import * as Lucide from 'lucide-react';
 import type { BadgeTone } from '../../utils/status';
 import type { Guest } from '../../types';
@@ -13,7 +14,7 @@ import { guestApi } from '../../lib/api/pms';
 import { guestFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
-import { formatCurrency } from '../../lib/api/format';
+import { formatCurrency } from '../../utils/currency';
 import { Button } from '../../components/primitives';
 
 const PAGE_SIZE = 6;
@@ -147,7 +148,7 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
   };
 
   if (openGuest && !profile && profileResource.loading) {
-    return <Card><p className="pms-helper">Loading guest profile…</p></Card>;
+    return <PanelLoadState label="Loading guest profile" />;
   }
 
   if (openGuest && profile) {
@@ -170,7 +171,7 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="pms-page">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">
@@ -285,9 +286,10 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
                   </td>
                 </tr>
               ))}
+              {resource.loading ? <TableSkeletonRows cols={9} /> : null}
             </tbody>
           </table>
-          {slice.length === 0 ? <p className="pms-helper py-8 text-center text-label text-ink-secondary">No guests match.</p> : null}
+          {!resource.loading && slice.length === 0 ? <p className="pms-helper py-8 text-center text-label text-ink-secondary">No guests match.</p> : null}
         </TableContainer>
         <div className="mt-4 pt-1">
           <Pagination

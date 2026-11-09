@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { PageSkeleton } from '../../components/Skeleton';
 import * as Lucide from 'lucide-react';
 import { Drawer } from '../../components/overlays';
 import { Avatar } from '../../components/ui';
@@ -149,8 +150,10 @@ export function Reservations({
     );
   };
 
+  if (resource.initialLoading) return <PageSkeleton />;
+
   return (
-    <div className="w-full text-ink font-sans pb-8 flex flex-col gap-3.5">
+    <div className="pms-page">
       {resource.error && (
         <div className="flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-label text-danger-text">
           <Lucide.AlertCircle size={16} />
@@ -173,7 +176,7 @@ export function Reservations({
           {/* ================= 5. RESERVATIONS TABLE CARD ================= */}
           <section className="pms-card overflow-hidden" aria-label="Reservation list">
             <div className="flex flex-col gap-2 border-b border-divider px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-              <h2 className="text-body font-semibold text-ink">Reservations</h2>
+              <h2 className="text-title font-semibold text-ink">Reservations</h2>
               <div className="flex items-center gap-2 text-label text-ink-secondary">
                 {selectedRowIds.length > 0 && (
                   <span className="rounded-full border border-[var(--color-primary)]/20 bg-[var(--color-muted-surface)] px-2.5 py-1 font-semibold text-[var(--color-primary)]">

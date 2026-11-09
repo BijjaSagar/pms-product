@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { PageSkeleton } from '../../components/Skeleton';
 import * as Lucide from 'lucide-react';
 import type { HkStatus, HousekeepingTask, MaintenanceRequest, Room, RoomStatus } from '../../types';
 import { Avatar, Badge } from '../../components/ui';
@@ -11,7 +12,7 @@ import { housekeepingTaskFromApi, maintenanceFromApi } from '../../lib/api/adapt
 import { loadRoomInventory } from '../../lib/api/loaders';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
-import { formatCurrency } from '../../lib/api/format';
+import { formatCurrency } from '../../utils/currency';
 import { useAuth } from '../../features/auth/AuthContext';
 import { StatusTimeline } from './StatusTimeline';
 import { Button } from '../../components/primitives';
@@ -53,7 +54,7 @@ function RoomDetail({
   onStatus: (room: Room, s: RoomStatus) => void;
 }) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="pms-page">
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="tnum text-disp3 font-bold leading-none text-ink">Room {room.number}</p>
@@ -229,6 +230,8 @@ export function Rooms({
       toast('Room status update failed', { detail: displayApiError(error), tone: 'danger' });
     }
   };
+
+  if (resource.initialLoading) return <PageSkeleton />;
 
   return (
     <div className="flex flex-col gap-4 pms-animate-fade-in pb-8">

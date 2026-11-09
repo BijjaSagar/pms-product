@@ -1,13 +1,17 @@
 import { useCallback, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { roomListingApi } from '../../lib/api/pms';
-import type { RoomDetails, RoomOrderList } from '../../lib/api/pms';
+import { propertyApi, roomListingApi } from '../../lib/api/pms';
+import type { PropertyDetails, RoomDetails, RoomOrderList } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
 import { IconButton } from '../../components/primitives';
 import { Card, CardTitle, TableContainer } from '../../components/ui';
+import { useInventory } from '../inventory/inventoryContext';
 import { RoomCategoryDialog } from './RoomCategoryDialog';
+import { FloorsSection } from './room-settings/FloorsSection';
+import { useFloorPlanEditor } from './room-settings/useFloorPlanEditor';
+import { TableStateRows } from '../../components/Skeleton';
 
 const ORDER_KEY = { chart: 'chartOrder', upsell: 'upsellOrder' } as const;
 
@@ -91,11 +95,7 @@ function OrderTable({
               </tr>
             ))}
             {rooms.length === 0 && (
-              <tr>
-                <td colSpan={3} className="py-8 text-center text-label text-ink-muted">
-                  {error ?? (loading ? 'Loading rooms…' : 'No rooms yet. Add rooms in Room Setup.')}
-                </td>
-              </tr>
+              <TableStateRows cols={3} loading={loading} error={error} empty="No rooms yet." />
             )}
           </tbody>
         </table>
@@ -109,12 +109,28 @@ export function RoomSetup2Tab({ propertyId, canEdit }: { propertyId: string; can
   const resource = useApiResource(load);
   const [busy, setBusy] = useState(false);
   const [viewingId, setViewingId] = useState<string | null>(null);
+  // Rooms placed on the floor plan must reach the reservation screens, which read the app-wide inventory.
+  const { refresh: refreshInventory } = useInventory();
+  const propertyResource = useApiResource(
+    () => propertyApi.get(propertyId).catch(() => null as PropertyDetails | null),
+    [propertyId],
+  );
 
   const rooms = resource.data ?? [];
   // Looked up by id so the open dialog shows fresh data after a save.
   const viewing = rooms.find((room) => room.id === viewingId) ?? null;
   const chartRooms = sortRooms(rooms, 'chart');
   const upsellRooms = sortRooms(rooms, 'upsell');
+  const floorEditor = useFloorPlanEditor({
+    propertyId,
+    rooms,
+    totalRooms: propertyResource.data?.totalRooms ?? null,
+    propertyFloors: propertyResource.data?.numberOfFloors,
+    onSaved: () => {
+      propertyResource.refresh();
+      void refreshInventory();
+    },
+  });
 
   const move = async (list: RoomOrderList, ordered: RoomDetails[], index: number, direction: -1 | 1) => {
     const ids = ordered.map((room) => room.id);
@@ -152,6 +168,20 @@ export function RoomSetup2Tab({ propertyId, canEdit }: { propertyId: string; can
         error={resource.error}
         canEdit={canEdit}
         onMove={(index, direction) => void move('upsell', upsellRooms, index, direction)}
+      />
+      <FloorsSection
+        rooms={rooms}
+        loading={resource.loading}
+        floorInput={floorEditor.floorInput}
+        onFloorInputChange={floorEditor.setFloorInput}
+        plan={floorEditor.plan}
+        onPlanChange={floorEditor.setPlan}
+        loadError={floorEditor.loadError}
+        dirty={floorEditor.dirty}
+        saving={floorEditor.saving}
+        canSave={canEdit}
+        onSave={() => void floorEditor.save()}
+        totalRooms={propertyResource.data?.totalRooms ?? null}
       />
       <RoomCategoryDialog
         key={viewingId ?? 'closed'}

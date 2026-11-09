@@ -252,7 +252,7 @@ export function LoginPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="pms-btn-primary w-full justify-center min-h-[36px] text-label sm:text-body font-bold cursor-pointer transition-all shadow-xs active:scale-98"
+                className="pms-btn-primary w-full justify-center min-h-[36px] text-body font-bold cursor-pointer transition-all shadow-xs active:scale-98"
               >
                 {isSubmitting ? (
                   <>

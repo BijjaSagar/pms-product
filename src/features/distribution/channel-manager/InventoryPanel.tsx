@@ -37,7 +37,7 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 id="inventory-calendar-title" className="text-body font-bold text-ink tracking-tight">Availability Calendar</h2>
+              <h2 id="inventory-calendar-title" className="text-title font-bold text-ink tracking-tight">Availability Calendar</h2>
               <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
@@ -78,7 +78,7 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
       <div className="grid gap-2 border-t p-3 sm:hidden" style={{ borderColor: 'var(--color-divider)' }}>
         {visibleRows.map((row) => (
           <section key={row.roomType} className="rounded-control border p-3" style={{ borderColor: 'var(--color-border)' }} aria-label={`${row.roomType} availability`}>
-            <div className="mb-2 flex items-center justify-between"><h3 className="text-label font-bold text-ink">{row.roomType}</h3><span className="text-micro text-ink-muted">{row.totalRooms} rooms</span></div>
+            <div className="mb-2 flex items-center justify-between"><h3 className="text-title font-bold text-ink">{row.roomType}</h3><span className="text-micro text-ink-muted">{row.totalRooms} rooms</span></div>
             <div className="grid grid-cols-5 gap-1.5">
               {dates.map((date, index) => {
                 const available = row.availability[index] ?? 0;
@@ -93,9 +93,9 @@ export function InventoryPanel({ dates, rows, roomFilter, dateLabel, lastUpdated
       <div className="pms-table-scroll hidden overflow-x-auto border-t sm:block" style={{ borderColor: 'var(--color-divider)' }}>
         <table className="pms-matrix-table min-w-[1040px] w-full border-collapse text-label">
           <thead><tr>
-            <th className="sticky left-0 z-20 min-w-[140px] border-r px-4 py-3 text-left text-micro font-bold uppercase tracking-wider text-ink-muted" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}>Room type</th>
-            <th className="min-w-[72px] border-r px-2 py-3 text-center text-micro font-bold uppercase tracking-wider text-ink-muted" style={{ borderColor: 'var(--color-divider)' }}>Total</th>
-            {dates.map((date) => <th key={date.iso} className={`min-w-[48px] border-r px-1 py-2 text-center ${date.isWeekend ? 'bg-primary/5' : ''}`} style={{ borderColor: 'var(--color-divider)' }}><span className="block text-micro font-medium text-ink-muted">{date.weekday}</span><span className="block text-body font-bold text-ink">{date.day}</span><span className="block text-micro text-ink-muted">{date.month}</span></th>)}
+            <th className="sticky left-0 z-20 min-w-[140px] border-r px-4 py-3 text-left text-label font-bold uppercase tracking-wider text-ink-muted" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-divider)' }}>Room type</th>
+            <th className="min-w-[72px] border-r px-2 py-3 text-center text-label font-bold uppercase tracking-wider text-ink-muted" style={{ borderColor: 'var(--color-divider)' }}>Total</th>
+            {dates.map((date) => <th key={date.iso} className={`min-w-[48px] border-r px-1 py-2 text-center ${date.isWeekend ? 'bg-primary/5' : ''}`} style={{ borderColor: 'var(--color-divider)' }}><span className="block text-label font-medium text-ink-muted">{date.weekday}</span><span className="block text-label font-bold text-ink">{date.day}</span><span className="block text-label text-ink-muted">{date.month}</span></th>)}
           </tr></thead>
           <tbody>
             {visibleRows.map((row) => (

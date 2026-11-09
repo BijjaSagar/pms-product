@@ -512,7 +512,7 @@ export function Header({
                           <Lucide.BellRing size={17} />
                         </div>
                         <div>
-                          <h2 className="text-body font-bold text-ink leading-tight">Notifications Hub</h2>
+                          <h2 className="text-title font-bold text-ink leading-tight">Notifications Hub</h2>
                           <p className="text-label text-ink-muted">
                             {unreadCount > 0 ? `${unreadCount} unread operational alerts` : 'All operational alerts are cleared'}
                           </p>

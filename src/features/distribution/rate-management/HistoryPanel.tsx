@@ -15,7 +15,7 @@ export function HistoryPanel({ events }: { events: RateHistoryEvent[] }) {
           <Lucide.History size={18} strokeWidth={2.4} />
         </div>
         <div>
-          <h2 id="rate-history-title" className="text-body font-bold text-ink tracking-tight">Rate Change History</h2>
+          <h2 id="rate-history-title" className="text-title font-bold text-ink tracking-tight">Rate Change History</h2>
           <p className="text-label text-ink-muted mt-0.5">A local audit trail of recent rate and distribution actions</p>
         </div>
       </div>
@@ -29,7 +29,7 @@ export function HistoryPanel({ events }: { events: RateHistoryEvent[] }) {
                 <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full" style={{ color: tone.color, background: tone.bg }}><Icon size={16} /></span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                    <h3 className="text-body font-semibold text-ink">{event.title}</h3>
+                    <h3 className="text-title font-semibold text-ink">{event.title}</h3>
                     <time className="text-label text-ink-muted">{event.timestamp}</time>
                   </div>
                   <p className="mt-1 text-label text-ink-secondary">{event.detail}</p>

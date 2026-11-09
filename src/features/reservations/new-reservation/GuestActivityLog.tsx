@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { CardSkeleton } from '../../../components/Skeleton';
 import * as Lucide from "lucide-react";
 import { auditApi } from "../../../lib/api/pms";
 import { useApiResource } from "../../../lib/api/useApiResource";
@@ -31,37 +32,37 @@ export function GuestActivityLog({ guestId }: { guestId: string | null }) {
           <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-info-bg text-info-text">
             <Lucide.History size={15} />
           </div>
-          <h3 className="min-w-0 flex-1 text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-bold text-ink uppercase tracking-wider">
+          <h3 className="min-w-0 flex-1 text-title font-bold text-ink uppercase tracking-wider">
             Activity Log
           </h3>
         </div>
         {guestId && activity.data && (
-          <span className="flex-none text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted-surface text-ink">
+          <span className="flex-none text-micro font-bold px-2 py-0.5 rounded-full bg-muted-surface text-ink">
             {rows.length} {rows.length === 1 ? "Entry" : "Entries"}
           </span>
         )}
       </div>
 
       {!guestId ? (
-        <p className="text-[12px] text-ink-secondary">Select or add a Guest to see their activity.</p>
+        <p className="text-label text-ink-secondary">Select or add a Guest to see their activity.</p>
       ) : activity.error ? (
-        <p role="alert" className="text-[12px] text-danger-text">Could not load activity: {activity.error}</p>
+        <p role="alert" className="text-label text-danger-text">Could not load activity: {activity.error}</p>
       ) : activity.loading ? (
-        <p className="text-[12px] text-ink-secondary">Loading activity…</p>
+        <CardSkeleton lines={3} label="Loading activity" />
       ) : rows.length === 0 ? (
-        <p className="text-[12px] text-ink-secondary">No activity recorded for this Guest yet.</p>
+        <p className="text-label text-ink-secondary">No activity recorded for this Guest yet.</p>
       ) : (
         <ol className="flex flex-col gap-2.5">
           {rows.map((row) => (
             <li key={row.id} className="flex items-start gap-2.5">
               <span className="mt-1.5 h-2 w-2 flex-none rounded-full bg-[var(--color-primary)]" />
               <div className="min-w-0 flex-1">
-                <p className="text-[12px] font-semibold text-ink break-words">
+                <p className="text-label font-semibold text-ink break-words">
                   {ACTION_LABELS[row.action] ?? row.action}
                   {row.resourceId ? <span className="tnum font-mono font-normal text-ink-secondary"> · {row.resourceId}</span> : null}
                 </p>
-                {row.reason ? <p className="text-[11px] text-ink-secondary break-words">{row.reason}</p> : null}
-                <p className="tnum text-[11px] text-ink-secondary">
+                {row.reason ? <p className="text-label text-ink-secondary break-words">{row.reason}</p> : null}
+                <p className="tnum text-label text-ink-secondary">
                   {row.createdAt}
                   {row.actorName ? ` · ${row.actorName}` : ""}
                 </p>

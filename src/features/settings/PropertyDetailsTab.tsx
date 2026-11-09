@@ -131,7 +131,7 @@ function Card({ icon: Icon, title, hint, children }: { icon: Lucide.LucideIcon; 
           <Icon size={17} strokeWidth={2.4} />
         </div>
         <div className="min-w-0">
-          <h2 className="text-body font-bold tracking-tight text-ink">{title}</h2>
+          <h2 className="text-title font-bold tracking-tight text-ink">{title}</h2>
           <p className="mt-0.5 text-label text-ink-muted">{hint}</p>
         </div>
       </div>
@@ -304,7 +304,7 @@ export function PropertyDetailsTab({
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-body font-bold text-ink">Property Details</h2>
+            <h2 className="text-title font-bold text-ink">Property Details</h2>
             <p className="mt-0.5 text-label text-ink-secondary">Identity, address, billing and listing details</p>
           </div>
           <Button

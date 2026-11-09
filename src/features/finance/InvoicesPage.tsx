@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
+import { TableSkeletonRows } from '../../components/Skeleton';
 import * as Lucide from 'lucide-react';
-import { formatCurrency } from '../../lib/api/format';
+import { formatCurrency } from '../../utils/currency';
 import type { Invoice } from '../../types';
 import { Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../../components/ui';
 import { paymentTone } from '../../utils/status';
@@ -53,7 +54,7 @@ export function Invoices() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="pms-page">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">
@@ -204,9 +205,10 @@ export function Invoices() {
                   </td>
                 </tr>
               ))}
+              {resource.loading ? <TableSkeletonRows cols={8} /> : null}
             </tbody>
           </table>
-          {rows.length === 0 ? <p className="pms-helper py-8 text-center text-ink-muted">No invoices match.</p> : null}
+          {!resource.loading && rows.length === 0 ? <p className="pms-helper py-8 text-center text-ink-muted">No invoices match.</p> : null}
         </TableContainer>
       </Card>
 
