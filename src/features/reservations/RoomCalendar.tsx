@@ -5,7 +5,6 @@ import type { NavTarget } from '../../config/navigation';
 import { IconButton } from '../../components/primitives';
 import type { CalendarReservation, CalendarRoom, DragState, ProposedReservationChange, ReservationStatus as CalendarReservationStatus } from './room-calendar/types';
 import {
-  todayIso,
   addDaysToIso,
   countNights,
   daysBetween,
@@ -25,6 +24,8 @@ import { DayNoteModal } from './day-log/DayNoteModal';
 import { DayEnquiriesModal } from './day-log/DayEnquiriesModal';
 import { dayLogApi, frontDeskApi, reservationApi, type DayLogSummaryRow } from '../../lib/api/pms';
 import { displayApiError } from '../../lib/api/client';
+import { hotelTodayIso } from '../../utils/date';
+import { formatINR } from '../../utils/currency';
 
 // ================= ROOM CALENDAR: 10-DAY VIEW =================
 const DAYS_IN_VIEW = 10;
@@ -199,7 +200,7 @@ function ReservationBar({
         }
       }}
       aria-label={`${res.guestName}, ${res.status}, ${res.checkInDate} to ${res.checkOutDate}. Select for details.`}
-      title={`${res.guestName} (${res.id}) · ${res.checkInDate} to ${res.checkOutDate} (${res.nights}n) · ₹${res.totalAmount.toLocaleString('en-IN')}`}
+      title={`${res.guestName} (${res.id}) · ${res.checkInDate} to ${res.checkOutDate} (${res.nights}n) · ${formatINR(res.totalAmount)}`}
       style={{
         left,
         width,
@@ -242,7 +243,7 @@ export function RoomCalendar({
 }) {
   // The window starts on the range's first night, or today when no range is set;
   // the arrows move it by a full window. Changing the range resets the window to its start.
-  const today = todayIso();
+  const today = hotelTodayIso();
   const windowAnchor = filters.from || today;
   const [startOffset, setStartOffset] = useState(0);
   const [anchorSeen, setAnchorSeen] = useState(windowAnchor);
@@ -289,7 +290,9 @@ export function RoomCalendar({
       .then((summary) => {
         if (active) setDayLog(summary);
       })
-      .catch(() => toast.error('Could not load day notes'));
+      .catch(() => {
+        if (active) toast.error('Could not load day notes');
+      });
     return () => {
       active = false;
     };
@@ -508,83 +511,95 @@ export function RoomCalendar({
       );
     };
 
+    // The browser took the pointer over (e.g. a touch turned into a scroll): drop the drag without saving.
+    const onPointerCancel = () => {
+      if (!isPointerDownRef.current) return;
+      isPointerDownRef.current = false;
+      setDragState(null);
+    };
+
     const onPointerUp = () => {
       if (!isPointerDownRef.current || !dragState) return;
       isPointerDownRef.current = false;
 
       const res = reservations.find((r) => r.id === dragState.reservationId);
+      // The booking was reloaded away mid-drag: nothing to open or move.
+      if (!res) {
+        setDragState(null);
+        return;
+      }
 
       // A click without a real drag opens the detail modal
-      if (!dragState.isDragging && res) {
+      if (!dragState.isDragging) {
         setActiveReservation(res);
         setDragState(null);
         return;
       }
 
-      if (dragState.isDragging && res) {
-        const hasDatesChanged =
-          dragState.proposedCheckIn !== dragState.originCheckIn ||
-          dragState.proposedCheckOut !== dragState.originCheckOut;
-        const hasRoomChanged = dragState.proposedRoomId !== dragState.originRoomId;
+      const hasDatesChanged =
+        dragState.proposedCheckIn !== dragState.originCheckIn ||
+        dragState.proposedCheckOut !== dragState.originCheckOut;
+      const hasRoomChanged = dragState.proposedRoomId !== dragState.originRoomId;
 
-        if (!hasDatesChanged && !hasRoomChanged) {
-          setDragState(null);
-          return;
-        }
-
-        const originalRoom = rooms.find((r) => r.id === dragState.originRoomId) || rooms[0];
-        const proposedRoom = rooms.find((r) => r.id === dragState.proposedRoomId) || rooms[0];
-
-        const valResult = validateReservationMove({
-          reservation: res,
-          targetRoom: proposedRoom,
-          proposedCheckIn: dragState.proposedCheckIn,
-          proposedCheckOut: dragState.proposedCheckOut,
-          allReservations: reservations,
-        });
-
-        if (!valResult.isValid) {
-          toast.error('Cannot Reallocate', { detail: valResult.reason });
-          setDragState(null);
-          return;
-        }
-
-        const change: ProposedReservationChange = {
-          reservation: res,
-          originalRoom,
-          proposedRoom,
-          originalCheckIn: dragState.originCheckIn,
-          proposedCheckIn: dragState.proposedCheckIn,
-          originalCheckOut: dragState.originCheckOut,
-          proposedCheckOut: dragState.proposedCheckOut,
-          originalNights: res.nights,
-          proposedNights: countNights(dragState.proposedCheckIn, dragState.proposedCheckOut),
-          originalTotal: res.totalAmount,
-          proposedTotal: valResult.proposedTotal,
-          priceDifference: valResult.priceDifference,
-          type:
-            hasRoomChanged && hasDatesChanged
-              ? 'combined'
-              : hasRoomChanged
-                ? 'move-room'
-                : dragState.dragType === 'resize-start'
-                  ? 'resize-start'
-                  : dragState.dragType === 'resize-end'
-                    ? 'resize-end'
-                    : 'move-date',
-        };
-
-        setPendingChange(change);
+      if (!hasDatesChanged && !hasRoomChanged) {
+        setDragState(null);
+        return;
       }
+
+      const originalRoom = rooms.find((r) => r.id === dragState.originRoomId) || rooms[0];
+      const proposedRoom = rooms.find((r) => r.id === dragState.proposedRoomId) || rooms[0];
+
+      const valResult = validateReservationMove({
+        reservation: res,
+        targetRoom: proposedRoom,
+        proposedCheckIn: dragState.proposedCheckIn,
+        proposedCheckOut: dragState.proposedCheckOut,
+        allReservations: reservations,
+      });
+
+      if (!valResult.isValid) {
+        toast.error('Cannot Reallocate', { detail: valResult.reason });
+        setDragState(null);
+        return;
+      }
+
+      const change: ProposedReservationChange = {
+        reservation: res,
+        originalRoom,
+        proposedRoom,
+        originalCheckIn: dragState.originCheckIn,
+        proposedCheckIn: dragState.proposedCheckIn,
+        originalCheckOut: dragState.originCheckOut,
+        proposedCheckOut: dragState.proposedCheckOut,
+        originalNights: res.nights,
+        proposedNights: countNights(dragState.proposedCheckIn, dragState.proposedCheckOut),
+        originalTotal: res.totalAmount,
+        proposedTotal: valResult.proposedTotal,
+        priceDifference: valResult.priceDifference,
+        type:
+          hasRoomChanged && hasDatesChanged
+            ? 'combined'
+            : hasRoomChanged
+              ? 'move-room'
+              : dragState.dragType === 'resize-start'
+                ? 'resize-start'
+                : dragState.dragType === 'resize-end'
+                  ? 'resize-end'
+                  : 'move-date',
+      };
+
+      setPendingChange(change);
 
       setDragState(null);
     };
 
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerCancel);
     return () => {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerCancel);
     };
   }, [dragState, reservations, visibleRooms, rooms, dayWidth]);
 
@@ -903,7 +918,11 @@ export function RoomCalendar({
                       })}
 
                       {roomReservations.map((res) => {
-                        const geometry = barGeometry(res.checkInDate, res.checkOutDate, firstDay, horizonEnd, dayWidth);
+                        // A guest who left early is drawn up to the day they left, so the freed nights
+                        // stay clickable; one who arrived and left the same day holds no night at all.
+                        const barEnd = res.departedOn ?? res.checkOutDate;
+                        if (barEnd <= res.checkInDate) return null;
+                        const geometry = barGeometry(res.checkInDate, barEnd, firstDay, horizonEnd, dayWidth);
                         if (!geometry) return null;
                         return (
                           <ReservationBar
@@ -972,7 +991,9 @@ export function RoomCalendar({
         isSaving={isSavingChange}
       />
 
+      {/* Keyed by booking so an edit left open on one reservation does not carry over to the next. */}
       <ReservationDetailModal
+        key={activeReservation?.id ?? 'none'}
         reservation={activeReservation}
         rooms={rooms}
         allReservations={reservations}

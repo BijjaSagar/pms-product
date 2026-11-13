@@ -7,6 +7,9 @@ import type { Reservation, ReservationStatus } from '../../types';
 import { Button, TextField } from '../../components/primitives';
 import { Badge } from '../../components/ui';
 import { reservationTone } from '../../utils/status';
+import { formatINR } from '../../utils/currency';
+import { hotelTodayIso } from '../../utils/date';
+import { MAX_NIGHTS, nightsBetween } from './new-reservation/bookingRules';
 
 /* Reservation status as a badge; the tone comes from the shared status mapping. */
 export function StatusPill({ status }: { status: ReservationStatus }) {
@@ -36,8 +39,18 @@ export function ReservationDrawer({
   const [editCheckOut, setEditCheckOut] = useState(r.checkOutIso?.slice(0, 10) ?? '');
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const roomCharges = r.nightlyRate * r.nights;
+  // Every room line is charged, not only the first one of a multi-room booking.
+  const roomLineRates = (r.roomLines ?? []).map((line) => Number(line.nightlyRate ?? 0));
+  const nightlyTotal = roomLineRates.length > 0 ? roomLineRates.reduce((sum, rate) => sum + rate, 0) : r.nightlyRate;
+  const roomCharges = (Number.isFinite(nightlyTotal) ? nightlyTotal : 0) * r.nights;
   const balance = r.total - r.paid;
+
+  const openDateEditor = () => {
+    // Start from the saved stay, not from what was typed the last time the editor was open.
+    setEditCheckIn(r.checkInIso?.slice(0, 10) ?? '');
+    setEditCheckOut(r.checkOutIso?.slice(0, 10) ?? '');
+    setEditOpen(true);
+  };
 
   const handleSaveDates = async () => {
     if (!editCheckIn || !editCheckOut) {
@@ -46,6 +59,24 @@ export function ReservationDrawer({
     }
     if (editCheckIn >= editCheckOut) {
       toast('Check-out date must be after check-in date', { tone: 'warning' });
+      return;
+    }
+    if (editCheckIn === r.checkInIso && editCheckOut === r.checkOutIso) {
+      setEditOpen(false);
+      return;
+    }
+    // The same rules the server applies, so the user gets the reason before a round trip.
+    const today = hotelTodayIso();
+    if (editCheckIn !== r.checkInIso && editCheckIn < today) {
+      toast('Check-in cannot be in the past', { tone: 'warning' });
+      return;
+    }
+    if (editCheckOut <= today) {
+      toast('Check-out must be after today', { tone: 'warning' });
+      return;
+    }
+    if (nightsBetween(editCheckIn, editCheckOut) > MAX_NIGHTS) {
+      toast(`A reservation can cover at most ${MAX_NIGHTS} nights`, { tone: 'warning' });
       return;
     }
     setIsUpdating(true);
@@ -65,7 +96,7 @@ export function ReservationDrawer({
             <span className="font-bold text-body text-ink">{r.guest}</span>
             <StatusPill status={r.status} />
           </div>
-          <span className="font-bold text-body text-ink">₹{r.total.toLocaleString('en-IN')}.00</span>
+          <span className="font-bold text-body text-ink">{formatINR(r.total)}</span>
         </div>
 
         <div className="grid grid-cols-2 gap-3 rounded-md border border-border bg-page p-3">
@@ -90,16 +121,16 @@ export function ReservationDrawer({
         <div className="rounded-md border border-border p-3 flex flex-col gap-1.5">
           <div className="flex justify-between">
             <span className="text-ink-secondary">Room Charges:</span>
-            <span className="font-medium text-ink">₹{roomCharges.toLocaleString('en-IN')}.00</span>
+            <span className="font-medium text-ink">{formatINR(roomCharges)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-ink-secondary">Amount Paid:</span>
-            <span className="font-medium text-success-text">₹{r.paid.toLocaleString('en-IN')}.00</span>
+            <span className="font-medium text-success-text">{formatINR(r.paid)}</span>
           </div>
           <div className="flex justify-between font-bold border-t border-divider pt-1">
             <span>Balance Due:</span>
             <span className={balance > 0 ? 'text-warning-text' : 'text-ink'}>
-              ₹{Math.max(0, balance).toLocaleString('en-IN')}.00
+              {formatINR(Math.max(0, balance))}
             </span>
           </div>
         </div>
@@ -120,7 +151,7 @@ export function ReservationDrawer({
           <Button variant="secondary"
             type="button"
             className="flex-1 flex items-center justify-center gap-1.5 cursor-pointer"
-            onClick={() => setEditOpen(true)}
+            onClick={openDateEditor}
           >
             <Lucide.CalendarClock size={15} />
             <span>Modify Dates</span>

@@ -54,6 +54,8 @@ export interface CalendarReservation {
   roomType: RoomType;
   checkInDate: string; // YYYY-MM-DD
   checkOutDate: string; // YYYY-MM-DD
+  /** Set when a checked-out guest left before checkOutDate; the bar ends here so the room can be sold again. */
+  departedOn?: string; // YYYY-MM-DD
   nights: number;
   status: ReservationStatus;
   bookingSource: BookingSource;

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
 import type { ProposedReservationChange } from './types';
 import { roomTypeStyle } from './calendarData';
+import { formatINR } from '../../../utils/currency';
 import { lockAppScroll } from '../../../lib/scrollLock';
 import { Button, Checkbox, IconButton } from '../../../components/primitives';
 
@@ -142,7 +143,7 @@ export function ReservationChangeDialog({
             <div>
               <span className="text-label text-ink-secondary">Total Billed</span>
               <p className="text-body font-bold font-mono text-ink mt-0.5">
-                ₹{originalTotal.toLocaleString('en-IN')}.00
+                {formatINR(originalTotal)}
               </p>
             </div>
           </div>
@@ -196,7 +197,7 @@ export function ReservationChangeDialog({
                 )}
               </div>
               <p className="text-body font-black font-mono text-ink mt-0.5">
-                ₹{proposedTotal.toLocaleString('en-IN')}.00
+                {formatINR(proposedTotal)}
               </p>
             </div>
           </div>
@@ -213,8 +214,8 @@ export function ReservationChangeDialog({
             {priceDifference === 0
               ? 'No Price Change (₹0.00)'
               : priceDifference > 0
-              ? `Additional ₹${priceDifference.toLocaleString('en-IN')}.00 due`
-              : `Refund / Credit of ₹${Math.abs(priceDifference).toLocaleString('en-IN')}.00`}
+              ? `Additional ${formatINR(priceDifference)} due`
+              : `Refund / Credit of ${formatINR(Math.abs(priceDifference))}`}
           </span>
         </div>
 

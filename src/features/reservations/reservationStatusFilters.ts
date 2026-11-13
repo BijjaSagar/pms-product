@@ -10,6 +10,7 @@ const STATUS_FILTER_MATCHES: Record<string, readonly string[]> = {
   Maintenance: [],
 };
 
+
 export function matchesStatusFilter(status: string, filter: string): boolean {
   if (filter === 'All') return true;
   return (STATUS_FILTER_MATCHES[filter] ?? []).includes(status);

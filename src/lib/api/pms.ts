@@ -87,6 +87,8 @@ export interface ReservationRow {
   discountAmount?: string; paid?: number; createdAt?: string;
   /** 24-hour "HH:mm". */
   checkInTime?: string; checkOutTime?: string;
+  /** Hotel date the guest actually left (list rows only). */
+  checkedOutOn?: string | null;
 }
 export interface StayRow extends ReservationRow {
   guestId?: string | null;
@@ -817,6 +819,8 @@ interface BackendReservationSummary {
   nights: number;
   checkInTime: string;
   checkOutTime: string;
+  /** Hotel date the guest actually left; null until checked out. */
+  checkedOutOn?: string | null;
   guest: BackendReservationGuest;
   roomNumbers: string[];
   roomNames: string[];
@@ -922,6 +926,7 @@ function reservationRowFromSummary(r: BackendReservationSummary): ReservationRow
     createdAt: r.createdAt,
     checkInTime: r.checkInTime,
     checkOutTime: r.checkOutTime,
+    checkedOutOn: r.checkedOutOn ?? null,
     roomLines: r.rooms.map((line) => ({
       id: line.id,
       roomTypeId: '',
@@ -1001,7 +1006,7 @@ async function listAllReservations(filters: Record<string, string>): Promise<Res
       `${propertyPath()}/reservations?${query}`,
     );
     rows.push(...result.data.map(reservationRowFromSummary));
-    if (page * MAX_PAGE >= result.meta.total) break;
+    if (result.data.length === 0 || page * MAX_PAGE >= result.meta.total) break;
   }
   return rows;
 }
@@ -1154,10 +1159,17 @@ export const guestApi = {
 };
 
 export const reservationApi = {
-  list: async (search = '', status?: string, page = 1, pageSize = 100): Promise<PageResult<ReservationRow>> => {
+  list: async (
+    search = '',
+    status?: string,
+    page = 1,
+    pageSize = 100,
+    sort?: 'check-in' | 'recent',
+  ): Promise<PageResult<ReservationRow>> => {
     const query = new URLSearchParams({
       ...(search.trim() ? { search: search.trim().slice(0, 100) } : {}),
       ...(status ? { status } : {}),
+      ...(sort ? { sort } : {}),
       page: String(page),
       pageSize: String(Math.min(pageSize, MAX_PAGE)),
     });

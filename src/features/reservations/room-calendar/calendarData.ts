@@ -2,14 +2,6 @@ import type { CalendarReservation, CalendarRoom, RoomOperationalStatus, Reservat
 import { store, UNASSIGNED_TYPE_NAME } from '../../../data/store';
 import { reservationApi } from '../../../lib/api/pms';
 
-/** Today's date (YYYY-MM-DD) in the user's local time zone. Call it when rendering, so it stays right past midnight. */
-export function todayIso(): string {
-  const now = new Date();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${now.getFullYear()}-${month}-${day}`;
-}
-
 /* Display colours for room types. Types are configured per property, so a type's colours come from its name. */
 const TYPE_STYLES = [
   { color: 'var(--color-info-text)', badgeBg: 'bg-info-bg text-info-text border-info-border' },
@@ -140,6 +132,8 @@ export async function loadSyncedReservations(from: string, to: string): Promise<
       const checkOutDate = String(r.checkOutDate).slice(0, 10);
       const nights = countNights(checkInDate, checkOutDate);
       const status: ReservationStatus = STATUS_MAP[r.status] || 'Confirmed';
+      const departedOn =
+        status === 'Checked-out' && r.checkedOutOn && r.checkedOutOn < checkOutDate ? r.checkedOutOn : undefined;
       const lines = r.roomLines ?? [];
       const isGroup = lines.length > 1;
       const stayTotal = Number(r.totalAmount ?? 0);
@@ -162,6 +156,7 @@ export async function loadSyncedReservations(from: string, to: string): Promise<
           roomType: room.type,
           checkInDate,
           checkOutDate,
+          departedOn,
           nights,
           status,
           bookingSource:

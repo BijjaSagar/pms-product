@@ -1,5 +1,10 @@
 import type { CalendarReservation, CalendarRoom, ValidationResult } from './types';
 import { countNights } from './calendarData';
+import { hotelTodayIso } from '../../../utils/date';
+import { MAX_NIGHTS } from '../new-reservation/bookingRules';
+
+/** Statuses the server lets you change: bookings that have not arrived yet. */
+const EDITABLE_STATUSES: readonly CalendarReservation['status'][] = ['Confirmed', 'Tentative', 'Pending'];
 
 /**
  * Validates a proposed reservation move (dates and/or room) against all operational constraints.
@@ -42,6 +47,32 @@ export function validateReservationMove({
     };
   }
 
+  // 2a. Rules the server applies when the stay is saved again (see reservationApi.changeStay)
+  const serverRule = (reason: string): ValidationResult => ({
+    isValid: false,
+    reason,
+    proposedTotal: reservation.totalAmount,
+    priceDifference: 0,
+    proposedNights,
+  });
+  if (!EDITABLE_STATUSES.includes(reservation.status)) {
+    return serverRule(
+      reservation.status === 'Checked-in'
+        ? 'A checked-in stay cannot be moved or have its dates changed yet.'
+        : `A ${reservation.status.toLowerCase()} reservation cannot be changed.`,
+    );
+  }
+  if (proposedNights > MAX_NIGHTS) {
+    return serverRule(`A reservation can cover at most ${MAX_NIGHTS} nights.`);
+  }
+  const today = hotelTodayIso();
+  if (proposedCheckIn !== reservation.checkInDate && proposedCheckIn < today) {
+    return serverRule('Check-in cannot be in the past.');
+  }
+  if (proposedCheckOut <= today) {
+    return serverRule('Check-out must be after today.');
+  }
+
   // 3a. Rooms not linked to a sellable room cannot take bookings
   if (!targetRoom.bookable) {
     return {
@@ -64,9 +95,9 @@ export function validateReservationMove({
     };
   }
 
-  // 4. Room Capacity / Occupancy check
+  // 4. Room Capacity / Occupancy check. A room without a configured capacity (0) is left to the server.
   const totalGuests = reservation.adults + reservation.children;
-  if (totalGuests > targetRoom.maxOccupancy) {
+  if (targetRoom.maxOccupancy > 0 && totalGuests > targetRoom.maxOccupancy) {
     return {
       isValid: false,
       reason: `Capacity exceeded: Room ${targetRoom.number} (${targetRoom.type}) holds maximum ${targetRoom.maxOccupancy} guests, but booking has ${totalGuests} guests.`,
@@ -102,11 +133,15 @@ export function validateReservationMove({
     };
   }
 
-  // 6. Pricing calculation
-  // If moving to a different room type, use the new room's base rate
-  const ratePerNight = targetRoom.baseRate;
-  const proposedTotal = proposedNights * ratePerNight;
-  const priceDifference = proposedTotal - reservation.totalAmount;
+  // 6. Pricing estimate (the server prices the saved stay). The same room type keeps the booking's
+  // own nightly price, so a date change alone does not show a price change from tax or meals;
+  // a different room type uses that room's base rate.
+  const ratePerNight =
+    targetRoom.type === reservation.roomType || !Number.isFinite(targetRoom.baseRate)
+      ? reservation.nightlyRate
+      : targetRoom.baseRate;
+  const proposedTotal = Math.round(proposedNights * ratePerNight * 100) / 100;
+  const priceDifference = Math.round((proposedTotal - reservation.totalAmount) * 100) / 100;
 
   return {
     isValid: true,

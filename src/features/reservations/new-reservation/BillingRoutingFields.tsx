@@ -1,4 +1,5 @@
 import * as Lucide from 'lucide-react';
+import { formatINR } from '../../../utils/currency';
 import type { BillingPreferences } from './types';
 
 interface Props {
@@ -54,7 +55,7 @@ export function BillingRoutingFields({ preferences, totalsByRoute, onChange }: P
       <div className="rounded-2xl border border-border/80 bg-page/60 p-3.5">
         <div className="mb-2 flex items-center gap-2 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-ink"><Lucide.ReceiptText size={14} className="text-[var(--color-primary)]" />Estimated billing split</div>
         <div className="flex flex-col gap-1.5 text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px]">
-          {Object.entries(totalsByRoute).map(([route, amount]) => <div key={route} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-ink-secondary"><span className="min-w-0 flex-1">{route}</span><span className="shrink-0 text-right font-mono font-semibold text-ink">₹{amount.toLocaleString('en-IN')}.00</span></div>)}
+          {Object.entries(totalsByRoute).map(([route, amount]) => <div key={route} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-ink-secondary"><span className="min-w-0 flex-1">{route}</span><span className="shrink-0 text-right font-mono font-semibold text-ink">{formatINR(amount)}</span></div>)}
         </div>
       </div>
     </div>

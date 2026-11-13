@@ -5,6 +5,7 @@ import type { CalendarReservation, CalendarRoom, ProposedReservationChange } fro
 import { countNights, roomTypeStyle } from './calendarData';
 import { validateReservationMove } from './validation';
 import { toast } from '../../../utils/toast';
+import { formatINR } from '../../../utils/currency';
 import { lockAppScroll } from '../../../lib/scrollLock';
 import { Button, IconButton, SelectField, TextField } from '../../../components/primitives';
 
@@ -72,6 +73,14 @@ export function ReservationDetailModal({
     const targetRoom = rooms.find((r) => r.id === editRoomId);
     if (!targetRoom) {
       toast.error('Invalid Room', { detail: 'Please select a valid room.' });
+      return;
+    }
+    if (
+      targetRoom.id === currentRoom.id &&
+      editCheckIn === reservation.checkInDate &&
+      editCheckOut === reservation.checkOutDate
+    ) {
+      toast.info('No Changes', { detail: 'Pick a different room or different dates.' });
       return;
     }
 
@@ -203,7 +212,7 @@ export function ReservationDetailModal({
               <div>
                 <span className="text-micro font-bold text-ink-muted uppercase tracking-wider block">Total Amount</span>
                 <span className="text-body font-extrabold font-mono text-ink mt-0.5 block">
-                  ₹{reservation.totalAmount.toLocaleString('en-IN')}.00
+                  {formatINR(reservation.totalAmount)}
                 </span>
               </div>
               <div className="text-right">
@@ -253,7 +262,6 @@ export function ReservationDetailModal({
                     onClick={() => {
                       onStatusUpdate(reservation.id, 'Checked-in');
                       onClose();
-                      toast.success('Guest Checked In', { detail: `${reservation.guestName} into Room ${reservation.roomNumber}` });
                     }}
                     className="cursor-pointer bg-info-bg text-info-text border-info-border hover:bg-info-bg"
                   >
@@ -266,7 +274,6 @@ export function ReservationDetailModal({
                     onClick={() => {
                       onStatusUpdate(reservation.id, 'Checked-out');
                       onClose();
-                      toast.success('Guest Checked Out', { detail: `${reservation.guestName} settled & departed` });
                     }}
                     className="cursor-pointer"
                   >

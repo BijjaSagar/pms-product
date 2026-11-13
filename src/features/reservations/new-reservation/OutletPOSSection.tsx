@@ -69,7 +69,7 @@ export function OutletPOSSection({ requirements, addons, catalog, noPost, defaul
                   </select>
                 </label>
                 <label className="flex flex-col gap-1 text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] font-bold uppercase text-ink-secondary">Qty
-                  <input type="number" min={1} max={99} value={addon.quantity} onChange={(event) => onUpdate(addon.id, { quantity: Math.max(1, Number(event.target.value) || 1) })} className="rounded-lg border border-border bg-surface text-center text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-semibold text-ink min-h-[34px] md:min-h-[32px] px-2.5 py-1" />
+                  <input type="number" min={1} max={99} value={addon.quantity} onChange={(event) => onUpdate(addon.id, { quantity: Math.min(99, Math.max(1, Math.floor(Number(event.target.value)) || 1)) })} className="rounded-lg border border-border bg-surface text-center text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-semibold text-ink min-h-[34px] md:min-h-[32px] px-2.5 py-1" />
                 </label>
                 <button type="button" onClick={() => onRemove(addon.id)} aria-label={`Remove ${addon.name}`} className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-muted hover:bg-danger-bg hover:text-danger-text"><Lucide.Trash2 size={14} /></button>
               </div>

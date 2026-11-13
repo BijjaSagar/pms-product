@@ -6,6 +6,7 @@ import type {
   PaymentMethodCode,
 } from '../../../lib/api/pms';
 import { hotelTodayIso } from '../../../utils/date';
+import { formatINR } from '../../../utils/currency';
 import type { BillingRoute, RoomCategoryOption, RoomRequirement } from './types';
 
 /**
@@ -98,6 +99,9 @@ export interface BookingFormState {
   /** True when the room bill, extras or an add-on goes to the company. */
   billsCompany: boolean;
   companyName: string;
+  /** Discount typed on the bill, and the bill it comes off (rooms + meals + add-ons, before tax). */
+  discount: number;
+  grossTotal: number;
   paid: number;
   total: number;
 }
@@ -164,10 +168,16 @@ export function findFormProblem(form: BookingFormState): FormProblem | null {
   if (form.companyGst.trim() && !isValidGstin(form.companyGst)) {
     return { title: 'Invalid GSTIN', detail: 'A GSTIN has 15 characters, e.g. 36ABCDE1234F1Z5.' };
   }
+  if (form.discount > form.grossTotal) {
+    return {
+      title: 'Check the Discount',
+      detail: `The discount of ${formatINR(form.discount)} is more than the bill of ${formatINR(form.grossTotal)} before tax.`,
+    };
+  }
   if (form.paid > form.total) {
     return {
       title: 'Payments Too High',
-      detail: `Payments of ₹${form.paid.toLocaleString('en-IN')} are more than the total of ₹${form.total.toLocaleString('en-IN')}.`,
+      detail: `Payments of ${formatINR(form.paid)} are more than the total of ${formatINR(form.total)}.`,
     };
   }
   return null;

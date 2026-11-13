@@ -8,7 +8,8 @@ import { frontDeskApi, reservationApi } from '../../lib/api/pms';
 import { reservationFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
-import type { ReservationStatus } from '../../types';
+import type { Reservation, ReservationStatus } from '../../types';
+import { formatINR } from '../../utils/currency';
 import { Button, Checkbox, IconButton, SelectField } from '../../components/primitives';
 import { ReservationFilterBar } from './ReservationFilterBar';
 import { EMPTY_RESERVATION_FILTERS, type ReservationFilters } from './reservationFilters';
@@ -32,10 +33,16 @@ export function Reservations({
 }) {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>(initialViewMode);
 
+  // Filters, sorting and paging run on the client, so every reservation is loaded
+  // (up to 10 pages): one page alone would hide bookings past the first 100.
   const loadRows = useCallback(async () => {
-    const result = await reservationApi.list('', undefined, 1, 100);
-    const apiMapped = result.data.map(reservationFromApi);
-    return apiMapped;
+    const rows: Reservation[] = [];
+    for (let page = 1; page <= 10; page++) {
+      const result = await reservationApi.list('', undefined, page, 100);
+      rows.push(...result.data.map(reservationFromApi));
+      if (!result.hasMore) break;
+    }
+    return rows;
   }, []);
 
   const resource = useApiResource(loadRows);
@@ -58,7 +65,10 @@ export function Reservations({
         (r.roomNumber && r.roomNumber.toLowerCase().includes(needle));
       const matchStatus = matchesStatusFilter(r.status, filters.status);
       const matchSource = filters.source === 'All' || r.channel.toLowerCase() === filters.source.toLowerCase();
-      const matchRoom = filters.roomType === 'All' || r.roomType.toLowerCase() === filters.roomType.toLowerCase();
+      // A multi-room booking lists its rooms as "A + B"; it matches when any of them is the chosen room.
+      const matchRoom =
+        filters.roomType === 'All' ||
+        r.roomType.split(' + ').some((name) => name.toLowerCase() === filters.roomType.toLowerCase());
       const matchDates = stayOverlapsRange(r.checkInIso ?? '', r.checkOutIso ?? '', filters.from, filters.to);
 
       return matchSearch && matchStatus && matchSource && matchRoom && matchDates;
@@ -69,15 +79,16 @@ export function Reservations({
         ? a.guest.localeCompare(b.guest)
         : sort === 'amount'
           ? b.total - a.total
-          : a.checkIn.localeCompare(b.checkIn)
+          : (a.checkInIso ?? '').localeCompare(b.checkInIso ?? '')
     );
   }, [rows, filters, sort]);
 
   const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pages - 1);
   const slice = filtered.slice(safePage * pageSize, safePage * pageSize + pageSize);
-
-  // KPI Metrics matching screenshot exactly
+  // Up to five page buttons, kept around the current page so it is always one of them.
+  const firstPageButton = Math.max(0, Math.min(safePage - 2, pages - 5));
+  const allSliceSelected = slice.length > 0 && slice.every((r) => selectedRowIds.includes(r.id));
 
   const openListRow = rows.find((r) => r.id === openId) ?? null;
   const openBackendId = openListRow?.backendId;
@@ -136,11 +147,12 @@ export function Reservations({
   };
 
   const toggleSelectAll = () => {
-    if (selectedRowIds.length === slice.length) {
-      setSelectedRowIds([]);
-    } else {
-      setSelectedRowIds(slice.map((r) => r.id));
-    }
+    const sliceIds = slice.map((r) => r.id);
+    setSelectedRowIds((prev) =>
+      allSliceSelected
+        ? prev.filter((id) => !sliceIds.includes(id))
+        : [...prev, ...sliceIds.filter((id) => !prev.includes(id))]
+    );
   };
 
   const toggleSelectRow = (id: string) => {
@@ -192,7 +204,7 @@ export function Reservations({
                     <th className="py-2.5 px-3 w-10">
                       <Checkbox
                         type="checkbox"
-                        checked={slice.length > 0 && selectedRowIds.length === slice.length}
+                        checked={allSliceSelected}
                         onChange={toggleSelectAll}
                         aria-label="Select all"
                       />
@@ -322,7 +334,7 @@ export function Reservations({
 
                         {/* Total */}
                         <td className="whitespace-nowrap px-3 py-3 text-right text-label font-bold text-ink tnum">
-                          ₹{r.total.toLocaleString('en-IN')}.00
+                          {formatINR(r.total)}
                         </td>
 
                         {/* Actions: Open & More */}
@@ -396,7 +408,8 @@ export function Reservations({
                   </IconButton>
 
                   {/* Page Number Buttons */}
-                  {Array.from({ length: Math.min(5, pages) }, (_, i) => {
+                  {Array.from({ length: Math.min(5, pages) }, (_, offset) => {
+                    const i = firstPageButton + offset;
                     const isCurrent = safePage === i;
                     return (
                       <Button variant="secondary"
@@ -447,8 +460,6 @@ export function Reservations({
           />
         )}
       </Drawer>
-
-      {/* ================= 8. THEME SWATCHER MODAL ================= */}
     </div>
   );
 }

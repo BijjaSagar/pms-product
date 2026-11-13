@@ -1,5 +1,6 @@
 import * as Lucide from 'lucide-react';
 import type { AvailabilityRow } from '../../../lib/api/pms';
+import { formatINR } from '../../../utils/currency';
 import { RATE_PLANS } from './data';
 import type { RoomCategoryOption, RoomRequirement } from './types';
 
@@ -141,14 +142,14 @@ export function RoomRequirementsSection({
               step="0.01"
               value={roomCharges}
               readOnly={!overridePrice}
-              onChange={(event) => onOverrideRoomTotalChange(Math.max(0, Number(event.target.value) || 0))}
+              onChange={(event) => onOverrideRoomTotalChange(Math.max(0, Math.round((Number(event.target.value) || 0) * 100) / 100))}
               aria-label="Room total"
               className="w-32 min-w-0 bg-transparent text-right font-bold font-mono text-ink outline-none read-only:cursor-default"
             />
           </label>
         </div>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-ink-secondary"><span className="min-w-0 flex-1">Meal plan supplements</span><span className="shrink-0 text-right font-bold font-mono text-ink">₹{mealPlanCharges.toLocaleString('en-IN')}.00</span></div>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-ink-secondary"><span className="min-w-0 flex-1">Tax on room charges</span><span className="shrink-0 text-right font-bold font-mono text-ink">₹{roomTax.toLocaleString('en-IN')}.00</span></div>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-ink-secondary"><span className="min-w-0 flex-1">Meal plan supplements</span><span className="shrink-0 text-right font-bold font-mono text-ink">{formatINR(mealPlanCharges)}</span></div>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-ink-secondary"><span className="min-w-0 flex-1">Tax on room charges</span><span className="shrink-0 text-right font-bold font-mono text-ink">{formatINR(roomTax)}</span></div>
       </div>
     </section>
   );

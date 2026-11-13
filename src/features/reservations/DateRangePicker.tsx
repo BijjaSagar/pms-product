@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { Button, IconButton } from '../../components/primitives';
-import { todayIso } from './room-calendar/calendarData';
+import { hotelTodayIso } from '../../utils/date';
 import {
   addMonthsIso,
   formatMonthTitle,
@@ -23,7 +23,7 @@ export interface DateRange {
  */
 export function DateRangePicker({ from, to, onChange }: DateRange & { onChange: (range: DateRange) => void }) {
   const [open, setOpen] = useState(false);
-  const today = todayIso();
+  const today = hotelTodayIso();
   const [viewMonth, setViewMonth] = useState(() => startOfMonthIso(from || today));
   const [hovered, setHovered] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);

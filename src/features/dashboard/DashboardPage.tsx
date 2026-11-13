@@ -31,68 +31,54 @@ interface ActivityItem {
   target: NavTarget;
 }
 
-const DEMO_TIMELINE: ActivityItem[] = [
-  {
-    id: 't-1',
-    time: '10:00 AM',
-    type: 'arrival',
+/** Card styles per event type, as the timeline has always shown them. */
+const TIMELINE_STYLE: Record<ActivityItem['type'], Pick<ActivityItem, 'icon' | 'iconBg' | 'statusTone' | 'actionTone'>> = {
+  arrival: {
     icon: Lucide.DoorOpen,
     iconBg: 'bg-success-bg text-success-text border border-success-border',
-    title: 'Rohan Singh',
-    subtitle: 'RSV-DM-0013 • Deluxe King',
-    room: 'Room 201',
-    status: 'Arriving',
     statusTone: 'bg-success-bg text-success-text border-success-border/60',
-    actionLabel: 'View booking',
     actionTone: 'text-success-text bg-success-bg/80 hover:bg-success-bg border-success-border',
-    target: { view: 'reservations' },
   },
-  {
-    id: 't-2',
-    time: '11:30 AM',
-    type: 'arrival',
-    icon: Lucide.Sparkles,
-    iconBg: 'bg-primary/10 text-primary border border-primary/30',
-    title: 'Priya Mehta',
-    subtitle: 'RSV-DM-0014 • VIP Welcome Amenity',
-    room: 'Room 302',
-    status: 'VIP Elite',
-    statusTone: 'bg-primary/10 text-primary border-primary/30',
-    actionLabel: 'View booking',
-    actionTone: 'text-primary bg-primary/10 hover:bg-primary/10 border-primary/30',
-    target: { view: 'reservations' },
-  },
-  {
-    id: 't-3',
-    time: '12:00 PM',
-    type: 'departure',
+  departure: {
     icon: Lucide.DoorClosed,
     iconBg: 'bg-warning-bg text-warning-text border border-warning-border',
-    title: 'Rahul Lal',
-    subtitle: 'RSV-DM-0010 • Folio Settled',
-    room: 'Room 103',
-    status: 'Due Out',
     statusTone: 'bg-warning-bg text-warning-text border-warning-border/60',
-    actionLabel: 'Open folio',
     actionTone: 'text-warning-text bg-warning-bg/80 hover:bg-warning-bg border-warning-border',
-    target: { view: 'folios' },
   },
-  {
-    id: 't-4',
-    time: '02:00 PM',
-    type: 'in-house',
-    icon: Lucide.Sparkles,
+  'in-house': {
+    icon: Lucide.BedDouble,
     iconBg: 'bg-info-bg text-info-text border border-info-border',
-    title: 'Deep Cleaning & Sanitization',
-    subtitle: 'Assigned: Anita S. • Due 02:45 PM',
-    room: 'Room 204',
-    status: 'Cleaning',
     statusTone: 'bg-info-bg text-info-text border-info-border/60',
-    actionLabel: 'Mark Done',
     actionTone: 'text-ink bg-page hover:bg-muted-surface border-border',
-    target: { view: 'room-overview' } as NavTarget,
   },
-];
+};
+
+/** One timeline card for a stay: arriving today, leaving today (or late), or staying on. */
+function timelineItem(stay: StayRow, type: ActivityItem['type'], today: string): ActivityItem & { sortKey: string } {
+  const isLate = type === 'departure' && stay.checkOutDate < today;
+  const clock = type === 'arrival' ? stay.checkInTime : stay.checkOutTime;
+  const detail =
+    type === 'arrival'
+      ? stay.roomTypeName || 'Room type pending'
+      : type === 'departure'
+        ? isLate ? `Was due out ${stay.checkOutDate}` : 'Due out today'
+        : `Staying till ${stay.checkOutDate}`;
+  const status = type === 'arrival' ? 'Arriving' : type === 'departure' ? (isLate ? 'Late Checkout' : 'Due Out') : 'In-House';
+  return {
+    ...TIMELINE_STYLE[type],
+    id: `${type}-${stay.id}`,
+    // Late check-outs first, then by the clock; in-house guests after today's movements.
+    sortKey: `${type === 'in-house' ? '2' : isLate ? '0' : '1'}${clock ?? '99:99'}`,
+    time: displayTime(clock),
+    type,
+    title: stay.guestName || 'Guest',
+    subtitle: `${stay.bookingCode || stay.id} • ${detail}`,
+    room: stay.roomNumber ? `Room ${stay.roomNumber}` : 'Unassigned',
+    status,
+    actionLabel: 'View booking',
+    target: { view: 'reservations', focusId: stay.bookingCode || stay.id },
+  };
+}
 
 const DEMO_PAYMENTS = [
   {
@@ -153,10 +139,11 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         finance: can('report.read.financial'),
         payments: can('payment.read'),
       };
-      const [reservationPage, arrivalResult, departureResult, revenue, payments] = await Promise.all([
-        permissions.reservations ? reservationApi.list('', undefined, 1, 5).catch(() => ({ data: [] })) : Promise.resolve({ data: [] as ReservationRow[] }),
+      const [reservationPage, arrivalResult, departureResult, inHouseResult, revenue, payments] = await Promise.all([
+        permissions.reservations ? reservationApi.list('', undefined, 1, 5, 'recent').catch(() => ({ data: [] })) : Promise.resolve({ data: [] as ReservationRow[] }),
         permissions.reservations ? frontDeskApi.arrivals().catch(() => ({ data: [] })) : Promise.resolve({ data: [] as StayRow[] }),
         permissions.reservations ? frontDeskApi.departures().catch(() => ({ data: [] })) : Promise.resolve({ data: [] as StayRow[] }),
+        permissions.reservations ? frontDeskApi.inHouse().catch(() => ({ data: [] })) : Promise.resolve({ data: [] as StayRow[] }),
         permissions.finance ? reportsApi.revenue(daily?.businessDate ?? '', daily?.businessDate ?? '').catch(() => null) : Promise.resolve(null),
         permissions.payments ? folioApi.listPayments().catch(() => []) : Promise.resolve([] as PaymentRow[]),
       ]);
@@ -166,8 +153,12 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         reservations: reservationPage.data.map(reservationFromApi),
         arrivals: arrivalResult.data,
         departures: departureResult.data,
+        inHouse: inHouseResult.data,
         revenue,
-        payments: payments.map(paymentFromApi),
+        // Newest settlement first.
+        payments: [...payments]
+          .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt))
+          .map(paymentFromApi),
       };
     } catch {
       return null;
@@ -176,13 +167,26 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
   const resource = useApiResource(loadDashboard);
 
-  // Filtered timeline items
+  // Today's guest movements from the front desk: arrivals, departures (late ones too) and in-house guests.
+  const timeline = useMemo(() => {
+    const today = hotelTodayIso();
+    const leaving = new Set((resource.data?.departures ?? []).map((d) => d.id));
+    return [
+      ...(resource.data?.arrivals ?? []).map((a) => timelineItem(a, 'arrival', today)),
+      ...(resource.data?.departures ?? []).map((d) => timelineItem(d, 'departure', today)),
+      ...(resource.data?.inHouse ?? [])
+        .filter((h) => !leaving.has(h.id))
+        .map((h) => timelineItem(h, 'in-house', today)),
+    ].sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+  }, [resource.data]);
+
   const filteredTimeline = useMemo(() => {
-    if (timelineTab === 'arrivals') return DEMO_TIMELINE.filter((i) => i.type === 'arrival');
-    if (timelineTab === 'departures') return DEMO_TIMELINE.filter((i) => i.type === 'departure');
-    if (timelineTab === 'in-house') return DEMO_TIMELINE.filter((i) => i.type === 'in-house');
-    return DEMO_TIMELINE;
-  }, [timelineTab]);
+    if (timelineTab === 'arrivals') return timeline.filter((i) => i.type === 'arrival');
+    if (timelineTab === 'departures') return timeline.filter((i) => i.type === 'departure');
+    if (timelineTab === 'in-house') return timeline.filter((i) => i.type === 'in-house');
+    return timeline;
+  }, [timeline, timelineTab]);
+  const timelineCount = (type: ActivityItem['type']) => timeline.filter((i) => i.type === type).length;
 
   const arrivals = resource.data?.arrivals;
   const departures = resource.data?.departures;
@@ -347,10 +351,10 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             {/* Filter Tabs (Segmented Control) */}
             <div className="flex items-center gap-1 p-1 rounded-xl bg-muted-surface/80 mb-4 overflow-x-auto no-scrollbar">
               {[
-                { key: 'all' as const, label: 'All (5)' },
-                { key: 'arrivals' as const, label: 'Arrivals (2)' },
-                { key: 'departures' as const, label: 'Departures (1)' },
-                { key: 'in-house' as const, label: 'In-House (2)' },
+                { key: 'all' as const, label: `All (${timeline.length})` },
+                { key: 'arrivals' as const, label: `Arrivals (${timelineCount('arrival')})` },
+                { key: 'departures' as const, label: `Departures (${timelineCount('departure')})` },
+                { key: 'in-house' as const, label: `In-House (${timelineCount('in-house')})` },
               ].map((tab) => (
                 <Button variant="secondary"
                   key={tab.key}
@@ -368,6 +372,9 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
             {/* True Timeline Stream with Connected Spine (Strictly limited to 5 records) */}
             <div className="flex flex-col">
+              {filteredTimeline.length === 0 && (
+                <p className="py-6 text-center text-label text-ink-muted">No guest movements for today.</p>
+              )}
               {filteredTimeline.slice(0, 5).map((item, index, arr) => {
                 const ItemIcon = item.icon;
                 const isLast = index === arr.length - 1;
@@ -407,13 +414,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
 
                           <Button variant="secondary"
                             type="button"
-                            onClick={() => {
-                              if (item.actionLabel === 'Mark Done' || item.actionLabel === 'Mark Clean') {
-                                toast('Housekeeping task updated', { detail: 'Room 204 marked clean.', tone: 'success' });
-                              } else {
-                                go(item.target);
-                              }
-                            }}
+                            onClick={() => go(item.target)}
                             className={`flex-none border shadow-2xs transition-all cursor-pointer hover:shadow-xs active:scale-95 flex items-center gap-1 ${item.actionTone}`}
                           >
                             <span>{item.actionLabel}</span>
@@ -443,7 +444,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
             <div className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-success-text" />
               <span className="text-label text-ink-secondary font-medium">
-                Showing {filteredTimeline.slice(0, 5).length} of 5 operational activities
+                Showing {Math.min(5, filteredTimeline.length)} of {filteredTimeline.length} operational activities
               </span>
             </div>
             <Button variant="link"

@@ -21,6 +21,7 @@ import {
   isRealDate,
 } from "./new-reservation/bookingRules";
 import { hotelTodayIso } from "../../utils/date";
+import { formatINR } from "../../utils/currency";
 import { AddGuestModal } from "./new-reservation/AddGuestModal";
 import { GuestActivityLog } from "./new-reservation/GuestActivityLog";
 import { BillingRoutingFields } from "./new-reservation/BillingRoutingFields";
@@ -41,6 +42,13 @@ import type {
   RoomCategoryOption,
   RoomRequirement,
 } from "./new-reservation/types";
+
+/** Rounds a rupee amount to 2 decimal places. */
+const roundMoney = (value: number) => Math.round(value * 100) / 100;
+
+// Room lines and add-ons added in the same millisecond still need distinct ids (React keys, updates).
+let lineSequence = 0;
+const nextLineId = (prefix: string) => `${prefix}-${Date.now()}-${++lineSequence}`;
 
 /** ISO date (YYYY-MM-DD) for the day after the given ISO date. */
 function nextDayIso(iso: string): string {
@@ -372,11 +380,13 @@ export function NewReservation({
     [posAddons],
   );
   const bookingSubtotal = roomCharges + mealPlanCharges + addonSubtotal;
-  const subTotal = Math.max(0, bookingSubtotal - discountAmount);
+  // Money is kept to paise: float sums like 100.1 - 0.2 would otherwise send
+  // 99.89999999999999, which the server refuses (2 decimal places at most).
+  const subTotal = roundMoney(Math.max(0, bookingSubtotal - discountAmount));
   const taxAmount = Math.round(subTotal * TAX_RATE);
-  const totalBill = subTotal + taxAmount;
-  const totalPaid = paymentsList.reduce((acc, p) => acc + p.amount, 0);
-  const outstanding = Math.max(0, totalBill - totalPaid);
+  const totalBill = roundMoney(subTotal + taxAmount);
+  const totalPaid = roundMoney(paymentsList.reduce((acc, p) => acc + p.amount, 0));
+  const outstanding = roundMoney(Math.max(0, totalBill - totalPaid));
   const roomTax = Math.round((roomCharges + mealPlanCharges) * TAX_RATE);
 
   const totalsByRoute = useMemo(() => {
@@ -447,13 +457,15 @@ export function NewReservation({
 
   const formatDisplayDate = (dStr: string) => {
     try {
-      const date = new Date(dStr);
-      const day = date.getDate();
+      // Read the calendar date in UTC: `new Date("YYYY-MM-DD")` is UTC midnight,
+      // so local getters show the day before anywhere west of Greenwich.
+      const date = new Date(`${dStr}T12:00:00Z`);
+      const day = date.getUTCDate();
       const month = date
-        .toLocaleString("en-US", { month: "short" })
+        .toLocaleString("en-US", { month: "short", timeZone: "UTC" })
         .toUpperCase();
-      const year = date.getFullYear();
-      const weekday = date.toLocaleString("en-US", { weekday: "short" });
+      const year = date.getUTCFullYear();
+      const weekday = date.toLocaleString("en-US", { weekday: "short", timeZone: "UTC" });
       return {
         day: isNaN(day) ? "20" : String(day).padStart(2, "0"),
         month,
@@ -468,59 +480,76 @@ export function NewReservation({
   const inDate = formatDisplayDate(checkInDate);
   const outDate = formatDisplayDate(checkOutDate);
 
-  const handleAddRoom = () => {
-    const nextIdx = requirements.length + 1;
-    const defaultType =
-      requirements[requirements.length - 1]?.roomTypeId ?? roomTypes[0]?.id ?? "";
-    const category =
-      roomTypes.find((item) => item.id === defaultType) ??
-      roomTypes[0] ??
-      NO_ROOM_CATEGORY;
-    const newReq: RoomRequirement = {
-      id: `req-${Date.now()}`,
-      roomIndex: nextIdx,
-      roomTypeId: category.id,
-      category: category.name,
-      adults: 2,
-      children: 0,
-      infant: 0,
-      roomId: null,
-      roomNo: "",
-      rate: category.baseRate,
-      ratePlan,
-      mealPlan,
-      billingRoute: "Default",
-      occupants: [
-        { id: `occupant-${Date.now()}`, name: "", role: "Family member" },
-      ],
-    };
-    setRequirements((prev) => [...prev, newReq]);
-    toast.success("Room Added", {
-      detail: `Room ${nextIdx} (${category.name}) added to requirements.`,
-    });
+  // Adds `count` rooms in one state update; each copies the room type of the room before it.
+  const addRooms = (count: number) => {
+    const added: RoomRequirement[] = [];
+    for (let i = 0; i < count; i++) {
+      const previous = added[added.length - 1] ?? requirements[requirements.length - 1];
+      const defaultType = previous?.roomTypeId ?? roomTypes[0]?.id ?? "";
+      const category =
+        roomTypes.find((item) => item.id === defaultType) ??
+        roomTypes[0] ??
+        NO_ROOM_CATEGORY;
+      added.push({
+        id: nextLineId("req"),
+        roomIndex: requirements.length + added.length + 1,
+        roomTypeId: category.id,
+        category: category.name,
+        adults: 2,
+        children: 0,
+        infant: 0,
+        roomId: null,
+        roomNo: "",
+        rate: category.baseRate,
+        ratePlan,
+        mealPlan,
+        billingRoute: "Default",
+        occupants: [
+          { id: nextLineId("occupant"), name: "", role: "Family member" },
+        ],
+      });
+    }
+    setRequirements([...requirements, ...added]);
+    for (const room of added) {
+      toast.success("Room Added", {
+        detail: `Room ${room.roomIndex} (${room.category}) added to requirements.`,
+      });
+    }
   };
 
-  const handleRemoveRoom = (id: string) => {
-    if (requirements.length <= 1) {
+  // Removes rooms in one state update, so removing several at once does not lose all but the last.
+  const removeRooms = (ids: string[]) => {
+    const remaining = requirements.filter((room) => !ids.includes(room.id));
+    if (remaining.length === 0) {
       toast.warning("Minimum Required", {
         detail: "At least one room requirement must remain.",
       });
       return;
     }
-    const remaining = requirements.filter((room) => room.id !== id);
     setRequirements(
       remaining.map((room, index) => ({ ...room, roomIndex: index + 1 })),
     );
     setPosAddons((previous) =>
       previous.map((addon) =>
-        addon.roomRequirementId === id
+        ids.includes(addon.roomRequirementId)
           ? { ...addon, roomRequirementId: remaining[0].id }
           : addon,
       ),
     );
-    toast.info("Room Removed", {
-      detail: "Room requirement removed from folio.",
-    });
+    for (let i = 0; i < ids.length; i++) {
+      toast.info("Room Removed", {
+        detail: "Room requirement removed from folio.",
+      });
+    }
+  };
+
+  const handleRemoveRoom = (id: string) => removeRooms([id]);
+
+  const handleRoomCountChange = (count: number) => {
+    if (!Number.isInteger(count) || count < 1) return;
+    if (count > requirements.length) addRooms(count - requirements.length);
+    else if (count < requirements.length)
+      removeRooms(requirements.slice(count).map((room) => room.id));
   };
 
   const handleUpdateRequirement = (
@@ -538,7 +567,7 @@ export function NewReservation({
     setPosAddons((previous) => [
       ...previous,
       {
-        id: `addon-${Date.now()}`,
+        id: nextLineId("addon"),
         catalogItemId: item.id,
         outletId: item.outletId,
         outletName: item.outletName,
@@ -575,7 +604,7 @@ export function NewReservation({
     setTasks((prev) => [
       ...prev,
       {
-        id: `t-${Date.now()}`,
+        id: nextLineId("t"),
         text: newTaskInput.trim(),
         done: false,
         priority: "medium",
@@ -593,7 +622,8 @@ export function NewReservation({
       });
       return;
     }
-    if (Math.round(amt * 100) !== amt * 100) {
+    // Compare with a tolerance: 0.29 * 100 is 28.999999999999996 in floating point.
+    if (Math.abs(Math.round(amt * 100) - amt * 100) > 1e-6) {
       toast.error("Invalid Amount", {
         detail: "Use at most 2 decimal places.",
       });
@@ -601,14 +631,14 @@ export function NewReservation({
     }
     if (amt > outstanding) {
       toast.error("Amount Too High", {
-        detail: `The balance is ₹${outstanding.toLocaleString("en-IN")}.`,
+        detail: `The balance is ${formatINR(outstanding)}.`,
       });
       return;
     }
     const newPayment = {
-      id: `pay-${Date.now()}`,
+      id: nextLineId("pay"),
       method: collectMethod,
-      amount: amt,
+      amount: roundMoney(amt),
       time: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
@@ -657,6 +687,8 @@ export function NewReservation({
         (!billingPreferences.noPost &&
           posAddons.some((addon) => addon.billingRoute === "To Company")),
       companyName: billingPreferences.companyName,
+      discount: discountAmount,
+      grossTotal: roundMoney(bookingSubtotal),
       paid: totalPaid,
       total: totalBill,
     });
@@ -805,10 +837,15 @@ export function NewReservation({
 
   const handleCopyCode = () => {
     if (!bookingId) return;
-    navigator.clipboard.writeText(bookingId);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
-    toast.info("Copied", { detail: "Booking ID copied to clipboard." });
+    // The clipboard is missing outside secure contexts and can be refused; say so instead of claiming success.
+    const copy = navigator.clipboard?.writeText(bookingId) ?? Promise.reject(new Error("Clipboard unavailable"));
+    copy
+      .then(() => {
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2000);
+        toast.info("Copied", { detail: "Booking ID copied to clipboard." });
+      })
+      .catch(() => toast.error("Not Copied", { detail: `Copy the Booking ID by hand: ${bookingId}` }));
   };
 
   // SUCCESS CONFIRMATION SCREEN
@@ -884,7 +921,7 @@ export function NewReservation({
                 Total Bill
               </span>
               <span className="text-[12px] md:max-[1023px]:text-[11px] lg:max-[1439px]:text-[11px] min-[1440px]:text-[12px] font-bold text-success-text font-mono mt-0.5 block">
-                ₹{confirmedBooking.total.toLocaleString("en-IN")}.00
+                {formatINR(confirmedBooking.total)}
               </span>
               <span className="text-[10px] md:max-[1023px]:text-[10px] lg:max-[1439px]:text-[10px] min-[1440px]:text-[10px] text-ink-secondary font-semibold">
                 {outstanding === 0
@@ -920,6 +957,11 @@ export function NewReservation({
                 setBookingId("");
                 setExternalReferenceId("");
                 setSourceContactNumber("");
+                // Payments, tasks and add-ons were saved with the booking just made;
+                // keeping them would record them a second time on the next one.
+                setPaymentsList([]);
+                setTasks([]);
+                setPosAddons([]);
               }}
             >
               Create Another Booking
@@ -1119,7 +1161,7 @@ export function NewReservation({
                     Total Bill
                   </span>
                   <span className="mt-1 block text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-extrabold font-mono text-ink truncate">
-                    ₹{totalBill.toLocaleString("en-IN")}.00
+                    {formatINR(totalBill)}
                   </span>
                 </div>
                 <div className="pl-3 min-w-0">
@@ -1130,7 +1172,7 @@ export function NewReservation({
                     <span
                       className={`text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-extrabold font-mono truncate ${outstanding > 0 ? "text-warning-text" : "text-success-text"}`}
                     >
-                      ₹{outstanding.toLocaleString("en-IN")}.00
+                      {formatINR(outstanding)}
                     </span>
                     {outstanding > 0 ? (
                       <button
@@ -1712,20 +1754,7 @@ export function NewReservation({
                     </label>
                     <select id="res-no-of-rooms"
                       value={requirements.length}
-                      onChange={(e) => {
-                        const count = parseInt(e.target.value);
-                        if (count >= requirements.length) {
-                          for (let i = requirements.length; i < count; i++) {
-                            handleAddRoom();
-                          }
-                        } else {
-                          for (let i = requirements.length; i > count; i--) {
-                            if (requirements[i - 1]) {
-                              handleRemoveRoom(requirements[i - 1].id);
-                            }
-                          }
-                        }
-                      }}
+                      onChange={(e) => handleRoomCountChange(Number(e.target.value))}
                       className={selectClass}
                     >
                       <option value="1">1</option>
@@ -1952,7 +1981,7 @@ export function NewReservation({
                           </div>
                         </div>
                         <span className="ml-auto flex-none font-extrabold font-mono text-success-text">
-                          ₹{p.amount.toLocaleString("en-IN")}.00
+                          {formatINR(p.amount)}
                         </span>
                       </div>
                     ))}
@@ -1999,21 +2028,21 @@ export function NewReservation({
                       night(s))
                     </span>
                     <span className="shrink-0 text-right font-semibold font-mono text-ink">
-                      ₹{roomCharges.toLocaleString("en-IN")}.00
+                      {formatINR(roomCharges)}
                     </span>
                   </div>
 
                   <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-ink-secondary">
                     <span className="min-w-0 flex-1">Meal plan supplements</span>
                     <span className="shrink-0 text-right font-semibold font-mono text-ink">
-                      ₹{mealPlanCharges.toLocaleString("en-IN")}.00
+                      {formatINR(mealPlanCharges)}
                     </span>
                   </div>
 
                   <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-ink-secondary">
                     <span className="min-w-0 flex-1">Outlet / POS add-ons ({posAddons.length})</span>
                     <span className="shrink-0 text-right font-semibold font-mono text-ink">
-                      ₹{addonSubtotal.toLocaleString("en-IN")}.00
+                      {formatINR(addonSubtotal)}
                     </span>
                   </div>
 
@@ -2034,7 +2063,7 @@ export function NewReservation({
                         value={discountAmount || ""}
                         onChange={(e) =>
                           setDiscountAmount(
-                            Math.max(0, Number(e.target.value) || 0),
+                            Math.max(0, roundMoney(Number(e.target.value) || 0)),
                           )
                         }
                         placeholder="0"
@@ -2048,21 +2077,21 @@ export function NewReservation({
                   <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 font-bold text-ink">
                     <span className="min-w-0 flex-1">Sub-Total</span>
                     <span className="shrink-0 text-right font-mono text-ink">
-                      ₹{subTotal.toLocaleString("en-IN")}.00
+                      {formatINR(subTotal)}
                     </span>
                   </div>
 
                   <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-ink-secondary">
                     <span className="min-w-0 flex-1">Goods & Services Tax (GST {TAX_RATE * 100}%)</span>
                     <span className="shrink-0 text-right font-semibold font-mono text-ink">
-                      ₹{taxAmount.toLocaleString("en-IN")}.00
+                      {formatINR(taxAmount)}
                     </span>
                   </div>
 
                   <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-success-text font-bold">
                     <span className="min-w-0 flex-1">Payments Received</span>
                     <span className="shrink-0 text-right font-mono">
-                      ₹{totalPaid.toLocaleString("en-IN")}.00
+                      {formatINR(totalPaid)}
                     </span>
                   </div>
 
@@ -2071,7 +2100,7 @@ export function NewReservation({
                   <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 pt-0.5 text-[14px] md:max-[1023px]:text-[13px] lg:max-[1439px]:text-[12px] min-[1440px]:text-[13px] font-extrabold text-ink">
                     <span className="min-w-0 flex-1">Net Payable at Hotel</span>
                     <span className="shrink-0 text-right font-mono text-[16px] md:max-[1023px]:text-[15px] lg:max-[1439px]:text-[14px] min-[1440px]:text-[15px] text-[var(--color-primary)]">
-                      ₹{outstanding.toLocaleString("en-IN")}.00
+                      {formatINR(outstanding)}
                     </span>
                   </div>
                 </div>
@@ -2195,7 +2224,7 @@ export function NewReservation({
             </span>
             <span className="h-3 w-[1px] bg-ink-disabled" />
             <span className="font-mono text-ink">
-              ₹{totalBill.toLocaleString("en-IN")}.00
+              {formatINR(totalBill)}
             </span>
           </div>
 
@@ -2324,6 +2353,12 @@ export function NewReservation({
             <button
               type="button"
               onClick={() => {
+                if (!issueText.trim()) {
+                  toast.warning("Describe the Issue", {
+                    detail: "Write what went wrong before submitting.",
+                  });
+                  return;
+                }
                 toast.success("Issue Submitted", {
                   detail: "Escalated to IT & Duty Manager.",
                 });
