@@ -11,7 +11,6 @@ interface Props {
   samePlanAllRooms: boolean;
   overridePrice: boolean;
   roomCharges: number;
-  mealPlanCharges: number;
   roomTax: number;
   totalRooms: number;
   nights: number;
@@ -29,7 +28,6 @@ export function RoomRequirementsSection({
   samePlanAllRooms,
   overridePrice,
   roomCharges,
-  mealPlanCharges,
   roomTax,
   totalRooms,
   nights,
@@ -147,7 +145,6 @@ export function RoomRequirementsSection({
             />
           </label>
         </div>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-ink-secondary"><span className="min-w-0 flex-1">Meal plan supplements</span><span className="shrink-0 text-right font-bold font-mono text-ink">₹{mealPlanCharges.toLocaleString('en-IN')}.00</span></div>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-ink-secondary"><span className="min-w-0 flex-1">Tax on room charges</span><span className="shrink-0 text-right font-bold font-mono text-ink">₹{roomTax.toLocaleString('en-IN')}.00</span></div>
       </div>
     </section>

@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { getAccessToken } from '../../lib/api/authToken';
-import { ApiError } from '../../lib/api/client';
+import { ApiError, setActivePropertyId } from '../../lib/api/client';
 import { authApi } from '../../lib/api/pms';
 import type { AuthMe } from '../../lib/api/pms';
 
@@ -19,6 +19,12 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<AuthMe | null>(null);
+  // Everything that sets the session also tells the API layer which property it is for, before any screen
+  // below has a chance to ask for its data.
+  const applyMe = useCallback((value: AuthMe | null) => {
+    setActivePropertyId(value?.activePropertyId ?? null);
+    setMe(value);
+  }, []);
   // Start in the loading state when a saved token has to be checked first, so a
   // reload does not flash the login page.
   const [loading, setLoading] = useState(() => getAccessToken() !== null);
@@ -31,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const restoreSession = async () => {
       try {
         const session = await authApi.me();
-        if (active) setMe(session);
+        if (active) applyMe(session);
       } catch (cause) {
         // A 401 means the saved token is dead (already cleared); anything else
         // (server down) also lands on the login page, with the reason shown.
@@ -47,45 +53,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [applyMe]);
 
   const reload = useCallback(async () => {
     if (!me) return;
     setError(null);
     try {
-      setMe(await authApi.me());
+      applyMe(await authApi.me());
     } catch (cause) {
-      if (cause instanceof ApiError && cause.status === 401) setMe(null);
+      if (cause instanceof ApiError && cause.status === 401) applyMe(null);
       else setError(cause instanceof Error ? cause.message : 'Could not load your session.');
     }
-  }, [me]);
+  }, [me, applyMe]);
 
   const login = useCallback(async (email: string, password: string, remember: boolean) => {
     setError(null);
     setLoading(true);
     try {
       await authApi.login(email, password, remember);
-      setMe(await authApi.me());
+      applyMe(await authApi.me());
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not sign in.');
       throw cause;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [applyMe]);
 
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
     } finally {
-      setMe(null);
+      applyMe(null);
     }
-  }, []);
+  }, [applyMe]);
 
   const switchProperty = useCallback(async (propertyId: string) => {
     await authApi.switchProperty(propertyId);
-    setMe(await authApi.me());
-  }, []);
+    applyMe(await authApi.me());
+  }, [applyMe]);
 
   const value = useMemo<AuthContextValue>(() => ({
     me,

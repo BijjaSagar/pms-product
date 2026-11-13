@@ -1,6 +1,7 @@
 import type { CalendarReservation, CalendarRoom, RoomOperationalStatus, ReservationStatus } from './types';
 import { GUESTS } from '../../../data/catalog';
 import { store, UNASSIGNED_TYPE_NAME } from '../../../data/store';
+import type { ReservationRow } from '../../../lib/api/pms';
 
 /** Today's date (YYYY-MM-DD) in the user's local time zone. Call it when rendering, so it stays right past midnight. */
 export function todayIso(): string {
@@ -124,15 +125,13 @@ const STATUS_MAP: Record<string, ReservationStatus> = {
 };
 
 /**
- * Store reservations placed on the calendar at the rooms and dates the store holds.
+ * Backend reservations placed on the calendar at the rooms and dates they hold.
  * A room line without a room, or a room the calendar does not show, is left off the rack.
  */
-export function loadSyncedReservations(): CalendarReservation[] {
-  const rooms = loadCalendarRooms();
+export function toCalendarReservations(data: ReservationRow[], rooms: CalendarRoom[]): CalendarReservation[] {
   const roomsByNumber = new Map(rooms.map((room) => [room.number, room]));
-  const result = store.listReservations('', undefined, 1, 200);
 
-  return result.data
+  return data
     .filter((r) => r.status !== 'CANCELLED')
     .flatMap((r) => {
       const guestName =
@@ -167,6 +166,7 @@ export function loadSyncedReservations(): CalendarReservation[] {
         if (!room) return [];
         const nightlyRate = line.nightlyRate || room.baseRate;
         const totalAmount = nights * nightlyRate;
+        const paid = Number(r.paidAmount ?? r.paid ?? 0);
         return [{
           id: isGroup ? `${r.id}::${line.id}` : r.id,
           backendId: r.id,
@@ -186,7 +186,7 @@ export function loadSyncedReservations(): CalendarReservation[] {
           nightlyRate,
           totalAmount,
           paymentStatus:
-            r.paid && Number(r.paid) >= totalAmount ? 'Paid' : Number(r.paid) > 0 ? 'Partial' : 'Pending',
+            paid >= totalAmount && paid > 0 ? 'Paid' : paid > 0 ? 'Partial' : 'Pending',
           adults: line.adults,
           children: line.children,
           specialRequests: r.specialRequests || '',

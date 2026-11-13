@@ -41,11 +41,18 @@ const EMPTY_FORM: GuestForm = {
 export function AddGuestModal({
   onClose,
   onCreated,
+  initialQuery = "",
 }: {
   onClose: () => void;
   onCreated: (guest: Guest) => void;
+  /** Search text typed before opening; a phone-like value fills mobile, anything else fills name. */
+  initialQuery?: string;
 }) {
-  const [form, setForm] = useState<GuestForm>(EMPTY_FORM);
+  const [form, setForm] = useState<GuestForm>(() =>
+    /^[\d+\s()-]+$/.test(initialQuery)
+      ? { ...EMPTY_FORM, mobile: initialQuery }
+      : { ...EMPTY_FORM, name: initialQuery },
+  );
   const [saving, setSaving] = useState(false);
 
   const setField = (key: keyof GuestForm) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>

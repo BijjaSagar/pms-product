@@ -33,10 +33,10 @@ export const NO_ROOM_CATEGORY: RoomCategoryOption = {
 };
 
 export const MEAL_PLANS = [
-  { code: 'EP', label: 'EP · Room only', surcharge: 0 },
-  { code: 'CP', label: 'CP · Bed & breakfast', surcharge: 450 },
-  { code: 'MAP', label: 'MAP · Half board', surcharge: 950 },
-  { code: 'AP', label: 'AP · Full board', surcharge: 1400 },
+  { code: 'EP', label: 'EP · Room only' },
+  { code: 'CP', label: 'CP · Bed & breakfast' },
+  { code: 'MAP', label: 'MAP · Half board' },
+  { code: 'AP', label: 'AP · Full board' },
 ];
 
 export const RATE_PLANS = [
