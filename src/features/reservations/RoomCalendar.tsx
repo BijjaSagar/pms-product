@@ -12,7 +12,7 @@ import {
   daysBetween,
   formatCalendarDate,
   loadCalendarRooms,
-  loadSyncedReservations,
+  toCalendarReservations,
 } from './room-calendar/calendarData';
 import { UNASSIGNED_TYPE_NAME } from '../../data/store';
 import { validateReservationMove } from './room-calendar/validation';
@@ -24,7 +24,7 @@ import { stayOverlapsRange } from './reservationDateRange';
 import { DayLogButton } from './day-log/DayLogButton';
 import { DayNoteModal } from './day-log/DayNoteModal';
 import { DayEnquiriesModal } from './day-log/DayEnquiriesModal';
-import { dayLogApi, type DayLogSummaryRow } from '../../lib/api/pms';
+import { dayLogApi, reservationApi, type DayLogSummaryRow } from '../../lib/api/pms';
 
 // ================= ROOM CALENDAR: 10-DAY VIEW =================
 const DAYS_IN_VIEW = 10;
@@ -253,7 +253,19 @@ export function RoomCalendar({
 
   // Master data synchronized with the central PMS store
   const [rooms] = useState<CalendarRoom[]>(loadCalendarRooms);
-  const [reservations, setReservations] = useState<CalendarReservation[]>(() => loadSyncedReservations());
+  const [reservations, setReservations] = useState<CalendarReservation[]>([]);
+  useEffect(() => {
+    let active = true;
+    reservationApi
+      .list('', undefined, 1, 200)
+      .then((result) => {
+        if (active) setReservations(toCalendarReservations(result.data, rooms));
+      })
+      .catch(() => toast.error('Could not load reservations'));
+    return () => {
+      active = false;
+    };
+  }, [rooms]);
 
   // Day notes and enquiries: summary drives the header icons, the date opens the day log
   const [dayLog, setDayLog] = useState<Record<string, DayLogSummaryRow>>({});

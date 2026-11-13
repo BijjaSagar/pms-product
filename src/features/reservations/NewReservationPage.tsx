@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as Lucide from "lucide-react";
 import type { NavDraft, NavTarget } from "../../config/navigation";
 import { toast } from "../../utils/toast";
@@ -9,6 +9,7 @@ import type {
   ReservationRoomRow,
 } from "../../lib/api/pms";
 import { useApiResource } from "../../lib/api/useApiResource";
+import { displayApiError, newIdempotencyKey } from "../../lib/api/client";
 import { guestFromApi } from "../../lib/api/adapters";
 import type { Guest } from "../../types";
 import { TAX_RATE } from "../../data/catalog";
@@ -31,6 +32,7 @@ import type {
   OutletAddonLine,
   OutletCatalogItem,
   RoomCategoryOption,
+  RoomOccupant,
   RoomRequirement,
 } from "./new-reservation/types";
 
@@ -89,6 +91,20 @@ export function NewReservation({
   const [samePlanAllRooms, setSamePlanAllRooms] = useState(true);
   const [ratePlan, setRatePlan] = useState("Best Available Rates");
   const [mealPlan, setMealPlan] = useState("EP");
+
+  // One key per booking attempt: a retry or double-click returns the booking already made.
+  const idempotencyKey = useRef(newIdempotencyKey("reservation"));
+
+  // Meal plan names the property set in Settings; falls back to the built-in list while loading.
+  const loadOptions = useCallback(() => reservationApi.options(), []);
+  const optionsResource = useApiResource(loadOptions, []);
+  const mealPlanChoices = useMemo(() => {
+    const fromApi = optionsResource.data?.mealPlans;
+    if (!fromApi?.length) return MEAL_PLANS.map((plan) => ({ code: plan.code, label: plan.code }));
+    return [...fromApi]
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((plan) => ({ code: plan.code, label: plan.shortDisplayName || plan.code }));
+  }, [optionsResource.data]);
 
   const loadInventory = useCallback(async () => {
     const roomTypes = await inventoryApi.roomTypes();
@@ -229,19 +245,45 @@ export function NewReservation({
   // Guest: either picked from the guest directory, or typed in as a new guest
   const [guestQuery, setGuestQuery] = useState("");
   const [guestModalOpen, setGuestModalOpen] = useState(false);
+  const [guestSearchOpen, setGuestSearchOpen] = useState(false);
+  const [additionalGuests, setAdditionalGuests] = useState<Guest[]>([]);
   const [guestName, setGuestName] = useState("");
   const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(null);
   const [guestContact, setGuestContact] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const trimmedGuestQuery = guestQuery.trim();
-  const loadGuestMatches = useCallback(
-    async () =>
-      trimmedGuestQuery
-        ? (await guestApi.list(trimmedGuestQuery, 1, 6)).data.map(guestFromApi)
-        : [],
-    [trimmedGuestQuery]
+  // Debounced, and the previous results stay on screen until the new ones
+  // arrive, so the dropdown does not flash between "Searching…" and the list.
+  const [guestResults, setGuestResults] = useState<{
+    query: string;
+    data: Guest[];
+    error: string | null;
+  } | null>(null);
+  useEffect(() => {
+    if (!trimmedGuestQuery) return;
+    let active = true;
+    const timer = setTimeout(() => {
+      guestApi
+        .list(trimmedGuestQuery, 1, 6)
+        .then((response) => {
+          if (active) {
+            setGuestResults({ query: trimmedGuestQuery, data: response.data.map(guestFromApi), error: null });
+          }
+        })
+        .catch((cause: unknown) => {
+          if (active) setGuestResults({ query: trimmedGuestQuery, data: [], error: displayApiError(cause) });
+        });
+    }, 250);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [trimmedGuestQuery]);
+  const guestSearchSettled = guestResults?.query === trimmedGuestQuery;
+  const guestSearchError = guestSearchSettled ? guestResults.error : null;
+  const availableGuestMatches = (guestResults?.data ?? []).filter(
+    (guest) => guest.id !== primaryGuestId && !additionalGuests.some((added) => added.id === guest.id),
   );
-  const guestMatches = useApiResource(loadGuestMatches, [trimmedGuestQuery]);
 
   // The primary guest is also the first occupant of the first room
   const syncPrimaryOccupantName = (name: string) =>
@@ -258,13 +300,48 @@ export function NewReservation({
       )
     );
 
+  const updateFirstRoomOccupants = (
+    update: (occupants: RoomOccupant[]) => RoomOccupant[],
+  ) =>
+    setRequirements((previous) =>
+      previous.map((room, index) =>
+        index === 0 ? { ...room, occupants: update(room.occupants) } : room,
+      ),
+    );
+
+  const addAdditionalGuest = (guest: Guest) => {
+    if (guest.id === primaryGuestId || additionalGuests.some((g) => g.id === guest.id)) {
+      toast.error("Guest already added", { detail: `${guest.name} is already on this reservation.` });
+      return;
+    }
+    setAdditionalGuests((previous) => [...previous, guest]);
+    updateFirstRoomOccupants((occupants) => [
+      ...occupants,
+      { id: `occupant-${guest.id}`, name: guest.name, role: "Family member" },
+    ]);
+    setGuestQuery("");
+    setGuestSearchOpen(false);
+  };
+
+  const removeAdditionalGuest = (guestId: string) => {
+    setAdditionalGuests((previous) => previous.filter((g) => g.id !== guestId));
+    updateFirstRoomOccupants((occupants) =>
+      occupants.filter((occupant) => occupant.id !== `occupant-${guestId}`),
+    );
+  };
+
   const selectGuest = (guest: Guest) => {
+    if (primaryGuestId) {
+      addAdditionalGuest(guest);
+      return;
+    }
     setPrimaryGuestId(guest.id);
     setGuestName(guest.name);
     setGuestContact(guest.phone);
     setGuestEmail(guest.email);
     syncPrimaryOccupantName(guest.name);
     setGuestQuery("");
+    setGuestSearchOpen(false);
   };
 
   const clearGuest = () => {
@@ -336,28 +413,18 @@ export function NewReservation({
       ? overrideRoomTotal
       : calculatedRoomCharges;
 
-  const mealPlanCharges = useMemo(
-    () =>
-      requirements.reduce((sum, room) => {
-        const surcharge =
-          MEAL_PLANS.find((plan) => plan.code === room.mealPlan)?.surcharge ??
-          0;
-        return sum + surcharge * room.adults * nightsCount;
-      }, 0),
-    [requirements, nightsCount],
-  );
   const addonSubtotal = useMemo(
     () =>
       posAddons.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0),
     [posAddons],
   );
-  const bookingSubtotal = roomCharges + mealPlanCharges + addonSubtotal;
+  const bookingSubtotal = roomCharges + addonSubtotal;
   const subTotal = Math.max(0, bookingSubtotal - discountAmount);
   const taxAmount = Math.round(subTotal * TAX_RATE);
   const totalBill = subTotal + taxAmount;
   const totalPaid = paymentsList.reduce((acc, p) => acc + p.amount, 0);
   const outstanding = Math.max(0, totalBill - totalPaid);
-  const roomTax = Math.round((roomCharges + mealPlanCharges) * TAX_RATE);
+  const roomTax = Math.round(roomCharges * TAX_RATE);
 
   const totalsByRoute = useMemo(() => {
     const totals: Record<string, number> = {};
@@ -368,11 +435,7 @@ export function NewReservation({
         room.billingRoute,
         billingPreferences.roomBillTo,
       );
-      const mealSurcharge =
-        MEAL_PLANS.find((plan) => plan.code === room.mealPlan)?.surcharge ?? 0;
-      totals[route] =
-        (totals[route] ?? 0) +
-        (room.rate + mealSurcharge * room.adults) * nightsCount;
+      totals[route] = (totals[route] ?? 0) + room.rate * nightsCount;
     }
     for (const addon of posAddons) {
       const route = billingPreferences.noPost
@@ -663,9 +726,6 @@ export function NewReservation({
       }
 
       const persistedRooms: ReservationRoomRow[] = resolvedRequirements.map((room) => {
-        const mealSurcharge =
-          MEAL_PLANS.find((plan) => plan.code === room.mealPlan)?.surcharge ??
-          0;
         const baseRate =
           overridePrice && overrideRoomTotal !== null
             ? calculatedRoomCharges > 0
@@ -680,7 +740,7 @@ export function NewReservation({
           roomNumber: room.roomNo || null,
           roomTypeName: room.category,
           baseRate: String(baseRate),
-          nightlyRate: String(baseRate + mealSurcharge * room.adults),
+          nightlyRate: String(baseRate),
           ratePlanName: samePlanAllRooms ? ratePlan : room.ratePlan,
           adults: room.adults,
           children: room.children,
@@ -732,9 +792,13 @@ export function NewReservation({
             : "DRAFT",
         source: bookingSource,
         sourceType,
+        sourceContactNumber: sourceContactNumber.trim() || null,
+        bookingCategory,
         primaryGuestId: guestId,
         checkInDate,
         checkOutDate,
+        checkInTime,
+        checkOutTime,
         adults: persistedRooms.reduce(
           (sum, room) => sum + Number(room.adults ?? 0),
           0,
@@ -760,7 +824,8 @@ export function NewReservation({
         ]
           .filter(Boolean)
           .join("\n"),
-      });
+      }, idempotencyKey.current);
+      idempotencyKey.current = newIdempotencyKey("reservation");
       const code = saved.bookingCode;
       setBookingId(code);
       setConfirmedBooking({
@@ -1054,15 +1119,16 @@ export function NewReservation({
             </p>
 
             {/* Guest Profile Chip with Confirmed Stamp Overlay */}
+            {guestName.trim() && (
             <div className="relative flex items-center justify-between gap-2 rounded-xl border border-divider bg-surface p-2.5 md:p-3 shadow-2xs">
               <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-2.5 relative z-10">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-white font-bold text-label shrink-0 shadow-2xs">
-                  {guestName ? guestName.charAt(0).toUpperCase() : "G"}
+                  {guestName.trim().charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="truncate text-label font-bold text-ink" title={guestName}>
-                      {guestName || "Unnamed Guest"}
+                      {guestName}
                     </span>
                   </div>
                   <span className="text-micro text-ink-secondary font-medium truncate block">
@@ -1093,6 +1159,7 @@ export function NewReservation({
               </div>
 
             </div>
+            )}
 
                         {/* Receipt-style bill summary */}
             <div className="border-y border-divider py-2.5 md:py-3">
@@ -1684,8 +1751,11 @@ export function NewReservation({
                         }}
                         className={selectClass}
                       >
-                        <option value="EP">EP</option>
-                        <option value="CP">CP</option>
+                        {mealPlanChoices.map((plan) => (
+                          <option key={plan.code} value={plan.code}>
+                            {plan.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   )}
@@ -1727,7 +1797,6 @@ export function NewReservation({
                 samePlanAllRooms={samePlanAllRooms}
                 overridePrice={overridePrice}
                 roomCharges={roomCharges}
-                mealPlanCharges={mealPlanCharges}
                 roomTax={roomTax}
                 totalRooms={requirements.length}
                 nights={nightsCount}
@@ -1764,7 +1833,7 @@ export function NewReservation({
                   </span>
                 </div>
 
-                {primaryGuestId ? (
+                {primaryGuestId && (
                   <div className="flex items-center gap-2">
                     <div className="min-w-0 flex-1 rounded-xl border border-border/80 bg-surface px-3 py-2.5">
                       <p className="truncate text-label font-bold text-ink">{guestName}</p>
@@ -1783,15 +1852,38 @@ export function NewReservation({
                     </button>
                     <button
                       type="button"
-                      onClick={() => setGuestModalOpen(true)}
+                      onClick={() => setGuestSearchOpen((open) => !open)}
                       aria-label="Add more Guest"
+                      aria-expanded={guestSearchOpen}
                       title="Add more Guest"
                       className="flex h-9 w-9 flex-none items-center justify-center rounded-xl border border-dashed border-[var(--color-primary)]/50 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 cursor-pointer"
                     >
                       <Lucide.Plus size={14} />
                     </button>
                   </div>
-                ) : (
+                )}
+
+                {additionalGuests.map((guest) => (
+                  <div key={guest.id} className="flex items-center gap-2">
+                    <div className="min-w-0 flex-1 rounded-xl border border-border/80 bg-surface px-3 py-2.5">
+                      <p className="truncate text-label font-bold text-ink">{guest.name}</p>
+                      <p className="tnum truncate text-label text-ink-secondary">
+                        {[guest.phone, guest.email].filter(Boolean).join(" · ") || "No contact details"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeAdditionalGuest(guest.id)}
+                      aria-label={`Remove ${guest.name}`}
+                      title="Remove Guest"
+                      className="flex h-9 w-9 flex-none items-center justify-center rounded-xl border border-border text-ink-secondary hover:bg-surface cursor-pointer"
+                    >
+                      <Lucide.X size={13} />
+                    </button>
+                  </div>
+                ))}
+
+                {(!primaryGuestId || guestSearchOpen) && (
                   <div className="flex flex-col gap-2">
                     <label htmlFor="res-guest-search" className={labelClass}>
                       Find Guest
@@ -1810,27 +1902,16 @@ export function NewReservation({
                           className="text-ink-muted absolute left-3 top-1/2 -translate-y-1/2"
                         />
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setGuestModalOpen(true)}
-                        aria-label="Add more Guest"
-                        title="Add more Guest"
-                        className="flex h-9 w-9 flex-none items-center justify-center rounded-xl border border-dashed border-[var(--color-primary)]/50 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 cursor-pointer"
-                      >
-                        <Lucide.Plus size={14} />
-                      </button>
                     </div>
 
                     {trimmedGuestQuery && (
                       <ul className="flex flex-col divide-y divide-divider overflow-hidden rounded-xl border border-border/80">
-                        {guestMatches.loading ? (
-                          <li className="px-3 py-2 text-label text-ink-secondary">Searching Guests…</li>
-                        ) : guestMatches.error ? (
+                        {guestSearchError ? (
                           <li role="alert" className="px-3 py-2 text-label text-danger-text">
-                            Could not search Guests: {guestMatches.error}
+                            Could not search Guests: {guestSearchError}
                           </li>
-                        ) : guestMatches.data && guestMatches.data.length > 0 ? (
-                          guestMatches.data.map((guest) => (
+                        ) : availableGuestMatches.length > 0 ? (
+                          availableGuestMatches.map((guest) => (
                             <li key={guest.id}>
                               <button
                                 type="button"
@@ -1843,13 +1924,24 @@ export function NewReservation({
                                     {[guest.phone, guest.email].filter(Boolean).join(" · ") || "No contact details"}
                                   </span>
                                 </span>
-                                <span className="tnum flex-none text-label font-mono text-ink-secondary">{guest.id}</span>
                               </button>
                             </li>
                           ))
+                        ) : !guestSearchSettled ? (
+                          <li className="px-3 py-2 text-label text-ink-secondary">Searching Guests…</li>
                         ) : (
-                          <li className="px-3 py-2 text-label text-ink-secondary">
-                            No Guest matches "{trimmedGuestQuery}". Add them as a new Guest below.
+                          <li>
+                            <p className="px-3 pt-2 text-label text-ink-secondary">
+                              No Guest matches "{trimmedGuestQuery}".
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setGuestModalOpen(true)}
+                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-label font-semibold text-[var(--color-primary)] hover:bg-page cursor-pointer"
+                            >
+                              <Lucide.UserPlus size={13} />
+                              Add "{trimmedGuestQuery}" as a new Guest
+                            </button>
                           </li>
                         )}
                       </ul>
@@ -1940,13 +2032,7 @@ export function NewReservation({
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="rounded-2xl border border-dashed border-border p-4 text-center text-label text-ink-secondary bg-page/30">
-                    No advance payments recorded yet. Click{" "}
-                    <strong>Collect Payment</strong> to record an advance or
-                    deposit.
-                  </div>
-                )}
+                ) : null}
 
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -1981,13 +2067,6 @@ export function NewReservation({
                     </span>
                     <span className="shrink-0 text-right font-semibold font-mono text-ink">
                       ₹{roomCharges.toLocaleString("en-IN")}.00
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-ink-secondary">
-                    <span className="min-w-0 flex-1">Meal plan supplements</span>
-                    <span className="shrink-0 text-right font-semibold font-mono text-ink">
-                      ₹{mealPlanCharges.toLocaleString("en-IN")}.00
                     </span>
                   </div>
 
@@ -2329,6 +2408,7 @@ export function NewReservation({
 
       {guestModalOpen && (
         <AddGuestModal
+          initialQuery={trimmedGuestQuery}
           onClose={() => setGuestModalOpen(false)}
           onCreated={(guest) => {
             selectGuest(guest);

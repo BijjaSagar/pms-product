@@ -83,7 +83,7 @@ export interface ReservationRow {
   subtotal?: string; taxTotal?: string; specialRequests?: string | null; guest?: { id: string; name?: string; firstName?: string; lastName?: string } | null;
   guestName?: string | null; roomNumber?: string | null; roomSummary?: string | null; roomTypeName?: string | null; roomTypeId?: string;
   roomLines?: ReservationRoomRow[]; pendingCharges?: ReservationChargeRow[]; pendingPayments?: ReservationPendingPaymentRow[]; billingPreferences?: ReservationBillingPreferencesRow;
-  discountAmount?: string; paid?: number;
+  discountAmount?: string; paid?: number; paidAmount?: string;
 }
 export interface StayRow extends ReservationRow {
   guestId?: string | null;
@@ -1162,6 +1162,15 @@ const DETAIL_FIELDS = [
   'checkOutTime', 'specialRequests', 'internalNotes', 'billingPreferences',
 ] as const;
 
+/** The settings a booking depends on (`GET /:propertyId/reservation-options`). */
+export interface ReservationOptions {
+  numbering: { reservationPrefix: string | null };
+  bookingRules: { allowZeroRateBookings: boolean; daysBetweenCheckInCheckOut: number; moveCheckInCheckOutBooking: boolean };
+  mealPlans: Array<{ displayOrder: number; code: string; displayName: string; shortDisplayName: string }>;
+  cancellationRules: Array<{ id: string; startDate: string; endDate: string; daysFromCheckin: number; penaltyPercent: string }>;
+  terms: { inclusions: string | null; bookingTerms: string | null; checkInTerms: string | null };
+}
+
 interface ReservationListResponse { data: ReservationRow[]; total: number; page: number; pageSize: number }
 
 /** Reservations of the active property, read from and saved to the reservations table in the backend. */
@@ -1178,6 +1187,7 @@ export const reservationApi = {
     return { data: result.data, page: result.page, pageSize: result.pageSize, hasMore: result.page * result.pageSize < result.total };
   },
   get: async (id: string) => apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations/${id}`),
+  options: async () => apiRequest<ReservationOptions>(`/${requireActivePropertyId()}/reservation-options`),
   /** Books the reservation. Give the same `idempotencyKey` on a retry and it is booked only once. */
   create: async (body: Record<string, unknown>, idempotencyKey?: string) =>
     apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations`, {
