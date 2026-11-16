@@ -11,3 +11,15 @@ export const parseCount = (raw: string, max: number): number => {
 export const roomNumber = (floor: number, index: number): string => `${floor}${String(index).padStart(2, '0')}`;
 
 export const boxKey = (floor: number, index: number): string => `${floor}-${index}`;
+
+/** Spreads `total` rooms over `floors` floors as evenly as possible; the lower floors take the remainder. */
+export const evenRoomsPerFloor = (floors: number, total: number): Record<number, number> => {
+  const result: Record<number, number> = {};
+  if (floors <= 0 || total <= 0) return result;
+  const base = Math.floor(total / floors);
+  const extra = total % floors;
+  for (let floor = 1; floor <= floors; floor++) {
+    result[floor] = Math.min(base + (floor <= extra ? 1 : 0), MAX_ROOMS_PER_FLOOR);
+  }
+  return result;
+};

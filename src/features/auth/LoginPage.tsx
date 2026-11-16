@@ -1,276 +1,176 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type KeyboardEvent } from 'react';
 import * as Lucide from 'lucide-react';
 import { useAuth } from './AuthContext';
-import { useTheme } from '../../theme/useTheme';
-import { THEME_PRESETS } from '../../theme/presets';
-import { ThemeSwatcher } from '../../theme/ThemeSwatcher';
-import { Checkbox, FieldLabel } from '../../components/primitives';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
+import { BrandMark } from '../../components/brand/BrandShell';
+import { BODY, CONTROL, EYEBROW, HEADING, LABEL } from '../../components/brand/brandStyles';
 
+/**
+ * A full-screen 8 / 4 split. The left side is a soft, light brand panel; the
+ * right side is the sign-in form. The page is exactly one viewport tall and
+ * never scrolls: below the large breakpoint the brand panel shrinks to a
+ * header strip, and on short screens the extras drop away so the form fits.
+ */
 export function LoginPage() {
   const { login } = useAuth();
-  const { preset } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [capsLock, setCapsLock] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [swatcherOpen, setSwatcherOpen] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
     try {
-      await login(email, password, rememberMe);
-      toast('Signed in successfully', {
-        detail: 'Welcome to your PMS workspace.',
-        tone: 'success',
-      });
-    } catch (error) {
-      toast('Sign in failed', {
-        detail: displayApiError(error),
-        tone: 'danger',
-      });
+      await login(email.trim(), password);
+      toast('Signed in successfully', { detail: 'Welcome to your PMS workspace.', tone: 'success' });
+    } catch (cause) {
+      // Inline, so the reason stays next to the fields instead of vanishing with a toast.
+      setError(displayApiError(cause));
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const trackCapsLock = (e: KeyboardEvent<HTMLInputElement>) => setCapsLock(e.getModifierState('CapsLock'));
+
   return (
-    <div
-      className="relative flex h-dvh max-h-dvh min-h-dvh w-full flex-col justify-between overflow-hidden p-3 sm:p-5 lg:p-6 select-none bg-page text-ink"
-    >
-      {/* Background luxury ambient glow */}
-      <div
-        className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full opacity-20 blur-3xl bg-primary"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute -bottom-20 -right-20 h-72 w-72 rounded-full opacity-15 blur-3xl bg-primary"
-        aria-hidden="true"
-      />
+    <div className={`grid h-dvh w-full grid-rows-[auto_minmax(0,1fr)] overflow-hidden bg-surface text-ink lg:grid-cols-12 lg:grid-rows-1 ${BODY}`}>
+      {/* Brand side: 8 of 12 columns */}
+      <aside
+        className="relative flex items-center overflow-hidden bg-gradient-to-br from-surface via-primary/[0.06] to-primary/[0.22] px-5 py-3.5 lg:col-span-8 lg:items-stretch lg:px-16 lg:py-12"
+        aria-label="About TriponX"
+      >
+        {/* Soft light streaks, blurred glows and two outlined tiles (decorative) */}
+        <div
+          className="pointer-events-none absolute inset-0 hidden opacity-20 lg:block"
+          style={{ backgroundImage: 'repeating-linear-gradient(115deg, transparent 0 140px, var(--color-surface) 140px 143px, transparent 143px 300px)' }}
+          aria-hidden="true"
+        />
+        <div className="pointer-events-none absolute -right-16 top-16 hidden h-96 w-96 rounded-full bg-primary/15 blur-3xl lg:block" aria-hidden="true" />
+        <div className="pointer-events-none absolute -bottom-24 left-64 hidden h-80 w-80 rounded-full bg-primary/10 blur-3xl lg:block" aria-hidden="true" />
+        <div className="pointer-events-none absolute right-[8%] top-[28%] hidden h-[304px] w-[304px] rotate-[12deg] rounded-[40px] border border-primary/15 lg:block" aria-hidden="true" />
+        <div className="pointer-events-none absolute right-[14%] top-[34%] hidden h-[304px] w-[304px] -rotate-[8deg] rounded-[40px] border border-primary/10 lg:block" aria-hidden="true" />
 
-      {/* ================= 1. TOP HEADER BAR ================= */}
-      <header className="relative z-10 flex flex-none items-center justify-between gap-3">
-        {/* Brand mark */}
-        <div className="flex items-center gap-2.5">
-          <div
-            className="flex h-8 w-8 items-center justify-center rounded-xl font-brand text-disp2 font-bold shadow-xs transition-transform hover:scale-105 sm:h-9 sm:w-9 bg-primary text-primary-foreground"
-          >
-            T
-          </div>
-          <div>
-            <p className="font-brand truncate text-title font-bold leading-none tracking-tight text-ink">
-              TriponX
+        <div className="relative flex w-full flex-col justify-between">
+          <BrandMark />
+
+          <div className="hidden max-w-xl lg:block">
+            <p className={`flex items-center gap-4 ${EYEBROW}`}>
+              <span className="h-px w-16 bg-primary" aria-hidden="true" /> Every stay begins here
             </p>
-            <p className="text-micro font-semibold uppercase tracking-[0.14em] text-ink-muted">
-              Hotel PMS
+            <h2 className={`mt-6 text-[clamp(2.5rem,4vw,3.75rem)] font-bold leading-[1.05] tracking-[-0.05em] text-ink ${HEADING}`}>
+              Run calmer.<br />
+              <span className="text-primary">Host better.</span>
+            </h2>
+            <p className="mt-6 max-w-lg text-[16px] leading-7 text-ink-secondary [@media(max-height:660px)]:hidden">
+              Your reservations, rooms and billing — gathered in one gentle, easy place.
             </p>
           </div>
+
+          <p className="hidden max-w-[16rem] border-l-2 border-primary/50 pl-4 text-[12px] leading-6 text-ink-muted lg:block [@media(max-height:700px)]:hidden">
+            Thoughtfully designed for teams who love the details.
+          </p>
         </div>
+      </aside>
 
-        {/* Theme and static demo pill */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setSwatcherOpen(true)}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-label font-medium text-ink transition-colors hover:bg-hover-surface cursor-pointer shadow-xs active:scale-95"
-            title="Switch color theme preset"
-            aria-label="Theme preset selector"
-          >
-            <Lucide.Palette size={14} className="text-primary" />
-            <span className="hidden sm:inline font-semibold">
-              {THEME_PRESETS[preset]?.name ?? 'Theme'}
-            </span>
-          </button>
-        </div>
-      </header>
+      {/* Sign-in side: 4 of 12 columns */}
+      <main className="flex min-h-0 items-center justify-center !bg-surface px-5 py-4 sm:px-10 lg:col-span-4 lg:px-14">
+        <section className="pms-animate-fade-in w-full max-w-[400px]" aria-label="Sign in">
+          <header>
+            <p className={`${EYEBROW} [@media(max-height:560px)]:hidden`}>Staff access</p>
+            <h1 className={`mt-3 text-[36px] font-bold leading-tight tracking-[-0.045em] text-ink [@media(max-height:560px)]:mt-0 ${HEADING}`}>
+              Welcome back.
+            </h1>
+            <p className="mt-3 text-[16px] text-ink-secondary [@media(max-height:560px)]:hidden">Sign in to continue to TriponX.</p>
+          </header>
 
-      {/* ================= 2. MAIN LOGIN CARD (FIT TO SCREEN) ================= */}
-      <main className="relative z-10 my-auto flex flex-1 items-center justify-center min-h-0 py-2 sm:py-3">
-        <div className="pms-card flex w-full max-w-[420px] flex-col overflow-hidden border border-border shadow-xl lg:max-w-[880px] lg:flex-row">
-          {/* Desktop Left Showcase Pane */}
-          <section
-            className="relative hidden flex-col justify-between border-r border-border bg-surface p-6 lg:flex lg:w-5/12 xl:p-8"
-            aria-label="Hospitality system highlights"
-          >
-            <div>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-micro font-bold text-primary">
-                <Lucide.Hotel size={13} />
-                Enterprise Hospitality
-              </span>
-              <h2 className="mt-3.5 font-brand text-disp2 font-bold leading-snug tracking-tight text-ink">
-                Intelligent Front Desk & Hotel Operations
-              </h2>
-              <p className="mt-2 text-label leading-relaxed text-ink-secondary">
-                Unified reservations, live room calendars, split-folios, and automated night audits in one seamless interface.
-              </p>
+          <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5 [@media(max-height:600px)]:mt-4 [@media(max-height:600px)]:gap-3">
+            <label className="flex flex-col gap-2" htmlFor="login-email">
+              <span className={LABEL}>Email address</span>
+              <input
+                id="login-email"
+                type="email"
+                autoComplete="username"
+                autoFocus
+                required
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError(null);
+                }}
+                placeholder="you@example.com"
+                className={CONTROL}
+              />
+            </label>
 
-              {/* Feature highlight list */}
-              <div className="mt-5 space-y-2.5">
-                <div className="flex items-center gap-2.5 rounded-lg border border-border/70 bg-page/40 px-3 py-2 text-label">
-                  <div className="flex h-7 w-7 flex-none items-center justify-center rounded-md bg-primary/10 text-primary">
-                    <Lucide.CalendarDays size={15} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-ink">Interactive Room Calendar</p>
-                    <p className="truncate text-micro text-ink-muted">Drag-and-drop allocations & live status</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2.5 rounded-lg border border-border/70 bg-page/40 px-3 py-2 text-label">
-                  <div className="flex h-7 w-7 flex-none items-center justify-center rounded-md bg-primary/10 text-primary">
-                    <Lucide.ReceiptText size={15} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-ink">Split-Folios & Instant Invoices</p>
-                    <p className="truncate text-micro text-ink-muted">Multi-charge routing and bill settlements</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2.5 rounded-lg border border-border/70 bg-page/40 px-3 py-2 text-label">
-                  <div className="flex h-7 w-7 flex-none items-center justify-center rounded-md bg-primary/10 text-primary">
-                    <Lucide.MoonStar size={15} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-ink">Audit & Daily Rollover</p>
-                    <p className="truncate text-micro text-ink-muted">Automated business date progression</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Right Login Form Pane */}
-          <section
-            className="flex w-full flex-col justify-center bg-surface p-4 sm:p-6 lg:w-7/12 xl:p-8"
-            aria-label="Staff Login"
-          >
-            {/* Mobile-only brand badge */}
-            <div className="mb-2.5 flex items-center gap-2 lg:hidden">
-              <div
-                className="flex h-7 w-7 items-center justify-center rounded-lg font-brand text-body font-bold bg-primary text-primary-foreground"
-              >
-                T
-              </div>
-              <span className="font-brand text-title font-bold text-ink">TriponX PMS</span>
-            </div>
-
-            <header>
-              <h1 className="font-brand text-title font-bold tracking-tight text-ink sm:text-disp2">
-                Sign In to Workspace
-              </h1>
-              <p className="mt-1 text-label text-ink-muted">
-                Enter your email and password to continue.
-              </p>
-            </header>
-
-            <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-              {/* Email Address */}
-              <div>
-                <FieldLabel htmlFor="login-email">Email Address</FieldLabel>
-                <div className="relative">
-                  <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-ink-muted">
-                    <Lucide.Mail size={15} />
-                  </span>
-                  <input
-                    id="login-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    placeholder="name@hotel.com"
-                    className="pms-input pl-8 w-full min-h-[34px] md:min-h-[32px]"
-                  />
-                </div>
-              </div>
-
-              {/* Password */}
-              <div>
-                <div className="flex items-center justify-between">
-                  <FieldLabel htmlFor="login-password">Password</FieldLabel>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      toast('Password reset', {
-                        detail: 'Ask your property administrator to reset your password.',
-                        tone: 'info',
-                      })
-                    }
-                    className="text-micro font-semibold text-primary hover:underline cursor-pointer"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-                <div className="relative">
-                  <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-ink-muted">
-                    <Lucide.Lock size={15} />
-                  </span>
-                  <input
-                    id="login-password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    placeholder="••••••••"
-                    className="pms-input pl-8 pr-9 w-full min-h-[34px] md:min-h-[32px]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-ink-muted hover:text-ink cursor-pointer transition-colors"
-                  >
-                    {showPassword ? <Lucide.EyeOff size={15} /> : <Lucide.Eye size={15} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Remember device checkbox */}
-              <div className="pt-0.5">
-                <Checkbox
-                  id="login-remember"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  label={<span className="text-label text-ink-secondary">Remember this workstation</span>}
+            <label className="flex flex-col gap-2" htmlFor="login-password">
+              <span className={LABEL}>Password</span>
+              <span className="relative">
+                <input
+                  id="login-password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError(null);
+                  }}
+                  onKeyDown={trackCapsLock}
+                  onKeyUp={trackCapsLock}
+                  onBlur={() => setCapsLock(false)}
+                  placeholder="Enter your password"
+                  className={`${CONTROL} pr-12`}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPassword}
+                  className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-lg text-ink-muted transition-colors hover:text-ink"
+                >
+                  {showPassword ? <Lucide.EyeOff size={17} /> : <Lucide.Eye size={17} />}
+                </button>
+              </span>
+              {capsLock && (
+                <span className="flex items-center gap-1.5 text-[12px] font-medium text-warning-text" role="status">
+                  <Lucide.ArrowBigUp size={14} aria-hidden="true" /> Caps Lock is on
+                </span>
+              )}
+            </label>
+
+            {error && (
+              <div role="alert" className="flex items-start gap-2 rounded-xl border border-danger-border bg-danger-bg px-3 py-2.5 text-[13px] font-medium text-danger-text">
+                <Lucide.AlertCircle size={15} className="mt-px flex-none" aria-hidden="true" />
+                <span>{error}</span>
               </div>
+            )}
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="pms-btn-primary w-full justify-center min-h-[36px] text-body font-bold cursor-pointer transition-all shadow-xs active:scale-98"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Lucide.Loader2 size={16} className="animate-spin" />
-                    <span>Signing In…</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Sign In to Dashboard</span>
-                    <Lucide.ArrowRight size={16} />
-                  </>
-                )}
-              </button>
-            </form>
-          </section>
-        </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="mt-1 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] bg-primary text-[14px] font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-colors hover:bg-primary-hover active:bg-primary-active disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isSubmitting ? (
+                <>
+                  <Lucide.Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                  <span>Signing in…</span>
+                </>
+              ) : (
+                <>
+                  <span>Continue</span>
+                  <Lucide.ArrowRight size={16} aria-hidden="true" />
+                </>
+              )}
+            </button>
+          </form>
+        </section>
       </main>
-
-      {/* ================= 3. BOTTOM FOOTER BAR ================= */}
-      <footer className="relative z-10 flex flex-none flex-col sm:flex-row items-center justify-between gap-1 text-center sm:text-left text-micro text-ink-muted">
-        <p className="tnum">
-          TriponX Hotel PMS
-        </p>
-        <p>© 2026 TriponX Systems. All rights reserved.</p>
-      </footer>
-
-      {/* Theme Swatcher Drawer */}
-      <ThemeSwatcher open={swatcherOpen} onClose={() => setSwatcherOpen(false)} />
     </div>
   );
 }
-

@@ -79,7 +79,7 @@ function OrderList({
               <div className="min-w-0 flex-1">
                 <p className="truncate text-body font-semibold text-ink">{room.name}</p>
                 <p className="truncate text-label text-ink-secondary">
-                  {room.roomType.name} · {room.roomCount} {room.roomCount === 1 ? 'room' : 'rooms'}
+                  {room.category?.name ?? 'No bed type'} · {room.roomCount} {room.roomCount === 1 ? 'room' : 'rooms'}
                 </p>
               </div>
               <div className="flex flex-none items-center gap-1.5">

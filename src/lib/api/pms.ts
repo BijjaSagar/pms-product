@@ -84,6 +84,8 @@ export interface ReservationRow {
   guestName?: string | null; roomNumber?: string | null; roomSummary?: string | null; roomTypeName?: string | null; roomTypeId?: string;
   roomLines?: ReservationRoomRow[]; pendingCharges?: ReservationChargeRow[]; pendingPayments?: ReservationPendingPaymentRow[]; billingPreferences?: ReservationBillingPreferencesRow;
   discountAmount?: string; paid?: number; paidAmount?: string;
+  sourceType?: string | null; sourceContactNumber?: string | null; bookingCategory?: string | null;
+  checkInTime?: string | null; checkOutTime?: string | null;
 }
 export interface StayRow extends ReservationRow {
   guestId?: string | null;
@@ -205,12 +207,12 @@ const ACTIVE_PROPERTY_KEY = 'pms.activePropertyId';
  * still come from the demo store, which is presented as the active property.
  */
 export const authApi = {
-  login: async (email: string, password: string, remember: boolean) => {
+  login: async (email: string, password: string) => {
     const { accessToken } = await apiRequest<LoginResponse>('/auth/login', {
       method: 'POST',
       body: { email, password },
     });
-    saveAccessToken(accessToken, remember);
+    saveAccessToken(accessToken);
   },
   me: async (): Promise<AuthMe> => {
     const [user, properties] = await Promise.all([
@@ -226,11 +228,10 @@ export const authApi = {
     const activeId =
       user.role === 'STAFF'
         ? user.propertyId
-        : saved && propertyIds.includes(saved)
+        : // An ADMIN always lands on Choose a property unless they already picked one in this tab, so they can add more.
+          saved && propertyIds.includes(saved)
           ? saved
-          : propertyIds.length === 1
-            ? (propertyIds[0] ?? null)
-            : null;
+          : null;
 
     const active = properties.find((p) => p.id === activeId);
     if (active) {
@@ -374,8 +375,25 @@ export interface PropertyDetails {
 export type PropertyUpdate = Partial<Omit<PropertyDetails, 'id' | 'isActive'>>;
 
 /** Real backend calls. Reading is open to the property's own staff; updating is ADMIN only. */
+/** What a new property needs; everything else is filled in later under Settings. */
+export interface PropertyCreate {
+  name: string;
+  /** Abbreviation, 2-20 letters, digits, "-" or "_". */
+  code: string;
+  city: string;
+  state?: string;
+  country: string;
+  defaultCurrency: string;
+  numberOfFloors: number;
+  totalRooms: number;
+}
+
 export const propertyApi = {
+  /** Every property for an ADMIN, only their own for STAFF. */
+  list: async () => apiRequest<PropertyDetails[]>('/properties'),
   get: async (id: string) => apiRequest<PropertyDetails>(`/properties/${id}`),
+  /** ADMIN only. */
+  create: async (body: PropertyCreate) => apiRequest<PropertyDetails>('/properties', { method: 'POST', body }),
   update: async (id: string, body: PropertyUpdate) =>
     apiRequest<PropertyDetails>(`/properties/${id}`, { method: 'PATCH', body }),
 };
@@ -507,8 +525,6 @@ export const maintenanceReasonApi = {
 export interface RoomDetails {
   id: string;
   propertyId: string;
-  roomTypeId: string;
-  roomType: { id: string; name: string };
   /** Bed type: the room category whose bed setup the room uses. */
   categoryId: string | null;
   category: { id: string; name: string; bedSetup: string } | null;
@@ -548,8 +564,9 @@ export type MealPlanKey = 'EP' | 'CP' | 'MAP' | 'AP' | 'MAPAI' | 'APAI';
 export type RoomOrderList = 'chart' | 'upsell';
 
 export interface RoomInput {
-  roomTypeId: string;
   name: string;
+  /** Nightly base rate. */
+  baseRate: number;
   /** Send null to clear. */
   description?: string | null;
   roomCount: number;
