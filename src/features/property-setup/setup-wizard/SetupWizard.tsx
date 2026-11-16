@@ -2,7 +2,8 @@ import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
 import { BrandShell } from '../../../components/brand/BrandShell';
-import { BUTTON_PLAIN, BUTTON_PRIMARY, HEADING } from '../../../components/brand/brandStyles';
+import { HEADING } from '../../../components/brand/brandStyles';
+import { Button } from '../../../components/primitives';
 import { displayApiError } from '../../../lib/api/client';
 import { floorPlanApi, propertyApi, roomListingApi } from '../../../lib/api/pms';
 import { toast } from '../../../utils/toast';
@@ -157,62 +158,67 @@ export function SetupWizard({ exitAction, onDone }: SetupWizardProps) {
 
   return (
     <BrandShell>
-      <div className="mb-6 flex justify-end">{exitAction}</div>
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-10">
+      <div className="grid grid-cols-1 gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-8">
         <SetupRail step={step} property={property} categories={categories} placed={placed} />
 
-        <div className="min-w-0">
-          <div className="mb-5 flex items-end justify-between gap-4">
+        <div className="flex min-w-0 flex-col lg:min-h-0">
+          <div className="mb-3 flex flex-none flex-wrap items-end justify-between gap-x-4 gap-y-2">
             <div>
               <p className="text-[12px] font-medium text-ink-muted">Step {step + 1} of 3</p>
-              <h2 className={`mt-1 text-[24px] font-bold tracking-[-0.04em] text-ink ${HEADING}`}>{STEP_TITLES[step]}</h2>
+              <h2 className={`mt-0.5 text-[24px] font-bold tracking-[-0.04em] text-ink ${HEADING}`}>{STEP_TITLES[step]}</h2>
             </div>
-            <div className="h-1.5 w-32 overflow-hidden rounded-full bg-muted-surface" role="progressbar" aria-valuemin={1} aria-valuemax={3} aria-valuenow={step + 1} aria-label="Setup progress">
-              <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${((step + 1) / 3) * 100}%` }} />
+            <div className="flex items-center gap-3">
+              <div className="h-1.5 w-28 overflow-hidden rounded-full bg-muted-surface" role="progressbar" aria-valuemin={1} aria-valuemax={3} aria-valuenow={step + 1} aria-label="Setup progress">
+                <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${((step + 1) / 3) * 100}%` }} />
+              </div>
+              {exitAction}
             </div>
           </div>
 
-          {step === 0 && (
-            <PropertyStep value={property} onChange={(patch) => setProperty((p) => ({ ...p, ...patch }))} errors={tried ? errors : {}} />
-          )}
-          {step === 1 && <CategoriesStep categories={categories} totalRooms={property.rooms} onChange={setCategories} showErrors={tried} />}
-          {step === 2 && (
-            <FloorsStep floorCount={property.floors} floors={floors} categories={categories} totalRooms={property.rooms} onChange={setFloors} />
-          )}
+          {/* The steps scroll in here when they are taller than the screen, so the page itself never does. */}
+          <div className="flex flex-col lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:p-1">
+            {step === 0 && (
+              <PropertyStep value={property} onChange={(patch) => setProperty((p) => ({ ...p, ...patch }))} errors={tried ? errors : {}} />
+            )}
+            {step === 1 && <CategoriesStep categories={categories} totalRooms={property.rooms} onChange={setCategories} showErrors={tried} />}
+            {step === 2 && (
+              <FloorsStep floorCount={property.floors} floors={floors} categories={categories} totalRooms={property.rooms} onChange={setFloors} />
+            )}
+          </div>
 
           {failure && (
-            <div role="alert" className="mt-4 flex items-start gap-2 rounded-2xl border border-danger-border bg-danger-bg px-4 py-3 text-[13px] font-medium text-danger-text">
+            <div role="alert" className="mt-3 flex flex-none items-start gap-2 rounded-2xl border border-danger-border bg-danger-bg px-4 py-2.5 text-[13px] font-medium text-danger-text">
               <Lucide.AlertCircle size={16} className="mt-px flex-none" aria-hidden="true" />
               <span>{failure}</span>
             </div>
           )}
 
-          <footer className="mt-6 flex items-center justify-between gap-3 border-t border-border/70 pt-5">
-            <button type="button" className={BUTTON_PLAIN} disabled={step === 0 || saving} onClick={() => goTo(step - 1)}>
-              <Lucide.ArrowLeft size={15} aria-hidden="true" /> Back
-            </button>
+          <footer className="mt-3 flex flex-none items-center justify-between gap-3 border-t border-border/70 pt-3">
+            <Button variant="ghost" disabled={step === 0 || saving} onClick={() => goTo(step - 1)} icon={<Lucide.ArrowLeft size={14} />}>
+              Back
+            </Button>
             {step === 0 && (
-              <button type="button" className={BUTTON_PRIMARY} onClick={toCategories}>
-                Continue <Lucide.ArrowRight size={15} aria-hidden="true" />
-              </button>
+              <Button variant="primary" onClick={toCategories}>
+                Continue <Lucide.ArrowRight size={14} />
+              </Button>
             )}
             {step === 1 && (
-              <button type="button" className={BUTTON_PRIMARY} onClick={toFloors} disabled={categoryCheck.allocated !== property.rooms}>
-                Continue <Lucide.ArrowRight size={15} aria-hidden="true" />
-              </button>
+              <Button variant="primary" onClick={toFloors} disabled={categoryCheck.allocated !== property.rooms}>
+                Continue <Lucide.ArrowRight size={14} />
+              </Button>
             )}
             {step === 2 && (
-              <button type="button" className={BUTTON_PRIMARY} onClick={() => void finish()} disabled={saving}>
+              <Button variant="primary" onClick={() => void finish()} disabled={saving}>
                 {saving ? (
                   <>
-                    <Lucide.Loader2 size={15} className="animate-spin" aria-hidden="true" /> Setting up…
+                    <Lucide.Loader2 size={14} className="animate-spin" /> Setting up…
                   </>
                 ) : (
                   <>
-                    Finish setup <Lucide.Check size={15} aria-hidden="true" />
+                    Finish setup <Lucide.Check size={14} />
                   </>
                 )}
-              </button>
+              </Button>
             )}
           </footer>
         </div>

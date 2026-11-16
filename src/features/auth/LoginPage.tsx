@@ -4,7 +4,14 @@ import { useAuth } from './AuthContext';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
 import { BrandMark } from '../../components/brand/BrandShell';
-import { BODY, CONTROL, EYEBROW, HEADING, LABEL } from '../../components/brand/brandStyles';
+import { fieldClass } from '../../components/formStyles';
+import { BODY, EYEBROW, HEADING, LABEL } from '../../components/brand/brandStyles';
+
+/** The shared field, a little taller than the app's 32px so the sign-in form feels roomier. */
+const SIGN_IN_FIELD = `${fieldClass} !min-h-[40px]`;
+/** The sign-in button: as tall as the fields, with the same small corner radius as them (the shared Button is fully rounded). */
+const SIGN_IN_BUTTON =
+  'mt-1 inline-flex min-h-[40px] w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-primary px-5 text-title font-bold text-primary-foreground shadow-xs transition-colors hover:bg-primary-hover active:bg-primary-active disabled:cursor-not-allowed disabled:opacity-60';
 
 /**
  * A full-screen 8 / 4 split. The left side is a soft, light brand panel; the
@@ -56,8 +63,11 @@ export function LoginPage() {
         <div className="pointer-events-none absolute right-[8%] top-[28%] hidden h-[304px] w-[304px] rotate-[12deg] rounded-[40px] border border-primary/15 lg:block" aria-hidden="true" />
         <div className="pointer-events-none absolute right-[14%] top-[34%] hidden h-[304px] w-[304px] -rotate-[8deg] rounded-[40px] border border-primary/10 lg:block" aria-hidden="true" />
 
-        <div className="relative flex w-full flex-col justify-between">
-          <BrandMark />
+        {/* Three rows: the logo on top, the headline exactly in the middle, the quote at the bottom. */}
+        <div className="relative grid w-full grid-rows-[1fr_auto_1fr] lg:items-center">
+          <div className="self-start">
+            <BrandMark />
+          </div>
 
           <div className="hidden max-w-xl lg:block">
             <p className={`flex items-center gap-4 ${EYEBROW}`}>
@@ -72,7 +82,7 @@ export function LoginPage() {
             </p>
           </div>
 
-          <p className="hidden max-w-[16rem] border-l-2 border-primary/50 pl-4 text-[12px] leading-6 text-ink-muted lg:block [@media(max-height:700px)]:hidden">
+          <p className="hidden max-w-[16rem] self-end border-l-2 border-primary/50 pl-4 text-[12px] leading-6 text-ink-muted lg:block [@media(max-height:700px)]:invisible">
             Thoughtfully designed for teams who love the details.
           </p>
         </div>
@@ -104,7 +114,7 @@ export function LoginPage() {
                   setError(null);
                 }}
                 placeholder="you@example.com"
-                className={CONTROL}
+                className={SIGN_IN_FIELD}
               />
             </label>
 
@@ -125,16 +135,16 @@ export function LoginPage() {
                   onKeyUp={trackCapsLock}
                   onBlur={() => setCapsLock(false)}
                   placeholder="Enter your password"
-                  className={`${CONTROL} pr-12`}
+                  className={`${SIGN_IN_FIELD} pr-10`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   aria-pressed={showPassword}
-                  className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-lg text-ink-muted transition-colors hover:text-ink"
+                  className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-ink-muted transition-colors hover:text-ink"
                 >
-                  {showPassword ? <Lucide.EyeOff size={17} /> : <Lucide.Eye size={17} />}
+                  {showPassword ? <Lucide.EyeOff size={15} /> : <Lucide.Eye size={15} />}
                 </button>
               </span>
               {capsLock && (
@@ -151,20 +161,16 @@ export function LoginPage() {
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="mt-1 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] bg-primary text-[14px] font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-colors hover:bg-primary-hover active:bg-primary-active disabled:cursor-not-allowed disabled:opacity-70"
-            >
+            <button type="submit" disabled={isSubmitting} className={SIGN_IN_BUTTON}>
               {isSubmitting ? (
                 <>
-                  <Lucide.Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                  <Lucide.Loader2 size={16} className="animate-spin" />
                   <span>Signing in…</span>
                 </>
               ) : (
                 <>
                   <span>Continue</span>
-                  <Lucide.ArrowRight size={16} aria-hidden="true" />
+                  <Lucide.ArrowRight size={16} />
                 </>
               )}
             </button>

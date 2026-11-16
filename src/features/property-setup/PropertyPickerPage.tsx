@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { BrandShell } from '../../components/brand/BrandShell';
-import { BUTTON_PLAIN } from '../../components/brand/brandStyles';
+import { Button } from '../../components/primitives';
 import { displayApiError } from '../../lib/api/client';
 import { propertyApi } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
@@ -33,9 +33,9 @@ export function PropertyPickerPage() {
   };
 
   const signOut = (
-    <button type="button" className={`${BUTTON_PLAIN} !h-10`} onClick={() => void logout()}>
-      <Lucide.LogOut size={15} aria-hidden="true" /> Sign out
-    </button>
+    <Button variant="ghost" icon={<Lucide.LogOut size={14} />} onClick={() => void logout()}>
+      Sign out
+    </Button>
   );
 
   if (list.error) {
@@ -66,9 +66,9 @@ export function PropertyPickerPage() {
   if (view.kind === 'setup' || properties.length === 0) {
     const exit =
       properties.length > 0 ? (
-        <button type="button" className={`${BUTTON_PLAIN} !h-10`} onClick={() => setView({ kind: 'list' })}>
+        <Button variant="ghost" onClick={() => setView({ kind: 'list' })}>
           Exit setup
-        </button>
+        </Button>
       ) : (
         signOut
       );
@@ -80,5 +80,5 @@ export function PropertyPickerPage() {
     );
   }
 
-  return <PropertiesPage properties={properties} canAdd={canAdd} onAdd={() => setView({ kind: 'setup' })} onOpen={(id) => void open(id)} />;
+  return <PropertiesPage properties={properties} canAdd={canAdd} onSignOut={() => void logout()} onAdd={() => setView({ kind: 'setup' })} onOpen={(id) => void open(id)} />;
 }

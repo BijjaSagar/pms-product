@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { BrandStepper } from '../../../components/brand/BrandControls';
-import { BUTTON_PRIMARY, BUTTON_SOFT, CARD, HEADING, LABEL } from '../../../components/brand/brandStyles';
+import { Button } from '../../../components/primitives';
+import { CARD, HEADING, LABEL } from '../../../components/brand/brandStyles';
+import { selectClass } from '../../../components/formStyles';
 import { MAX_ROOMS_PER_FLOOR, roomNumber } from '../../settings/room-settings/floorPlan';
 import { toast } from '../../../utils/toast';
 import { NO_CATEGORY_TONE, categoryTone } from '../categoryTones';
@@ -44,8 +46,8 @@ function FloorCard({ floor, rooms, categories, roomsLeft, defaultCategoryId, onC
   };
 
   return (
-    <section className={`${CARD} overflow-hidden`} aria-label={`Floor ${floor}`}>
-      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-border/70 bg-muted-surface/40 px-4 py-3">
+    <section className={`${CARD} flex-none overflow-hidden`} aria-label={`Floor ${floor}`}>
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border/70 bg-muted-surface/40 px-3 py-2">
         <div className="flex items-center gap-3">
           <span className={`flex h-9 w-9 items-center justify-center rounded-xl border border-primary/25 bg-white text-[15px] font-bold text-primary ${HEADING}`}>{floor}</span>
           <div>
@@ -57,17 +59,17 @@ function FloorCard({ floor, rooms, categories, roomsLeft, defaultCategoryId, onC
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <BrandStepper label={`Rooms to add on floor ${floor}`} value={quantity} min={1} max={MAX_ROOMS_PER_FLOOR} onChange={setQuantity} className="!h-9 !w-28" />
-          <button type="button" className={`${BUTTON_PRIMARY} !h-9 !px-3.5 !text-[13px]`} onClick={addRooms}>
-            <Lucide.Plus size={14} aria-hidden="true" /> Add room
-          </button>
+          <BrandStepper label={`Rooms to add on floor ${floor}`} value={quantity} min={1} max={MAX_ROOMS_PER_FLOOR} onChange={setQuantity} className="!w-24" />
+          <Button variant="primary" icon={<Lucide.Plus size={14} />} onClick={addRooms}>
+            Add room
+          </Button>
           <span className="relative">
             <select
               aria-label={`Set every room on floor ${floor} to a category`}
               disabled={rooms.length === 0}
               value=""
               onChange={(e) => e.target.value && onChange(rooms.map((r) => ({ ...r, categoryId: e.target.value })))}
-              className="h-9 w-36 cursor-pointer appearance-none rounded-[12px] border border-border bg-white pl-3 pr-8 text-[12px] font-medium text-ink-secondary outline-none focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-50"
+              className={`${selectClass} !w-36`}
             >
               <option value="">Set all to…</option>
               {categories
@@ -78,7 +80,6 @@ function FloorCard({ floor, rooms, categories, roomsLeft, defaultCategoryId, onC
                   </option>
                 ))}
             </select>
-            <Lucide.ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted" aria-hidden="true" />
           </span>
           <button
             type="button"
@@ -99,12 +100,12 @@ function FloorCard({ floor, rooms, categories, roomsLeft, defaultCategoryId, onC
           <p className="text-[13px] text-ink-secondary">No rooms yet — add the first room on this floor</p>
         </div>
       ) : (
-        <ul className="grid grid-cols-1 gap-2.5 p-4 md:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-2 p-3 md:grid-cols-2 xl:grid-cols-4">
           {rooms.map((room, index) => {
             const tone = toneOf(room.categoryId);
             return (
-              <li key={room.id} className={`flex items-center gap-2 rounded-2xl border p-2 ${tone.tile}`}>
-                <span className={`tnum flex h-9 w-14 flex-none items-center justify-center rounded-xl bg-white text-[14px] font-bold text-ink ${HEADING}`} title="Room number">
+              <li key={room.id} className={`flex items-center gap-1.5 rounded-xl border p-1.5 ${tone.tile}`}>
+                <span className={`tnum flex h-8 w-12 flex-none items-center justify-center rounded-lg bg-white text-[13px] font-bold text-ink ${HEADING}`} title="Room number">
                   {roomNumber(floor, index + 1)}
                 </span>
                 <span className="relative min-w-0 flex-1">
@@ -112,7 +113,7 @@ function FloorCard({ floor, rooms, categories, roomsLeft, defaultCategoryId, onC
                     aria-label={`Category of room ${roomNumber(floor, index + 1)}`}
                     value={room.categoryId}
                     onChange={(e) => onChange(rooms.map((r) => (r.id === room.id ? { ...r, categoryId: e.target.value } : r)))}
-                    className="h-9 w-full cursor-pointer appearance-none truncate rounded-xl bg-transparent pl-2 pr-7 text-[13px] font-semibold outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                    className="h-8 w-full cursor-pointer appearance-none truncate rounded-lg bg-transparent pl-1.5 pr-6 text-[12px] font-semibold outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                   >
                     <option value="">Choose category</option>
                     {categories
@@ -130,7 +131,7 @@ function FloorCard({ floor, rooms, categories, roomsLeft, defaultCategoryId, onC
                   title="Remove room"
                   aria-label={`Remove room ${roomNumber(floor, index + 1)}`}
                   onClick={() => onChange(rooms.filter((r) => r.id !== room.id))}
-                  className="flex h-8 w-8 flex-none cursor-pointer items-center justify-center rounded-lg opacity-70 transition-opacity hover:opacity-100"
+                  className="flex h-7 w-7 flex-none cursor-pointer items-center justify-center rounded-lg opacity-70 transition-opacity hover:opacity-100"
                 >
                   <Lucide.X size={15} />
                 </button>
@@ -154,27 +155,42 @@ export function FloorsStep({ floorCount, floors, categories, totalRooms, onChang
   const percent = Math.min(100, (placed / totalRooms) * 100);
 
   return (
-    <div className="flex flex-col gap-4">
-      <section className={`${CARD} sticky top-3 z-10 p-4 backdrop-blur`} aria-label="Rooms placed">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-5">
-            <div>
-              <p className={LABEL}>Rooms placed</p>
-              <p className={`tnum mt-1 text-[24px] font-semibold leading-none text-ink ${HEADING}`}>
-                {placed}
-                <span className="text-ink-muted"> / {totalRooms}</span>
-              </p>
-            </div>
-            <div className="hidden w-36 sm:block">
-              <div className="h-2 overflow-hidden rounded-full bg-muted-surface" aria-hidden="true">
-                <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
-              </div>
-              <p className="mt-1.5 text-[12px] text-ink-secondary">{placed === totalRooms ? 'All placed' : `${totalRooms - placed} to place`}</p>
-            </div>
+    <div className="flex flex-col gap-3 lg:min-h-0 lg:flex-1">
+      <section className={`${CARD} flex-none px-4 py-3`} aria-label="Rooms placed">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <div>
+            <p className={LABEL}>Rooms placed</p>
+            <p className={`tnum mt-0.5 text-[22px] font-semibold leading-none text-ink ${HEADING}`}>
+              {placed}
+              <span className="text-ink-muted"> / {totalRooms}</span>
+            </p>
           </div>
-          <button
-            type="button"
-            className={BUTTON_SOFT}
+          <div className="hidden w-28 sm:block">
+            <div className="h-2 overflow-hidden rounded-full bg-muted-surface" aria-hidden="true">
+              <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
+            </div>
+            <p className="mt-1 text-[12px] text-ink-secondary">{placed === totalRooms ? 'All placed' : `${totalRooms - placed} to place`}</p>
+          </div>
+
+          <ul className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+            {categories.map((c, i) => {
+              const done = (placedPer[c.id] ?? 0) === c.count;
+              return (
+                <li key={c.id} className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-semibold ${categoryTone(i).tile}`}>
+                  <span className={`h-2 w-2 rounded-full ${categoryTone(i).dot}`} aria-hidden="true" />
+                  {c.name.trim() || `Category ${i + 1}`}
+                  <span className="tnum">
+                    {placedPer[c.id] ?? 0}/{c.count}
+                  </span>
+                  {done && <Lucide.CheckCircle2 size={13} aria-label="Complete" />}
+                </li>
+              );
+            })}
+          </ul>
+
+          <Button
+            variant="secondary"
+            icon={<Lucide.Wand2 size={14} />}
             onClick={() => {
               onChange(autoFillFloors(floorCount, totalRooms, categories));
               toast('Floors filled', {
@@ -183,27 +199,12 @@ export function FloorsStep({ floorCount, floors, categories, totalRooms, onChang
               });
             }}
           >
-            <Lucide.Wand2 size={14} aria-hidden="true" /> Auto-fill floors
-          </button>
+            Auto-fill floors
+          </Button>
         </div>
-
-        <ul className="mt-3 flex flex-wrap gap-2">
-          {categories.map((c, i) => {
-            const done = (placedPer[c.id] ?? 0) === c.count;
-            return (
-              <li key={c.id} className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-semibold ${categoryTone(i).tile}`}>
-                <span className={`h-2 w-2 rounded-full ${categoryTone(i).dot}`} aria-hidden="true" />
-                {c.name.trim() || `Category ${i + 1}`}
-                <span className="tnum">
-                  {placedPer[c.id] ?? 0}/{c.count}
-                </span>
-                {done && <Lucide.CheckCircle2 size={13} aria-label="Complete" />}
-              </li>
-            );
-          })}
-        </ul>
       </section>
 
+      <div className="flex flex-col gap-2.5 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:p-1">
       {Array.from({ length: floorCount }, (_, i) => i + 1).map((floor) => (
         <FloorCard
           key={floor}
@@ -215,6 +216,7 @@ export function FloorsStep({ floorCount, floors, categories, totalRooms, onChang
           onChange={(rooms) => onChange({ ...floors, [floor]: rooms })}
         />
       ))}
+      </div>
     </div>
   );
 }

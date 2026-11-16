@@ -22,14 +22,14 @@ export function SetupRail({ step, property, categories, placed }: SetupRailProps
   const location = [property.city.trim(), property.state.trim(), property.country].filter(Boolean).join(', ');
 
   return (
-    <aside className="flex flex-col gap-6 lg:sticky lg:top-6 lg:self-start">
+    <aside className="flex flex-col gap-5 lg:min-h-0 lg:overflow-y-auto lg:p-1">
       <div>
         <p className={EYEBROW}>Property setup</p>
-        <h1 className={`mt-3 text-[30px] font-bold leading-tight tracking-[-0.045em] text-ink ${HEADING}`}>Set up your property</h1>
-        <p className="mt-2 text-[14px] leading-6 text-ink-secondary">Three short steps and your rooms are ready to sell.</p>
+        <h1 className={`mt-2 text-[26px] font-bold leading-tight tracking-[-0.045em] text-ink ${HEADING}`}>Set up your property</h1>
+        <p className="mt-2 text-[14px] leading-6 text-ink-secondary [@media(max-height:700px)]:hidden">Three short steps and your rooms are ready to sell.</p>
       </div>
 
-      <ol className="flex flex-col gap-2.5" aria-label="Setup steps">
+      <ol className="flex flex-col gap-2" aria-label="Setup steps">
         {STEPS.map((s, i) => {
           const state = i < step ? 'done' : i === step ? 'current' : 'todo';
           const Icon = s.icon;
@@ -37,7 +37,7 @@ export function SetupRail({ step, property, categories, placed }: SetupRailProps
             <li
               key={s.title}
               aria-current={state === 'current' ? 'step' : undefined}
-              className={`flex items-center gap-3 rounded-2xl border p-3 transition-colors ${
+              className={`flex items-center gap-3 rounded-2xl border p-2.5 transition-colors ${
                 state === 'current' ? 'border-border bg-white shadow-md' : 'border-transparent'
               }`}
             >
@@ -62,7 +62,7 @@ export function SetupRail({ step, property, categories, placed }: SetupRailProps
         })}
       </ol>
 
-      <section className={`${CARD} p-4`} aria-label="Summary">
+      <section className={`${CARD} p-3.5`} aria-label="Summary">
         <p className={LABEL}>Summary</p>
         <p className={`mt-2 flex items-baseline gap-2 text-[16px] font-semibold text-ink ${HEADING}`}>
           <span className="truncate">{property.name.trim() || 'Your property'}</span>
@@ -84,7 +84,7 @@ export function SetupRail({ step, property, categories, placed }: SetupRailProps
         </dl>
 
         {named.length > 0 && (
-          <ul className="mt-3 flex flex-wrap gap-1.5">
+          <ul className="mt-3 flex flex-wrap gap-1.5 [@media(max-height:760px)]:hidden">
             {named.map((c) => (
               <li
                 key={c.id}
