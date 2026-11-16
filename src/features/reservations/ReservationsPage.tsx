@@ -20,6 +20,10 @@ import { ReservationDrawer, StatusPill } from './ReservationDrawer';
 
 type SortKey = 'checkIn' | 'guest' | 'amount';
 
+/** The backend only edits a draft, confirmed or checked-in reservation. */
+const isEditable = (status: ReservationStatus) =>
+  status === 'Pending' || status === 'Confirmed' || status === 'Checked-in';
+
 export function Reservations({
   initialQuery = '',
   initialViewMode = 'calendar',
@@ -336,6 +340,14 @@ export function Reservations({
                               onClick={() => setOpenId(r.id)}
                             >
                               Open
+                            </Button>
+                            <Button variant="secondary"
+                              type="button"
+                              disabled={!isEditable(r.status)}
+                              title={isEditable(r.status) ? undefined : `A ${r.status.toLowerCase()} reservation can no longer be edited`}
+                              onClick={() => go({ view: 'new-reservation', focusId: r.backendId ?? r.id })}
+                            >
+                              Edit
                             </Button>
                           </div>
                         </td>

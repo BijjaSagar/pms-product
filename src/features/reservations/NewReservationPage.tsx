@@ -3,10 +3,12 @@ import * as Lucide from "lucide-react";
 import type { NavDraft, NavTarget } from "../../config/navigation";
 import { toast } from "../../utils/toast";
 import { Modal } from "../../components/overlays";
+import { PageSkeleton } from "../../components/Skeleton";
 import { inventoryApi, guestApi, reservationApi } from "../../lib/api/pms";
 import type {
   ReservationPendingPaymentRow,
   ReservationRoomRow,
+  ReservationRow,
 } from "../../lib/api/pms";
 import { useApiResource } from "../../lib/api/useApiResource";
 import { displayApiError, newIdempotencyKey } from "../../lib/api/client";
@@ -53,13 +55,62 @@ const selectClass = `${fieldClass} cursor-pointer`;
 const iconFieldClass = `${fieldClass} pl-8 pr-3`;
 const textareaClass = "pms-input w-full px-2.5 py-1.5 text-title font-semibold resize-none";
 
+interface ExistingReservation {
+  row: ReservationRow;
+  guest: Guest | null;
+}
+
+/** New booking, or edit mode when `editId` names a reservation (opened from the room calendar). */
 export function NewReservation({
   go,
   initialDraft,
+  editId,
 }: {
   go: (t: NavTarget) => void;
   initialDraft?: NavDraft;
+  editId?: string;
 }) {
+  const loadExisting = useCallback(async (): Promise<ExistingReservation | null> => {
+    if (!editId) return null;
+    const row = await reservationApi.get(editId);
+    const guestId = row.primaryGuestId ?? row.guest?.id;
+    const guest = guestId ? guestFromApi(await guestApi.get(guestId)) : null;
+    return { row, guest };
+  }, [editId]);
+  const existingResource = useApiResource(loadExisting, [editId]);
+
+  if (editId && existingResource.initialLoading) return <PageSkeleton />;
+  if (editId && !existingResource.data) {
+    return (
+      <div className="pms-page">
+        <div className="flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-label text-danger-text">
+          <Lucide.AlertCircle size={16} />
+          <span>Could not load this reservation{existingResource.error ? `: ${existingResource.error}` : "."}</span>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <ReservationForm
+      key={editId ?? "new"}
+      go={go}
+      initialDraft={initialDraft}
+      existing={existingResource.data ?? undefined}
+    />
+  );
+}
+
+function ReservationForm({
+  go,
+  initialDraft,
+  existing,
+}: {
+  go: (t: NavTarget) => void;
+  initialDraft?: NavDraft;
+  existing?: ExistingReservation;
+}) {
+  const editRow = existing?.row;
+  const isEdit = Boolean(editRow);
   const [activeTab, setActiveTab] = useState<"general" | "outlet">("general");
 
   // Prefill from the room calendar (room + night clicked on the rack).
@@ -72,22 +123,22 @@ export function NewReservation({
     ) ??
     storeCategories[0] ??
     NO_ROOM_CATEGORY;
-  const initialCheckIn = initialDraft?.checkIn ?? todayIso();
+  const initialCheckIn = editRow?.checkInDate.slice(0, 10) ?? initialDraft?.checkIn ?? todayIso();
   const initialCheckOut =
-    initialDraft?.checkOut ?? nextDayIso(initialCheckIn);
+    editRow?.checkOutDate.slice(0, 10) ?? initialDraft?.checkOut ?? nextDayIso(initialCheckIn);
 
   // Booking Parameters
-  const [bookingSource, setBookingSource] = useState("Direct");
-  const [sourceType, setSourceType] = useState("Phone");
-  const [externalReferenceId, setExternalReferenceId] = useState("");
-  const [bookingId, setBookingId] = useState("");
-  const [sourceContactNumber, setSourceContactNumber] = useState("");
+  const [bookingSource, setBookingSource] = useState(editRow?.source ?? "Direct");
+  const [sourceType, setSourceType] = useState(editRow?.sourceType ?? "Phone");
+  const [externalReferenceId, setExternalReferenceId] = useState(editRow?.externalReferenceId ?? "");
+  const [bookingId, setBookingId] = useState(editRow?.bookingCode ?? "");
+  const [sourceContactNumber, setSourceContactNumber] = useState(editRow?.sourceContactNumber ?? "");
   const [checkInDate, setCheckInDate] = useState(initialCheckIn);
   const [checkOutDate, setCheckOutDate] = useState(initialCheckOut);
-  const [bookingType, setBookingType] = useState("Confirmed"); // Status
-  const [bookingCategory, setBookingCategory] = useState("FIT"); // Booking Type
-  const [checkInTime, setCheckInTime] = useState("13:00");
-  const [checkOutTime, setCheckOutTime] = useState("11:00");
+  const [bookingType, setBookingType] = useState(editRow && editRow.status === "DRAFT" ? "Tentative" : "Confirmed"); // Status
+  const [bookingCategory, setBookingCategory] = useState(editRow?.bookingCategory ?? "FIT"); // Booking Type
+  const [checkInTime, setCheckInTime] = useState(editRow?.checkInTime ?? "13:00");
+  const [checkOutTime, setCheckOutTime] = useState(editRow?.checkOutTime ?? "11:00");
   const [samePlanAllRooms, setSamePlanAllRooms] = useState(true);
   const [ratePlan, setRatePlan] = useState("Best Available Rates");
   const [mealPlan, setMealPlan] = useState("EP");
@@ -176,7 +227,30 @@ export function NewReservation({
   const [overrideRoomTotal, setOverrideRoomTotal] = useState<number | null>(
     null,
   );
-  const [roomRequirements, setRequirements] = useState<RoomRequirement[]>([
+  const [roomRequirements, setRequirements] = useState<RoomRequirement[]>(() =>
+    editRow?.roomLines?.length
+      ? editRow.roomLines.map((line, index) => ({
+        id: line.id,
+        roomIndex: index + 1,
+        roomTypeId: line.roomTypeId,
+        category: line.roomTypeName ?? "",
+        adults: line.adults ?? 1,
+        children: line.children ?? 0,
+        infant: line.infants ?? 0,
+        roomId: line.roomId ?? null,
+        roomNo: line.roomNumber ?? "",
+        rate: Number(line.nightlyRate),
+        ratePlan: line.ratePlanName ?? "Best Available Rates",
+        mealPlan: line.mealPlanName ?? "EP",
+        billingRoute: (line.billingRoute as RoomRequirement["billingRoute"] | null) ?? "Default",
+        occupants: line.occupants?.length
+          ? line.occupants.map((occupant) => ({
+            ...occupant,
+            role: occupant.role as RoomOccupant["role"],
+          }))
+          : [{ id: `occupant-${line.id}`, name: "", role: "Primary guest" as const }],
+      }))
+      : [
     {
       id: "req-1",
       roomIndex: 1,
@@ -233,12 +307,12 @@ export function NewReservation({
   // Billing Preferences
   const [billingPreferences, setBillingPreferences] =
     useState<BillingPreferences>({
-      roomBillTo: "To Guest",
-      extrasBillTo: "To Guest",
-      billToCompany: false,
-      noPost: false,
-      companyName: "",
-      companyGst: "",
+      roomBillTo: (editRow?.billingPreferences?.roomBillTo as BillingPreferences["roomBillTo"] | undefined) ?? "To Guest",
+      extrasBillTo: (editRow?.billingPreferences?.extrasBillTo as BillingPreferences["extrasBillTo"] | undefined) ?? "To Guest",
+      billToCompany: editRow?.billingPreferences?.billToCompany ?? false,
+      noPost: editRow?.billingPreferences?.noPost ?? false,
+      companyName: editRow?.billingPreferences?.companyName ?? "",
+      companyGst: editRow?.billingPreferences?.companyGst ?? "",
     });
   const [posAddons, setPosAddons] = useState<OutletAddonLine[]>([]);
 
@@ -247,10 +321,10 @@ export function NewReservation({
   const [guestModalOpen, setGuestModalOpen] = useState(false);
   const [guestSearchOpen, setGuestSearchOpen] = useState(false);
   const [additionalGuests, setAdditionalGuests] = useState<Guest[]>([]);
-  const [guestName, setGuestName] = useState("");
-  const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(null);
-  const [guestContact, setGuestContact] = useState("");
-  const [guestEmail, setGuestEmail] = useState("");
+  const [guestName, setGuestName] = useState(existing?.guest?.name ?? "");
+  const [primaryGuestId, setPrimaryGuestId] = useState<string | null>(existing?.guest?.id ?? null);
+  const [guestContact, setGuestContact] = useState(existing?.guest?.phone ?? "");
+  const [guestEmail, setGuestEmail] = useState(existing?.guest?.email ?? "");
   const trimmedGuestQuery = guestQuery.trim();
   // Debounced, and the previous results stay on screen until the new ones
   // arrive, so the dropdown does not flash between "Searching…" and the list.
@@ -352,7 +426,7 @@ export function NewReservation({
     syncPrimaryOccupantName("");
   };
   const [specialRequests, setSpecialRequests] = useState(
-    "",
+    editRow?.specialRequests ?? "",
   );
 
   // Payments & Financials
@@ -362,7 +436,7 @@ export function NewReservation({
   const [paymentsList, setPaymentsList] = useState<
     { id: string; method: string; amount: number; time: string; ref: string }[]
   >([]);
-  const [discountAmount, setDiscountAmount] = useState(0);
+  const [discountAmount, setDiscountAmount] = useState(Number(editRow?.discountAmount ?? 0));
 
   // Front Desk Tasks & Checklist
   const [tasks, setTasks] = useState<FrontDeskTask[]>([]);
@@ -376,8 +450,6 @@ export function NewReservation({
   >("UPI / QR");
   const [collectRef, setCollectRef] = useState("");
   const [copiedCode, setCopiedCode] = useState(false);
-  const [issueModalOpen, setIssueModalOpen] = useState(false);
-  const [issueText, setIssueText] = useState("");
   const [savingReservation, setSavingReservation] = useState(false);
 
   // Confirmation state
@@ -674,6 +746,49 @@ export function NewReservation({
       toast.error("Invalid Stay Dates", {
         detail: "Check-out must be after check-in.",
       });
+      return;
+    }
+    if (editRow) {
+      setSavingReservation(true);
+      try {
+        const datesChanged =
+          checkInDate !== editRow.checkInDate.slice(0, 10) ||
+          checkOutDate !== editRow.checkOutDate.slice(0, 10);
+        await reservationApi.update(editRow.id, {
+          ...(datesChanged ? { checkInDate, checkOutDate } : {}),
+          source: bookingSource,
+          sourceType,
+          sourceContactNumber: sourceContactNumber.trim() || null,
+          externalReferenceId: externalReferenceId.trim() || null,
+          bookingCategory,
+          checkInTime,
+          checkOutTime,
+          specialRequests: specialRequests.trim() || null,
+          billingPreferences: {
+            roomBillTo: billingPreferences.roomBillTo,
+            extrasBillTo: billingPreferences.extrasBillTo,
+            billToCompany: billingPreferences.billToCompany,
+            noPost: billingPreferences.noPost,
+            companyName: billingPreferences.companyName || undefined,
+            companyGst: billingPreferences.companyGst || undefined,
+          },
+        });
+        // A room changed on this screen goes through the room action, which re-checks it
+        for (const room of requirements) {
+          const original = editRow.roomLines?.find((line) => line.id === room.id);
+          if (room.roomNo && original && room.roomNo !== (original.roomNumber ?? "")) {
+            await reservationApi.assignRoom(editRow.id, room.roomNo, room.id);
+          }
+        }
+        toast.success("Reservation Updated", {
+          detail: `${guestName} · Booking ID ${editRow.bookingCode}`,
+        });
+        go({ view: "reservations" });
+      } catch (error) {
+        toast.error("Reservation Not Updated", { detail: displayApiError(error) });
+      } finally {
+        setSavingReservation(false);
+      }
       return;
     }
     if (inventoryResource.loading) {
@@ -1644,6 +1759,8 @@ export function NewReservation({
                   </div>
                 </div>
 
+                {!isEdit && (
+                <>
                 <div className="grid grid-cols-2 gap-3 pt-1">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -1787,6 +1904,8 @@ export function NewReservation({
                     </select>
                   </div>
                 </div>
+                </>
+                )}
               </section>
 
               <RoomRequirementsSection
@@ -1795,6 +1914,8 @@ export function NewReservation({
                 availableRoomsByType={availableRoomsByType}
                 allRoomsByType={allRoomsByType}
                 samePlanAllRooms={samePlanAllRooms}
+                mealPlanChoices={mealPlanChoices}
+                locked={isEdit}
                 overridePrice={overridePrice}
                 roomCharges={roomCharges}
                 roomTax={roomTax}
@@ -2237,17 +2358,6 @@ export function NewReservation({
       {/* ================= FLOATING ACTION DOCK (BOTTOM BAR) ================= */}
       <div className="sticky bottom-3 z-30 mx-auto w-full max-w-4xl">
         <div className="backdrop-blur-md bg-surface/95 rounded-2xl border border-border/90 p-3 md:px-4 shadow-lg flex flex-wrap items-center justify-between gap-2 md:gap-3">
-          {/* Left: Report an issue */}
-          <button
-            type="button"
-            onClick={() => setIssueModalOpen(true)}
-            aria-label="Report issue"
-            className="flex items-center gap-1.5 px-3 min-h-[34px] md:min-h-[32px] py-1 rounded-xl border border-danger-border bg-danger-bg/70 hover:bg-danger-bg/80 text-danger-text text-label font-bold transition-colors cursor-pointer"
-          >
-            <Lucide.AlertCircle size={14} />
-            <span className="hidden md:inline">Report Issue</span>
-          </button>
-
           {/* Center: Live Total Ticker */}
           <div className="hidden md:flex items-center gap-2 text-label font-bold px-3 py-1.5 rounded-xl bg-page border border-border/60">
             <span className="text-ink-secondary">
@@ -2268,17 +2378,19 @@ export function NewReservation({
             >
               Cancel
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setCollectAmount(String(outstanding));
-                setCollectModalOpen(true);
-              }}
-              className="flex items-center gap-1.5 rounded-xl bg-warning-text px-3 min-h-[34px] md:min-h-[32px] py-1 text-label font-bold text-white shadow-xs transition-all hover:bg-warning-text active:bg-warning-text cursor-pointer md:px-4"
-            >
-              <Lucide.Banknote size={14} />
-              <span>Save & Pay</span>
-            </button>
+            {!isEdit && (
+              <button
+                type="button"
+                onClick={() => {
+                  setCollectAmount(String(outstanding));
+                  setCollectModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 rounded-xl bg-warning-text px-3 min-h-[34px] md:min-h-[32px] py-1 text-label font-bold text-white shadow-xs transition-all hover:bg-warning-text active:bg-warning-text cursor-pointer md:px-4"
+              >
+                <Lucide.Banknote size={14} />
+                <span>Save & Pay</span>
+              </button>
+            )}
             <button
               type="button"
               disabled={savingReservation}
@@ -2290,8 +2402,8 @@ export function NewReservation({
               ) : (
                 <Lucide.CheckCircle2 size={14} />
               )}
-              <span className="md:hidden">{savingReservation ? "Saving…" : "Confirm"}</span>
-              <span className="hidden md:inline">{savingReservation ? "Saving…" : "Confirm & Email"}</span>
+              <span className="md:hidden">{savingReservation ? "Saving…" : isEdit ? "Save" : "Confirm"}</span>
+              <span className="hidden md:inline">{savingReservation ? "Saving…" : isEdit ? "Save changes" : "Confirm & Email"}</span>
             </button>
           </div>
         </div>
@@ -2368,42 +2480,6 @@ export function NewReservation({
                 />
               </div>
             </div>
-      </Modal>
-
-      {/* ================= REPORT ISSUE MODAL ================= */}
-      <Modal
-        open={issueModalOpen}
-        onClose={() => setIssueModalOpen(false)}
-        title="Report Reservation Issue"
-        subtitle="Escalate an allotment, rate, or sync issue"
-        footer={
-          <>
-            <button type="button" onClick={() => setIssueModalOpen(false)} className="pms-btn-ghost">
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                toast.success("Issue Submitted", {
-                  detail: "Escalated to IT & Duty Manager.",
-                });
-                setIssueModalOpen(false);
-                setIssueText("");
-              }}
-              className="pms-btn-danger"
-            >
-              Submit Ticket
-            </button>
-          </>
-        }
-      >
-        <textarea
-              rows={3}
-              value={issueText}
-              onChange={(e) => setIssueText(e.target.value)}
-              placeholder="Describe the issue (e.g. rate mismatch on OTA, room allocation conflict)..."
-              className={textareaClass}
-            />
       </Modal>
 
       {guestModalOpen && (

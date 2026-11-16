@@ -84,6 +84,8 @@ export interface ReservationRow {
   guestName?: string | null; roomNumber?: string | null; roomSummary?: string | null; roomTypeName?: string | null; roomTypeId?: string;
   roomLines?: ReservationRoomRow[]; pendingCharges?: ReservationChargeRow[]; pendingPayments?: ReservationPendingPaymentRow[]; billingPreferences?: ReservationBillingPreferencesRow;
   discountAmount?: string; paid?: number; paidAmount?: string;
+  sourceType?: string | null; sourceContactNumber?: string | null; bookingCategory?: string | null;
+  checkInTime?: string | null; checkOutTime?: string | null;
 }
 export interface StayRow extends ReservationRow {
   guestId?: string | null;

@@ -89,7 +89,7 @@ function Shell() {
       case 'room-calendar':
         return <Reservations initialViewMode="calendar" initialQuery={target.query} focusId={target.focusId} go={go} />;
       case 'new-reservation':
-        return <NewReservation go={go} initialDraft={target.draft} />;
+        return <NewReservation go={go} initialDraft={target.draft} editId={target.focusId} />;
       case 'rate-management':
         return <RateManagement />;
       case 'channel-manager':

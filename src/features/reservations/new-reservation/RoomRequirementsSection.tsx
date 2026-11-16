@@ -9,6 +9,10 @@ interface Props {
   availableRoomsByType: Record<string, AvailabilityRow[]>;
   allRoomsByType: Record<string, { id: string; roomNumber: string; status: string }[]>;
   samePlanAllRooms: boolean;
+  /** Meal plans the property set in Settings. */
+  mealPlanChoices: { code: string; label: string }[];
+  /** Edit mode: occupancy, category and rate are fixed once booked; only the room number can move. */
+  locked: boolean;
   overridePrice: boolean;
   roomCharges: number;
   roomTax: number;
@@ -26,6 +30,8 @@ export function RoomRequirementsSection({
   availableRoomsByType,
   allRoomsByType,
   samePlanAllRooms,
+  mealPlanChoices,
+  locked,
   overridePrice,
   roomCharges,
   roomTax,
@@ -45,9 +51,9 @@ export function RoomRequirementsSection({
             <h2 className="text-title font-bold text-ink-secondary tracking-tight">Room Requirements & Allocation</h2>
           </div>
         </div>
-        <div className="flex-none">
+        {!locked && <div className="flex-none">
           <button type="button" onClick={() => onOverridePriceChange(!overridePrice)} className={`flex min-h-[34px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 py-1 text-label font-semibold transition-all ${overridePrice ? 'bg-warning-bg text-warning-text border-warning-border' : 'bg-surface text-ink border-border hover:bg-page'}`}><Lucide.Tag size={13} /> Override Price</button>
-        </div>
+        </div>}
       </div>
 
       <div className="flex flex-col gap-3">
@@ -68,22 +74,22 @@ export function RoomRequirementsSection({
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-label font-extrabold text-ink font-mono">₹{room.rate.toLocaleString('en-IN')} <span className="text-micro font-normal text-ink-secondary">/ night</span></span>
-                    {requirements.length > 1 && <button type="button" onClick={() => onRemoveRoom(room.id)} className="rounded-lg p-1 text-ink-muted hover:bg-danger-bg hover:text-danger-text" aria-label={`Remove room ${room.roomIndex}`}><Lucide.Trash2 size={14} /></button>}
+                    {!locked && requirements.length > 1 && <button type="button" onClick={() => onRemoveRoom(room.id)} className="rounded-lg p-1 text-ink-muted hover:bg-danger-bg hover:text-danger-text" aria-label={`Remove room ${room.roomIndex}`}><Lucide.Trash2 size={14} /></button>}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-4">
                   {([
-                    { field: 'adults' as const, label: 'Adults', minimum: 1, maximum: 6 },
-                    { field: 'children' as const, label: 'Children (6–12)', minimum: 0, maximum: undefined },
-                    { field: 'infant' as const, label: 'Infants (<5)', minimum: 0, maximum: undefined },
+                    { field: 'adults' as const, label: 'Adults', minimum: 1, maximum: roomType?.maxAdults },
+                    { field: 'children' as const, label: 'Children', minimum: 0, maximum: roomType?.maxChildren },
+                    { field: 'infant' as const, label: 'Infants', minimum: 0, maximum: undefined },
                   ]).map(({ field, label, minimum, maximum }) => (
                     <div key={field}>
                       <label className="mb-1 block text-micro font-bold uppercase tracking-wider text-ink-secondary">{label}</label>
                       <div className="flex h-[34px] md:h-[32px] items-center overflow-hidden rounded-xl border border-border bg-surface shadow-2xs">
-                        <button type="button" aria-label={`Decrease ${label}`} onClick={() => onUpdateRoom(room.id, { [field]: Math.max(minimum, room[field] - 1) })} className="h-full w-7 shrink-0 leading-none text-ink-secondary hover:bg-muted-surface">−</button>
+                        <button type="button" aria-label={`Decrease ${label}`} disabled={locked} onClick={() => onUpdateRoom(room.id, { [field]: Math.max(minimum, room[field] - 1) })} className="h-full w-7 shrink-0 leading-none text-ink-secondary hover:bg-muted-surface">−</button>
                         <span className="flex-1 min-w-[3ch] whitespace-nowrap px-1 tabular-nums text-center text-label font-bold text-ink">{room[field]}</span>
-                        <button type="button" aria-label={`Increase ${label}`} disabled={maximum !== undefined && room[field] >= maximum} onClick={() => onUpdateRoom(room.id, { [field]: Math.min(maximum ?? Number.POSITIVE_INFINITY, room[field] + 1) })} className="h-full w-7 shrink-0 leading-none text-ink-secondary hover:bg-muted-surface disabled:cursor-not-allowed disabled:opacity-40">+</button>
+                        <button type="button" aria-label={`Increase ${label}`} disabled={locked || (maximum !== undefined && room[field] >= maximum)} onClick={() => onUpdateRoom(room.id, { [field]: Math.min(maximum ?? Number.POSITIVE_INFINITY, room[field] + 1) })} className="h-full w-7 shrink-0 leading-none text-ink-secondary hover:bg-muted-surface disabled:cursor-not-allowed disabled:opacity-40">+</button>
                       </div>
                     </div>
                   ))}
@@ -102,7 +108,7 @@ export function RoomRequirementsSection({
                   </label>
                 </div>
 
-                {!samePlanAllRooms && (
+                {!samePlanAllRooms && !locked && (
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <label className="flex flex-col gap-1.5 text-label font-bold uppercase tracking-wider text-ink-secondary">Rate Plan
                       <select value={room.ratePlan} onChange={(event) => onUpdateRoom(room.id, { ratePlan: event.target.value })} className="w-full rounded-lg border border-border bg-page/50 text-label font-semibold normal-case text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all min-h-[34px] md:min-h-[32px] px-2.5 py-1">
@@ -112,8 +118,7 @@ export function RoomRequirementsSection({
                     </label>
                     <label className="flex flex-col gap-1.5 text-label font-bold uppercase tracking-wider text-ink-secondary">Meal Type
                       <select value={room.mealPlan} onChange={(event) => onUpdateRoom(room.id, { mealPlan: event.target.value })} className="w-full rounded-lg border border-border bg-page/50 text-label font-semibold normal-case text-ink focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all min-h-[34px] md:min-h-[32px] px-2.5 py-1">
-                        <option value="EP">EP</option>
-                        <option value="CP">CP</option>
+                        {mealPlanChoices.map((plan) => <option key={plan.code} value={plan.code}>{plan.label}</option>)}
                       </select>
                     </label>
                   </div>

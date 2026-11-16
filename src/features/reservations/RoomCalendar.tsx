@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { toast } from '../../utils/toast';
 import type { NavTarget } from '../../config/navigation';
@@ -17,7 +17,6 @@ import {
 import { UNASSIGNED_TYPE_NAME } from '../../data/store';
 import { validateReservationMove } from './room-calendar/validation';
 import { ReservationChangeDialog } from './room-calendar/ReservationChangeDialog';
-import { ReservationDetailModal } from './room-calendar/ReservationDetailModal';
 import type { ReservationFilters } from './reservationFilters';
 import { matchesStatusFilter } from './reservationStatusFilters';
 import { stayOverlapsRange } from './reservationDateRange';
@@ -132,7 +131,7 @@ function AvailabilityPill({ free, total }: { free: number; total: number }) {
     return <span className="rounded-full bg-danger-bg px-2 py-0.5 text-micro font-bold text-danger-text">All Sold</span>;
   }
   return (
-    <span className="tnum rounded-full bg-success-bg px-2 py-0.5 text-micro font-bold text-success-text" title={`${free} of ${total} rooms free`}>
+    <span className="tnum rounded-full bg-neutral-bg px-2 py-0.5 text-micro font-bold text-ink" title={`${free} of ${total} rooms free`}>
       {free} AVL
     </span>
   );
@@ -284,8 +283,7 @@ export function RoomCalendar({
     };
   }, [days, dayLogVersion]);
 
-  // Detail modal & change confirmation
-  const [activeReservation, setActiveReservation] = useState<CalendarReservation | null>(null);
+  // Change confirmation after a drag
   const [pendingChange, setPendingChange] = useState<ProposedReservationChange | null>(null);
   const [isSavingChange, setIsSavingChange] = useState(false);
 
@@ -407,6 +405,15 @@ export function RoomCalendar({
     toast.success('New reservation started', { detail: `Room ${room.number} · ${checkIn} → ${checkOut}` });
   };
 
+  // Opening a booking edits it on the New Reservation screen
+  const openReservation = useCallback(
+    (res: CalendarReservation) => {
+      if (go) go({ view: 'new-reservation', focusId: res.backendId ?? res.id });
+      else toast.info('Edit reservation', { detail: 'Open Reservations to edit this booking.' });
+    },
+    [go]
+  );
+
   // ================= DRAG & DROP =================
 
   const handlePointerDown = (e: React.PointerEvent, res: CalendarReservation, dragType: DragType) => {
@@ -511,10 +518,10 @@ export function RoomCalendar({
 
       const res = reservations.find((r) => r.id === dragState.reservationId);
 
-      // A click without a real drag opens the detail modal
+      // A click without a real drag opens the reservation in edit mode
       if (!dragState.isDragging && res) {
-        setActiveReservation(res);
         setDragState(null);
+        openReservation(res);
         return;
       }
 
@@ -583,7 +590,7 @@ export function RoomCalendar({
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
-  }, [dragState, reservations, visibleRooms, rooms, dayWidth]);
+  }, [dragState, reservations, visibleRooms, rooms, dayWidth, openReservation]);
 
   // Apply the confirmed change and sync it back to the PMS store
   const handleConfirmChange = async (notifyGuest: boolean) => {
@@ -634,20 +641,6 @@ export function RoomCalendar({
     toast.success('Reservation Updated & Synced', {
       detail: `${reservation.guestName} reassigned to Room ${proposedRoom.number} (${proposedCheckIn} → ${proposedCheckOut}). ${notifyGuest ? 'Simulated guest email & SMS queued.' : ''}`,
     });
-  };
-
-  const handleStatusUpdate = (resId: string, newStatus: CalendarReservationStatus) => {
-    const selected = reservations.find((reservation) => reservation.id === resId);
-    const backendId = selected?.backendId ?? resId;
-    setReservations((prev) => prev.map((r) => (r.backendId === backendId ? { ...r, status: newStatus } : r)));
-    try {
-      if (newStatus === 'Checked-in') store.checkIn(backendId);
-      else if (newStatus === 'Checked-out') store.checkOut(backendId);
-      else if (newStatus === 'Cancelled') store.cancelReservation(backendId, 'Cancelled via calendar');
-    } catch {
-      // The store rejects some transitions; the local state already reflects the choice
-    }
-    onReservationUpdated?.();
   };
 
   const ghost = dragState?.isDragging
@@ -929,7 +922,7 @@ export function RoomCalendar({
                             endsAfter={geometry.endsAfter}
                             isDragging={Boolean(dragState?.isDragging && dragState?.reservationId === res.id)}
                             onPointerDown={(e, dragType) => handlePointerDown(e, res, dragType)}
-                            onOpen={() => setActiveReservation(res)}
+                            onOpen={() => openReservation(res)}
                           />
                         );
                       })}
@@ -984,18 +977,6 @@ export function RoomCalendar({
         onConfirm={handleConfirmChange}
         onCancel={() => setPendingChange(null)}
         isSaving={isSavingChange}
-      />
-
-      <ReservationDetailModal
-        reservation={activeReservation}
-        rooms={rooms}
-        allReservations={reservations}
-        onClose={() => setActiveReservation(null)}
-        onInitiateChange={(change) => {
-          setActiveReservation(null);
-          setPendingChange(change);
-        }}
-        onStatusUpdate={handleStatusUpdate}
       />
     </div>
   );
