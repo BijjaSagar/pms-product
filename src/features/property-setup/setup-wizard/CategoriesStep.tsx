@@ -1,6 +1,7 @@
 import * as Lucide from 'lucide-react';
 import { BrandField, BrandStepper } from '../../../components/brand/BrandControls';
-import { BUTTON_SOFT, CARD, FIELD, FIELD_INVALID, HEADING, LABEL } from '../../../components/brand/brandStyles';
+import { Button } from '../../../components/primitives';
+import { CARD, FIELD, FIELD_INVALID, HEADING, LABEL } from '../../../components/brand/brandStyles';
 import { categoryTone } from '../categoryTones';
 import { MAX_ROOMS, allocatedRooms, categoryIssues, newCategory } from './draft';
 import type { CategoryDraft } from './draft';
@@ -23,8 +24,8 @@ export function CategoriesStep({ categories, totalRooms, onChange, showErrors }:
   const add = (name = '') => onChange([...categories, newCategory({ name, count: Math.max(left, 0) > 0 ? 1 : 0 })]);
 
   return (
-    <div className="flex flex-col gap-4">
-      <section className={`${CARD} p-5`} aria-label="Rooms allocated">
+    <div className="flex flex-col gap-3">
+      <section className={`${CARD} p-4`} aria-label="Rooms allocated">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className={LABEL}>Rooms allocated</p>
@@ -42,17 +43,17 @@ export function CategoriesStep({ categories, totalRooms, onChange, showErrors }:
             {left === 0 ? 'All rooms allocated' : left < 0 ? `${-left} too many` : `${left} left to allocate`}
           </span>
         </div>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted-surface" aria-hidden="true">
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted-surface" aria-hidden="true">
           <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${Math.min(100, (issues.allocated / totalRooms) * 100)}%` }} />
         </div>
       </section>
 
-      <ul className="flex flex-col gap-3">
+      <ul className="flex flex-col gap-2.5">
         {categories.map((c, i) => {
           const error = showErrors ? issues.rows[i] : '';
           const room = Math.max(totalRooms - (allocatedRooms(categories) - c.count), 0);
           return (
-            <li key={c.id} className={`${CARD} flex items-start gap-3 p-4`}>
+            <li key={c.id} className={`${CARD} flex items-start gap-3 p-3`}>
               <span className={`mt-[34px] h-2.5 w-2.5 flex-none rounded-full ${categoryTone(i).dot}`} aria-hidden="true" />
               <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_180px]">
                 <BrandField label={`Category ${i + 1}`} error={error}>
@@ -83,7 +84,7 @@ export function CategoriesStep({ categories, totalRooms, onChange, showErrors }:
         })}
       </ul>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-dashed border-border bg-muted-surface/40 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-dashed border-border bg-muted-surface/40 p-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className="flex items-center gap-1.5 text-[12px] font-medium text-ink-secondary">
             <Lucide.Sparkles size={14} className="text-primary" aria-hidden="true" /> Quick add
@@ -108,9 +109,9 @@ export function CategoriesStep({ categories, totalRooms, onChange, showErrors }:
             );
           })}
         </div>
-        <button type="button" className={BUTTON_SOFT} onClick={() => add()}>
-          <Lucide.Plus size={14} aria-hidden="true" /> Add category
-        </button>
+        <Button variant="secondary" icon={<Lucide.Plus size={14} />} onClick={() => add()}>
+          Add category
+        </Button>
       </div>
     </div>
   );

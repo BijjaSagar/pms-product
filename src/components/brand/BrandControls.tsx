@@ -1,6 +1,7 @@
 import type { ReactNode, SelectHTMLAttributes } from 'react';
 import * as Lucide from 'lucide-react';
-import { FIELD, FIELD_INVALID, LABEL } from './brandStyles';
+import { selectClass } from '../formStyles';
+import { LABEL } from './brandStyles';
 
 /** A labelled form field with an optional hint and an inline error. */
 export function BrandField({
@@ -31,7 +32,7 @@ export function BrandField({
   );
 }
 
-/** A dropdown that looks like the text fields. */
+/** A dropdown at the same size as the New Reservation dropdowns. */
 export function BrandSelect({
   invalid,
   className = '',
@@ -39,19 +40,13 @@ export function BrandSelect({
   ...rest
 }: SelectHTMLAttributes<HTMLSelectElement> & { invalid?: boolean }) {
   return (
-    <span className="relative block">
-      <select
-        {...rest}
-        className={`${invalid ? FIELD_INVALID : FIELD} cursor-pointer appearance-none pr-10 ${className}`}
-      >
-        {children}
-      </select>
-      <Lucide.ChevronDown size={16} className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted" aria-hidden="true" />
-    </span>
+    <select {...rest} className={`${selectClass} ${invalid ? '!border-danger-text' : ''} ${className}`}>
+      {children}
+    </select>
   );
 }
 
-/** A number field with minus and plus buttons. */
+/** A number field with minus and plus buttons, at the same height as the other controls. */
 export function BrandStepper({
   value,
   min,
@@ -68,15 +63,12 @@ export function BrandStepper({
   className?: string;
 }) {
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
-  const button = 'flex h-full w-10 flex-none cursor-pointer items-center justify-center text-ink-secondary transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-35';
+  const button =
+    'flex w-8 flex-none cursor-pointer items-center justify-center text-ink-secondary transition-colors hover:bg-hover-surface hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent';
   return (
-    <span
-      role="group"
-      aria-label={label}
-      className={`flex h-11 w-full items-stretch overflow-hidden rounded-[14px] border border-border bg-white shadow-sm focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 ${className}`}
-    >
+    <span role="group" aria-label={label} className={`pms-input flex w-full items-stretch overflow-hidden !p-0 ${className}`}>
       <button type="button" className={button} aria-label={`Fewer: ${label}`} disabled={value <= min} onClick={() => onChange(clamp(value - 1))}>
-        <Lucide.Minus size={15} />
+        <Lucide.Minus size={14} />
       </button>
       <input
         type="number"
@@ -86,10 +78,10 @@ export function BrandStepper({
         value={value}
         aria-label={label}
         onChange={(e) => onChange(clamp(Math.floor(Number(e.target.value)) || min))}
-        className="tnum min-w-0 flex-1 bg-transparent text-center text-[14px] font-semibold text-ink outline-none"
+        className="tnum min-w-0 flex-1 bg-transparent text-center text-title font-semibold outline-none"
       />
       <button type="button" className={button} aria-label={`More: ${label}`} disabled={value >= max} onClick={() => onChange(clamp(value + 1))}>
-        <Lucide.Plus size={15} />
+        <Lucide.Plus size={14} />
       </button>
     </span>
   );

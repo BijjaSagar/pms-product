@@ -1,5 +1,6 @@
 import * as Lucide from 'lucide-react';
 import { BrandShell } from '../../components/brand/BrandShell';
+import { Button } from '../../components/primitives';
 import { CARD, EYEBROW, HEADING } from '../../components/brand/brandStyles';
 import { roomListingApi } from '../../lib/api/pms';
 import type { PropertyDetails } from '../../lib/api/pms';
@@ -49,21 +50,25 @@ interface PropertiesPageProps {
   onOpen: (propertyId: string) => void;
   /** Only an ADMIN can add properties. */
   canAdd: boolean;
+  onSignOut: () => void;
 }
 
 /** Choose a property: every property as a card, plus a way to set up another. */
-export function PropertiesPage({ properties, onAdd, onOpen, canAdd }: PropertiesPageProps) {
+export function PropertiesPage({ properties, onAdd, onOpen, canAdd, onSignOut }: PropertiesPageProps) {
   return (
     <BrandShell>
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-none flex-wrap items-end justify-between gap-4">
         <div>
           <p className={EYEBROW}>Your properties</p>
           <h1 className={`mt-3 text-[clamp(1.875rem,3.2vw,2.5rem)] font-bold leading-tight tracking-[-0.045em] text-ink ${HEADING}`}>Choose a property</h1>
           <p className="mt-2 text-[15px] text-ink-secondary">Pick where you&apos;d like to work today{canAdd ? ', or set up another one' : ''}.</p>
         </div>
+        <Button variant="ghost" icon={<Lucide.LogOut size={14} />} onClick={onSignOut}>
+          Sign out
+        </Button>
       </div>
 
-      <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-6 grid grid-cols-1 content-start gap-4 sm:grid-cols-2 lg:min-h-0 lg:flex-1 lg:grid-cols-3 lg:overflow-y-auto lg:p-1">
         {properties.map((p) => (
           <li key={p.id}>
             <PropertyCard property={p} onOpen={() => onOpen(p.id)} />
@@ -74,7 +79,7 @@ export function PropertiesPage({ properties, onAdd, onOpen, canAdd }: Properties
             <button
               type="button"
               onClick={onAdd}
-              className="flex h-full min-h-[190px] w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-[20px] border border-dashed border-border bg-white/40 p-5 text-ink-secondary transition-colors hover:border-primary/40 hover:bg-white/70 hover:text-primary"
+              className="flex h-full min-h-[170px] w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-[20px] border border-dashed border-border bg-white/40 p-5 text-ink-secondary transition-colors hover:border-primary/40 hover:bg-white/70 hover:text-primary"
             >
               <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-white shadow-sm">
                 <Lucide.Plus size={18} aria-hidden="true" />

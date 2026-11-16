@@ -9,14 +9,14 @@ import { COUNTRIES, CURRENCIES } from './options';
 
 function Section({ icon: Icon, title, className = '', children }: { icon: typeof Lucide.Building2; title: string; className?: string; children: ReactNode }) {
   return (
-    <section className={`${CARD} p-5 ${className}`}>
-      <h3 className={`flex items-center gap-3 text-[16px] font-semibold tracking-[-0.02em] text-ink ${HEADING}`}>
-        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+    <section className={`${CARD} p-4 ${className}`}>
+      <h3 className={`flex items-center gap-2.5 text-[15px] font-semibold tracking-[-0.02em] text-ink ${HEADING}`}>
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Icon size={16} aria-hidden="true" />
         </span>
         {title}
       </h3>
-      <div className="mt-4">{children}</div>
+      <div className="mt-2.5">{children}</div>
     </section>
   );
 }
@@ -32,7 +32,7 @@ interface PropertyStepProps {
 export function PropertyStep({ value, onChange, errors }: PropertyStepProps) {
   const text = (error?: string) => (error ? FIELD_INVALID : FIELD);
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <Section icon={Lucide.Building2} title="Identity">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_180px]">
           <BrandField label="Property name" error={errors.name}>
@@ -45,7 +45,7 @@ export function PropertyStep({ value, onChange, errors }: PropertyStepProps) {
               onChange={(e) => onChange({ name: e.target.value })}
             />
           </BrandField>
-          <BrandField label="Abbreviation" hint={`Up to ${MAX_CODE_LENGTH} letters`} error={errors.code}>
+          <BrandField label="Abbreviation" error={errors.code}>
             <input
               className={`${text(errors.code)} font-semibold uppercase tracking-wide`}
               value={value.code}
@@ -78,7 +78,7 @@ export function PropertyStep({ value, onChange, errors }: PropertyStepProps) {
         </div>
       </Section>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <Section icon={Lucide.Wallet} title="Billing">
           <BrandField label="Currency" error={errors.currency}>
             <BrandSelect invalid={!!errors.currency} value={value.currency} onChange={(e) => onChange({ currency: e.target.value })}>

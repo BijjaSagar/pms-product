@@ -3,6 +3,7 @@ import * as Lucide from "lucide-react";
 import type { NavDraft, NavTarget } from "../../config/navigation";
 import { toast } from "../../utils/toast";
 import { Modal } from "../../components/overlays";
+import { fieldClass, labelClass, selectClass } from "../../components/formStyles";
 import { PageSkeleton } from "../../components/Skeleton";
 import { inventoryApi, guestApi, reservationApi } from "../../lib/api/pms";
 import type {
@@ -46,12 +47,6 @@ function nextDayIso(iso: string): string {
   return date.toISOString().slice(0, 10);
 }
 
-// Shared form classes. Inputs use the theme's pms-input so focus rings, hover
-// and radius match the rest of the app; 16px text on phones stops iOS zooming.
-const labelClass = "block text-label font-medium text-ink-muted tracking-wide mb-1.5";
-const fieldClass =
-  "pms-input w-full min-h-[34px] md:min-h-[32px] px-2.5 py-1 text-title font-semibold";
-const selectClass = `${fieldClass} cursor-pointer`;
 const iconFieldClass = `${fieldClass} pl-8 pr-3`;
 const textareaClass = "pms-input w-full px-2.5 py-1.5 text-title font-semibold resize-none";
 
