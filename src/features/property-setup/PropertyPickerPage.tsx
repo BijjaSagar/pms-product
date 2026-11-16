@@ -32,16 +32,9 @@ export function PropertyPickerPage() {
     }
   };
 
-  const signOut = (
-    <Button variant="ghost" icon={<Lucide.LogOut size={14} />} onClick={() => void logout()}>
-      Sign out
-    </Button>
-  );
-
   if (list.error) {
     return (
       <BrandShell>
-        <div className="mb-6 flex justify-end">{signOut}</div>
         <div role="alert" className="flex flex-wrap items-center gap-3 rounded-2xl border border-danger-border bg-danger-bg px-4 py-3 text-[14px] text-danger-text">
           <Lucide.AlertCircle size={16} aria-hidden="true" /> {list.error}
           <button type="button" className="font-semibold underline" onClick={list.refresh}>
@@ -55,7 +48,6 @@ export function PropertyPickerPage() {
   if (!list.data) {
     return (
       <BrandShell>
-        <div className="mb-6 flex justify-end">{signOut}</div>
         <p className="text-[14px] text-ink-secondary" role="status">Loading your properties…</p>
       </BrandShell>
     );
@@ -64,14 +56,13 @@ export function PropertyPickerPage() {
   const properties = list.data.filter((p) => p.isActive);
 
   if (view.kind === 'setup' || properties.length === 0) {
+    // Only the property list has Sign out; setup just offers a way back when there is a list to go back to.
     const exit =
       properties.length > 0 ? (
         <Button variant="ghost" onClick={() => setView({ kind: 'list' })}>
           Exit setup
         </Button>
-      ) : (
-        signOut
-      );
+      ) : undefined;
     return (
       <SetupWizard
         exitAction={exit}

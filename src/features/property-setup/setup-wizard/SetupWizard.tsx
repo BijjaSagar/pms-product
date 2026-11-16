@@ -34,8 +34,8 @@ interface Progress {
 }
 
 interface SetupWizardProps {
-  /** The top-right action: "Exit setup" when there are other properties, "Sign out" otherwise. */
-  exitAction: ReactNode;
+  /** The top-right "Exit setup" action; absent when there is no property list to go back to. */
+  exitAction?: ReactNode;
   /** Called once the property, its categories and its floor plan are all saved. */
   onDone: (propertyId: string) => void;
 }
