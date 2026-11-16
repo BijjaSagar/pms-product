@@ -119,8 +119,12 @@ export function FloorsSection({
   const roomName = (id: string) => rooms.find((r) => r.id === id)?.name ?? 'Removed room';
   const assignedCount = drawn.filter((b) => roomFor(b.floor, b.index)).length;
 
+  // The plan may never draw more rooms than the property has, so a floor can only grow by what is left.
+  const roomsLeft = totalRooms === null ? Infinity : Math.max(totalRooms - drawn.length, 0);
+  const floorMax = (floor: number) => Math.min(MAX_ROOMS_PER_FLOOR, roomsOn(floor) + roomsLeft);
+
   const setFloorRooms = (floor: number, count: number) =>
-    onPlanChange({ ...plan, roomsPerFloor: { ...plan.roomsPerFloor, [floor]: count } });
+    onPlanChange({ ...plan, roomsPerFloor: { ...plan.roomsPerFloor, [floor]: Math.min(count, floorMax(floor)) } });
 
   const applyToAll = () => {
     const count = parseCount(bulk, MAX_ROOMS_PER_FLOOR);
@@ -129,7 +133,15 @@ export function FloorsSection({
       return;
     }
     const next: Record<number, number> = { ...plan.roomsPerFloor };
-    for (const floor of floors) next[floor] = count;
+    let left = totalRooms ?? Infinity;
+    // Fill from the lowest floor up and stop when the property's rooms run out.
+    for (const floor of [...floors].reverse()) {
+      next[floor] = Math.min(count, left);
+      left -= next[floor];
+    }
+    if (count * floors.length > (totalRooms ?? Infinity)) {
+      toast('Capped at the property total', { detail: `Only ${totalRooms} rooms exist, so the upper floors got fewer.`, tone: 'info' });
+    }
     onPlanChange({ ...plan, roomsPerFloor: next });
   };
 
@@ -272,7 +284,7 @@ export function FloorsSection({
                         label={`Rooms on floor ${floor}`}
                         value={count}
                         min={0}
-                        max={MAX_ROOMS_PER_FLOOR}
+                        max={floorMax(floor)}
                         disabled={!canSave}
                         onChange={(n) => setFloorRooms(floor, n)}
                       />
@@ -305,7 +317,7 @@ export function FloorsSection({
                               >
                                 <span className="text-body font-bold tnum">{number}</span>
                                 <span className={`w-full truncate text-micro ${room ? 'text-ink-secondary' : 'text-ink-muted'}`}>
-                                  {room ? room.name : 'Not linked'}
+                                  {room ? room.name : 'Choose category'}
                                 </span>
                               </button>
                             </li>
@@ -327,7 +339,7 @@ export function FloorsSection({
                 <span className="h-3 w-3 rounded border border-dashed border-border" aria-hidden="true" />
                 Not linked yet
               </span>
-              <span>Select a room to link or change it.</span>
+              <span>Select a room to choose or change its category.</span>
             </p>
           </>
         )}
@@ -389,7 +401,7 @@ export function FloorsSection({
                   />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-body font-semibold text-ink">{r.name}</span>
-                    <span className="block truncate text-label text-ink-secondary">{r.roomType.name}</span>
+                    <span className="block truncate text-label text-ink-secondary">{r.category?.name ?? 'No bed type'}</span>
                   </span>
                   <Badge tone="neutral" size="sm">{leftOf(r)} left</Badge>
                 </label>

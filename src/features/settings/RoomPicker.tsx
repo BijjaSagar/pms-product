@@ -43,7 +43,7 @@ export function RoomPicker({ propertyId, children }: { propertyId: string; child
           </div>
           {current ? (
             <p className="text-label text-ink-secondary sm:pb-2">
-              {current.roomType.name} · {current.roomCount} {current.roomCount === 1 ? 'room' : 'rooms'}. Changes apply to this category only.
+              {current.category?.name ?? 'No bed type'} · {current.roomCount} {current.roomCount === 1 ? 'room' : 'rooms'}. Changes apply to this category only.
             </p>
           ) : null}
         </div>

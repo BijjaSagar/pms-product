@@ -8,7 +8,7 @@ interface AuthContextValue {
   me: AuthMe | null;
   loading: boolean;
   error: string | null;
-  login: (email: string, password: string, remember: boolean) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   switchProperty: (propertyId: string) => Promise<void>;
   reload: () => Promise<void>;
@@ -66,11 +66,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [me, applyMe]);
 
-  const login = useCallback(async (email: string, password: string, remember: boolean) => {
+  const login = useCallback(async (email: string, password: string) => {
     setError(null);
     setLoading(true);
     try {
-      await authApi.login(email, password, remember);
+      await authApi.login(email, password);
       applyMe(await authApi.me());
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not sign in.');

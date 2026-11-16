@@ -28,8 +28,7 @@ function Summary({ room }: { room: RoomDetails }) {
         <div className="min-w-0">
           <p className="truncate text-title font-bold leading-tight text-ink">{room.name}</p>
           <p className="truncate text-label text-ink-secondary">
-            {room.roomType.name}
-            {room.category ? ` · ${room.category.name}` : ''}
+            {room.category?.name ?? 'No bed type'}
           </p>
         </div>
       </div>
@@ -74,7 +73,7 @@ function RoomsInCategory({ room, others }: { room: RoomDetails; others: RoomDeta
                 {r.id === room.id ? <Badge tone="info" size="sm">This room</Badge> : null}
               </p>
               <p className="truncate text-label text-ink-secondary">
-                {r.roomType.name} · up to {plural(r.maxOccupancy, 'guest')}
+                {r.category?.name ?? 'No bed type'} · up to {plural(r.maxOccupancy, 'guest')}
               </p>
             </div>
             <span className="flex-none text-label font-semibold text-ink-secondary tnum">{plural(r.roomCount, 'room')}</span>

@@ -1,0 +1,35 @@
+export const COUNTRIES = [
+  'India',
+  'United States',
+  'United Kingdom',
+  'United Arab Emirates',
+  'Singapore',
+  'Australia',
+  'Canada',
+  'Germany',
+  'France',
+  'Italy',
+  'Spain',
+  'Japan',
+  'Thailand',
+  'Sri Lanka',
+  'Nepal',
+  'Malaysia',
+] as const;
+
+/** ISO 4217 codes the backend accepts, with the name shown next to each. */
+export const CURRENCIES = [
+  { code: 'INR', name: 'Indian Rupee' },
+  { code: 'USD', name: 'US Dollar' },
+  { code: 'EUR', name: 'Euro' },
+  { code: 'GBP', name: 'British Pound' },
+  { code: 'AED', name: 'UAE Dirham' },
+  { code: 'SGD', name: 'Singapore Dollar' },
+  { code: 'AUD', name: 'Australian Dollar' },
+  { code: 'CAD', name: 'Canadian Dollar' },
+  { code: 'JPY', name: 'Japanese Yen' },
+  { code: 'THB', name: 'Thai Baht' },
+  { code: 'LKR', name: 'Sri Lankan Rupee' },
+  { code: 'NPR', name: 'Nepalese Rupee' },
+  { code: 'MYR', name: 'Malaysian Ringgit' },
+] as const;

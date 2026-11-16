@@ -17,7 +17,7 @@ import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { InventoryProvider } from './features/inventory/InventoryProvider';
 import { themeApi } from './lib/api/pms';
 import type { ThemeKey } from './types';
-import { Button } from './components/primitives';
+import { PropertyPickerPage } from './features/property-setup/PropertyPickerPage';
 
 const THEME_KEY_TO_PRESET: Record<ThemeKey, ThemePresetId> = {
   MIDNIGHT_NAVY: 'midnight',
@@ -185,7 +185,7 @@ function ShellWithBoundary() {
 }
 
 function AuthenticatedApp() {
-  const { me, loading, switchProperty } = useAuth();
+  const { me, loading } = useAuth();
   const { preset, setPreset } = useTheme();
   const [loadedThemeProperty, setLoadedThemeProperty] = useState<string | null>(null);
   const themeScope = me?.activePropertyId ? `${me.user.id}:${me.activePropertyId}` : null;
@@ -229,24 +229,7 @@ function AuthenticatedApp() {
     );
   }
 
-  if (!me.activePropertyId) {
-    const memberships = me.user.propertyMemberships.filter((membership) => membership.isActive);
-    return (
-      <main className="flex min-h-screen items-center justify-center px-4 bg-page text-ink">
-        <section className="pms-card w-full max-w-[520px] p-5">
-          <h1 className="pms-section-title">Choose a property</h1>
-          <p className="pms-helper mt-1">Select an active property to continue.</p>
-          <div className="mt-4 flex flex-col gap-2">
-            {memberships.map((membership) => (
-              <Button variant="secondary" key={membership.propertyId} type="button" className="text-left" onClick={() => void switchProperty(membership.propertyId)}>
-                {membership.property.name} · {membership.role.name}
-              </Button>
-            ))}
-          </div>
-        </section>
-      </main>
-    );
-  }
+  if (!me.activePropertyId) return <PropertyPickerPage />;
 
   return (
     <InventoryProvider propertyId={me.activePropertyId}>
