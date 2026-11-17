@@ -158,17 +158,17 @@ export function SetupWizard({ exitAction, onDone }: SetupWizardProps) {
 
   return (
     <BrandShell>
-      <div className="grid grid-cols-1 gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-8">
+      <div className="grid grid-cols-1 gap-5 lg:min-h-0 lg:flex-1 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-8">
         <SetupRail step={step} property={property} categories={categories} placed={placed} />
 
-        <div className="flex min-w-0 flex-col lg:min-h-0">
-          <div className="mb-3 flex flex-none flex-wrap items-end justify-between gap-x-4 gap-y-2">
-            <div>
+        <div className="flex min-w-0 flex-1 flex-col lg:min-h-0">
+          <div className="mb-3 flex flex-none items-end justify-between gap-x-4 gap-y-2">
+            <div className="min-w-0">
               <p className="text-[12px] font-medium text-ink-muted">Step {step + 1} of 3</p>
-              <h2 className={`mt-0.5 text-[24px] font-bold tracking-[-0.04em] text-ink ${HEADING}`}>{STEP_TITLES[step]}</h2>
+              <h2 className={`mt-0.5 text-[20px] font-bold tracking-[-0.04em] text-ink sm:text-[24px] ${HEADING}`}>{STEP_TITLES[step]}</h2>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="h-1.5 w-28 overflow-hidden rounded-full bg-muted-surface" role="progressbar" aria-valuemin={1} aria-valuemax={3} aria-valuenow={step + 1} aria-label="Setup progress">
+            <div className="flex flex-none items-center gap-3">
+              <div className="hidden h-1.5 w-28 overflow-hidden rounded-full bg-muted-surface sm:block" role="progressbar" aria-valuemin={1} aria-valuemax={3} aria-valuenow={step + 1} aria-label="Setup progress">
                 <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${((step + 1) / 3) * 100}%` }} />
               </div>
               {exitAction}
@@ -193,22 +193,23 @@ export function SetupWizard({ exitAction, onDone }: SetupWizardProps) {
             </div>
           )}
 
-          <footer className="mt-3 flex flex-none items-center justify-between gap-3 border-t border-border/70 pt-3">
+          {/* Pinned to the bottom of the screen on phones and tablets so Back / Continue never scroll out of reach. */}
+          <footer className="sticky bottom-0 z-10 -mx-4 mt-3 flex flex-none items-center justify-between gap-3 border-t border-border/70 bg-surface/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:bg-transparent lg:p-0 lg:pt-3 lg:backdrop-blur-none">
             <Button variant="ghost" disabled={step === 0 || saving} onClick={() => goTo(step - 1)} icon={<Lucide.ArrowLeft size={14} />}>
               Back
             </Button>
             {step === 0 && (
-              <Button variant="primary" onClick={toCategories}>
+              <Button variant="primary" className="max-sm:flex-1" onClick={toCategories}>
                 Continue <Lucide.ArrowRight size={14} />
               </Button>
             )}
             {step === 1 && (
-              <Button variant="primary" onClick={toFloors} disabled={categoryCheck.allocated !== property.rooms}>
+              <Button variant="primary" className="max-sm:flex-1" onClick={toFloors} disabled={categoryCheck.allocated !== property.rooms}>
                 Continue <Lucide.ArrowRight size={14} />
               </Button>
             )}
             {step === 2 && (
-              <Button variant="primary" onClick={() => void finish()} disabled={saving}>
+              <Button variant="primary" className="max-sm:flex-1" onClick={() => void finish()} disabled={saving}>
                 {saving ? (
                   <>
                     <Lucide.Loader2 size={14} className="animate-spin" /> Setting up…

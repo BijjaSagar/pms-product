@@ -8,16 +8,17 @@ import { fieldClass } from '../../components/formStyles';
 import { BODY, EYEBROW, HEADING, LABEL } from '../../components/brand/brandStyles';
 
 /** The shared field, a little taller than the app's 32px so the sign-in form feels roomier. */
-const SIGN_IN_FIELD = `${fieldClass} !min-h-[40px]`;
+const SIGN_IN_FIELD = `${fieldClass} !min-h-[44px] max-md:text-[16px] md:!min-h-[40px]`;
 /** The sign-in button: as tall as the fields, with the same small corner radius as them (the shared Button is fully rounded). */
 const SIGN_IN_BUTTON =
-  'mt-1 inline-flex min-h-[40px] w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-primary px-5 text-title font-bold text-primary-foreground shadow-xs transition-colors hover:bg-primary-hover active:bg-primary-active disabled:cursor-not-allowed disabled:opacity-60';
+  'mt-1 inline-flex min-h-[44px] w-full md:min-h-[40px] cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-primary px-5 text-title font-bold text-primary-foreground shadow-xs transition-colors hover:bg-primary-hover active:bg-primary-active disabled:cursor-not-allowed disabled:opacity-60';
 
 /**
  * A full-screen 8 / 4 split. The left side is a soft, light brand panel; the
- * right side is the sign-in form. The page is exactly one viewport tall and
- * never scrolls: below the large breakpoint the brand panel shrinks to a
- * header strip, and on short screens the extras drop away so the form fits.
+ * right side is the sign-in form. From the large breakpoint up the page is
+ * exactly one viewport tall and never scrolls. Below it the brand panel shrinks
+ * to a header strip and the page scrolls normally, so the form stays reachable
+ * with the on-screen keyboard open or on a short landscape phone.
  */
 export function LoginPage() {
   const { login } = useAuth();
@@ -46,10 +47,10 @@ export function LoginPage() {
   const trackCapsLock = (e: KeyboardEvent<HTMLInputElement>) => setCapsLock(e.getModifierState('CapsLock'));
 
   return (
-    <div className={`grid h-dvh w-full grid-rows-[auto_minmax(0,1fr)] overflow-hidden bg-surface text-ink lg:grid-cols-12 lg:grid-rows-1 ${BODY}`}>
+    <div className={`flex min-h-dvh w-full flex-col bg-surface text-ink lg:grid lg:h-dvh lg:grid-cols-12 lg:grid-rows-1 lg:overflow-hidden ${BODY}`}>
       {/* Brand side: 8 of 12 columns */}
       <aside
-        className="relative flex items-center overflow-hidden bg-gradient-to-br from-surface via-primary/[0.06] to-primary/[0.22] px-5 py-3.5 lg:col-span-8 lg:items-stretch lg:px-16 lg:py-12"
+        className="relative flex flex-none items-center overflow-hidden border-b border-border/60 bg-gradient-to-br from-surface via-primary/[0.06] to-primary/[0.22] px-5 py-3.5 sm:px-10 lg:col-span-8 lg:items-stretch lg:border-b-0 lg:px-16 lg:py-12"
         aria-label="About TriponX"
       >
         {/* Soft light streaks, blurred glows and two outlined tiles (decorative) */}
@@ -89,17 +90,17 @@ export function LoginPage() {
       </aside>
 
       {/* Sign-in side: 4 of 12 columns */}
-      <main className="flex min-h-0 items-center justify-center !bg-surface px-5 py-4 sm:px-10 lg:col-span-4 lg:px-14">
+      <main className="flex flex-1 items-start justify-center !bg-surface px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-8 sm:items-center sm:px-10 sm:py-10 lg:col-span-4 lg:min-h-0 lg:overflow-y-auto lg:px-14 lg:py-4">
         <section className="pms-animate-fade-in w-full max-w-[400px]" aria-label="Sign in">
           <header>
             <p className={`${EYEBROW} [@media(max-height:560px)]:hidden`}>Staff access</p>
-            <h1 className={`mt-3 text-[36px] font-bold leading-tight tracking-[-0.045em] text-ink [@media(max-height:560px)]:mt-0 ${HEADING}`}>
+            <h1 className={`mt-3 text-[30px] font-bold leading-tight tracking-[-0.045em] text-ink sm:text-[36px] [@media(max-height:560px)]:mt-0 ${HEADING}`}>
               Welcome back.
             </h1>
-            <p className="mt-3 text-[16px] text-ink-secondary [@media(max-height:560px)]:hidden">Sign in to continue to TriponX.</p>
+            <p className="mt-2 text-[15px] text-ink-secondary sm:mt-3 sm:text-[16px] [@media(max-height:560px)]:hidden">Sign in to continue to TriponX.</p>
           </header>
 
-          <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5 [@media(max-height:600px)]:mt-4 [@media(max-height:600px)]:gap-3">
+          <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4 sm:mt-8 sm:gap-5 lg:[@media(max-height:600px)]:mt-4 lg:[@media(max-height:600px)]:gap-3">
             <label className="flex flex-col gap-2" htmlFor="login-email">
               <span className={LABEL}>Email address</span>
               <input

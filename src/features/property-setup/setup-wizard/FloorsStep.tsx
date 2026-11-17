@@ -58,18 +58,19 @@ function FloorCard({ floor, rooms, categories, roomsLeft, defaultCategoryId, onC
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <BrandStepper label={`Rooms to add on floor ${floor}`} value={quantity} min={1} max={MAX_ROOMS_PER_FLOOR} onChange={setQuantity} className="!w-24" />
-          <Button variant="primary" icon={<Lucide.Plus size={14} />} onClick={addRooms}>
+        {/* On phones: stepper, Add room and clear on one row, "Set all to…" on its own full-width row. */}
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          <BrandStepper label={`Rooms to add on floor ${floor}`} value={quantity} min={1} max={MAX_ROOMS_PER_FLOOR} onChange={setQuantity} className="!w-28 sm:!w-24" />
+          <Button variant="primary" className="max-sm:flex-1 max-sm:justify-center" icon={<Lucide.Plus size={14} />} onClick={addRooms}>
             Add room
           </Button>
-          <span className="relative">
+          <span className="relative max-sm:order-last max-sm:w-full">
             <select
               aria-label={`Set every room on floor ${floor} to a category`}
               disabled={rooms.length === 0}
               value=""
               onChange={(e) => e.target.value && onChange(rooms.map((r) => ({ ...r, categoryId: e.target.value })))}
-              className={`${selectClass} !w-36`}
+              className={`${selectClass} max-md:text-[16px] max-sm:!w-full sm:!w-36`}
             >
               <option value="">Set all to…</option>
               {categories
@@ -113,7 +114,7 @@ function FloorCard({ floor, rooms, categories, roomsLeft, defaultCategoryId, onC
                     aria-label={`Category of room ${roomNumber(floor, index + 1)}`}
                     value={room.categoryId}
                     onChange={(e) => onChange(rooms.map((r) => (r.id === room.id ? { ...r, categoryId: e.target.value } : r)))}
-                    className="h-8 w-full cursor-pointer appearance-none truncate rounded-lg bg-transparent pl-1.5 pr-6 text-[12px] font-semibold outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                    className="h-8 w-full cursor-pointer appearance-none truncate rounded-lg bg-transparent pl-1.5 pr-6 text-[13px] font-semibold outline-none md:text-[12px] focus-visible:ring-2 focus-visible:ring-primary/30"
                   >
                     <option value="">Choose category</option>
                     {categories
@@ -190,6 +191,7 @@ export function FloorsStep({ floorCount, floors, categories, totalRooms, onChang
 
           <Button
             variant="secondary"
+            className="max-sm:w-full max-sm:justify-center"
             icon={<Lucide.Wand2 size={14} />}
             onClick={() => {
               onChange(autoFillFloors(floorCount, totalRooms, categories));
