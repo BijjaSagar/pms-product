@@ -20,6 +20,8 @@ import { ReservationChangeDialog } from './room-calendar/ReservationChangeDialog
 import type { ReservationFilters } from './reservationFilters';
 import { matchesStatusFilter } from './reservationStatusFilters';
 import { stayOverlapsRange } from './reservationDateRange';
+import { CellActionMenu, type CellAction } from './room-calendar/CellActionMenu';
+import { CellNoteModal, type CellHoldKind } from './room-calendar/CellNoteModal';
 import { DayLogButton } from './day-log/DayLogButton';
 import { DayNoteModal } from './day-log/DayNoteModal';
 import { DayEnquiriesModal } from './day-log/DayEnquiriesModal';
@@ -34,6 +36,7 @@ const ROW_HEIGHT = 56; // drag maths uses this to map vertical movement to rooms
 const BAR_INSET = 3; // gap between a booking bar and the day lines it spans
 
 type DragType = 'move' | 'resize-start' | 'resize-end';
+type CellMark = { roomId: string; date: string; kind: CellHoldKind; note: string };
 
 const RESERVATION_BAR_TONES: Record<
   CalendarReservationStatus,
@@ -362,11 +365,15 @@ export function RoomCalendar({
     [days, rooms, reservations, typeOrder]
   );
 
+  // Free cell the user clicked, waiting for Book / Hold / Block; holds and blocks placed this session
+  const [cellAction, setCellAction] = useState<{ room: CalendarRoom; date: string; anchor: DOMRect; step: 'menu' | CellHoldKind } | null>(null);
+  const [cellMarks, setCellMarks] = useState<CellMark[]>([]);
+
   /**
-   * Clicking a free day cell starts a new reservation pre-filled with that room
-   * and night (check-out defaults to the next day).
+   * Clicking a free day cell offers Book, Hold or Block. Book opens a new reservation
+   * pre-filled with that room and night (check-out defaults to the next day).
    */
-  const handleNewReservation = (room: CalendarRoom, checkIn: string) => {
+  const handleNewReservation = (room: CalendarRoom, checkIn: string, anchor: DOMRect) => {
     const covered = reservations.some(
       (res) =>
         (res.roomId === room.id || res.roomNumber === room.number) &&
@@ -392,6 +399,13 @@ export function RoomCalendar({
       return;
     }
 
+    if (cellMarks.some((m) => m.roomId === room.id && m.date === checkIn)) return;
+
+    setCellAction({ room, date: checkIn, anchor, step: 'menu' });
+  };
+
+  const startBooking = (room: CalendarRoom, checkIn: string) => {
+    setCellAction(null);
     if (!go) {
       toast.info('New reservation', { detail: 'Open Reservations to create this booking.' });
       return;
@@ -403,6 +417,12 @@ export function RoomCalendar({
       draft: { roomId: room.id, roomNumber: room.number, roomType: room.type, checkIn, checkOut },
     });
     toast.success('New reservation started', { detail: `Room ${room.number} · ${checkIn} → ${checkOut}` });
+  };
+
+  const markCell = (room: CalendarRoom, date: string, kind: CellHoldKind, note: string) => {
+    setCellMarks((prev) => [...prev, { roomId: room.id, date, kind, note }]);
+    setCellAction(null);
+    toast.success(kind === 'Hold' ? 'Room held' : 'Room blocked', { detail: `Room ${room.number} · ${date}` });
   };
 
   // Opening a booking edits it on the New Reservation screen
@@ -873,19 +893,26 @@ export function RoomCalendar({
                         const isToday = dateStr === today;
                         const info = formatCalendarDate(dateStr);
                         const isBooked = isRoomBookedOn(room, dateStr, reservations);
-                        const canCreate = !isBooked && !isOOO;
+                        const mark = cellMarks.find((m) => m.roomId === room.id && m.date === dateStr);
+                        const canCreate = !isBooked && !isOOO && !mark;
                         return (
                           <div
                             key={dateStr}
                             role={canCreate ? 'button' : undefined}
                             tabIndex={canCreate ? 0 : undefined}
                             aria-label={canCreate ? `New reservation for room ${room.number} on ${dateStr}` : undefined}
-                            title={canCreate ? `New reservation · Room ${room.number} · ${dateStr}` : undefined}
-                            onClick={() => handleNewReservation(room, dateStr)}
+                            title={
+                              canCreate
+                                ? `Book, hold or block · Room ${room.number} · ${dateStr}`
+                                : mark
+                                  ? `${mark.kind}: ${mark.note}`
+                                  : undefined
+                            }
+                            onClick={(e) => handleNewReservation(room, dateStr, e.currentTarget.getBoundingClientRect())}
                             onKeyDown={(e) => {
                               if ((e.key === 'Enter' || e.key === ' ') && canCreate) {
                                 e.preventDefault();
-                                handleNewReservation(room, dateStr);
+                                handleNewReservation(room, dateStr, e.currentTarget.getBoundingClientRect());
                               }
                             }}
                             className={`group relative flex h-full shrink-0 items-center justify-center border-r border-border ${canCreate ? 'cursor-pointer' : ''}`}
@@ -900,6 +927,13 @@ export function RoomCalendar({
                                     : 'var(--color-surface)',
                             }}
                           >
+                            {mark && (
+                              <span
+                                className={`pointer-events-none max-w-full truncate rounded-md px-1.5 py-0.5 text-micro font-bold ${mark.kind === 'Hold' ? 'bg-warning-bg text-warning-text' : 'bg-danger-bg text-danger-text'}`}
+                              >
+                                {mark.kind}
+                              </span>
+                            )}
                             {canCreate && (
                               <span className="pointer-events-none flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-[var(--color-primary)]/40 bg-[var(--color-primary)]/5 text-[var(--color-primary)] opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
                                 <Lucide.Plus size={12} />
@@ -969,6 +1003,28 @@ export function RoomCalendar({
           date={openLog.date}
           onClose={() => setOpenLog(null)}
           onChanged={() => setDayLogVersion((v) => v + 1)}
+        />
+      )}
+
+      {cellAction?.step === 'menu' && (
+        <CellActionMenu
+          anchor={cellAction.anchor}
+          onClose={() => setCellAction(null)}
+          onSelect={(action: CellAction) =>
+            action === 'Book'
+              ? startBooking(cellAction.room, cellAction.date)
+              : setCellAction({ ...cellAction, step: action })
+          }
+        />
+      )}
+      {cellAction && cellAction.step !== 'menu' && (
+        <CellNoteModal
+          key={`${cellAction.room.id}-${cellAction.date}-${cellAction.step}`}
+          kind={cellAction.step}
+          room={cellAction.room.number}
+          date={cellAction.date}
+          onConfirm={(note) => markCell(cellAction.room, cellAction.date, cellAction.step as CellHoldKind, note)}
+          onClose={() => setCellAction(null)}
         />
       )}
 

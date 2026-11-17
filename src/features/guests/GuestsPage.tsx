@@ -3,10 +3,8 @@ import { PanelLoadState, TableSkeletonRows } from '../../components/Skeleton';
 import * as Lucide from 'lucide-react';
 import type { BadgeTone } from '../../utils/status';
 import { Avatar, Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../../components/ui';
-import { FilterChip, Pagination, Tabs } from '../../components/controls';
+import { Pagination, Tabs } from '../../components/controls';
 import { inputClass } from '../../utils/styling';
-import { Field } from '../../components/controls';
-import { Modal } from '../../components/overlays';
 import { toast } from '../../utils/toast';
 import type { NavTarget } from '../../config/navigation';
 import { guestDirectoryApi, propertyApi } from '../../lib/api/pms';
@@ -18,8 +16,6 @@ import { Button } from '../../components/primitives';
 import { useAuth } from '../auth/AuthContext';
 
 const PAGE_SIZE = 6;
-const TIERS = ['VIP', 'Gold', 'Regular', 'New'] as const;
-type TierFilter = 'All' | (typeof TIERS)[number];
 type Sort = 'name' | 'stays' | 'spent' | 'recent';
 
 function tierTone(tier: string): BadgeTone {
@@ -121,32 +117,32 @@ function GuestProfile({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex items-center gap-3">
         <Avatar name={g.name} />
         <div className="min-w-0 flex-1">
-          <p className="text-body font-semibold text-ink">{g.name}</p>
-          <p className="text-label text-ink-secondary">{g.companyName ?? g.email ?? 'No company or email on file'}</p>
+          <p className="truncate text-body font-semibold text-ink">{g.name}</p>
+          <p className="truncate text-label text-ink-secondary">{g.companyName ?? g.email ?? 'No company or email on file'}</p>
         </div>
         <Badge tone={tierTone(g.tier)}>{g.tier}</Badge>
       </div>
       <div className="mt-3 grid grid-cols-1 gap-2 text-center xs:grid-cols-3">
         {[[String(g.stayCount), 'Stays'], [money(g.lifetimeSpend), 'Lifetime'], [money(g.outstandingBalance), 'Balance']].map(([v, k]) => (
-          <div key={k} className="rounded-control border p-2.5 sm:p-3 border-border">
-            <p className="tnum text-title font-bold text-ink">{v}</p>
+          <div key={k} className="min-w-0 rounded-control border p-2.5 sm:p-3 border-border">
+            <p className="tnum truncate text-title font-bold text-ink">{v}</p>
             <p className="text-label text-ink-secondary mt-0.5">{k}</p>
           </div>
         ))}
       </div>
-      <div className="mt-3">
+      <div className="mt-3 overflow-x-auto">
         <Tabs label="Guest sections" tabs={[{ id: 'overview', label: 'Overview' }, { id: 'stays', label: 'Stays' }, { id: 'payments', label: 'Payments' }, { id: 'notes', label: 'Notes' }]} active={tab} onChange={setTab} />
       </div>
       <div className="mt-3 text-body">
         {tab === 'overview' && (
           <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {[['Email', g.email ?? '—'], ['Phone', editing ? '' : (phone || '—')], ['Company', g.companyName ?? '—'], ['Last stay', formatDay(g.lastStayAt)], ['Preferences', editing ? '' : (prefs || '—')]].map(([k, v]) => (
-              <div key={k} className="rounded-control border p-3 border-border">
+              <div key={k} className="min-w-0 rounded-control border p-3 border-border">
                 <dt className="text-label font-medium text-ink-secondary mb-1">{k}</dt>
-                <dd className="text-body font-semibold text-ink">
+                <dd className="break-words text-body font-semibold text-ink">
                   {editing && (k === 'Phone' || k === 'Preferences') ? (
                     <input value={k === 'Phone' ? phone : prefs} onChange={(e) => (k === 'Phone' ? setPhone(e.target.value) : setPrefs(e.target.value))} className={inputClass()} aria-label={k} />
                   ) : v}
@@ -163,15 +159,15 @@ function GuestProfile({
           </div>
         )}
       </div>
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Button variant="secondary" type="button" className="flex-1" onClick={() => {
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <Button variant="secondary" type="button" className="sm:flex-1" onClick={() => {
           if (!editing) { setEditing(true); return; }
           void onSave({ phone, preferences: prefs }).then(() => setEditing(false)).catch(() => undefined);
         }}>
           {editing ? 'Save guest' : 'Edit guest'}
         </Button>
-        <Button variant="secondary" type="button" className="flex-1" onClick={() => go({ view: 'new-reservation' })}>New reservation</Button>
-        <Button variant="primary" type="button" className="flex-1" onClick={() => go({ view: 'folios' })}>View folio</Button>
+        <Button variant="secondary" type="button" className="sm:flex-1" onClick={() => go({ view: 'new-reservation' })}>New reservation</Button>
+        <Button variant="primary" type="button" className="sm:flex-1" onClick={() => go({ view: 'folios' })}>View folio</Button>
       </div>
       <Button variant="secondary" type="button" className="mt-2 w-full" onClick={onClose}>Back to directory</Button>
     </div>
@@ -184,14 +180,9 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
 
   const [q, setQ] = useState(initialQuery);
   const [search, setSearch] = useState(initialQuery);
-  const [tier, setTier] = useState<TierFilter>('All');
   const [sort, setSort] = useState<Sort>('name');
   const [page, setPage] = useState(0);
   const [openId, setOpenId] = useState<string | null>(focusId ?? null);
-  const [adding, setAdding] = useState(false);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
 
   // The search runs on the server, so wait for a pause in typing before asking.
   useEffect(() => {
@@ -202,19 +193,13 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
   const loadList = useCallback(
     async () =>
       propertyId
-        ? guestDirectoryApi.list(propertyId, { search: search || undefined, tier: tier === 'All' ? undefined : tier, sort, page: page + 1, pageSize: PAGE_SIZE })
+        ? guestDirectoryApi.list(propertyId, { search: search || undefined, sort, page: page + 1, pageSize: PAGE_SIZE })
         : { data: [], total: 0, page: 1, pageSize: PAGE_SIZE },
-    [propertyId, search, tier, sort, page],
+    [propertyId, search, sort, page],
   );
-  const list = useApiResource(loadList, [propertyId, search, tier, sort, page]);
+  const list = useApiResource(loadList, [propertyId, search, sort, page]);
   const rows = list.data?.data ?? [];
   const total = list.data?.total ?? 0;
-
-  const loadSummary = useCallback(
-    async () => (propertyId ? guestDirectoryApi.summary(propertyId) : null),
-    [propertyId],
-  );
-  const summary = useApiResource(loadSummary, [propertyId]);
 
   // Money in the directory is in the currency of the property.
   const loadCurrency = useCallback(
@@ -232,26 +217,7 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
 
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const safe = Math.min(page, pages - 1);
-  const noFilters = !search && tier === 'All';
-
-  const addGuest = () => {
-    if (!propertyId) return;
-    if (name.trim().length < 2 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim()) || phone.trim().length < 6) {
-      toast('Check the form', { detail: 'Name, valid email and phone are required.', tone: 'warning' });
-      return;
-    }
-    const parts = name.trim().split(/\s+/);
-    void guestDirectoryApi.create(propertyId, { firstName: parts[0], lastName: parts.slice(1).join(' '), email: email.trim(), phone: phone.trim() })
-      .then((created) => {
-        setAdding(false);
-        setName(''); setEmail(''); setPhone('');
-        setOpenId(created.id);
-        list.refresh();
-        summary.refresh();
-        toast('Guest added', { detail: `${created.name} was saved.`, tone: 'success' });
-      })
-      .catch((error: unknown) => toast('Could not add guest', { detail: displayApiError(error), tone: 'danger' }));
-  };
+  const noFilters = !search;
 
   if (openId && propertyId) {
     if (profileResource.error) {
@@ -264,7 +230,7 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
     }
     if (!profile) return <PanelLoadState label="Loading guest profile" />;
     return (
-      <Card>
+      <Card className="mx-auto w-full max-w-3xl">
         <GuestProfile g={profile} propertyId={propertyId} currency={currency} onClose={() => setOpenId(null)} go={go} onSave={async (patch) => {
           try {
             await guestDirectoryApi.update(propertyId, profile.id, patch);
@@ -282,129 +248,108 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
 
   return (
     <div className="pms-page">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-start gap-3">
-
-
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="secondary"
-            type="button"
-            onClick={() => { list.refresh(); summary.refresh(); }}
-            className="flex items-center gap-1.5 cursor-pointer transition-colors"
-            title="Refresh directory"
-          >
-            <Lucide.RefreshCw size={13} className={list.loading ? 'animate-spin' : ''} />
-            <span>Refresh</span>
-          </Button>
-          <Button variant="primary"
-            type="button"
-            onClick={() => setAdding(true)}
-            disabled={!propertyId}
-            className="flex items-center gap-1.5 cursor-pointer transition-all"
-          >
-            <Lucide.Plus size={15} strokeWidth={2.4} />
-            <span>Add Guest</span>
-          </Button>
-        </div>
-      </div>
-
       <Card>
         <CardTitle
           icon={Lucide.Contact2}
           iconBg="bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20"
           title="Guest Directory"
-          subtitle={list.loading ? 'Loading guest directory…' : `${total} ${noFilters ? 'guests' : total === 1 ? 'match' : 'matches'}`}
-          badge={
-            <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-micro font-bold text-primary border border-primary/30">
-              {summary.data?.total ?? 0} Profiles
-            </span>
-          }
         />
         {list.error ? <p role="alert" className="pms-helper">Could not load guests: {list.error}</p> : null}
-        <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-4">
-          <input value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} placeholder="Name, phone, email or company…" aria-label="Search guests" className={inputClass('text-label')} />
-          <select value={sort} onChange={(e) => { setSort(e.target.value as Sort); setPage(0); }} aria-label="Sort guests" className={inputClass('text-label')}>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <input value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} placeholder="Search guests…" aria-label="Search guests" className={inputClass('text-label w-full sm:w-56')} />
+          <select value={sort} onChange={(e) => { setSort(e.target.value as Sort); setPage(0); }} aria-label="Sort guests" className={inputClass('text-label w-full sm:w-auto')}>
             <option value="name">Sort: name</option>
             <option value="stays">Sort: most stays</option>
             <option value="spent">Sort: lifetime value</option>
             <option value="recent">Sort: latest stay</option>
           </select>
-          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by tier">
-            {(['All', ...TIERS] as const).map((t) => (
-              <FilterChip key={t} active={tier === t} onClick={() => { setTier(t); setPage(0); }}>
-                {t}{summary.data ? ` · ${t === 'All' ? summary.data.total : summary.data.byTier[t]}` : ''}
-              </FilterChip>
-            ))}
-          </div>
-          <Button variant="secondary" type="button" onClick={() => { setQ(''); setSearch(''); setTier('All'); setSort('name'); setPage(0); }}>Clear</Button>
+          <Button variant="secondary" type="button" className="w-full sm:w-auto" onClick={() => { setQ(''); setSearch(''); setSort('name'); setPage(0); }}>Clear</Button>
         </div>
-        <TableContainer>
-          <table className="pms-table min-w-[760px]">
-            <thead>
-              <tr>
-                <th className="w-12 text-center text-label font-semibold">#</th>
-                <th className="text-label font-semibold">GUEST NAME</th>
-                <th className="text-label font-semibold">CONTACT</th>
-                <th className="text-label font-semibold">COMPANY</th>
-                <th className="text-label font-semibold">TIER</th>
-                <th className="text-right text-label font-semibold">STAYS</th>
-                <th className="text-label font-semibold">LAST STAY</th>
-                <th className="text-right text-label font-semibold">ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((g, idx) => (
-                <tr key={g.id}>
-                  <td className="text-center font-medium text-ink-secondary text-label">
-                    {safe * PAGE_SIZE + idx + 1}
-                  </td>
-                  <td>
-                    <div className="flex items-center gap-3">
-                      <Avatar name={g.name} size={36} />
-                      <div>
-                        <span className="block font-semibold text-ink text-label">{g.name}</span>
-                        <span className="block text-label text-ink-secondary">{g.bookingCount} {g.bookingCount === 1 ? 'booking' : 'bookings'}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="block text-ink text-label">{g.email ?? '—'}</span>
-                    <span className="tnum block text-label text-ink-secondary">{g.phone ?? '—'}</span>
-                  </td>
-                  <td>
-                    <span className="text-ink text-label">{g.companyName ?? '—'}</span>
-                  </td>
-                  <td>
-                    <Badge tone={tierTone(g.tier)}>{g.tier}</Badge>
-                  </td>
-                  <td className="tnum text-right font-medium text-ink text-label">
-                    {g.stayCount}
-                  </td>
-                  <td>
-                    <span className="text-ink-secondary text-label">{formatDay(g.lastStayAt)}</span>
-                  </td>
-                  <td className="text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <TableActionBtn
-                        icon={Lucide.Eye}
-                        title={`View details for ${g.name}`}
-                        onClick={() => setOpenId(g.id)}
-                      />
-                    </div>
-                  </td>
+
+        {/* Phones: one card per guest, so nothing scrolls sideways */}
+        <ul className="flex flex-col gap-2 md:hidden">
+          {rows.map((g) => (
+            <li key={g.id}>
+              <button
+                type="button"
+                onClick={() => setOpenId(g.id)}
+                aria-label={`View details for ${g.name}`}
+                className="flex w-full cursor-pointer items-start gap-3 rounded-control border border-border bg-surface p-3 text-left transition-colors hover:bg-page focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+              >
+                <Avatar name={g.name} size={36} />
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="truncate text-body font-semibold text-ink">{g.name}</span>
+                    <Badge tone={tierTone(g.tier)} size="sm">{g.tier}</Badge>
+                  </span>
+                  <span className="block truncate text-label text-ink-secondary">{g.email ?? '—'}</span>
+                  <span className="tnum block text-label text-ink-secondary">{g.phone ?? '—'}</span>
+                  {g.companyName ? <span className="block truncate text-label text-ink">{g.companyName}</span> : null}
+                  <span className="mt-1 block text-label text-ink-secondary">
+                    {g.stayCount} {g.stayCount === 1 ? 'stay' : 'stays'} · Last stay {formatDay(g.lastStayAt)}
+                  </span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        {list.loading ? <div className="md:hidden"><PanelLoadState label="Loading guests" lines={4} /></div> : null}
+
+        {/* Tablet and up: table; company and last stay appear from 1024px */}
+        <div className="hidden md:block">
+          <TableContainer>
+            <table className="pms-table">
+              <thead>
+                <tr>
+                  <th className="w-12 text-center text-label font-semibold">#</th>
+                  <th className="text-label font-semibold">GUEST NAME</th>
+                  <th className="text-label font-semibold">CONTACT</th>
+                  <th className="hidden text-label font-semibold lg:table-cell">COMPANY</th>
+                  <th className="text-label font-semibold">TIER</th>
+                  <th className="text-right text-label font-semibold">STAYS</th>
+                  <th className="hidden text-label font-semibold lg:table-cell">LAST STAY</th>
+                  <th className="text-right text-label font-semibold">ACTIONS</th>
                 </tr>
-              ))}
-              {list.loading ? <TableSkeletonRows cols={8} /> : null}
-            </tbody>
-          </table>
-          {!list.loading && !list.error && rows.length === 0 ? (
-            <p className="pms-helper py-8 text-center text-label text-ink-secondary">
-              {!propertyId ? 'Choose a property to see its guests.' : noFilters ? 'No guests yet. Add the first one.' : 'No guests match.'}
-            </p>
-          ) : null}
-        </TableContainer>
+              </thead>
+              <tbody>
+                {rows.map((g, idx) => (
+                  <tr key={g.id}>
+                    <td className="text-center font-medium text-ink-secondary text-label">{safe * PAGE_SIZE + idx + 1}</td>
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <Avatar name={g.name} size={36} />
+                        <div className="min-w-0">
+                          <span className="block truncate font-semibold text-ink text-label">{g.name}</span>
+                          <span className="block text-label text-ink-secondary">{g.bookingCount} {g.bookingCount === 1 ? 'booking' : 'bookings'}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="max-w-[16rem]">
+                      <span className="block truncate text-ink text-label">{g.email ?? '—'}</span>
+                      <span className="tnum block text-label text-ink-secondary">{g.phone ?? '—'}</span>
+                    </td>
+                    <td className="hidden lg:table-cell"><span className="text-ink text-label">{g.companyName ?? '—'}</span></td>
+                    <td><Badge tone={tierTone(g.tier)}>{g.tier}</Badge></td>
+                    <td className="tnum text-right font-medium text-ink text-label">{g.stayCount}</td>
+                    <td className="hidden lg:table-cell"><span className="text-ink-secondary text-label">{formatDay(g.lastStayAt)}</span></td>
+                    <td className="text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <TableActionBtn icon={Lucide.Eye} title={`View details for ${g.name}`} onClick={() => setOpenId(g.id)} />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {list.loading ? <TableSkeletonRows cols={8} /> : null}
+              </tbody>
+            </table>
+          </TableContainer>
+        </div>
+
+        {!list.loading && !list.error && rows.length === 0 ? (
+          <p className="pms-helper py-8 text-center text-label text-ink-secondary">
+            {!propertyId ? 'Choose a property to see its guests.' : noFilters ? 'No guests yet. Add the first one.' : 'No guests match.'}
+          </p>
+        ) : null}
         <div className="mt-4 pt-1">
           <Pagination
             page={safe}
@@ -413,14 +358,6 @@ export function Guests({ initialQuery = '', focusId, go }: { initialQuery?: stri
             summary={`Showing ${total > 0 ? safe * PAGE_SIZE + 1 : 0} to ${Math.min((safe + 1) * PAGE_SIZE, total)} of ${total} guests`}
           />
         </div>
-        <Modal open={adding} onClose={() => setAdding(false)} title="Add guest" subtitle="Saved to the guest directory">
-          <div className="flex flex-col gap-3">
-            <Field label="Full name"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" className={inputClass('text-body')} /></Field>
-            <Field label="Email"><input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" inputMode="email" className={inputClass('text-body')} /></Field>
-            <Field label="Phone"><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone number" inputMode="tel" className={inputClass('text-body')} /></Field>
-            <Button variant="primary" type="button" onClick={addGuest}>Add guest</Button>
-          </div>
-        </Modal>
       </Card>
     </div>
   );

@@ -38,7 +38,6 @@ function PropertyCard({ property, onOpen }: { property: PropertyDetails; onOpen:
           <Lucide.BedDouble size={12} aria-hidden="true" /> {plural(property.totalRooms ?? 0, 'room')}
         </span>
         {rooms.data && <span className={CHIP}>{plural(rooms.data.length, 'category', 'categories')}</span>}
-        <span className={CHIP}>{property.defaultCurrency}</span>
       </span>
     </button>
   );

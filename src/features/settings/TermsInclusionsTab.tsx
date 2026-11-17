@@ -113,14 +113,14 @@ function TermsForm({
         <SettingsHeader title="Terms and Inclusions" description="Standard text shown to guests when they book and when they check in" />
         {!canEdit ? <ReadOnlyNotice what="these terms" /> : null}
 
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:items-start">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
           {BLOCKS.map((block, index) => {
             const enabled = form[block.enabledKey];
             const text = form[block.textKey];
             return (
-              <Card key={block.enabledKey} className={index === 0 ? 'xl:col-span-2' : ''}>
+              <Card key={block.enabledKey} className={`min-w-0 ${index === 0 ? 'xl:col-span-2' : ''}`}>
                 <CardTitle icon={block.icon} title={block.title} />
-                <div className="flex flex-col gap-3">
+                <div className="flex min-w-0 flex-col gap-3">
                   <ToggleRow
                     label={block.switchLabel}
                     checked={enabled}
@@ -129,10 +129,10 @@ function TermsForm({
                   {enabled ? (
                     <Field label={block.editorLabel.replace(/:$/, '')} hint={`${text.length.toLocaleString('en-US')} / ${MAX_LENGTH.toLocaleString('en-US')} characters`}>
                       <TextArea
-                        rows={6}
+                        rows={8}
                         value={text}
                         onChange={(e) => setForm((prev) => ({ ...prev, [block.textKey]: e.target.value.slice(0, MAX_LENGTH) }))}
-                        className="min-h-[140px] font-normal"
+                        className="min-h-[160px] w-full font-normal"
                       />
                     </Field>
                   ) : null}

@@ -34,8 +34,7 @@ const ITEM =
   'flex min-h-[40px] w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-body font-medium text-ink transition-colors hover:bg-muted-surface focus-visible:bg-muted-surface';
 
 /**
- * The avatar button and its account menu. On large screens the button also shows the name and role,
- * so who is signed in is visible without opening anything.
+ * The avatar button and its account menu; the name and role are shown inside the menu.
  */
 export function ProfileMenu({
   open,
@@ -99,20 +98,11 @@ export function ProfileMenu({
         aria-label={`Account menu for ${fullName}`}
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`flex cursor-pointer items-center gap-2.5 rounded-full border bg-surface p-1 transition-colors hover:bg-hover-surface lg:pr-3 ${
+        className={`flex cursor-pointer items-center gap-2.5 rounded-full border bg-surface p-1 transition-colors hover:bg-hover-surface ${
           open ? 'border-primary' : 'border-border'
         }`}
       >
         <AvatarBadge initials={initials} size="sm" />
-        <span className="hidden min-w-0 text-left lg:block">
-          <span className="block max-w-[9rem] truncate text-label font-bold leading-tight text-ink">{fullName}</span>
-          <span className="block max-w-[9rem] truncate text-micro leading-tight text-ink-muted">{roleName}</span>
-        </span>
-        <Lucide.ChevronDown
-          size={14}
-          aria-hidden="true"
-          className={`hidden text-ink-muted transition-transform lg:block ${open ? 'rotate-180' : ''}`}
-        />
       </button>
 
       {open ? (
