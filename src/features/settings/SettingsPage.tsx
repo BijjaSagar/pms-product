@@ -22,6 +22,9 @@ import { RoomSetup2Tab } from './RoomSetup2Tab';
 import { ComingSoon, NoPropertyState } from './SettingsKit';
 import { SettingsNav } from './SettingsNav';
 import type { NavGroup } from './SettingsNav';
+import { TaxCategoryTab } from './TaxCategoryTab';
+import { TaxGeneralSettingTab } from './TaxGeneralSettingTab';
+import { TaxRuleTab } from './TaxRuleTab';
 import { TermsInclusionsTab } from './TermsInclusionsTab';
 
 type SettingsTab =
@@ -83,7 +86,7 @@ const NAV_GROUPS: NavGroup<SettingsTab>[] = [
 ];
 
 /** Tabs that have no screen yet; they show a placeholder card. */
-const PLACEHOLDER_TABS: SettingsTab[] = ['payment-terms', 'tax-category', 'tax-rule', 'general-tax-setting'];
+const PLACEHOLDER_TABS: SettingsTab[] = ['payment-terms'];
 
 /** Screens that only need the active property and whether the user may change it. */
 const PROPERTY_SCREENS: Partial<Record<SettingsTab, ComponentType<{ propertyId: string; canEdit: boolean }>>> = {
@@ -132,6 +135,9 @@ export function Settings({
       return <ComingSoon title={activeItem?.label ?? 'Settings'} onBack={() => setActiveTab('general')} />;
     }
     if (activeTab === 'policies') return <PoliciesTab />;
+    if (activeTab === 'tax-category') return <TaxCategoryTab canManage={can('role.manage')} />;
+    if (activeTab === 'tax-rule') return <TaxRuleTab canManage={can('role.manage')} />;
+    if (activeTab === 'general-tax-setting') return <TaxGeneralSettingTab canManage={can('role.manage')} />;
     if (activeTab === 'general') {
       if (property) {
         return (

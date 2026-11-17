@@ -152,6 +152,28 @@ export interface UserRow {
   membershipActive: boolean; invitePending: boolean; inviteExpired: boolean; propertyId: string; roleKey: string; roleName: string;
 }
 export interface RoleRow { id: string; key: string; name: string; description?: string | null; isSystem: boolean; isActive: boolean; permissions: string[]; memberCount: number }
+export interface TaxCategoryRow { id: string; name: string; description: string }
+export type TaxComponentCode = 'CGST' | 'SGST';
+export type TaxAppliedOn = 'ROOM_TARIFF' | 'TOTAL_AMOUNT';
+export type TaxValueType = 'PERCENTAGE' | 'FIXED';
+/** One amount band of a tax component: amounts from `from` to `to` are taxed at `value`. */
+export interface TaxSlab { id: string; from: string; to: string; valueType: TaxValueType; value: string }
+export interface TaxComponent { code: TaxComponentCode; appliedOn: TaxAppliedOn; slabs: TaxSlab[] }
+export interface TaxSetupRuleRow {
+  id: string; name: string; description: string; startDate: string; endDate: string;
+  categoryId: string; components: TaxComponent[];
+}
+export type TaxSetupRuleInput = Omit<TaxSetupRuleRow, 'id'>;
+/** How tax is worked out: recomputed here under the composite supply concept, or taken as the OTA sent it. */
+export type TaxComputation = 'COMPOSITE_SUPPLY' | 'OTA_VOUCHER';
+export interface TaxGeneralSettings {
+  computation: TaxComputation;
+  sacRoomCode: string;
+  enableSacCodes: boolean;
+  applyRoomSlabOnMeals: boolean;
+  applyRoomSlabOnExtraBed: boolean;
+  showPropertyGstNo: boolean;
+}
 export interface TaxRuleRow { id: string; code: string; name: string; ratePercent: string; appliesTo: string; isInclusive: boolean; isActive: boolean }
 export interface AuditEventRow {
   id: string; action: string; resourceType: string; resourceId: string | null; outcome: string;
@@ -1331,6 +1353,16 @@ export const adminApi = {
   taxRules: async () => store.taxRules(),
   createTaxRule: async (body: Record<string, unknown>) => store.createTaxRule(body),
   updateTaxRule: async (id: string, body: Record<string, unknown>) => store.updateTaxRule(id, body),
+  taxCategories: async () => store.taxCategories(),
+  createTaxCategory: async (body: { name: string; description: string }) => store.createTaxCategory(body),
+  updateTaxCategory: async (id: string, body: { name: string; description: string }) => store.updateTaxCategory(id, body),
+  deleteTaxCategory: async (id: string) => store.deleteTaxCategory(id),
+  taxGeneralSettings: async () => store.taxGeneralSettings(),
+  saveTaxGeneralSettings: async (body: TaxGeneralSettings) => store.saveTaxGeneralSettings(body),
+  taxSetupRules: async () => store.taxSetupRules(),
+  createTaxSetupRule: async (body: TaxSetupRuleInput) => store.createTaxSetupRule(body),
+  updateTaxSetupRule: async (id: string, body: TaxSetupRuleInput) => store.updateTaxSetupRule(id, body),
+  deleteTaxSetupRule: async (id: string) => store.deleteTaxSetupRule(id),
 };
 
 const THEME_STORAGE_KEY = 'pms.theme';
