@@ -5,7 +5,7 @@ import type { PropertyDetails, PropertyUpdate } from '../../lib/api/pms';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
 import { SelectField, TextField } from '../../components/primitives';
-import { Field, FilterChip } from '../../components/controls';
+import { Field } from '../../components/controls';
 import { Badge } from '../../components/ui';
 import { FormSection, ReadOnlyNotice, SettingsHeader, ToggleRow, UnsavedBar } from './SettingsKit';
 
@@ -115,20 +115,6 @@ const toForm = (p: PropertyDetails): PropertyForm => ({
   ignoreDecimalInBillSettlement: p.ignoreDecimalInBillSettlement,
   autoConfirmBookings: p.autoConfirmBookings,
 });
-
-/** The sections of the form, in order, for the jump links. */
-const SECTIONS = [
-  { id: 'pd-basic', label: 'Basic' },
-  { id: 'pd-address', label: 'Address' },
-  { id: 'pd-contact', label: 'Contact' },
-  { id: 'pd-billing', label: 'Billing' },
-  { id: 'pd-listings', label: 'Listings' },
-] as const;
-
-const jumpTo = (id: string) => {
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  document.getElementById(id)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
-};
 
 /** Blank optional fields are sent as null so they are cleared on the server. */
 const optional = (value: string) => (value.trim() === '' ? null : value.trim());
@@ -291,75 +277,69 @@ export function PropertyDetailsTab({
         {!canEdit ? <ReadOnlyNotice what="property details" /> : null}
 
         {/* Who this property is, as the form currently reads. */}
-        <div className="pms-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-          <div className="flex min-w-0 items-center gap-3.5">
+        <div className="pms-card flex min-w-0 flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div className="flex min-w-0 flex-1 items-center gap-3.5">
             <div className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-primary-foreground shadow-xs shadow-primary/20">
               <Lucide.Building2 size={22} aria-hidden="true" />
             </div>
             <div className="min-w-0">
               <p className="truncate text-disp2 font-bold leading-tight text-ink">{form.name.trim() || 'Unnamed property'}</p>
-              <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-label text-ink-secondary">
+              <p className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-label text-ink-secondary">
                 {form.code.trim() ? <Badge tone="neutral" size="sm">{form.code.trim()}</Badge> : null}
-                <span className="truncate">{[form.city.trim(), form.country.trim()].filter(Boolean).join(', ') || 'No location yet'}</span>
+                <span className="min-w-0 truncate">{[form.city.trim(), form.country.trim()].filter(Boolean).join(', ') || 'No location yet'}</span>
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-none flex-wrap items-center gap-1.5">
             {form.starRating ? <Badge tone="warning" size="sm">{form.starRating} ★</Badge> : null}
             {form.propertySegment ? <Badge tone="info" size="sm">{form.propertySegment}</Badge> : null}
             <Badge tone="neutral" size="sm">{form.defaultCurrency}</Badge>
           </div>
         </div>
 
-        <nav aria-label="Jump to a section" className="pms-chip-row gap-2">
-          {SECTIONS.map((section) => (
-            <FilterChip key={section.id} active={false} onClick={() => jumpTo(section.id)}>
-              {section.label}
-            </FilterChip>
-          ))}
-        </nav>
-
+        {/* Two balanced columns from 1280px; a single column below */}
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:items-start">
-          <FormSection id="pd-basic" icon={Lucide.Building2} title="Basic Information" subtitle="Core details about your property">
-            {text('name', 'Name', { required: true, wide: true })}
-            {text('propertyGroup', 'Property Group')}
-            {text('code', 'Abbreviation', { required: true, upper: true })}
-            {text('locationCode', 'Location Code')}
-            {text('propertyLegalName', 'Property Legal Name')}
-            {select('propertySegment', 'Property Segment', SEGMENT_OPTIONS, { empty: 'Select segment' })}
-            {select('starRating', 'Star Rating', STAR_OPTIONS, { empty: 'Unrated' })}
-            {select('language', 'Language', LANGUAGE_OPTIONS, { empty: 'Select language' })}
-          </FormSection>
+          <div className="flex min-w-0 flex-col gap-5">
+            <FormSection icon={Lucide.Building2} title="Basic Information" subtitle="Core details about your property">
+              {text('name', 'Name', { required: true, wide: true })}
+              {text('propertyGroup', 'Property Group')}
+              {text('code', 'Abbreviation', { required: true, upper: true })}
+              {text('locationCode', 'Location Code')}
+              {text('propertyLegalName', 'Property Legal Name')}
+              {select('propertySegment', 'Property Segment', SEGMENT_OPTIONS, { empty: 'Select segment' })}
+              {select('starRating', 'Star Rating', STAR_OPTIONS, { empty: 'Unrated' })}
+              {select('language', 'Language', LANGUAGE_OPTIONS, { empty: 'Select language' })}
+            </FormSection>
 
-          <FormSection id="pd-address" icon={Lucide.MapPin} title="Address & Location" subtitle="Where guests find you">
-            {text('addressLine1', 'Address Line 1', { wide: true })}
-            {text('addressLine2', 'Address Line 2', { wide: true })}
-            {text('city', 'City', { required: true })}
-            {text('state', 'State / Province')}
-            {text('country', 'Country', { required: true })}
-            {text('postalCode', 'Postal Code')}
-            {text('locationMapUrl', 'Location Map URL', { wide: true, placeholder: 'https://maps.google.com/...' })}
-            {text('latitude', 'Latitude', { type: 'number', placeholder: '18.9441' })}
-            {text('longitude', 'Longitude', { type: 'number', placeholder: '72.8236' })}
-            {text('corporateAddress', 'Corporate Address', { wide: true })}
-          </FormSection>
+            <FormSection icon={Lucide.MapPin} title="Address & Location" subtitle="Where guests find you">
+              {text('addressLine1', 'Address Line 1', { wide: true })}
+              {text('addressLine2', 'Address Line 2', { wide: true })}
+              {text('city', 'City', { required: true })}
+              {text('state', 'State / Province')}
+              {text('country', 'Country', { required: true })}
+              {text('postalCode', 'Postal Code')}
+              {text('locationMapUrl', 'Location Map URL', { wide: true, placeholder: 'https://maps.google.com/...' })}
+              {text('latitude', 'Latitude', { type: 'number', placeholder: '18.9441' })}
+              {text('longitude', 'Longitude', { type: 'number', placeholder: '72.8236' })}
+              {text('corporateAddress', 'Corporate Address', { wide: true })}
+            </FormSection>
+          </div>
+          <div className="flex min-w-0 flex-col gap-5">
+            <FormSection icon={Lucide.Phone} title="Contact" subtitle="Phone numbers for guests">
+              {text('primaryPhone', 'Primary Phone Number')}
+              {text('secondaryPhone', 'Secondary Phone Number')}
+            </FormSection>
 
-          <FormSection id="pd-contact" icon={Lucide.Phone} title="Contact" subtitle="Phone numbers for guests">
-            {text('primaryPhone', 'Primary Phone Number')}
-            {text('secondaryPhone', 'Secondary Phone Number')}
-          </FormSection>
+            <FormSection icon={Lucide.Receipt} title="Billing & Operations" subtitle="Currency, tax and booking behaviour">
+              {select('defaultCurrency', 'Currency', CURRENCY_OPTIONS, { required: true })}
+              {text('checkoutToleranceValue', 'Checkout Tolerance (minutes)', { type: 'number' })}
+              {select('taxType', 'Tax Type', TAX_TYPE_OPTIONS, { empty: 'Select tax type' })}
+              {text('gstn', 'GSTN', { upper: true })}
+              {flag('ignoreDecimalInBillSettlement', 'Ignore decimal places in bill settlement', 'Bills are settled in whole amounts')}
+              {flag('autoConfirmBookings', 'Auto confirm bookings', 'New bookings are confirmed without a manual step')}
+            </FormSection>
 
-          <FormSection id="pd-billing" icon={Lucide.Receipt} title="Billing & Operations" subtitle="Currency, tax and booking behaviour">
-            {select('defaultCurrency', 'Currency', CURRENCY_OPTIONS, { required: true })}
-            {text('checkoutToleranceValue', 'Checkout Tolerance (minutes)', { type: 'number' })}
-            {select('taxType', 'Tax Type', TAX_TYPE_OPTIONS, { empty: 'Select tax type' })}
-            {text('gstn', 'GSTN', { upper: true })}
-            {flag('ignoreDecimalInBillSettlement', 'Ignore decimal places in bill settlement', 'Bills are settled in whole amounts')}
-            {flag('autoConfirmBookings', 'Auto confirm bookings', 'New bookings are confirmed without a manual step')}
-          </FormSection>
-
-          <div className="xl:col-span-2">
-            <FormSection id="pd-listings" icon={Lucide.Globe} title="Marketing & Listings" subtitle="Tracking tags and OTA listing names">
+            <FormSection icon={Lucide.Globe} title="Marketing & Listings" subtitle="Tracking tags and OTA listing names">
               {text('googleAnalyticsTag', 'Google Analytics Tag')}
               {text('metaPixel', 'Meta Pixel')}
               {text('tripAdvisorListingName', 'Trip Advisor Listing Name')}

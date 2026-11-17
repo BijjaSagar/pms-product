@@ -22,7 +22,6 @@ import { RoomSetup2Tab } from './RoomSetup2Tab';
 import { ComingSoon, NoPropertyState } from './SettingsKit';
 import { SettingsNav } from './SettingsNav';
 import type { NavGroup } from './SettingsNav';
-import { TaxesTab } from './TaxesTab';
 import { TermsInclusionsTab } from './TermsInclusionsTab';
 
 type SettingsTab =
@@ -39,15 +38,12 @@ type SettingsTab =
   | 'meal-plans'
   | 'payment-terms'
   | 'grc-settings'
-  | 'currency-settings'
   | 'reservation-settings'
   | 'post-master-settings'
   | 'house-keeping'
-  | 'taxes'
-  | 'guests'
-  | 'integrations'
-  | 'notifications'
-  | 'advanced';
+  | 'tax-category'
+  | 'tax-rule'
+  | 'general-tax-setting';
 
 const NAV_GROUPS: NavGroup<SettingsTab>[] = [
   {
@@ -66,7 +62,6 @@ const NAV_GROUPS: NavGroup<SettingsTab>[] = [
       { id: 'meal-plans', label: 'Meal Plans', icon: Lucide.Utensils },
       { id: 'payment-terms', label: 'Payment Terms', icon: Lucide.CreditCard },
       { id: 'grc-settings', label: 'GRC Settings', icon: Lucide.ClipboardList },
-      { id: 'currency-settings', label: 'Currency Settings', icon: Lucide.Coins },
     ],
   },
   {
@@ -78,19 +73,17 @@ const NAV_GROUPS: NavGroup<SettingsTab>[] = [
     ],
   },
   {
-    title: 'Other Settings',
+    title: 'Tax Setup',
     items: [
-      { id: 'taxes', label: 'Taxes & Fees', icon: Lucide.Receipt },
-      { id: 'guests', label: 'Guest Settings', icon: Lucide.Users },
-      { id: 'integrations', label: 'Integrations', icon: Lucide.Boxes },
-      { id: 'notifications', label: 'Notifications', icon: Lucide.Bell },
-      { id: 'advanced', label: 'Advanced', icon: Lucide.SlidersHorizontal },
+      { id: 'tax-category', label: 'Tax Category', icon: Lucide.Percent },
+      { id: 'tax-rule', label: 'Tax Rule', icon: Lucide.Scale },
+      { id: 'general-tax-setting', label: 'General Tax Setting', icon: Lucide.Settings2 },
     ],
   },
 ];
 
 /** Tabs that have no screen yet; they show a placeholder card. */
-const PLACEHOLDER_TABS: SettingsTab[] = ['payment-terms', 'currency-settings', 'guests', 'integrations', 'notifications', 'advanced'];
+const PLACEHOLDER_TABS: SettingsTab[] = ['payment-terms', 'tax-category', 'tax-rule', 'general-tax-setting'];
 
 /** Screens that only need the active property and whether the user may change it. */
 const PROPERTY_SCREENS: Partial<Record<SettingsTab, ComponentType<{ propertyId: string; canEdit: boolean }>>> = {
@@ -139,7 +132,6 @@ export function Settings({
       return <ComingSoon title={activeItem?.label ?? 'Settings'} onBack={() => setActiveTab('general')} />;
     }
     if (activeTab === 'policies') return <PoliciesTab />;
-    if (activeTab === 'taxes') return <TaxesTab canRead={can('invoice.read')} canManage={can('role.manage')} />;
     if (activeTab === 'general') {
       if (property) {
         return (
