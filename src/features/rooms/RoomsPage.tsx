@@ -1,10 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
 import { PageSkeleton } from '../../components/Skeleton';
 import * as Lucide from 'lucide-react';
-import type { HkStatus, HousekeepingTask, MaintenanceRequest, Room, RoomStatus } from '../../types';
-import { Avatar, Badge } from '../../components/ui';
+import type { Room, RoomStatus } from '../../types';
+import { Badge } from '../../components/ui';
 import { roomTone } from '../../utils/status';
-import type { BadgeTone } from '../../utils/status';
 import { Drawer, PromptDialog } from '../../components/overlays';
 import { toast } from '../../utils/toast';
 import { inventoryApi, operationsApi } from '../../lib/api/pms';
@@ -15,160 +14,10 @@ import { displayApiError } from '../../lib/api/client';
 import { formatCurrency } from '../../utils/currency';
 import { useAuth } from '../../features/auth/AuthContext';
 import { StatusTimeline } from './StatusTimeline';
+import { RoomDetail, RoomDrawerActions } from './RoomDetail';
 import { Button } from '../../components/primitives';
 import { RoomFilterBar, type RoomViewMode } from './RoomFilterBar';
-import { EMPTY_ROOM_FILTERS, filterRooms, type RoomFilters } from './roomFilters';
-
-function hkTone(hk: HkStatus): BadgeTone {
-  if (hk === 'Clean') return 'success';
-  if (hk === 'Inspected') return 'success';
-  if (hk === 'Cleaning') return 'info';
-  return 'warning';
-}
-
-/* What the card says about the room right now: the guest, the block reason, or that it is free to sell. */
-function roomSummary(room: Room): { Icon: Lucide.LucideIcon; text: string } {
-  if (room.guest) {
-    return {
-      Icon: Lucide.User,
-      text: room.checkIn ? `${room.guest} · ${room.checkIn} → ${room.checkOut}` : room.guest,
-    };
-  }
-  if (room.status === 'Out-of-service') {
-    return { Icon: Lucide.Ban, text: room.oosReason || 'Maintenance in progress' };
-  }
-  return { Icon: Lucide.Sparkles, text: 'Ready to allocate' };
-}
-
-function RoomDetail({
-  room,
-  hkHistory,
-  mxHistory,
-  currencyCode,
-  onStatus,
-}: {
-  room: Room;
-  hkHistory: HousekeepingTask[];
-  mxHistory: MaintenanceRequest[];
-  currencyCode: string;
-  onStatus: (room: Room, s: RoomStatus) => void;
-}) {
-  return (
-    <div className="pms-page">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="tnum text-disp3 font-bold leading-none text-ink">Room {room.number}</p>
-          <p className="mt-1 text-body text-ink-secondary">
-            {room.type} · Floor {room.floor} · <span className="tnum font-semibold text-ink">{formatCurrency(room.rate, currencyCode)}/night</span>
-          </p>
-        </div>
-        <span className="flex flex-col items-end gap-1.5">
-          <Badge tone={roomTone(room.status)}>{room.status}</Badge>
-          <Badge tone={hkTone(room.hk)}>HK: {room.hk}</Badge>
-        </span>
-      </div>
-
-      {room.guest ? (
-        <div className="rounded-2xl border p-4 shadow-xs border-border bg-surface">
-          <p className="pms-label mb-2">Current in-house guest</p>
-          <div className="flex items-center gap-3">
-            <Avatar name={room.guest} size={38} />
-            <div className="flex-1 min-w-0">
-              <p className="font-bold text-ink truncate">{room.guest}</p>
-              <p className="tnum text-label text-ink-secondary">
-                {room.checkIn} → {room.checkOut}
-              </p>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {room.status === 'Out-of-service' && room.oosReason ? (
-        <div className="rounded-2xl border p-4 bg-danger-bg/50 border-danger-border">
-          <p className="pms-label text-danger-text">Out of service details</p>
-          <p className="mt-1 text-body text-danger-text font-medium">{room.oosReason}</p>
-        </div>
-      ) : null}
-
-      <div className="grid grid-cols-2 gap-2 text-body">
-        {[
-          ['Max occupancy', `${room.maxOccupancy ?? 2} guests`],
-          ['Bed setup', room.bedType ?? 'King bed'],
-          ['Housekeeping status', room.hk],
-          ['Room status', room.status],
-        ].map(([k, v]) => (
-          <div key={k} className="rounded-xl border p-2.5 border-border bg-surface">
-            <p className="text-label text-ink-muted">{k}</p>
-            <p className="font-semibold text-ink mt-0.5">{v}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Housekeeping history */}
-      <div>
-        <p className="pms-label mb-2 flex items-center gap-1.5">
-          <Lucide.Sparkles size={14} />
-          <span>Recent housekeeping</span>
-        </p>
-        <ul className="flex flex-col gap-1.5">
-          {hkHistory.slice(0, 3).map((hk) => (
-            <li key={hk.id} className="rounded-xl border p-2.5 text-label" style={{ borderColor: 'var(--color-border-subtle)' }}>
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-ink">{hk.task}</span>
-                <span className="text-ink-secondary">{hk.updated}</span>
-              </div>
-              <p className="text-ink-muted mt-0.5">Assigned to: {hk.assignee}</p>
-            </li>
-          ))}
-          {hkHistory.length === 0 ? <p className="pms-helper">No recent housekeeping tasks.</p> : null}
-        </ul>
-      </div>
-
-      {/* Maintenance history */}
-      <div>
-        <p className="pms-label mb-2 flex items-center gap-1.5">
-          <Lucide.Wrench size={14} />
-          <span>Recent maintenance</span>
-        </p>
-        <ul className="flex flex-col gap-1.5">
-          {mxHistory.slice(0, 3).map((mx) => (
-            <li key={mx.id} className="rounded-xl border p-2.5 text-label" style={{ borderColor: 'var(--color-border-subtle)' }}>
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-ink">{mx.description}</span>
-                <span className="text-ink-secondary">{mx.status}</span>
-              </div>
-              <p className="text-ink-muted mt-0.5">{mx.category} · Priority: {mx.priority}</p>
-            </li>
-          ))}
-          {mxHistory.length === 0 ? <p className="pms-helper">No recent maintenance orders.</p> : null}
-        </ul>
-      </div>
-
-      {/* Actions */}
-      <div className="mt-2 flex flex-wrap gap-2.5 pt-2 border-t border-border">
-        {room.status === 'Out-of-service' ? (
-          <Button variant="primary"
-            type="button"
-            className="flex-1 flex items-center justify-center gap-1.5"
-            onClick={() => onStatus(room, 'Available')}
-          >
-            <Lucide.CheckCircle2 size={16} />
-            <span>Return to service</span>
-          </Button>
-        ) : (
-          <Button variant="secondary"
-            type="button"
-            className="flex-1 flex items-center justify-center gap-1.5 text-danger"
-            onClick={() => onStatus(room, 'Out-of-service')}
-          >
-            <Lucide.AlertOctagon size={16} />
-            <span>Take out of service</span>
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-}
+import { EMPTY_ROOM_FILTERS, ROOM_STATUS_FILTERS, filterRooms, type RoomFilters } from './roomFilters';
 
 export function Rooms({
   focusId,
@@ -205,6 +54,24 @@ export function Rooms({
   const [viewMode, setViewMode] = useState<RoomViewMode>(initialViewMode);
   const [filters, setFilters] = useState<RoomFilters>(EMPTY_ROOM_FILTERS);
   const visibleRooms = useMemo(() => filterRooms(all, filters), [all, filters]);
+  const floors = useMemo(() => {
+    const byFloor = new Map<number, Room[]>();
+    visibleRooms.forEach((room) => byFloor.set(room.floor, [...(byFloor.get(room.floor) ?? []), room]));
+    return [...byFloor.entries()]
+      .sort(([x], [y]) => x - y)
+      .map(([floor, rooms]) => ({
+        floor,
+        rooms: [...rooms].sort((x, y) => x.number.localeCompare(y.number, undefined, { numeric: true })),
+      }));
+  }, [visibleRooms]);
+  // Every status that has rooms, counted over all rooms so the chips do not shrink as filters narrow the rack.
+  const statusCounts = useMemo(
+    () =>
+      ROOM_STATUS_FILTERS.map((status) => ({ status, count: all.filter((room) => room.status === status).length })).filter(
+        ({ count }) => count > 0,
+      ),
+    [all],
+  );
   const roomTypes = useMemo(() => Array.from(new Set(all.map((room) => room.type))).sort(), [all]);
   const roomTypeNames = useMemo(() => Object.fromEntries(all.map((room) => [room.number, room.type])), [all]);
 
@@ -265,46 +132,85 @@ export function Rooms({
             </div>
           ) : null}
 
-          {/* Room Grid */}
-          <div className="pms-stagger grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {visibleRooms.map((room) => {
-              const summary = roomSummary(room);
+          {/* Status summary: one chip per status in use; clicking one filters the rack to it */}
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter rooms by status">
+            {statusCounts.map(({ status, count }) => {
+              const tone = roomTone(status);
+              const active = filters.status === status;
               return (
-                <article
-                  key={room.number}
-                  className="pms-card pms-card-hover group relative flex flex-col gap-4 p-4 focus-within:ring-2 focus-within:ring-primary"
+                <button
+                  key={status}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setFilters((previous) => ({ ...previous, status: active ? 'All' : status }))}
+                  className={`flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-label font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] ${
+                    active ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-surface text-ink hover:bg-hover-surface'
+                  }`}
                 >
-                  {/* The whole card opens the room; the button stretches over it so the content stays plain text. */}
-                  <button
-                    type="button"
-                    onClick={() => setOpenNo(room.number)}
-                    aria-label={`Open room ${room.number}`}
-                    className="absolute inset-0 z-[1] cursor-pointer rounded-[inherit] focus-visible:outline-none"
-                  />
-
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="tnum text-title font-bold leading-tight text-ink">Room {room.number}</p>
-                      <p className="mt-1 truncate text-label text-ink-secondary">{room.type}</p>
-                    </div>
-                    <Badge tone={roomTone(room.status)}>{room.status}</Badge>
-                  </div>
-
-                  <div className="flex flex-col gap-2 text-label">
-                    <p className="text-ink-secondary">Floor {room.floor}</p>
-                    <p className="tnum">
-                      <span className="font-bold text-ink">{formatCurrency(room.rate, currencyCode)}</span>
-                      <span className="text-ink-muted"> per night</span>
-                    </p>
-                  </div>
-
-                  <p className="mt-auto flex items-start gap-2 text-label text-ink-secondary">
-                    <summary.Icon size={14} aria-hidden="true" className="mt-0.5 shrink-0 text-ink-muted" />
-                    <span className="min-w-0 break-words">{summary.text}</span>
-                  </p>
-                </article>
+                  <span className="h-2.5 w-2.5 flex-none rounded-full" style={{ background: `var(--color-${tone}-text)` }} aria-hidden="true" />
+                  {status}
+                  <span className="tnum rounded-full bg-muted-surface px-1.5 text-micro font-bold text-ink-secondary">{count}</span>
+                </button>
               );
             })}
+          </div>
+
+          {/* One section per floor; the room badge carries the status colour */}
+          <div className="flex flex-col gap-7">
+            {floors.map(({ floor, rooms: floorRooms }) => (
+              <section key={floor} aria-label={`Floor ${floor}`}>
+                <div className="mb-3 flex items-center gap-3">
+                  <h2 className="text-title font-bold leading-tight text-ink">Floor {floor}</h2>
+                  <span className="rounded-full bg-muted-surface px-2.5 py-0.5 text-label font-semibold text-ink-secondary">
+                    {floorRooms.length} {floorRooms.length === 1 ? 'room' : 'rooms'}
+                    {' · '}
+                    {floorRooms.filter((r) => r.status === 'Occupied').length} occupied
+                  </span>
+                  <span className="h-px min-w-6 flex-1 bg-border" aria-hidden="true" />
+                </div>
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3.5">
+            {floorRooms.map((room) => {
+              const tone = roomTone(room.status);
+              const note = room.guest ?? (room.status === 'Out-of-service' ? room.oosReason : null);
+              return (
+                <button
+                  key={room.number}
+                  type="button"
+                  onClick={() => setOpenNo(room.number)}
+                  aria-label={`Open room ${room.number}, ${room.type}, ${room.status}`}
+                  className="group flex min-w-0 cursor-pointer flex-col gap-3 rounded-2xl border border-border bg-surface p-4 text-left shadow-xs transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+                >
+                  <span className="flex items-center gap-3">
+                    <span
+                      className="tnum flex h-12 w-12 flex-none items-center justify-center rounded-xl text-title font-bold"
+                      style={{ background: `var(--color-${tone}-bg)`, color: `var(--color-${tone}-text)` }}
+                    >
+                      {room.number}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-body font-bold text-ink">{room.type}</span>
+                      <span className="block text-label text-ink-secondary">Floor {room.floor}</span>
+                    </span>
+                    <Lucide.ChevronRight size={16} aria-hidden="true" className="flex-none text-ink-muted transition-transform group-hover:translate-x-0.5" />
+                  </span>
+
+                  <span className="flex flex-wrap items-center gap-1.5">
+                    <Badge tone={tone} size="sm">{room.status}</Badge>
+                  </span>
+
+                  <span className="mt-auto flex items-end justify-between gap-3 border-t border-divider pt-3">
+                    <span className="min-w-0 truncate text-label text-ink-secondary">{note ?? 'No guest in room'}</span>
+                    <span className="tnum flex-none text-label">
+                      <span className="font-bold text-ink">{formatCurrency(room.rate, currencyCode)}</span>
+                      <span className="text-ink-muted"> /night</span>
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+                </div>
+              </section>
+            ))}
           </div>
 
           {/* Room Drawer */}
@@ -312,7 +218,16 @@ export function Rooms({
             open={openRoom !== null}
             onClose={() => setOpenNo(null)}
             title={openRoom ? `Room ${openRoom.number}` : ''}
-            subtitle="Specifications, guest folio, housekeeping & maintenance history"
+            subtitle={openRoom ? `${openRoom.type} · Floor ${openRoom.floor}` : undefined}
+            footer={
+              openRoom ? (
+                <RoomDrawerActions
+                  room={openRoom}
+                  onClose={() => setOpenNo(null)}
+                  onStatus={(room, status) => setStatusPrompt({ room, targetStatus: status })}
+                />
+              ) : undefined
+            }
           >
             {openRoom ? (
               <RoomDetail
@@ -320,7 +235,6 @@ export function Rooms({
                 hkHistory={hkTasks.filter((task) => task.room === openRoom.number)}
                 mxHistory={mxTickets.filter((ticket) => ticket.room === openRoom.number)}
                 currencyCode={currencyCode}
-                onStatus={(r, s) => setStatusPrompt({ room: r, targetStatus: s })}
               />
             ) : null}
           </Drawer>

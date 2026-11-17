@@ -46,6 +46,7 @@ const Reports = lazy(() => import('./features/analytics/ReportsPage').then((m) =
 const Staff = lazy(() => import('./features/staff/StaffPage').then((m) => ({ default: m.Staff })));
 const Settings = lazy(() => import('./features/settings/SettingsPage').then((m) => ({ default: m.Settings })));
 const LoginPage = lazy(() => import('./features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import('./features/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })));
 
 function Shell() {
   const { me, can } = useAuth();
@@ -188,6 +189,9 @@ function AuthenticatedApp() {
   const { me, loading } = useAuth();
   const { preset, setPreset } = useTheme();
   const [loadedThemeProperty, setLoadedThemeProperty] = useState<string | null>(null);
+  // Which signed-out page is showing, and the email to pre-fill on Sign in after registering.
+  const [authPage, setAuthPage] = useState<'login' | 'register'>('login');
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const themeScope = me?.activePropertyId ? `${me.user.id}:${me.activePropertyId}` : null;
 
   useEffect(() => {
@@ -221,7 +225,16 @@ function AuthenticatedApp() {
     return (
       <>
         <Suspense fallback={<PageSkeleton />}>
-          <LoginPage />
+          {authPage === 'register' ? (
+            <RegisterPage
+              onSignIn={(email) => {
+                setRegisteredEmail(email ?? '');
+                setAuthPage('login');
+              }}
+            />
+          ) : (
+            <LoginPage key={registeredEmail} initialEmail={registeredEmail} onRegister={() => setAuthPage('register')} />
+          )}
         </Suspense>
         {/* The shell mounts its own Toaster; the login page needs one for sign-in errors. */}
         <Toaster />

@@ -118,9 +118,9 @@ export function TableActionBtn({
       onClick={onClick}
       title={title}
       aria-label={title}
-      className={`w-8 inline-flex items-center justify-center transition-colors cursor-pointer ${variantClass}`}
+      className={`w-8 !px-0 inline-flex items-center justify-center transition-colors cursor-pointer ${variantClass}`}
     >
-      <Icon size={15} />
+      <Icon size={15} className="shrink-0" />
     </Button>
   );
 }

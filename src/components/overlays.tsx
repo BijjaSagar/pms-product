@@ -108,8 +108,8 @@ export function Modal({
             <h2 className="pms-section-title truncate">{title}</h2>
             {subtitle ? <p className="pms-helper mt-0.5 text-pretty">{subtitle}</p> : null}
           </div>
-          <Button variant="secondary" type="button" onClick={onClose} className="flex w-9 items-center justify-center" aria-label="Close dialog">
-            <Lucide.X size={18} />
+          <Button variant="secondary" type="button" onClick={onClose} className="flex w-9 !px-0 items-center justify-center" aria-label="Close dialog">
+            <Lucide.X size={18} className="shrink-0" />
           </Button>
         </div>
         <div className="overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
@@ -130,12 +130,15 @@ export function Drawer({
   title,
   subtitle,
   children,
+  footer,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   subtitle?: string;
   children: ReactNode;
+  /** Pinned under the scrolling content, for the panel's main actions. */
+  footer?: ReactNode;
 }) {
   useEsc(onClose);
   useScrollLock(open);
@@ -155,11 +158,14 @@ export function Drawer({
             <h2 className="pms-section-title truncate">{title}</h2>
             {subtitle ? <p className="pms-helper mt-0.5 text-pretty">{subtitle}</p> : null}
           </div>
-          <Button variant="secondary" type="button" onClick={onClose} className="flex w-9 items-center justify-center" aria-label="Close panel">
-            <Lucide.X size={18} />
+          <Button variant="secondary" type="button" onClick={onClose} className="flex w-9 !px-0 items-center justify-center" aria-label="Close panel">
+            <Lucide.X size={18} className="shrink-0" />
           </Button>
         </div>
-        <div className="pms-safe-bottom flex-1 overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
+        <div className={`flex-1 overflow-y-auto px-4 py-4 sm:px-5 ${footer ? '' : 'pms-safe-bottom'}`}>{children}</div>
+        {footer ? (
+          <div className="pms-safe-bottom flex flex-wrap justify-end gap-2 border-t border-border px-4 py-3 sm:px-5">{footer}</div>
+        ) : null}
       </aside>
     </div>,
     document.body,
