@@ -1,7 +1,6 @@
 import type { ReactNode, SelectHTMLAttributes } from 'react';
 import * as Lucide from 'lucide-react';
-import { selectClass } from '../formStyles';
-import { LABEL } from './brandStyles';
+import { FIELD, LABEL } from './brandStyles';
 
 /** A labelled form field with an optional hint and an inline error. */
 export function BrandField({
@@ -40,7 +39,7 @@ export function BrandSelect({
   ...rest
 }: SelectHTMLAttributes<HTMLSelectElement> & { invalid?: boolean }) {
   return (
-    <select {...rest} className={`${selectClass} ${invalid ? '!border-danger-text' : ''} ${className}`}>
+    <select {...rest} className={`${FIELD} cursor-pointer ${invalid ? '!border-danger-text' : ''} ${className}`}>
       {children}
     </select>
   );
@@ -64,7 +63,7 @@ export function BrandStepper({
 }) {
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
   const button =
-    'flex w-8 flex-none cursor-pointer items-center justify-center text-ink-secondary transition-colors hover:bg-hover-surface hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent';
+    'flex w-9 flex-none cursor-pointer md:w-8 items-center justify-center text-ink-secondary transition-colors hover:bg-hover-surface hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent';
   return (
     <span role="group" aria-label={label} className={`pms-input flex w-full items-stretch overflow-hidden !p-0 ${className}`}>
       <button type="button" className={button} aria-label={`Fewer: ${label}`} disabled={value <= min} onClick={() => onChange(clamp(value - 1))}>
@@ -78,7 +77,7 @@ export function BrandStepper({
         value={value}
         aria-label={label}
         onChange={(e) => onChange(clamp(Math.floor(Number(e.target.value)) || min))}
-        className="tnum min-w-0 flex-1 bg-transparent text-center text-title font-semibold outline-none"
+        className="tnum min-w-0 flex-1 bg-transparent text-center text-title font-semibold outline-none max-md:text-[16px]"
       />
       <button type="button" className={button} aria-label={`More: ${label}`} disabled={value >= max} onClick={() => onChange(clamp(value + 1))}>
         <Lucide.Plus size={14} />

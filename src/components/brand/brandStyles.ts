@@ -12,9 +12,9 @@ export const BODY = "font-['Geist',Inter,system-ui,sans-serif]";
 export const EYEBROW = 'text-[12px] font-semibold uppercase tracking-[0.2em] text-primary';
 export const LABEL = 'text-[12px] font-semibold uppercase tracking-[0.16em] text-ink-secondary';
 
-/** Text fields in the setup forms: the same size as the New Reservation fields. */
-export const FIELD = fieldClass;
+/** Text fields in the setup forms: the same size as the New Reservation fields. Phones use 16px so iOS does not zoom the page on focus. */
+export const FIELD = `${fieldClass} max-md:text-[16px]`;
 /** A field that failed validation. */
-export const FIELD_INVALID = `${fieldClass} !border-danger-text`;
+export const FIELD_INVALID = `${FIELD} !border-danger-text`;
 
 export const CARD = 'rounded-[20px] border border-border bg-white/80 shadow-sm';

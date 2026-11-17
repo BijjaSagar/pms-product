@@ -22,14 +22,15 @@ export function SetupRail({ step, property, categories, placed }: SetupRailProps
   const location = [property.city.trim(), property.state.trim(), property.country].filter(Boolean).join(', ');
 
   return (
-    <aside className="flex flex-col gap-5 lg:min-h-0 lg:overflow-y-auto lg:p-1">
+    <aside className="flex flex-col gap-4 lg:min-h-0 lg:gap-5 lg:overflow-y-auto lg:p-1">
       <div>
         <p className={EYEBROW}>Property setup</p>
-        <h1 className={`mt-2 text-[26px] font-bold leading-tight tracking-[-0.045em] text-ink ${HEADING}`}>Set up your property</h1>
-        <p className="mt-2 text-[14px] leading-6 text-ink-secondary [@media(max-height:700px)]:hidden">Three short steps and your rooms are ready to sell.</p>
+        <h1 className={`mt-1.5 text-[22px] font-bold leading-tight tracking-[-0.045em] text-ink sm:text-[26px] lg:mt-2 ${HEADING}`}>Set up your property</h1>
+        <p className="mt-2 hidden text-[14px] leading-6 text-ink-secondary sm:block [@media(max-height:700px)]:hidden">Three short steps and your rooms are ready to sell.</p>
       </div>
 
-      <ol className="flex flex-col gap-2" aria-label="Setup steps">
+      {/* A three-up strip on phones and tablets, a vertical list beside the form on desktop. */}
+      <ol className="grid grid-cols-3 gap-2 lg:flex lg:flex-col" aria-label="Setup steps">
         {STEPS.map((s, i) => {
           const state = i < step ? 'done' : i === step ? 'current' : 'todo';
           const Icon = s.icon;
@@ -37,8 +38,8 @@ export function SetupRail({ step, property, categories, placed }: SetupRailProps
             <li
               key={s.title}
               aria-current={state === 'current' ? 'step' : undefined}
-              className={`flex items-center gap-3 rounded-2xl border p-2.5 transition-colors ${
-                state === 'current' ? 'border-border bg-white shadow-md' : 'border-transparent'
+              className={`flex min-w-0 flex-col items-center gap-1.5 rounded-2xl border p-2 text-center transition-colors lg:flex-row lg:gap-3 lg:p-2.5 lg:text-left ${
+                state === 'current' ? 'border-border bg-white shadow-md' : 'border-border/50 bg-white/40 lg:border-transparent lg:bg-transparent'
               }`}
             >
               <span
@@ -53,16 +54,16 @@ export function SetupRail({ step, property, categories, placed }: SetupRailProps
                 {state === 'done' ? <Lucide.Check size={17} aria-hidden="true" /> : <Icon size={17} aria-hidden="true" />}
               </span>
               <span className={`min-w-0 ${state === 'todo' ? 'opacity-60' : ''}`}>
-                <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-muted">Step {i + 1}</span>
-                <span className={`block truncate text-[14px] font-semibold leading-tight text-ink ${HEADING}`}>{s.title}</span>
-                <span className="block truncate text-[12px] text-ink-secondary">{s.hint}</span>
+                <span className="hidden text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-muted sm:block">Step {i + 1}</span>
+                <span className={`block text-[12px] font-semibold leading-tight text-ink sm:text-[13px] lg:truncate lg:text-[14px] ${HEADING}`}>{s.title}</span>
+                <span className="hidden truncate text-[12px] text-ink-secondary lg:block">{s.hint}</span>
               </span>
             </li>
           );
         })}
       </ol>
 
-      <section className={`${CARD} p-3.5`} aria-label="Summary">
+      <section className={`${CARD} hidden p-3.5 lg:block`} aria-label="Summary">
         <p className={LABEL}>Summary</p>
         <p className={`mt-2 flex items-baseline gap-2 text-[16px] font-semibold text-ink ${HEADING}`}>
           <span className="truncate">{property.name.trim() || 'Your property'}</span>

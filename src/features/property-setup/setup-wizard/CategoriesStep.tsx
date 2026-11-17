@@ -53,8 +53,8 @@ export function CategoriesStep({ categories, totalRooms, onChange, showErrors }:
           const error = showErrors ? issues.rows[i] : '';
           const room = Math.max(totalRooms - (allocatedRooms(categories) - c.count), 0);
           return (
-            <li key={c.id} className={`${CARD} flex items-start gap-3 p-3`}>
-              <span className={`mt-[34px] h-2.5 w-2.5 flex-none rounded-full ${categoryTone(i).dot}`} aria-hidden="true" />
+            <li key={c.id} className={`${CARD} relative flex items-start gap-3 p-3`}>
+              <span className={`mt-[3px] h-2.5 w-2.5 flex-none rounded-full sm:mt-[34px] ${categoryTone(i).dot}`} aria-hidden="true" />
               <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_180px]">
                 <BrandField label={`Category ${i + 1}`} error={error}>
                   <input
@@ -75,7 +75,7 @@ export function CategoriesStep({ categories, totalRooms, onChange, showErrors }:
                 aria-label={`Remove ${c.name || `category ${i + 1}`}`}
                 disabled={categories.length === 1}
                 onClick={() => onChange(categories.filter((o) => o.id !== c.id))}
-                className="mt-[30px] flex h-10 w-10 flex-none cursor-pointer items-center justify-center rounded-xl text-ink-muted transition-colors hover:bg-danger-bg hover:text-danger-text disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-ink-muted"
+                className="absolute right-2 top-1.5 flex h-8 w-8 cursor-pointer sm:static sm:mt-[30px] sm:h-10 sm:w-10 sm:flex-none items-center justify-center rounded-xl text-ink-muted transition-colors hover:bg-danger-bg hover:text-danger-text disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-ink-muted"
               >
                 <Lucide.Trash2 size={16} />
               </button>
@@ -109,7 +109,7 @@ export function CategoriesStep({ categories, totalRooms, onChange, showErrors }:
             );
           })}
         </div>
-        <Button variant="secondary" icon={<Lucide.Plus size={14} />} onClick={() => add()}>
+        <Button variant="secondary" className="max-sm:w-full max-sm:justify-center" icon={<Lucide.Plus size={14} />} onClick={() => add()}>
           Add category
         </Button>
       </div>
