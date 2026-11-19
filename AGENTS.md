@@ -4,7 +4,11 @@ Guidance for AI coding agents working in this repository.
 
 ## What this project is
 
-TriponX Hotel PMS: a React 19 + TypeScript single-page front end for a hotel property management system. It is a **demo front end**: only authentication and property access (`/api/v1/auth/*` and `/api/v1/properties`, see `authApi` in `src/lib/api/pms.ts`) talk to the Nest backend: a STAFF user is bound to one property, an ADMIN picks one; in dev Vite proxies `/api` to `localhost:3000`, and `VITE_API_BASE_URL` overrides the base URL. Everything else, including permissions, lives in an in-memory store (`src/data/store.ts`) seeded at startup, so every change resets on reload. The UI and its interactions are the product; `src/lib/api/pms.ts` keeps the API shape a real backend would expose.
+TriponX Hotel PMS: a React 19 + TypeScript single-page front end for a hotel property management system. The Nest backend serves one database for every hotel. Two roles exist: a **SUPER_ADMIN** reaches every property, creates and edits properties, and manages users and the properties each can open; a **STAFF** user can open only the properties assigned to them (one or several). A super admin sets a user's first password, and the user must replace it at first sign-in (`ChangePasswordPage`). There is no self-registration.
+
+A SUPER_ADMIN belongs to no property, so they land in the **platform console** (`features/platform/PlatformConsole.tsx`: its own sidebar and header, a dashboard fed by `GET /platform/overview`, Properties, Users, the Activity log (`GET /activity-log`, filterable by property) and the new-property wizard) instead of the hotel shell. Opening a hotel from there switches to the hotel shell, whose account menu has "Back to platform console". Super admins sign in at `/admin` (`LoginPage platform`, which refuses non-super-admins); staff use `/`. There is no router: the path is only read to pick the sign-in page, so production hosting needs an SPA fallback for `/admin`.
+
+Sign-in, properties, users and access, guests, reservations, the room inventory and most Settings tabs talk to the backend through `src/lib/api/pms.ts`; the API enforces every permission, and the UI only decides what to show (`canOpen` in `AuthContext`). Everything else (folios, payments, invoices, night audit, reports, rate management, channel manager, tax setup, housekeeping tasks, the permission list behind `can()`) is still **demo-only**: it lives in an in-memory store (`src/data/store.ts`) seeded at startup, is the same for every property, and resets on reload. In dev Vite proxies `/api` to `localhost:3000`, and `VITE_API_BASE_URL` overrides the base URL.
 
 ## Stack (keep these versions; do not upgrade without a reason)
 
@@ -38,7 +42,7 @@ src/
   main.tsx                React root; imports index.css
   index.css               Tailwind entry, global base rules, shared .pms-* components
   config/
-    navigation.ts         view ids, sidebar sections, view-to-permission map
+    navigation.ts         view ids, sidebar sections, view-to-permission map, SUPER_ADMIN-only views
   components/             shared UI, one component per file
     layout/               Sidebar and Header (app chrome only)
   features/<domain>/      one folder per screen area; a page file plus its sub-parts

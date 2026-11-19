@@ -35,6 +35,23 @@ export function requireActivePropertyId(): string {
   return activePropertyId;
 }
 
+type SessionEndedListener = () => void;
+const sessionEndedListeners = new Set<SessionEndedListener>();
+
+/** Runs when the API says the saved token is no longer valid (expired, signed out elsewhere, user deactivated). */
+export function onSessionEnded(listener: SessionEndedListener): () => void {
+  sessionEndedListeners.add(listener);
+  return () => {
+    sessionEndedListeners.delete(listener);
+  };
+}
+
+/** Forgets the dead token and tells the app, which returns to the sign-in page. */
+function endSession(): void {
+  clearAccessToken();
+  sessionEndedListeners.forEach((listener) => listener());
+}
+
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '/api/v1';
 
 /** Nest error bodies are `{ statusCode, message: string | string[], error }`. */
@@ -82,7 +99,7 @@ export async function apiRequest<T>(
 
   const body = await readJsonBody(response);
   if (!response.ok) {
-    if (response.status === 401 && token) clearAccessToken();
+    if (response.status === 401 && token) endSession();
     throw new ApiError(errorMessage(body, 'The request could not be completed.'), response.status);
   }
   return body as T;
@@ -103,7 +120,7 @@ export async function apiBlob(path: string): Promise<Blob> {
     throw new ApiError('Could not reach the server. Check your connection and try again.', 0);
   }
   if (!response.ok) {
-    if (response.status === 401 && token) clearAccessToken();
+    if (response.status === 401 && token) endSession();
     throw new ApiError(errorMessage(await readJsonBody(response), 'The file could not be loaded.'), response.status);
   }
   return response.blob();

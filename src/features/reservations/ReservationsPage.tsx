@@ -5,7 +5,7 @@ import { Drawer } from '../../components/overlays';
 import { Avatar } from '../../components/ui';
 import { toast } from '../../utils/toast';
 import type { NavTarget } from '../../config/navigation';
-import { frontDeskApi, reservationApi } from '../../lib/api/pms';
+import { frontDeskApi, reservationApi, type ReservationRow } from '../../lib/api/pms';
 import { reservationFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
@@ -19,6 +19,20 @@ import { RoomCalendar } from './RoomCalendar';
 import { ReservationDrawer, StatusPill } from './ReservationDrawer';
 
 type SortKey = 'checkIn' | 'guest' | 'amount';
+
+/** The API returns at most 200 reservations a page. */
+const PAGE_SIZE = 200;
+const MAX_PAGES = 25;
+
+/** "Oct 15, 2026 • 10:24 AM" for the moment a reservation was made. */
+const formatCreated = (iso?: string): string => {
+  if (!iso) return '—';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '—';
+  const day = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  return `${day} • ${time}`;
+};
 
 /** The backend only edits a draft, confirmed or checked-in reservation. */
 const isEditable = (status: ReservationStatus) =>
@@ -38,9 +52,14 @@ export function Reservations({
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>(initialViewMode);
 
   const loadRows = useCallback(async () => {
-    const result = await reservationApi.list('', undefined, 1, 100);
-    const apiMapped = result.data.map(reservationFromApi);
-    return apiMapped;
+    // The API pages at 200 rows; read every page (bounded) so the list and calendar are not cut at the newest 100.
+    const all: ReservationRow[] = [];
+    for (let page = 1; page <= MAX_PAGES; page += 1) {
+      const result = await reservationApi.list('', undefined, page, PAGE_SIZE);
+      all.push(...result.data);
+      if (!result.hasMore) break;
+    }
+    return all.map(reservationFromApi);
   }, []);
 
   const resource = useApiResource(loadRows);
@@ -74,7 +93,7 @@ export function Reservations({
         ? a.guest.localeCompare(b.guest)
         : sort === 'amount'
           ? b.total - a.total
-          : a.checkIn.localeCompare(b.checkIn)
+          : (a.checkInIso ?? '').localeCompare(b.checkInIso ?? '')
     );
   }, [rows, filters, sort]);
 
@@ -103,14 +122,44 @@ export function Reservations({
   const setRowStatus = async (id: string, s: ReservationStatus): Promise<boolean> => {
     const row = rows.find((item) => item.id === id);
     if (!row?.backendId) return false;
+    // The open reservation was read most recently, so its version is the one to send.
+    const version = (detailResource.data?.id === id ? detailResource.data.version : undefined) ?? row.version;
     try {
-      if (s === 'Checked-in') await frontDeskApi.checkIn(row.backendId);
+      // Every step sends the version this screen last saw, so a change made by someone else is refused.
+      if (s === 'Confirmed') await reservationApi.confirm(row.backendId, version);
+      else if (s === 'Checked-in') await frontDeskApi.checkIn(row.backendId, version);
+      else if (s === 'Checked-out') await frontDeskApi.checkOut(row.backendId, version);
+      else if (s === 'No-show') await reservationApi.noShow(row.backendId, version);
       else if (s === 'Cancelled')
-        await reservationApi.cancel(row.backendId, 'Cancelled from reservation screen');
+        await reservationApi.cancel(row.backendId, 'Cancelled from reservation screen', version);
+      else {
+        toast('That status cannot be set from here', { detail: s, tone: 'warning' });
+        return false;
+      }
       resource.refresh();
+      detailResource.refresh();
       return true;
     } catch (error) {
       toast('Reservation action failed', { detail: displayApiError(error), tone: 'danger' });
+      return false;
+    }
+  };
+
+  /** Records an advance payment on a live reservation. */
+  const recordPayment = async (
+    id: string,
+    payment: { amount: string; method: string; reference?: string },
+  ): Promise<boolean> => {
+    const row = rows.find((item) => item.id === id);
+    if (!row?.backendId) return false;
+    const version = (detailResource.data?.id === id ? detailResource.data.version : undefined) ?? row.version;
+    try {
+      await reservationApi.addPayment(row.backendId, payment, version);
+      resource.refresh();
+      detailResource.refresh();
+      return true;
+    } catch (error) {
+      toast('Payment not recorded', { detail: displayApiError(error), tone: 'danger' });
       return false;
     }
   };
@@ -270,7 +319,7 @@ export function Reservations({
                             {r.id}
                           </div>
                           <div className="text-label text-ink-muted mt-0.5">
-                            {r.checkInIso ? `Oct 15, 2026 • 10:24 AM` : 'Oct 15, 2026 • 09:12 AM'}
+                            {formatCreated(r.createdAt)}
                           </div>
                         </td>
 
@@ -457,6 +506,7 @@ export function Reservations({
             r={openRow}
             onClose={() => setOpenId(null)}
             onStatus={setRowStatus}
+            onPayment={recordPayment}
             onEdit={amendReservation}
             go={go}
           />

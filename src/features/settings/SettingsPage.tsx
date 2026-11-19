@@ -5,11 +5,9 @@ import { PanelLoadState } from '../../components/Skeleton';
 import { useAuth } from '../../features/auth/AuthContext';
 import { propertyApi } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
-import { BedTypeTab } from './BedTypeTab';
 import { BrandingTab } from './BrandingTab';
 import { CancellationTab } from './CancellationTab';
 import { CategoryAmenitiesTab } from './CategoryAmenitiesTab';
-import { ExtraBedTypeTab } from './ExtraBedTypeTab';
 import { GrcSettingsTab } from './GrcSettingsTab';
 import { HouseKeepingTab } from './HouseKeepingTab';
 import { MealPlansTab } from './MealPlansTab';
@@ -34,8 +32,6 @@ type SettingsTab =
   | 'room-setup-2'
   | 'property-amenities'
   | 'category-amenities'
-  | 'bed-type'
-  | 'extra-bed-type'
   | 'branding'
   | 'policies'
   | 'meal-plans'
@@ -58,8 +54,6 @@ const NAV_GROUPS: NavGroup<SettingsTab>[] = [
       { id: 'room-setup-2', label: 'Room Setup', icon: Lucide.Layers },
       { id: 'property-amenities', label: 'Property Amenities', icon: Lucide.Star },
       { id: 'category-amenities', label: 'Category Amenities', icon: Lucide.Tags },
-      { id: 'bed-type', label: 'Bed Type', icon: Lucide.BedDouble },
-      { id: 'extra-bed-type', label: 'Extra Bed Type', icon: Lucide.BedSingle },
       { id: 'branding', label: 'Branding', icon: Lucide.Palette },
       { id: 'policies', label: 'Policies', icon: Lucide.FileText },
       { id: 'meal-plans', label: 'Meal Plans', icon: Lucide.Utensils },
@@ -95,8 +89,6 @@ const PROPERTY_SCREENS: Partial<Record<SettingsTab, ComponentType<{ propertyId: 
   'room-setup-2': RoomSetup2Tab,
   'property-amenities': PropertyAmenitiesTab,
   'category-amenities': CategoryAmenitiesTab,
-  'bed-type': BedTypeTab,
-  'extra-bed-type': ExtraBedTypeTab,
   'meal-plans': MealPlansTab,
   'grc-settings': GrcSettingsTab,
   'reservation-settings': ReservationSettingsTab,
@@ -111,12 +103,11 @@ export function Settings({
   onOpenThemes?: () => void;
   initialTab?: SettingsTab;
 }) {
-  const { me, can, reload } = useAuth();
+  const { me, can, reload, isSuperAdmin } = useAuth();
   const activePropertyId = me?.activePropertyId;
-  // The backend only lets administrators change property details, so everyone
+  // The backend only lets a super admin change property details, so everyone
   // else gets the screens read-only instead of a Save that would be refused.
-  const canEditProperty =
-    me?.user.propertyMemberships.find((m) => m.propertyId === me.activePropertyId)?.role.key === 'admin';
+  const canEditProperty = isSuperAdmin;
 
   // The property record feeds only the Property Details tab; the other tabs load their own data.
   const loadProperty = useCallback(

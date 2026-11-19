@@ -15,7 +15,6 @@ export type ViewId =
   | 'occupancy-report'
   | 'revenue-report'
   | 'arrivals-departures'
-  | 'staff-roles'
   | 'rate-management'
   | 'channel-manager'
   | 'settings';
@@ -90,10 +89,7 @@ export const NAV_SECTIONS: NavSection[] = [
   },
   {
     title: 'Administration',
-    items: [
-      { id: 'staff-roles', label: 'Staff & Roles', hint: 'Team & permissions' },
-      { id: 'settings', label: 'Settings', hint: 'Property & appearance' },
-    ],
+    items: [{ id: 'settings', label: 'Settings', hint: 'Property & appearance' }],
   },
 ];
 
@@ -134,10 +130,15 @@ export const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
   'occupancy-report': 'report.read.operations',
   'revenue-report': 'report.read.financial',
   'arrivals-departures': 'report.read.operations',
-  'staff-roles': 'user.read',
   settings: 'theme.update',
 };
 
 export function viewPermission(view: ViewId): string | undefined {
   return VIEW_PERMISSION[view];
+}
+
+/** Whether the shell shows a view to this user. */
+export function canOpenView(view: ViewId, can: (permission: string) => boolean): boolean {
+  const permission = viewPermission(view);
+  return !permission || can(permission);
 }
