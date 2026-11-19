@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { adminApi } from '../../lib/api/pms';
+import { taxSetupApi } from '../../lib/api/pms';
 import type { TaxSetupRuleInput, TaxSetupRuleRow } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
@@ -18,7 +18,7 @@ const formatDay = (iso: string) =>
 
 export function TaxRuleTab({ canManage }: { canManage: boolean }) {
   const load = useCallback(async () => {
-    const [rules, categories] = await Promise.all([adminApi.taxSetupRules(), adminApi.taxCategories()]);
+    const [rules, categories] = await Promise.all([taxSetupApi.rules(), taxSetupApi.categories()]);
     return { rules, categories };
   }, []);
   const resource = useApiResource(load);
@@ -31,8 +31,8 @@ export function TaxRuleTab({ canManage }: { canManage: boolean }) {
 
   const save = async (body: TaxSetupRuleInput) => {
     try {
-      if (editing) await adminApi.updateTaxSetupRule(editing.id, body);
-      else await adminApi.createTaxSetupRule(body);
+      if (editing) await taxSetupApi.updateRule(editing.id, body);
+      else await taxSetupApi.createRule(body);
       resource.refresh();
       toast(editing ? 'Tax rule updated' : 'Tax rule added', { detail: body.name, tone: 'success' });
       setEditing(undefined);
@@ -44,7 +44,7 @@ export function TaxRuleTab({ canManage }: { canManage: boolean }) {
   const remove = async () => {
     if (!deleting) return;
     try {
-      await adminApi.deleteTaxSetupRule(deleting.id);
+      await taxSetupApi.deleteRule(deleting.id);
       resource.refresh();
       toast('Tax rule deleted', { detail: deleting.name, tone: 'success' });
     } catch (err) {

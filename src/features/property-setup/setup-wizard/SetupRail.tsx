@@ -5,7 +5,7 @@ import type { CategoryDraft, PropertyDraft } from './draft';
 
 const STEPS = [
   { title: 'Property', hint: 'Name, location & size', icon: Lucide.Building2 },
-  { title: 'Room categories', hint: 'Types and room counts', icon: Lucide.BedDouble },
+  { title: 'Room categories', hint: 'Names of your room types', icon: Lucide.BedDouble },
   { title: 'Floors & rooms', hint: 'Place every room', icon: Lucide.LayoutGrid },
 ] as const;
 
@@ -18,7 +18,7 @@ interface SetupRailProps {
 
 /** The left column: the three steps and a live summary of what has been entered so far. */
 export function SetupRail({ step, property, categories, placed }: SetupRailProps) {
-  const named = categories.filter((c) => c.name.trim() && c.count > 0);
+  const named = categories.filter((c) => c.name.trim());
   const location = [property.city.trim(), property.state.trim(), property.country].filter(Boolean).join(', ');
 
   return (
@@ -91,7 +91,7 @@ export function SetupRail({ step, property, categories, placed }: SetupRailProps
                 key={c.id}
                 className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${categoryTone(categories.indexOf(c)).tile}`}
               >
-                {c.name.trim()} · {c.count}
+                {c.name.trim()}
               </li>
             ))}
           </ul>

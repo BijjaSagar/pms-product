@@ -1,4 +1,4 @@
-import { ALL_PERMISSIONS, BUSINESS_DATE, CALENDAR_EVENTS, CURRENT_USER_ID, GUESTS, PROPERTY, ROOM_TYPES, TAX_RATE, TAX_RULES, USERS, type InternalUser } from './catalog';
+import { ALL_PERMISSIONS, BUSINESS_DATE, CALENDAR_EVENTS, CURRENT_USER_ID, GUESTS, PROPERTY, ROOM_TYPES, TAX_RATE, USERS, type InternalUser } from './catalog';
 import { buildSeedState } from './fixtures';
 import {
   addDays,
@@ -48,11 +48,6 @@ import type {
   RoomTypeRow,
   StayList,
   StayRow,
-  TaxCategoryRow,
-  TaxGeneralSettings,
-  TaxRuleRow,
-  TaxSetupRuleInput,
-  TaxSetupRuleRow,
 } from '../lib/api/pms';
 
 /* ------------------------------------------------------------------- state */
@@ -63,17 +58,6 @@ const reservations: ReservationRow[] = seed.reservations;
 const folios: FolioRec[] = seed.folios;
 const guests: GuestRow[] = [...GUESTS];
 const users: InternalUser[] = [...USERS];
-const taxRules: TaxRuleRow[] = [...TAX_RULES];
-const taxCategories: TaxCategoryRow[] = [];
-const taxSetupRules: TaxSetupRuleRow[] = [];
-let taxGeneral: TaxGeneralSettings = {
-  computation: 'COMPOSITE_SUPPLY',
-  sacRoomCode: '996311',
-  enableSacCodes: false,
-  applyRoomSlabOnMeals: false,
-  applyRoomSlabOnExtraBed: false,
-  showPropertyGstNo: false,
-};
 const invoices: InvoiceRow[] = [];
 
 let activePropertyId = PROPERTY.id;
@@ -1632,53 +1616,6 @@ export const store = {
   },
 
   /* admin */
-  taxRules: (): TaxRuleRow[] => clone(taxRules),
-  createTaxRule(body: Record<string, unknown>) {
-    taxRules.push({
-      id: nextId('tax'),
-      code: String(body.code ?? 'TAX'),
-      name: String(body.name ?? 'New tax'),
-      ratePercent: money(num(body.ratePercent)),
-      appliesTo: String(body.appliesTo ?? 'ALL'),
-      isInclusive: Boolean(body.isInclusive),
-      isActive: body.isActive !== false,
-    });
-  },
-  updateTaxRule(id: string, body: Record<string, unknown>) {
-    const rule = taxRules.find((r) => r.id === id);
-    if (rule) Object.assign(rule, body);
-  },
-  taxGeneralSettings: (): TaxGeneralSettings => ({ ...taxGeneral }),
-  saveTaxGeneralSettings(body: TaxGeneralSettings) {
-    taxGeneral = { ...body };
-  },
-  taxSetupRules: (): TaxSetupRuleRow[] => clone(taxSetupRules),
-  createTaxSetupRule(body: TaxSetupRuleInput) {
-    taxSetupRules.push({ ...clone(body), id: nextId('taxrule') });
-  },
-  updateTaxSetupRule(id: string, body: TaxSetupRuleInput) {
-    const at = taxSetupRules.findIndex((r) => r.id === id);
-    if (at !== -1) taxSetupRules[at] = { ...clone(body), id };
-  },
-  deleteTaxSetupRule(id: string) {
-    const at = taxSetupRules.findIndex((r) => r.id === id);
-    if (at !== -1) taxSetupRules.splice(at, 1);
-  },
-  taxCategories: (): TaxCategoryRow[] => clone(taxCategories),
-  createTaxCategory(body: { name: string; description: string }) {
-    taxCategories.push({ id: nextId('taxcat'), name: body.name.trim(), description: body.description.trim() });
-  },
-  updateTaxCategory(id: string, body: { name: string; description: string }) {
-    const category = taxCategories.find((c) => c.id === id);
-    if (category) Object.assign(category, { name: body.name.trim(), description: body.description.trim() });
-  },
-  deleteTaxCategory(id: string) {
-    if (taxSetupRules.some((r) => r.categoryId === id)) {
-      throw new Error('This category is used by a tax rule. Delete or change that rule first.');
-    }
-    const at = taxCategories.findIndex((c) => c.id === id);
-    if (at !== -1) taxCategories.splice(at, 1);
-  },
 
   /* holds */
   acquireHold(roomId: string, checkIn: string, checkOut: string): HoldResult {

@@ -18,7 +18,6 @@ export interface CategoryDraft {
   /** Local id until the category is saved; the saved room's id replaces it. */
   id: string;
   name: string;
-  count: number;
 }
 
 export interface RoomDraft {
@@ -43,7 +42,7 @@ export const emptyProperty = (): PropertyDraft => ({
   rooms: 10,
 });
 
-export const newCategory = (patch: Partial<CategoryDraft> = {}): CategoryDraft => ({ id: newId(), name: '', count: 0, ...patch });
+export const newCategory = (patch: Partial<CategoryDraft> = {}): CategoryDraft => ({ id: newId(), name: '', ...patch });
 
 export type PropertyErrors = Partial<Record<'name' | 'code' | 'country' | 'city' | 'currency', string>>;
 
@@ -57,26 +56,21 @@ export function propertyErrors(p: PropertyDraft): PropertyErrors {
   return errors;
 }
 
-export const allocatedRooms = (categories: CategoryDraft[]): number => categories.reduce((sum, c) => sum + c.count, 0);
-
 export interface CategoryIssues {
   /** One message per category row, empty when the row is fine. */
   rows: string[];
-  allocated: number;
   valid: boolean;
 }
 
-/** A category needs a unique name and at least one room, and together the counts must equal the property's rooms. */
-export function categoryIssues(categories: CategoryDraft[], totalRooms: number): CategoryIssues {
+/** A category needs a unique name. How many rooms it has is decided on the floors, not here. */
+export function categoryIssues(categories: CategoryDraft[]): CategoryIssues {
   const names = categories.map((c) => c.name.trim().toLowerCase());
   const rows = categories.map((c, i) => {
     if (c.name.trim().length < 2) return 'Add a name';
     if (names.indexOf(names[i] as string) !== i) return 'Names must be unique';
-    if (c.count < 1) return 'Add at least one room';
     return '';
   });
-  const allocated = allocatedRooms(categories);
-  return { rows, allocated, valid: rows.every((r) => !r) && allocated === totalRooms };
+  return { rows, valid: categories.length > 0 && rows.every((r) => !r) };
 }
 
 export const roomsOnFloors = (floors: FloorRooms, floorCount: number): RoomDraft[] =>
@@ -91,14 +85,20 @@ export function placedByCategory(floors: FloorRooms, floorCount: number): Record
   return placed;
 }
 
-/** Spreads the property's rooms over its floors and links them to the categories in order. */
+/**
+ * Spreads the property's rooms over its floors and links them to the categories: the first share of rooms
+ * to the first category, the next to the second, and so on, as evenly as the total allows.
+ */
 export function autoFillFloors(floorCount: number, totalRooms: number, categories: CategoryDraft[]): FloorRooms {
   const perFloor = evenRoomsPerFloor(floorCount, totalRooms);
-  const queue = categories.flatMap((c) => Array.from({ length: c.count }, () => c.id));
+  const share = Math.max(categories.length, 1);
   let next = 0;
   const floors: FloorRooms = {};
   for (let floor = 1; floor <= floorCount; floor++) {
-    floors[floor] = Array.from({ length: perFloor[floor] ?? 0 }, () => ({ id: newId(), categoryId: queue[next++] ?? '' }));
+    floors[floor] = Array.from({ length: perFloor[floor] ?? 0 }, () => {
+      const category = categories[Math.min(Math.floor((next++ * share) / Math.max(totalRooms, 1)), share - 1)];
+      return { id: newId(), categoryId: category?.id ?? '' };
+    });
   }
   return floors;
 }
@@ -113,12 +113,10 @@ export function pruneFloors(floors: FloorRooms, floorCount: number, categories: 
   return pruned;
 }
 
-/** The first reason the floors cannot be saved yet, or null when they match the plan exactly. */
-export function floorsProblem(floors: FloorRooms, floorCount: number, categories: CategoryDraft[], totalRooms: number): string | null {
+/** The first reason the floors cannot be saved yet, or null when they hold exactly the property's rooms, each in a category. */
+export function floorsProblem(floors: FloorRooms, floorCount: number, totalRooms: number): string | null {
   const rooms = roomsOnFloors(floors, floorCount);
   if (rooms.length !== totalRooms) return `Place exactly ${totalRooms} rooms. ${rooms.length} are on the floors.`;
   if (rooms.some((r) => !r.categoryId)) return 'Choose a category for every room.';
-  const placed = placedByCategory(floors, floorCount);
-  const off = categories.find((c) => (placed[c.id] ?? 0) !== c.count);
-  return off ? `${off.name} needs exactly ${off.count} rooms. ${placed[off.id] ?? 0} are placed.` : null;
+  return null;
 }

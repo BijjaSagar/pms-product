@@ -1,4 +1,4 @@
-import type { GuestRow, PropertyRow, RoomTypeRow, TaxRuleRow } from '../lib/api/pms';
+import type { GuestRow, PropertyRow, RoomTypeRow } from '../lib/api/pms';
 
 /** The single fixed business date the entire static demo revolves around. */
 export const BUSINESS_DATE = '2026-10-17';
@@ -112,11 +112,6 @@ export const USERS: InternalUser[] = [
 ];
 
 export const CURRENT_USER_ID = 'u-1';
-
-export const TAX_RULES: TaxRuleRow[] = [
-  { id: 'tax-gst', code: 'GST', name: 'Goods & Services Tax', ratePercent: '12.00', appliesTo: 'ALL', isInclusive: false, isActive: true },
-  { id: 'tax-luxury', code: 'LUXURY', name: 'Luxury Tax', ratePercent: '2.00', appliesTo: 'ROOMS', isInclusive: false, isActive: false },
-];
 
 export const ROOM_TYPES: RoomTypeRow[] = [
   { id: 'standard', code: 'STD', name: 'Standard', description: 'Compact comfort room with a city view.', maxAdults: 2, maxChildren: 1, baseRate: '3500.00', amenities: ['City view', 'Queen bed', 'Free Wi-Fi', '24 m²'], isActive: true },
