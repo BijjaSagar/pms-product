@@ -1,12 +1,16 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
-import { roomListingApi } from '../../lib/api/pms';
+import { roomBedTypeApi, roomExtraBedTypeApi, roomListingApi } from '../../lib/api/pms';
 import type { MealPlanKey, RoomDetails, RoomInput } from '../../lib/api/pms';
+import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
 import { Button, TextArea, TextField } from '../../components/primitives';
 import { Field } from '../../components/controls';
+import { BedTypePicker } from './BedTypePicker';
+import type { BedSelection } from './BedTypePicker';
+import { ExtraBedTypePicker } from './ExtraBedTypePicker';
 import { MEAL_PLANS } from './mealPlanInfo';
 import { ToggleRow } from './SettingsKit';
 
@@ -115,6 +119,8 @@ interface OccupancyForm {
   maxChildren: string;
   defaultChildren: string;
   maxOccupancy: string;
+  bedTypes: BedSelection;
+  extraBedTypes: string[];
   syncCategoryOnOta: boolean;
   excludeFromRevenue: boolean;
   excludeFromOccupancy: boolean;
@@ -170,7 +176,54 @@ export function RoomCategoryDetails({
   const inclusions = useSection<string>((text) => patch({ inclusions: optionalText(text) }));
   const inclusionsText = inclusions.draft ?? room.inclusions ?? '';
 
-  const occupancy = useSection<OccupancyForm>((o) => {
+  // The bed type catalog is fixed on the backend; the room's own choices are the active entries.
+  const loadBedTypes = useCallback(() => roomBedTypeApi.list(propertyId, room.id), [propertyId, room.id]);
+  const bedResource = useApiResource(loadBedTypes, [propertyId, room.id]);
+  const bedCatalog = bedResource.data ?? [];
+  const savedBeds: BedSelection = Object.fromEntries(bedCatalog.filter((b) => b.isActive).map((b) => [b.code, b.beds]));
+
+  /** Sends only the bed types that differ from what is saved; true when they all went through. */
+  const saveBedTypes = async (wanted: BedSelection) => {
+    const changes = bedCatalog.flatMap((b) => {
+      const beds = wanted[b.code];
+      if (beds === undefined) return b.isActive ? [{ code: b.code, body: { isActive: false } }] : [];
+      return b.isActive && b.beds === beds ? [] : [{ code: b.code, body: { isActive: true, beds } }];
+    });
+    if (changes.length === 0) return true;
+    try {
+      await Promise.all(changes.map((c) => roomBedTypeApi.update(propertyId, room.id, c.code, c.body)));
+      return true;
+    } catch (err) {
+      toast('Could not save bed types', { detail: displayApiError(err), tone: 'danger' });
+      return false;
+    } finally {
+      bedResource.refresh();
+    }
+  };
+
+  const loadExtraBedTypes = useCallback(() => roomExtraBedTypeApi.list(propertyId, room.id), [propertyId, room.id]);
+  const extraBedResource = useApiResource(loadExtraBedTypes, [propertyId, room.id]);
+  const extraBedCatalog = extraBedResource.data ?? [];
+  const savedExtraBeds = extraBedCatalog.filter((b) => b.isActive).map((b) => b.code);
+
+  /** Sends only the extra bed types that differ from what is saved; true when they all went through. */
+  const saveExtraBedTypes = async (wanted: string[]) => {
+    const changes = extraBedCatalog.filter((b) => b.isActive !== wanted.includes(b.code));
+    if (changes.length === 0) return true;
+    try {
+      await Promise.all(
+        changes.map((b) => roomExtraBedTypeApi.update(propertyId, room.id, b.code, !b.isActive)),
+      );
+      return true;
+    } catch (err) {
+      toast('Could not save extra bed types', { detail: displayApiError(err), tone: 'danger' });
+      return false;
+    } finally {
+      extraBedResource.refresh();
+    }
+  };
+
+  const occupancy = useSection<OccupancyForm>(async (o) => {
     const base = optionalInt(o.baseOccupancy);
     const ideal = optionalInt(o.idealOccupancy);
     const adults = Number(o.maxAdults);
@@ -179,20 +232,21 @@ export function RoomCategoryDetails({
     const guests = Number(o.maxOccupancy);
     const whole = (n: number | null, min: number) => n === null || (Number.isInteger(n) && n >= min);
     if (!whole(adults, 1) || !whole(guests, 1) || !whole(children, 0) || !whole(defaultChildren, 0)) {
-      return Promise.resolve(warn('Check the guest numbers', 'Use whole numbers; adults and total guests need at least 1.'));
+      return warn('Check the guest numbers', 'Use whole numbers; adults and total guests need at least 1.');
     }
     if (!whole(base, 1) || !whole(ideal, 1)) {
-      return Promise.resolve(warn('Check the occupancy numbers', 'Use whole numbers of at least 1, or leave blank.'));
+      return warn('Check the occupancy numbers', 'Use whole numbers of at least 1, or leave blank.');
     }
     if (guests > adults + children) {
-      return Promise.resolve(warn('Total guests is too high', 'It cannot exceed max adults plus max children.'));
+      return warn('Total guests is too high', 'It cannot exceed max adults plus max children.');
     }
     if (base !== null && base > guests) {
-      return Promise.resolve(warn('Base occupancy is too high', 'It cannot exceed the total number of guests.'));
+      return warn('Base occupancy is too high', 'It cannot exceed the total number of guests.');
     }
     if (defaultChildren > children) {
-      return Promise.resolve(warn('Default children is too high', 'It cannot exceed max children.'));
+      return warn('Default children is too high', 'It cannot exceed max children.');
     }
+    if (!(await saveBedTypes(o.bedTypes)) || !(await saveExtraBedTypes(o.extraBedTypes))) return false;
     return patch({
       baseOccupancy: base,
       idealOccupancy: ideal,
@@ -213,6 +267,8 @@ export function RoomCategoryDetails({
     maxChildren: String(room.maxChildren),
     defaultChildren: String(room.defaultChildren),
     maxOccupancy: String(room.maxOccupancy),
+    bedTypes: savedBeds,
+    extraBedTypes: savedExtraBeds,
     syncCategoryOnOta: room.syncCategoryOnOta,
     excludeFromRevenue: room.excludeFromRevenue,
     excludeFromOccupancy: room.excludeFromOccupancy,
@@ -222,12 +278,16 @@ export function RoomCategoryDetails({
   const meals = useSection<MealPlanKey[]>((plans) => patch({ mealPlans: plans }));
   const mealPlans = meals.draft ?? room.mealPlans;
 
-  const number = (key: keyof OccupancyForm, label: string, hint?: string) => (
+  const number = (
+    key: 'baseOccupancy' | 'idealOccupancy' | 'maxAdults' | 'maxChildren' | 'defaultChildren' | 'maxOccupancy',
+    label: string,
+    hint?: string,
+  ) => (
     <Field label={label} hint={hint}>
       <TextField
         type="number"
         min={0}
-        value={occupancyForm[key] as string}
+        value={occupancyForm[key]}
         onChange={(e) => occupancy.setDraft({ ...occupancyForm, [key]: e.target.value })}
       />
     </Field>
@@ -324,6 +384,34 @@ export function RoomCategoryDetails({
           {number('maxChildren', 'Max children')}
           {number('defaultChildren', 'Default children')}
           {number('maxOccupancy', 'Total guests')}
+        </div>
+        <div className="mt-4">
+          <span className="pms-label mb-1.5 block">Bed types</span>
+          {bedResource.error ? (
+            <p role="alert" className="text-label text-danger-text">{bedResource.error}</p>
+          ) : bedResource.data ? (
+            <BedTypePicker
+              catalog={bedCatalog}
+              value={occupancyForm.bedTypes}
+              onChange={(bedTypes) => occupancy.setDraft({ ...occupancyForm, bedTypes })}
+            />
+          ) : (
+            <p className="text-label text-ink-muted">Loading bed types…</p>
+          )}
+        </div>
+        <div className="mt-4">
+          <span className="pms-label mb-1.5 block">Extra bed types</span>
+          {extraBedResource.error ? (
+            <p role="alert" className="text-label text-danger-text">{extraBedResource.error}</p>
+          ) : extraBedResource.data ? (
+            <ExtraBedTypePicker
+              catalog={extraBedCatalog}
+              value={occupancyForm.extraBedTypes}
+              onChange={(extraBedTypes) => occupancy.setDraft({ ...occupancyForm, extraBedTypes })}
+            />
+          ) : (
+            <p className="text-label text-ink-muted">Loading extra bed types…</p>
+          )}
         </div>
         <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
           {flag('syncCategoryOnOta', 'Sync category on OTA', 'Publish this category to connected channels')}
