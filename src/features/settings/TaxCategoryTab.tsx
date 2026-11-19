@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { adminApi } from '../../lib/api/pms';
+import { taxSetupApi } from '../../lib/api/pms';
 import type { TaxCategoryRow } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
@@ -86,7 +86,7 @@ function CategoryForm({
 }
 
 export function TaxCategoryTab({ canManage }: { canManage: boolean }) {
-  const load = useCallback(() => adminApi.taxCategories(), []);
+  const load = useCallback(() => taxSetupApi.categories(), []);
   const resource = useApiResource(load);
   // `undefined` is closed, `null` is adding, a row is editing it.
   const [editing, setEditing] = useState<TaxCategoryRow | null | undefined>(undefined);
@@ -96,8 +96,8 @@ export function TaxCategoryTab({ canManage }: { canManage: boolean }) {
 
   const save = async (name: string, description: string) => {
     try {
-      if (editing) await adminApi.updateTaxCategory(editing.id, { name, description });
-      else await adminApi.createTaxCategory({ name, description });
+      if (editing) await taxSetupApi.updateCategory(editing.id, { name, description });
+      else await taxSetupApi.createCategory({ name, description });
       resource.refresh();
       toast(editing ? 'Tax category updated' : 'Tax category added', { detail: name, tone: 'success' });
       setEditing(undefined);
@@ -109,7 +109,7 @@ export function TaxCategoryTab({ canManage }: { canManage: boolean }) {
   const remove = async () => {
     if (!deleting) return;
     try {
-      await adminApi.deleteTaxCategory(deleting.id);
+      await taxSetupApi.deleteCategory(deleting.id);
       resource.refresh();
       toast('Tax category deleted', { detail: deleting.name, tone: 'success' });
     } catch (err) {

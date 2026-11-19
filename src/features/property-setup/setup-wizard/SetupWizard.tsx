@@ -43,7 +43,7 @@ interface SetupWizardProps {
 export function SetupWizard({ exitAction, onDone }: SetupWizardProps) {
   const [step, setStep] = useState(0);
   const [property, setProperty] = useState<PropertyDraft>(emptyProperty);
-  const [categories, setCategories] = useState<CategoryDraft[]>(() => [newCategory({ count: emptyProperty().rooms })]);
+  const [categories, setCategories] = useState<CategoryDraft[]>(() => [newCategory()]);
   const [floors, setFloors] = useState<FloorRooms>({});
   const [tried, setTried] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -51,7 +51,7 @@ export function SetupWizard({ exitAction, onDone }: SetupWizardProps) {
   const progress = useRef<Progress>({ roomIds: {} });
 
   const errors = propertyErrors(property);
-  const categoryCheck = categoryIssues(categories, property.rooms);
+  const categoryCheck = categoryIssues(categories);
   const placed = roomsOnFloors(floors, property.floors).filter((r) => r.categoryId).length;
 
   const goTo = (next: number) => {
@@ -66,18 +66,13 @@ export function SetupWizard({ exitAction, onDone }: SetupWizardProps) {
       toast('A few details are missing', { detail: 'Please complete the highlighted fields.', tone: 'warning' });
       return;
     }
-    // One untouched category simply takes every room, the common case for a new property.
-    setCategories((list) => (list.length === 1 ? list.map((c) => ({ ...c, count: property.rooms })) : list));
     goTo(1);
   };
 
   const toFloors = () => {
     setTried(true);
     if (!categoryCheck.valid) {
-      toast('Room categories need attention', {
-        detail: categoryCheck.allocated === property.rooms ? 'Check the highlighted categories.' : `Categories must add up to exactly ${property.rooms} rooms.`,
-        tone: 'warning',
-      });
+      toast('Room categories need attention', { detail: 'Give every category a unique name.', tone: 'warning' });
       return;
     }
     // Keep what was drawn, but drop floors that no longer exist and unlink removed categories.
@@ -88,7 +83,7 @@ export function SetupWizard({ exitAction, onDone }: SetupWizardProps) {
   };
 
   const finish = async () => {
-    const problem = floorsProblem(floors, property.floors, categories, property.rooms);
+    const problem = floorsProblem(floors, property.floors, property.rooms);
     if (problem) {
       setFailure(problem);
       toast('The floors are not complete', { detail: problem, tone: 'warning' });
@@ -119,7 +114,6 @@ export function SetupWizard({ exitAction, onDone }: SetupWizardProps) {
         const room = await roomListingApi.create(propertyId, {
           name: c.name.trim(),
           baseRate: 0,
-          roomCount: c.count,
           allowExtraBeds: false,
           maxAdults: DEFAULT_GUESTS,
           maxChildren: 0,
@@ -180,7 +174,7 @@ export function SetupWizard({ exitAction, onDone }: SetupWizardProps) {
             {step === 0 && (
               <PropertyStep value={property} onChange={(patch) => setProperty((p) => ({ ...p, ...patch }))} errors={tried ? errors : {}} />
             )}
-            {step === 1 && <CategoriesStep categories={categories} totalRooms={property.rooms} onChange={setCategories} showErrors={tried} />}
+            {step === 1 && <CategoriesStep categories={categories} onChange={setCategories} showErrors={tried} />}
             {step === 2 && (
               <FloorsStep floorCount={property.floors} floors={floors} categories={categories} totalRooms={property.rooms} onChange={setFloors} />
             )}
@@ -204,7 +198,7 @@ export function SetupWizard({ exitAction, onDone }: SetupWizardProps) {
               </Button>
             )}
             {step === 1 && (
-              <Button variant="primary" className="max-sm:flex-1" onClick={toFloors} disabled={categoryCheck.allocated !== property.rooms}>
+              <Button variant="primary" className="max-sm:flex-1" onClick={toFloors}>
                 Continue <Lucide.ArrowRight size={14} />
               </Button>
             )}

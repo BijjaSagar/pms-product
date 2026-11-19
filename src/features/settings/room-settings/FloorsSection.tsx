@@ -164,11 +164,8 @@ export function FloorsSection({
     setPicked(null);
   };
 
-  // An offering can fill only as many boxes as it has units; the box being edited keeps its own choice.
-  const currentId = picked ? (plan.assigned[boxKey(picked.floor, picked.index)] ?? '') : '';
-  const options = rooms.filter((r) => r.id === currentId || assignedTo(r.id) < r.roomCount);
-  const unavailable = rooms.filter((r) => !options.includes(r));
-  const leftOf = (r: RoomDetails) => r.roomCount - assignedTo(r.id) + (r.id === currentId ? 1 : 0);
+  // A category can fill as many rooms as the property has, so every one is offered.
+  const options = rooms;
 
   return (
     <>
@@ -403,7 +400,7 @@ export function FloorsSection({
                     <span className="block truncate text-body font-semibold text-ink">{r.name}</span>
                     <span className="block truncate text-label text-ink-secondary">{r.category?.name ?? 'No bed type'}</span>
                   </span>
-                  <Badge tone="neutral" size="sm">{leftOf(r)} left</Badge>
+                  <Badge tone="neutral" size="sm">{assignedTo(r.id)} {assignedTo(r.id) === 1 ? 'room' : 'rooms'}</Badge>
                 </label>
               );
             })}
@@ -411,10 +408,6 @@ export function FloorsSection({
             {rooms.length === 0 ? (
               <p className="rounded-xl bg-muted-surface px-3 py-2.5 text-label text-ink-secondary">
                 This property has no room offerings yet, so there is nothing to link.
-              </p>
-            ) : unavailable.length > 0 ? (
-              <p className="px-1 pt-1 text-label text-ink-muted">
-                Fully placed and not shown: {unavailable.map((r) => r.name).join(', ')}.
               </p>
             ) : null}
           </div>

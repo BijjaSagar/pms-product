@@ -12,10 +12,12 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "@tinymce/tinymce-react": "^6.3.1",
     "lucide-react": "^1.57.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "tinymce": "^8.10.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

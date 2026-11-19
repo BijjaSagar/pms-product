@@ -1,17 +1,36 @@
-import { useCallback, useState } from 'react';
+import { Suspense, lazy, useCallback, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { propertyTermsApi } from '../../lib/api/pms';
 import type { PropertyTermsDetails } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
-import { TextArea } from '../../components/primitives';
 import { Field } from '../../components/controls';
 import { Card, CardTitle } from '../../components/ui';
 import { PanelLoadState } from '../../components/Skeleton';
 import { ReadOnlyNotice, SettingsHeader, ToggleRow, UnsavedBar } from './SettingsKit';
 
-const MAX_LENGTH = 10_000;
+// The editor is large, so it is only fetched once someone opens this tab.
+const RichTextEditor = lazy(() => import('./RichTextEditor').then((m) => ({ default: m.RichTextEditor })));
+
+/** Counts the HTML the editor writes, markup included; the same limit as the backend. */
+const MAX_LENGTH = 20_000;
+
+/** True when the editor holds no text, such as an empty paragraph left behind after clearing it. */
+const isBlank = (html: string) => html.replace(/<[^>]*>|&nbsp;/g, '').trim() === '';
+
+const escapeHtml = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/** Text saved before the editor existed is plain; it is shown as paragraphs so its line breaks survive. */
+const toEditorHtml = (text: string | null): string => {
+  const value = text ?? '';
+  if (/<\/?[a-z][\s\S]*>/i.test(value)) return value;
+  return value
+    .split(/\n{2,}/)
+    .filter((part) => part.trim() !== '')
+    .map((part) => `<p>${escapeHtml(part.trim()).replace(/\n/g, '<br>')}</p>`)
+    .join('');
+};
 
 interface TermsBlock {
   enabledKey: 'includeInclusions' | 'includeBookingTerms' | 'includeCheckInTerms';
@@ -55,11 +74,11 @@ type FormState = Record<TermsBlock['enabledKey'], boolean> & Record<TermsBlock['
 
 const toForm = (terms: PropertyTermsDetails): FormState => ({
   includeInclusions: terms.includeInclusions,
-  inclusions: terms.inclusions ?? '',
+  inclusions: toEditorHtml(terms.inclusions),
   includeBookingTerms: terms.includeBookingTerms,
-  bookingTerms: terms.bookingTerms ?? '',
+  bookingTerms: toEditorHtml(terms.bookingTerms),
   includeCheckInTerms: terms.includeCheckInTerms,
-  checkInTerms: terms.checkInTerms ?? '',
+  checkInTerms: toEditorHtml(terms.checkInTerms),
 });
 
 function TermsForm({
@@ -80,20 +99,26 @@ function TermsForm({
   const dirty = JSON.stringify(form) !== JSON.stringify(baseline);
 
   const handleSave = async () => {
-    const empty = BLOCKS.find((block) => form[block.enabledKey] && form[block.textKey].trim() === '');
+    const empty = BLOCKS.find((block) => form[block.enabledKey] && isBlank(form[block.textKey]));
     if (empty) {
       toast('Write the text or untick the box', { detail: empty.switchLabel, tone: 'warning' });
       return;
     }
+    const tooLong = BLOCKS.find((block) => form[block.textKey].length > MAX_LENGTH);
+    if (tooLong) {
+      toast('That text is too long', { detail: `${tooLong.title} can hold up to ${MAX_LENGTH.toLocaleString('en-US')} characters.`, tone: 'warning' });
+      return;
+    }
+    const clean = (block: TermsBlock) => (isBlank(form[block.textKey]) ? '' : form[block.textKey].trim());
     setSaving(true);
     try {
       const saved = await propertyTermsApi.save(propertyId, {
         includeInclusions: form.includeInclusions,
-        inclusions: form.inclusions.trim(),
+        inclusions: clean(BLOCKS[0]),
         includeBookingTerms: form.includeBookingTerms,
-        bookingTerms: form.bookingTerms.trim(),
+        bookingTerms: clean(BLOCKS[1]),
         includeCheckInTerms: form.includeCheckInTerms,
-        checkInTerms: form.checkInTerms.trim(),
+        checkInTerms: clean(BLOCKS[2]),
       });
       const next = toForm(saved);
       setForm(next);
@@ -127,13 +152,19 @@ function TermsForm({
                     onChange={(checked) => setForm((prev) => ({ ...prev, [block.enabledKey]: checked }))}
                   />
                   {enabled ? (
-                    <Field label={block.editorLabel.replace(/:$/, '')} hint={`${text.length.toLocaleString('en-US')} / ${MAX_LENGTH.toLocaleString('en-US')} characters`}>
-                      <TextArea
-                        rows={8}
-                        value={text}
-                        onChange={(e) => setForm((prev) => ({ ...prev, [block.textKey]: e.target.value.slice(0, MAX_LENGTH) }))}
-                        className="min-h-[160px] w-full font-normal"
-                      />
+                    <Field
+                      label={block.editorLabel.replace(/:$/, '')}
+                      hint={`${text.length.toLocaleString('en-US')} / ${MAX_LENGTH.toLocaleString('en-US')} characters, formatting included`}
+                      error={text.length > MAX_LENGTH ? 'This is over the limit. Shorten the text to save.' : undefined}
+                    >
+                      <Suspense fallback={<div className="h-[280px] animate-pulse rounded-xl bg-muted-surface" aria-label="Loading editor" />}>
+                        <RichTextEditor
+                          label={block.editorLabel.replace(/:$/, '')}
+                          value={text}
+                          disabled={!canEdit}
+                          onChange={(html) => setForm((prev) => ({ ...prev, [block.textKey]: html }))}
+                        />
+                      </Suspense>
                     </Field>
                   ) : null}
                 </div>

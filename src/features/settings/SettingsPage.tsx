@@ -126,9 +126,9 @@ export function Settings({
       return <ComingSoon title={activeItem?.label ?? 'Settings'} onBack={() => setActiveTab('general')} />;
     }
     if (activeTab === 'policies') return <PoliciesTab />;
-    if (activeTab === 'tax-category') return <TaxCategoryTab canManage={can('role.manage')} />;
-    if (activeTab === 'tax-rule') return <TaxRuleTab canManage={can('role.manage')} />;
-    if (activeTab === 'general-tax-setting') return <TaxGeneralSettingTab canManage={can('role.manage')} />;
+    if (activeTab === 'tax-category') return <TaxCategoryTab canManage={canEditProperty} />;
+    if (activeTab === 'tax-rule') return <TaxRuleTab canManage={canEditProperty} />;
+    if (activeTab === 'general-tax-setting') return <TaxGeneralSettingTab canManage={canEditProperty} />;
     if (activeTab === 'general') {
       if (property) {
         return (

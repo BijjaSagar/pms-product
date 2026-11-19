@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { adminApi } from '../../lib/api/pms';
+import { taxSetupApi } from '../../lib/api/pms';
 import type { TaxComputation, TaxGeneralSettings } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
@@ -57,7 +57,7 @@ function GeneralTaxForm({
     setSaving(true);
     try {
       const body = { ...form, sacRoomCode: form.sacRoomCode.trim() };
-      await adminApi.saveTaxGeneralSettings(body);
+      await taxSetupApi.saveGeneralSettings(body);
       setForm(body);
       setBaseline(body);
       onSaved();
@@ -145,7 +145,7 @@ function GeneralTaxForm({
 }
 
 export function TaxGeneralSettingTab({ canManage }: { canManage: boolean }) {
-  const load = useCallback(() => adminApi.taxGeneralSettings(), []);
+  const load = useCallback(() => taxSetupApi.generalSettings(), []);
   const resource = useApiResource(load);
 
   if (!resource.data) return <PanelLoadState error={resource.error} label="Loading tax settings" />;

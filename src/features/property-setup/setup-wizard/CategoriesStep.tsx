@@ -1,61 +1,39 @@
 import * as Lucide from 'lucide-react';
-import { BrandField, BrandStepper } from '../../../components/brand/BrandControls';
+import { BrandField } from '../../../components/brand/BrandControls';
 import { Button } from '../../../components/primitives';
-import { CARD, FIELD, FIELD_INVALID, HEADING, LABEL } from '../../../components/brand/brandStyles';
+import { CARD, FIELD, FIELD_INVALID } from '../../../components/brand/brandStyles';
 import { categoryTone } from '../categoryTones';
-import { MAX_ROOMS, allocatedRooms, categoryIssues, newCategory } from './draft';
+import { categoryIssues, newCategory } from './draft';
 import type { CategoryDraft } from './draft';
 
 const QUICK_ADD = ['Standard', 'Deluxe', 'Super Deluxe', 'Suite', 'Family', 'Executive'];
 
 interface CategoriesStepProps {
   categories: CategoryDraft[];
-  totalRooms: number;
   onChange: (next: CategoryDraft[]) => void;
   /** Only true once the user has tried to continue, so untouched rows do not show errors. */
   showErrors: boolean;
 }
 
-/** Step 2: split the property's rooms into categories such as Standard or Suite. */
-export function CategoriesStep({ categories, totalRooms, onChange, showErrors }: CategoriesStepProps) {
-  const issues = categoryIssues(categories, totalRooms);
-  const left = totalRooms - issues.allocated;
+/** Step 2: name the room categories (Standard, Suite…). How many rooms each has is set on the floors in step 3. */
+export function CategoriesStep({ categories, onChange, showErrors }: CategoriesStepProps) {
+  const issues = categoryIssues(categories);
   const update = (id: string, patch: Partial<CategoryDraft>) => onChange(categories.map((c) => (c.id === id ? { ...c, ...patch } : c)));
-  const add = (name = '') => onChange([...categories, newCategory({ name, count: Math.max(left, 0) > 0 ? 1 : 0 })]);
+  const add = (name = '') => onChange([...categories, newCategory({ name })]);
 
   return (
     <div className="flex flex-col gap-3">
-      <section className={`${CARD} p-4`} aria-label="Rooms allocated">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className={LABEL}>Rooms allocated</p>
-            <p className={`tnum mt-1 text-[28px] font-semibold leading-none text-ink ${HEADING}`}>
-              {issues.allocated}
-              <span className="text-ink-muted"> / {totalRooms}</span>
-            </p>
-          </div>
-          <span
-            role="status"
-            className={`rounded-full px-3 py-1 text-[12px] font-semibold ${
-              left === 0 ? 'bg-success-bg text-success-text' : left < 0 ? 'bg-danger-bg text-danger-text' : 'bg-muted-surface text-ink-secondary'
-            }`}
-          >
-            {left === 0 ? 'All rooms allocated' : left < 0 ? `${-left} too many` : `${left} left to allocate`}
-          </span>
-        </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted-surface" aria-hidden="true">
-          <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${Math.min(100, (issues.allocated / totalRooms) * 100)}%` }} />
-        </div>
-      </section>
+      <p className="px-1 text-[13px] text-ink-secondary">
+        Name the kinds of rooms you offer. You will choose how many rooms each category has when you lay out the floors.
+      </p>
 
       <ul className="flex flex-col gap-2.5">
         {categories.map((c, i) => {
           const error = showErrors ? issues.rows[i] : '';
-          const room = Math.max(totalRooms - (allocatedRooms(categories) - c.count), 0);
           return (
             <li key={c.id} className={`${CARD} relative flex items-start gap-3 p-3`}>
               <span className={`mt-[3px] h-2.5 w-2.5 flex-none rounded-full sm:mt-[34px] ${categoryTone(i).dot}`} aria-hidden="true" />
-              <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_180px]">
+              <div className="min-w-0 flex-1">
                 <BrandField label={`Category ${i + 1}`} error={error}>
                   <input
                     className={error ? FIELD_INVALID : FIELD}
@@ -64,9 +42,6 @@ export function CategoriesStep({ categories, totalRooms, onChange, showErrors }:
                     placeholder="e.g. Deluxe"
                     onChange={(e) => update(c.id, { name: e.target.value })}
                   />
-                </BrandField>
-                <BrandField label="No. of rooms">
-                  <BrandStepper label={`Rooms in ${c.name || `category ${i + 1}`}`} value={c.count} min={0} max={Math.min(room, MAX_ROOMS)} onChange={(count) => update(c.id, { count })} />
                 </BrandField>
               </div>
               <button

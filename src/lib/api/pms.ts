@@ -174,6 +174,7 @@ export interface TaxSetupRuleRow {
   id: string; name: string; description: string; startDate: string; endDate: string;
   categoryId: string; components: TaxComponent[];
 }
+/** A rule as it is saved: the slabs' ids belong to the server, so they are not sent. */
 export type TaxSetupRuleInput = Omit<TaxSetupRuleRow, 'id'>;
 /** How tax is worked out: recomputed here under the composite supply concept, or taken as the OTA sent it. */
 export type TaxComputation = 'COMPOSITE_SUPPLY' | 'OTA_VOUCHER';
@@ -185,7 +186,6 @@ export interface TaxGeneralSettings {
   applyRoomSlabOnExtraBed: boolean;
   showPropertyGstNo: boolean;
 }
-export interface TaxRuleRow { id: string; code: string; name: string; ratePercent: string; appliesTo: string; isInclusive: boolean; isActive: boolean }
 export interface AuditEventRow {
   id: string; action: string; resourceType: string; resourceId: string | null; outcome: string;
   reason: string | null; actorName: string | null; createdAt: string;
@@ -572,7 +572,7 @@ export interface RoomDetails {
   category: { id: string; name: string; bedSetup: string } | null;
   name: string;
   description: string | null;
-  /** Number of physical rooms of this offering. */
+  /** Number of physical rooms of this category: the floor-plan rooms assigned to it (read-only). */
   roomCount: number;
   allowExtraBeds: boolean;
   maxAdults: number;
@@ -611,7 +611,6 @@ export interface RoomInput {
   baseRate: number;
   /** Send null to clear. */
   description?: string | null;
-  roomCount: number;
   categoryId?: string | null;
   allowExtraBeds: boolean;
   maxAdults: number;
@@ -1358,20 +1357,53 @@ export const nightAuditApi = {
   reopen: async (date: string, reason: string) => store.nightAuditReopen(date, reason),
 };
 
-export const adminApi = {
-  taxRules: async () => store.taxRules(),
-  createTaxRule: async (body: Record<string, unknown>) => store.createTaxRule(body),
-  updateTaxRule: async (id: string, body: Record<string, unknown>) => store.updateTaxRule(id, body),
-  taxCategories: async () => store.taxCategories(),
-  createTaxCategory: async (body: { name: string; description: string }) => store.createTaxCategory(body),
-  updateTaxCategory: async (id: string, body: { name: string; description: string }) => store.updateTaxCategory(id, body),
-  deleteTaxCategory: async (id: string) => store.deleteTaxCategory(id),
-  taxGeneralSettings: async () => store.taxGeneralSettings(),
-  saveTaxGeneralSettings: async (body: TaxGeneralSettings) => store.saveTaxGeneralSettings(body),
-  taxSetupRules: async () => store.taxSetupRules(),
-  createTaxSetupRule: async (body: TaxSetupRuleInput) => store.createTaxSetupRule(body),
-  updateTaxSetupRule: async (id: string, body: TaxSetupRuleInput) => store.updateTaxSetupRule(id, body),
-  deleteTaxSetupRule: async (id: string) => store.deleteTaxSetupRule(id),
+/** A tax rule as the backend returns it: an open-ended rule has a null end date, the screens use ''. */
+type BackendTaxRule = Omit<TaxSetupRuleRow, 'endDate'> & { endDate: string | null };
+
+const toTaxRuleRow = (rule: BackendTaxRule): TaxSetupRuleRow => ({ ...rule, endDate: rule.endDate ?? '' });
+
+/** The body the backend takes: no slab ids (it assigns them), amounts with two decimals, no end date as null. */
+const toTaxRuleBody = (rule: TaxSetupRuleInput) => ({
+  name: rule.name,
+  description: rule.description,
+  startDate: rule.startDate,
+  endDate: rule.endDate || null,
+  categoryId: rule.categoryId,
+  components: rule.components.map((component) => ({
+    code: component.code,
+    appliedOn: component.appliedOn,
+    slabs: component.slabs.map((slab) => ({
+      from: money(slab.from),
+      to: money(slab.to),
+      valueType: slab.valueType,
+      value: money(slab.value),
+    })),
+  })),
+});
+
+/** Tax categories, rules and general settings of the active property. Reading is open; changing is SUPER_ADMIN only. */
+export const taxSetupApi = {
+  categories: async () => apiRequest<TaxCategoryRow[]>(`/${requireActivePropertyId()}/tax-categories`),
+  createCategory: async (body: { name: string; description: string }) =>
+    apiRequest<TaxCategoryRow>(`/${requireActivePropertyId()}/tax-categories`, { method: 'POST', body }),
+  updateCategory: async (id: string, body: { name: string; description: string }) =>
+    apiRequest<TaxCategoryRow>(`/${requireActivePropertyId()}/tax-categories/${id}`, { method: 'PATCH', body }),
+  deleteCategory: async (id: string) =>
+    apiRequest<void>(`/${requireActivePropertyId()}/tax-categories/${id}`, { method: 'DELETE' }),
+  rules: async () =>
+    (await apiRequest<BackendTaxRule[]>(`/${requireActivePropertyId()}/tax-rules`)).map(toTaxRuleRow),
+  createRule: async (body: TaxSetupRuleInput) =>
+    toTaxRuleRow(
+      await apiRequest<BackendTaxRule>(`/${requireActivePropertyId()}/tax-rules`, { method: 'POST', body: toTaxRuleBody(body) }),
+    ),
+  updateRule: async (id: string, body: TaxSetupRuleInput) =>
+    toTaxRuleRow(
+      await apiRequest<BackendTaxRule>(`/${requireActivePropertyId()}/tax-rules/${id}`, { method: 'PATCH', body: toTaxRuleBody(body) }),
+    ),
+  deleteRule: async (id: string) => apiRequest<void>(`/${requireActivePropertyId()}/tax-rules/${id}`, { method: 'DELETE' }),
+  generalSettings: async () => apiRequest<TaxGeneralSettings>(`/${requireActivePropertyId()}/tax-settings`),
+  saveGeneralSettings: async (body: TaxGeneralSettings) =>
+    apiRequest<TaxGeneralSettings>(`/${requireActivePropertyId()}/tax-settings`, { method: 'PUT', body }),
 };
 
 /** A user as the backend returns them. The password hash never leaves the server. */

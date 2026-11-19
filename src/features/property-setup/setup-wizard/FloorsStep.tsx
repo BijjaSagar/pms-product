@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { BrandStepper } from '../../../components/brand/BrandControls';
 import { Button } from '../../../components/primitives';
@@ -30,19 +29,24 @@ interface FloorCardProps {
 }
 
 function FloorCard({ floor, rooms, categories, roomsLeft, defaultCategoryId, onChange }: FloorCardProps) {
-  const [quantity, setQuantity] = useState(1);
   const toneOf = (categoryId: string) => {
     const index = categories.findIndex((c) => c.id === categoryId);
     return index < 0 ? NO_CATEGORY_TONE : categoryTone(index);
   };
 
-  const addRooms = () => {
-    const count = Math.min(quantity, roomsLeft, MAX_ROOMS_PER_FLOOR - rooms.length);
-    if (count <= 0) {
-      toast('No rooms left to add', { detail: 'Every room of the property is already on a floor.', tone: 'warning' });
-      return;
+  // The stepper is the floor's room count: raising it adds rooms at the end, lowering it removes from the end.
+  const setCount = (next: number) => {
+    if (next > rooms.length) {
+      const count = Math.min(next - rooms.length, roomsLeft);
+      if (count <= 0) {
+        toast('No rooms left to add', { detail: 'Every room of the property is already on a floor.', tone: 'warning' });
+        return;
+      }
+      const categoryId = rooms[rooms.length - 1]?.categoryId || defaultCategoryId;
+      onChange([...rooms, ...Array.from({ length: count }, () => ({ id: newId(), categoryId }))]);
+    } else {
+      onChange(rooms.slice(0, Math.max(next, 0)));
     }
-    onChange([...rooms, ...Array.from({ length: count }, () => ({ id: newId(), categoryId: defaultCategoryId }))]);
   };
 
   return (
@@ -52,18 +56,20 @@ function FloorCard({ floor, rooms, categories, roomsLeft, defaultCategoryId, onC
           <span className={`flex h-9 w-9 items-center justify-center rounded-xl border border-primary/25 bg-white text-[15px] font-bold text-primary ${HEADING}`}>{floor}</span>
           <div>
             <h3 className={`text-[16px] font-semibold leading-tight tracking-[-0.02em] text-ink ${HEADING}`}>Floor {floor}</h3>
-            <p className="text-[12px] text-ink-secondary">
-              {rooms.length} {rooms.length === 1 ? 'room' : 'rooms'}
-            </p>
+            <p className="text-[12px] text-ink-secondary">Rooms on this floor</p>
           </div>
         </div>
 
-        {/* On phones: stepper, Add room and clear on one row, "Set all to…" on its own full-width row. */}
+        {/* On phones: stepper and clear on one row, "Set all to…" on its own full-width row. */}
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-          <BrandStepper label={`Rooms to add on floor ${floor}`} value={quantity} min={1} max={MAX_ROOMS_PER_FLOOR} onChange={setQuantity} className="!w-28 sm:!w-24" />
-          <Button variant="primary" className="max-sm:flex-1 max-sm:justify-center" icon={<Lucide.Plus size={14} />} onClick={addRooms}>
-            Add room
-          </Button>
+          <BrandStepper
+            label={`Number of rooms on floor ${floor}`}
+            value={rooms.length}
+            min={0}
+            max={Math.min(MAX_ROOMS_PER_FLOOR, rooms.length + roomsLeft)}
+            onChange={setCount}
+            className="!w-28 max-sm:flex-1 sm:!w-24"
+          />
           <span className="relative max-sm:order-last max-sm:w-full">
             <select
               aria-label={`Set every room on floor ${floor} to a category`}
@@ -98,7 +104,7 @@ function FloorCard({ floor, rooms, categories, roomsLeft, defaultCategoryId, onC
       {rooms.length === 0 ? (
         <div className="m-4 flex flex-col items-center gap-1 rounded-2xl border border-dashed border-border py-8 text-center">
           <Lucide.Plus size={20} className="text-ink-muted" aria-hidden="true" />
-          <p className="text-[13px] text-ink-secondary">No rooms yet — add the first room on this floor</p>
+          <p className="text-[13px] text-ink-secondary">No rooms yet — set the number of rooms on this floor</p>
         </div>
       ) : (
         <ul className="grid grid-cols-1 gap-2 p-3 md:grid-cols-2 xl:grid-cols-4">
@@ -145,14 +151,14 @@ function FloorCard({ floor, rooms, categories, roomsLeft, defaultCategoryId, onC
   );
 }
 
-/** Step 3: one card per floor; every room gets a category, and the totals must match the plan exactly. */
+/** Step 3: one card per floor with its room count; every room gets a category, and the floors must hold exactly the property's rooms. */
 export function FloorsStep({ floorCount, floors, categories, totalRooms, onChange }: FloorsStepProps) {
   const all = roomsOnFloors(floors, floorCount);
   const placedPer = placedByCategory(floors, floorCount);
   const placed = all.filter((r) => r.categoryId).length;
   const roomsLeft = Math.max(totalRooms - all.length, 0);
-  // New rooms start in the first category that still has rooms to place.
-  const defaultCategoryId = categories.find((c) => (placedPer[c.id] ?? 0) < c.count)?.id ?? '';
+  // New rooms start in the category of the floor's last room, or else the first named category.
+  const defaultCategoryId = categories.find((c) => c.name.trim())?.id ?? '';
   const percent = Math.min(100, (placed / totalRooms) * 100);
 
   return (
@@ -175,15 +181,13 @@ export function FloorsStep({ floorCount, floors, categories, totalRooms, onChang
 
           <ul className="flex min-w-0 flex-1 flex-wrap gap-1.5">
             {categories.map((c, i) => {
-              const done = (placedPer[c.id] ?? 0) === c.count;
               return (
                 <li key={c.id} className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-semibold ${categoryTone(i).tile}`}>
                   <span className={`h-2 w-2 rounded-full ${categoryTone(i).dot}`} aria-hidden="true" />
                   {c.name.trim() || `Category ${i + 1}`}
                   <span className="tnum">
-                    {placedPer[c.id] ?? 0}/{c.count}
+                    {placedPer[c.id] ?? 0} {(placedPer[c.id] ?? 0) === 1 ? 'room' : 'rooms'}
                   </span>
-                  {done && <Lucide.CheckCircle2 size={13} aria-label="Complete" />}
                 </li>
               );
             })}
