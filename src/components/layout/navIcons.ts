@@ -20,7 +20,6 @@ export const NAV_ICONS: Record<ViewId, Lucide.LucideIcon> = {
   'occupancy-report': Lucide.Percent,
   'revenue-report': Lucide.TrendingUp,
   'arrivals-departures': Lucide.ArrowLeftRight,
-  'staff-roles': Lucide.UserCog,
   settings: Lucide.Settings,
 };
 

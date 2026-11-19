@@ -13,14 +13,27 @@ export interface PropertyMembership {
   property: { id: string; name: string; slug: string; timezone: string; currencyCode: string };
 }
 
+export type UserRoleKey = 'SUPER_ADMIN' | 'STAFF';
+
 export interface AuthMe {
   user: {
     id: string;
     email: string;
     fullName: string;
     status: string;
+    role: UserRoleKey;
+    /** True until the user replaces a password a super admin set for them; the API refuses everything else meanwhile. */
+    mustChangePassword: boolean;
+    /** Every property a SUPER_ADMIN can open; for STAFF, the ones assigned to them. */
     propertyMemberships: PropertyMembership[];
   };
+  activePropertyId: string | null;
+  permissions: string[];
+}
+
+/** What the demo store knows about the session; the real account fields are added by `authApi.me`. */
+export interface DemoSession {
+  user: Omit<AuthMe['user'], 'role' | 'mustChangePassword'>;
   activePropertyId: string | null;
   permissions: string[];
 }
@@ -59,7 +72,9 @@ export interface GuestRow {
 }
 export interface ReservationRoomRow {
   id: string; roomTypeId: string; roomId?: string | null; roomNumber?: string | null;
-  roomTypeName?: string | null; nightlyRate: string; ratePlanName?: string | null;
+  roomTypeName?: string | null;
+  /** What the API calls the room offering; the adapter copies them to roomTypeId / roomTypeName. */
+  roomListingId?: string; roomListingName?: string | null; nightlyRate: string; ratePlanName?: string | null;
   baseRate?: string; subtotal?: string; taxAmount?: string;
   adults?: number; children?: number; infants?: number; mealPlanName?: string | null; billingRoute?: string | null;
   occupants?: Array<{ id: string; name: string; role: string }>;
@@ -86,6 +101,7 @@ export interface ReservationRow {
   discountAmount?: string; paid?: number; paidAmount?: string;
   sourceType?: string | null; sourceContactNumber?: string | null; bookingCategory?: string | null;
   checkInTime?: string | null; checkOutTime?: string | null;
+  version?: number; createdAt?: string; cancellationPenaltyAmount?: string | null;
 }
 export interface StayRow extends ReservationRow {
   guestId?: string | null;
@@ -147,11 +163,6 @@ export interface HousekeepingReportRow {
   roomsTouched: number; roomsTotal: number;
   byType: Array<{ type: string; total: number; completed: number; blocked: number }>;
 }
-export interface UserRow {
-  userId: string; email: string; fullName: string; status: 'ACTIVE' | 'INVITED' | 'DISABLED'; lastLoginAt?: string | null;
-  membershipActive: boolean; invitePending: boolean; inviteExpired: boolean; propertyId: string; roleKey: string; roleName: string;
-}
-export interface RoleRow { id: string; key: string; name: string; description?: string | null; isSystem: boolean; isActive: boolean; permissions: string[]; memberCount: number }
 export interface TaxCategoryRow { id: string; name: string; description: string }
 export type TaxComponentCode = 'CGST' | 'SGST';
 export type TaxAppliedOn = 'ROOM_TARIFF' | 'TOTAL_AMOUNT';
@@ -192,18 +203,17 @@ interface LoginResponse {
   tokenType: 'Bearer';
 }
 
-type BackendRole = 'ADMIN' | 'STAFF';
-
 interface BackendMe {
   id: string;
   email: string;
   name: string;
-  role: BackendRole;
-  /** The one property a STAFF user belongs to; null for ADMIN. */
-  propertyId: string | null;
+  role: UserRoleKey;
+  /** The properties a STAFF user is assigned to; empty for SUPER_ADMIN, who can use every property. */
+  propertyIds: string[];
+  mustChangePassword: boolean;
 }
 
-/** What `GET /properties` returns: every property for ADMIN, only their own for STAFF. */
+/** What `GET /properties` returns: every property for SUPER_ADMIN, only the assigned ones for STAFF. */
 interface BackendProperty {
   id: string;
   name: string;
@@ -214,19 +224,32 @@ interface BackendProperty {
   isActive: boolean;
 }
 
-const ROLE_LABELS: Record<BackendRole, { id: string; key: string; name: string; description: string }> = {
-  ADMIN: { id: 'role-admin', key: 'admin', name: 'Administrator', description: 'Manages every property.' },
-  STAFF: { id: 'role-staff', key: 'staff', name: 'Staff', description: 'Works at one property.' },
+const ROLE_LABELS: Record<UserRoleKey, { id: string; key: string; name: string; description: string }> = {
+  SUPER_ADMIN: { id: 'role-super-admin', key: 'super_admin', name: 'Super Admin', description: 'Manages every property and user.' },
+  STAFF: { id: 'role-staff', key: 'staff', name: 'Staff', description: 'Works at the properties assigned to them.' },
 };
 
-/** An ADMIN's choice of property for this browser tab; STAFF never use it. */
+/** The property chosen for this browser tab. The server decides what the user may open; this only remembers the choice. */
 const ACTIVE_PROPERTY_KEY = 'pms.activePropertyId';
 
 /**
+ * The property to open straight away, or null to show Choose a property. A choice already made in
+ * this tab wins; otherwise a STAFF user with exactly one property goes straight in. A SUPER_ADMIN
+ * always chooses, so they can add properties, and may open one that is inactive to fix or reactivate it.
+ */
+function pickActiveProperty(role: UserRoleKey, properties: BackendProperty[]): string | null {
+  const usable = properties.filter((p) => role === 'SUPER_ADMIN' || p.isActive);
+  const saved = sessionStorage.getItem(ACTIVE_PROPERTY_KEY);
+  if (saved && usable.some((p) => p.id === saved)) return saved;
+  return role === 'STAFF' && usable.length === 1 ? (usable[0]?.id ?? null) : null;
+}
+
+/**
  * Authentication and property access are real (backend `/auth/*` and
- * `/properties`): a STAFF user only ever sees their own property, an ADMIN
- * picks one. Permissions and all other data are not on the backend yet, so they
- * still come from the demo store, which is presented as the active property.
+ * `/properties`): a STAFF user only ever sees the properties assigned to them,
+ * a SUPER_ADMIN sees every property. Permissions and the demo-only screens are
+ * not on the backend yet, so they still come from the demo store, which is
+ * presented as the active property.
  */
 export const authApi = {
   login: async (email: string, password: string) => {
@@ -237,24 +260,14 @@ export const authApi = {
     saveAccessToken(accessToken);
   },
   me: async (): Promise<AuthMe> => {
-    const [user, properties] = await Promise.all([
-      apiRequest<BackendMe>('/auth/me'),
-      apiRequest<BackendProperty[]>('/properties'),
-    ]);
+    const user = await apiRequest<BackendMe>('/auth/me');
+    // Until the password is changed the API refuses every other route, so only the account is read.
+    const properties = user.mustChangePassword ? [] : await apiRequest<BackendProperty[]>('/properties');
     const demo = store.session();
     const role = ROLE_LABELS[user.role];
     const demoProperty = demo.user.propertyMemberships[0]?.property;
 
-    const propertyIds = properties.filter((p) => p.isActive).map((p) => p.id);
-    const saved = sessionStorage.getItem(ACTIVE_PROPERTY_KEY);
-    const activeId =
-      user.role === 'STAFF'
-        ? user.propertyId
-        : // An ADMIN always lands on Choose a property unless they already picked one in this tab, so they can add more.
-          saved && propertyIds.includes(saved)
-          ? saved
-          : null;
-
+    const activeId = pickActiveProperty(user.role, properties);
     const active = properties.find((p) => p.id === activeId);
     if (active) {
       store.adoptProperty({
@@ -271,11 +284,14 @@ export const authApi = {
       ...demo,
       user: {
         ...demo.user,
+        id: user.id,
         email: user.email,
         fullName: user.name,
+        role: user.role,
+        mustChangePassword: user.mustChangePassword,
         propertyMemberships: properties.map((p) => ({
           id: `membership-${p.id}`,
-          userId: demo.user.id,
+          userId: user.id,
           propertyId: p.id,
           roleId: role.id,
           isActive: p.isActive,
@@ -292,6 +308,9 @@ export const authApi = {
       activePropertyId: active?.id ?? null,
     };
   },
+  /** Replaces the signed-in user's password; the API signs out their other sessions. */
+  changePassword: (currentPassword: string, newPassword: string) =>
+    apiRequest<void>('/auth/change-password', { method: 'POST', body: { currentPassword, newPassword } }),
   /** Always forgets the token locally, even if the server could not be reached. */
   logout: async () => {
     try {
@@ -304,9 +323,10 @@ export const authApi = {
       sessionStorage.removeItem(ACTIVE_PROPERTY_KEY);
     }
   },
-  /** Only meaningful for ADMIN; a STAFF user's property comes from the backend. */
-  switchProperty: async (propertyId: string) => {
-    sessionStorage.setItem(ACTIVE_PROPERTY_KEY, propertyId);
+  /** Opens a property, or (null) goes back to Choose a property. The API still limits what the user can open. */
+  switchProperty: async (propertyId: string | null) => {
+    if (propertyId) sessionStorage.setItem(ACTIVE_PROPERTY_KEY, propertyId);
+    else sessionStorage.removeItem(ACTIVE_PROPERTY_KEY);
   },
 };
 
@@ -394,9 +414,8 @@ export interface PropertyDetails {
 }
 
 /** Only the fields being changed; `null` clears an optional field. */
-export type PropertyUpdate = Partial<Omit<PropertyDetails, 'id' | 'isActive'>>;
+export type PropertyUpdate = Partial<Omit<PropertyDetails, 'id'>>;
 
-/** Real backend calls. Reading is open to the property's own staff; updating is ADMIN only. */
 /** What a new property needs; everything else is filled in later under Settings. */
 export interface PropertyCreate {
   name: string;
@@ -410,11 +429,12 @@ export interface PropertyCreate {
   totalRooms: number;
 }
 
+/** Real backend calls. Reading is open to the property's own staff; creating and updating is SUPER_ADMIN only. */
 export const propertyApi = {
-  /** Every property for an ADMIN, only their own for STAFF. */
+  /** Every property for a SUPER_ADMIN, only the assigned ones for STAFF. */
   list: async () => apiRequest<PropertyDetails[]>('/properties'),
   get: async (id: string) => apiRequest<PropertyDetails>(`/properties/${id}`),
-  /** ADMIN only. */
+  /** SUPER_ADMIN only. */
   create: async (body: PropertyCreate) => apiRequest<PropertyDetails>('/properties', { method: 'POST', body }),
   update: async (id: string, body: PropertyUpdate) =>
     apiRequest<PropertyDetails>(`/properties/${id}`, { method: 'PATCH', body }),
@@ -1020,7 +1040,7 @@ export const inventoryApi = {
   /** The rooms of one room offering (see `roomTypeId`) that are free for every night of a stay. */
   availability: async (checkIn: string, checkOut: string, roomTypeId: string) =>
     apiRequest<AvailabilityResult>(
-      `/${requireActivePropertyId()}/room-availability${queryString({ checkIn, checkOut, roomTypeId })}`,
+      `/${requireActivePropertyId()}/room-availability${queryString({ checkIn, checkOut, roomListingId: roomTypeId })}`,
     ),
   outOfOrder: async (id: string, reason: string) => store.outOfOrder(id, reason),
   backInService: async (id: string, reason: string) => store.backInService(id, reason),
@@ -1091,7 +1111,7 @@ export interface GuestDirectoryQuery {
   pageSize?: number;
 }
 
-function queryString(params: Record<string, string | number | undefined>): string {
+function queryString(params: Record<string, string | number | boolean | undefined>): string {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value !== undefined && value !== '') query.set(key, String(value));
@@ -1147,7 +1167,7 @@ function toBackendReservation(body: Record<string, unknown>): Record<string, unk
     checkInTime: text(body.checkInTime, 5),
     checkOutTime: text(body.checkOutTime, 5),
     roomLines: lines.map((line) => ({
-      roomTypeId: line.roomTypeId,
+      roomListingId: line.roomTypeId ?? line.roomListingId,
       roomNumber: text(line.roomNumber, 20),
       adults: line.adults ?? 1,
       children: line.children ?? 0,
@@ -1186,6 +1206,7 @@ function toBackendReservation(body: Record<string, unknown>): Record<string, unk
           extrasBillTo: route(billing.extrasBillTo),
           billToCompany: billing.billToCompany === true,
           noPost: billing.noPost === true,
+          payAtHotel: billing.payAtHotel === true,
           companyName: text(billing.companyName, 160),
           companyGst: text(billing.companyGst, 40),
         }
@@ -1234,46 +1255,50 @@ export const reservationApi = {
       body: toBackendReservation(body),
       headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
     }),
-  /** New dates go to the stay action, which re-checks the rooms; the other details are edited in place. */
+  /**
+   * New dates go to the stay action, which re-checks the rooms; the other details are edited in place.
+   * Give the reservation's `version` so a change made by someone else in the meantime is refused, not overwritten.
+   */
   update: async (id: string, patch: Record<string, unknown>) => {
     const base = `/${requireActivePropertyId()}/reservations/${id}`;
+    const version = typeof patch.version === 'number' ? patch.version : undefined;
     let result: ReservationRow | null = null;
     if (typeof patch.checkInDate === 'string' && typeof patch.checkOutDate === 'string') {
       result = await apiRequest<ReservationRow>(`${base}/stay`, {
         method: 'PATCH',
-        body: { checkInDate: patch.checkInDate, checkOutDate: patch.checkOutDate },
+        body: { checkInDate: patch.checkInDate, checkOutDate: patch.checkOutDate, version },
       });
     }
     const details = Object.fromEntries(DETAIL_FIELDS.filter((key) => patch[key] !== undefined).map((key) => [key, patch[key]]));
     if (Object.keys(details).length > 0) {
-      result = await apiRequest<ReservationRow>(base, { method: 'PATCH', body: details });
+      result = await apiRequest<ReservationRow>(base, { method: 'PATCH', body: { ...details, version: result?.version ?? version } });
     }
     return result ?? apiRequest<ReservationRow>(base);
   },
   /** Moves one room line to another physical room, named by its room number. */
-  assignRoom: async (id: string, roomNumber: string, roomLineId: string) =>
+  assignRoom: async (id: string, roomNumber: string, roomLineId: string, version?: number) =>
     apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations/${id}/rooms/${roomLineId}`, {
       method: 'PATCH',
-      body: { roomNumber },
+      body: { roomNumber, version },
     }),
-  cancel: async (id: string, reason: string) =>
-    apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations/${id}/cancel`, { method: 'POST', body: { reason } }),
-  confirm: async (id: string) =>
-    apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations/${id}/confirm`, { method: 'POST', body: {} }),
-  noShow: async (id: string) =>
-    apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations/${id}/no-show`, { method: 'POST', body: {} }),
-  addPayment: async (id: string, payment: { amount: string; method: string; reference?: string }) =>
-    apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations/${id}/payments`, { method: 'POST', body: payment }),
+  cancel: async (id: string, reason: string, version?: number) =>
+    apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations/${id}/cancel`, { method: 'POST', body: { reason, version } }),
+  confirm: async (id: string, version?: number) =>
+    apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations/${id}/confirm`, { method: 'POST', body: { version } }),
+  noShow: async (id: string, version?: number) =>
+    apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations/${id}/no-show`, { method: 'POST', body: { version } }),
+  addPayment: async (id: string, payment: { amount: string; method: string; reference?: string }, version?: number) =>
+    apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations/${id}/payments`, { method: 'POST', body: { ...payment, version } }),
 };
 
 export const frontDeskApi = {
   arrivals: async () => store.arrivals(),
   departures: async () => store.departures(),
   inHouse: async () => store.inHouse(),
-  checkIn: async (id: string, _overrideReason?: string) =>
-    apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations/${id}/check-in`, { method: 'POST', body: {} }),
-  checkOut: async (id: string, _overrideReason?: string) =>
-    apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations/${id}/check-out`, { method: 'POST', body: {} }),
+  checkIn: async (id: string, version?: number) =>
+    apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations/${id}/check-in`, { method: 'POST', body: { version } }),
+  checkOut: async (id: string, version?: number) =>
+    apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations/${id}/check-out`, { method: 'POST', body: { version } }),
   extend: async (id: string, newCheckOutDate: string) => store.extend(id, newCheckOutDate),
 };
 
@@ -1333,23 +1358,7 @@ export const nightAuditApi = {
   reopen: async (date: string, reason: string) => store.nightAuditReopen(date, reason),
 };
 
-export interface RoleMatrix {
-  roles: Array<{ key: string; name: string }>;
-  resources: Array<{ resource: string; permissions: Array<{ key: string; action: string; description: string; roles: string[] }> }>;
-}
-
 export const adminApi = {
-  users: async () => store.users(),
-  acceptInvite: async (token: string, _password: string) => ({ email: token, status: 'ACTIVE' }),
-  invite: async (body: Record<string, unknown>) => store.invite(body),
-  reissueInvite: async (id: string) => store.reissueInvite(id),
-  cancelInvite: async (id: string) => store.cancelInvite(id),
-  updateUser: async (id: string, body: Record<string, unknown>) => store.updateUser(id, body) as UserRow,
-  setRole: async (id: string, propertyId: string, roleKey: string) => store.setRole(id, propertyId, roleKey),
-  setUserStatus: async (id: string, status: 'ACTIVE' | 'DISABLED') => store.setUserStatus(id, status),
-  roles: async () => store.roles(),
-  permissions: async () => store.permissions(),
-  matrix: async () => store.matrix(),
   taxRules: async () => store.taxRules(),
   createTaxRule: async (body: Record<string, unknown>) => store.createTaxRule(body),
   updateTaxRule: async (id: string, body: Record<string, unknown>) => store.updateTaxRule(id, body),
@@ -1363,6 +1372,143 @@ export const adminApi = {
   createTaxSetupRule: async (body: TaxSetupRuleInput) => store.createTaxSetupRule(body),
   updateTaxSetupRule: async (id: string, body: TaxSetupRuleInput) => store.updateTaxSetupRule(id, body),
   deleteTaxSetupRule: async (id: string) => store.deleteTaxSetupRule(id),
+};
+
+/** A user as the backend returns them. The password hash never leaves the server. */
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRoleKey;
+  isActive: boolean;
+  /** True until the user replaces the password a super admin set for them. */
+  mustChangePassword: boolean;
+  /** The properties a STAFF user is assigned to; empty for SUPER_ADMIN. */
+  properties: Array<{ id: string; name: string; code: string; isActive: boolean }>;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface AdminUserPage { data: AdminUser[]; total: number; page: number; pageSize: number }
+export interface AdminUserQuery {
+  search?: string;
+  role?: UserRoleKey;
+  isActive?: boolean;
+  propertyId?: string;
+  page?: number;
+  pageSize?: number;
+}
+export interface AdminUserCreate {
+  name: string;
+  email: string;
+  /** The first password, to be shared with the user; they must replace it at their first sign-in. */
+  password: string;
+  role?: UserRoleKey;
+  propertyIds?: string[];
+}
+
+/** Accounts and property access (`/users`, `/properties/:id/users`). SUPER_ADMIN only. */
+export const userAdminApi = {
+  list: async (query: AdminUserQuery = {}) => apiRequest<AdminUserPage>(`/users${queryString({ ...query })}`),
+  create: async (body: AdminUserCreate) => apiRequest<AdminUser>('/users', { method: 'POST', body }),
+  update: async (id: string, body: { name?: string; role?: UserRoleKey; isActive?: boolean }) =>
+    apiRequest<AdminUser>(`/users/${id}`, { method: 'PATCH', body }),
+  /** Replaces the user's whole set of properties; an empty list removes all access. */
+  setProperties: async (id: string, propertyIds: string[]) =>
+    apiRequest<AdminUser>(`/users/${id}/properties`, { method: 'PUT', body: { propertyIds } }),
+  /** Signs the user out everywhere; they must replace this password at their next sign-in. */
+  resetPassword: async (id: string, password: string) =>
+    apiRequest<void>(`/users/${id}/reset-password`, { method: 'POST', body: { password } }),
+  forProperty: async (propertyId: string) => apiRequest<AdminUser[]>(`/properties/${propertyId}/users`),
+  assign: async (propertyId: string, userId: string) =>
+    apiRequest<void>(`/properties/${propertyId}/users/${userId}`, { method: 'PUT' }),
+  unassign: async (propertyId: string, userId: string) =>
+    apiRequest<void>(`/properties/${propertyId}/users/${userId}`, { method: 'DELETE' }),
+};
+
+/** Platform-wide figures for the super admin console (`GET /platform/overview`). */
+export interface PlatformOverview {
+  generatedAt: string;
+  properties: { total: number; active: number; inactive: number; totalRooms: number; withoutStaff: number };
+  users: {
+    total: number;
+    active: number;
+    superAdmins: number;
+    staff: number;
+    pendingPasswordChange: number;
+    staffWithoutProperty: number;
+  };
+  /** Login sessions that have not been signed out. */
+  activeSessions: number;
+  /** "Today" is the UTC day: properties carry no time zone. */
+  reservations: { total: number; inHouse: number; arrivalsToday: number; departuresToday: number };
+  guests: number;
+  recentProperties: Array<{
+    id: string;
+    name: string;
+    code: string;
+    city: string;
+    country: string;
+    isActive: boolean;
+    totalRooms: number | null;
+    staffCount: number;
+    createdAt: string;
+  }>;
+  recentSignIns: Array<{
+    sessionId: string;
+    userId: string;
+    name: string;
+    email: string;
+    role: UserRoleKey;
+    ipAddress: string | null;
+    userAgent: string | null;
+    signedInAt: string;
+  }>;
+}
+
+/** SUPER_ADMIN only. */
+export const platformApi = {
+  overview: async () => apiRequest<PlatformOverview>('/platform/overview'),
+};
+
+/** One change made through the API, as the activity log shows it (`GET /activity-log`). */
+export interface ActivityEntry {
+  id: string;
+  createdAt: string;
+  /** Null for platform-level changes such as sign-ins and user accounts. */
+  property: { id: string; name: string; code: string } | null;
+  /** Copied when the change was made, so it still reads the same after the account is renamed or removed. */
+  actor: { id: string | null; name: string | null; email: string | null; role: UserRoleKey | null };
+  /** Dotted name, e.g. `reservations.cancel`. */
+  action: string;
+  resource: string;
+  resourceId: string | null;
+  summary: string;
+  method: string;
+  path: string;
+  statusCode: number;
+  /** The request body, query and file, with secrets removed and long values cut. */
+  details: Record<string, unknown> | null;
+  ipAddress: string | null;
+  userAgent: string | null;
+}
+export interface ActivityPage { data: ActivityEntry[]; total: number; page: number; pageSize: number }
+export interface ActivityQuery {
+  propertyId?: string;
+  /** Only changes that belong to no property. Ignored when `propertyId` is set. */
+  platformOnly?: boolean;
+  actorId?: string;
+  resource?: string;
+  search?: string;
+  /** ISO instants. */
+  from?: string;
+  to?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+/** SUPER_ADMIN only. */
+export const activityApi = {
+  list: async (query: ActivityQuery = {}) => apiRequest<ActivityPage>(`/activity-log${queryString({ ...query })}`),
 };
 
 const THEME_STORAGE_KEY = 'pms.theme';

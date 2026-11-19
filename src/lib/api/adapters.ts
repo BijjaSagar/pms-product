@@ -21,11 +21,14 @@ import type {
   StayRow,
 } from './pms';
 
+/** "Oct 14" for a day this year, "Oct 14, 2027" for any other year, so two years never look alike. */
 export const shortDate = (value: unknown): string => {
   if (!value) return '—';
   const day = String(value).slice(0, 10);
   const parsed = new Date(`${day}T12:00:00Z`);
-  return Number.isNaN(parsed.getTime()) ? day : parsed.toLocaleDateString('en-US', { month: 'short', day: '2-digit', timeZone: 'UTC' });
+  if (Number.isNaN(parsed.getTime())) return day;
+  const sameYear = parsed.getUTCFullYear() === new Date().getFullYear();
+  return parsed.toLocaleDateString('en-US', { month: 'short', day: '2-digit', ...(sameYear ? {} : { year: 'numeric' }), timeZone: 'UTC' });
 };
 
 export const apiReservationStatus = (value: string): ReservationStatus => ({
@@ -36,7 +39,12 @@ export const apiReservationStatus = (value: string): ReservationStatus => ({
 export function reservationFromApi(row: ReservationRow): Reservation {
   const guest = row.guest?.name ?? [row.guest?.firstName, row.guest?.lastName].filter(Boolean).join(' ') ?? row.guestName ?? 'Guest';
   const amount = Number(row.totalAmount ?? row.subtotal ?? 0);
-  const roomLines = row.roomLines ?? [];
+  // The API calls the room offering roomListing*; the screens call it roomType*.
+  const roomLines = (row.roomLines ?? []).map((line) => ({
+    ...line,
+    roomTypeId: line.roomTypeId ?? line.roomListingId ?? '',
+    roomTypeName: line.roomTypeName ?? line.roomListingName ?? null,
+  }));
   const firstRoom = roomLines[0];
   const firstAssignedRoom = roomLines.find((line) => line.roomNumber);
   const roomSummary = row.roomSummary ?? roomLines.map((line) =>
@@ -66,10 +74,12 @@ export function reservationFromApi(row: ReservationRow): Reservation {
     status: apiReservationStatus(String(row.status ?? '')),
     total: amount,
     taxAmount: Number(row.taxTotal ?? 0),
-    paid: Number(row.paid ?? 0),
+    paid: Number(row.paidAmount ?? row.paid ?? 0),
+    version: row.version,
+    createdAt: row.createdAt,
     nightlyRate: Number(firstRoom?.nightlyRate ?? row.nightlyRate ?? 0),
     channel: String(row.source ?? 'DIRECT').replaceAll('_', ' '),
-    ratePlan: firstRoom?.ratePlanName ?? 'Standard rate',
+    ratePlan: firstRoom?.ratePlanName ?? '—',
     specialRequests: row.specialRequests ?? '',
     notes: row.internalNotes ?? '',
   };

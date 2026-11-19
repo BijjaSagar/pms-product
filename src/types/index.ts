@@ -85,6 +85,10 @@ export interface Reservation {
   ratePlan: string;
   specialRequests: string;
   notes: string;
+  /** Bumped by the API on every change; sent back so a stale screen cannot overwrite a newer edit. */
+  version?: number;
+  /** When the reservation was made (ISO instant). */
+  createdAt?: string;
 }
 
 export interface Room {

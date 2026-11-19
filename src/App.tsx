@@ -18,6 +18,7 @@ import { InventoryProvider } from './features/inventory/InventoryProvider';
 import { themeApi } from './lib/api/pms';
 import type { ThemeKey } from './types';
 import { PropertyPickerPage } from './features/property-setup/PropertyPickerPage';
+import { isPlatformLoginPath } from './features/auth/loginPath';
 
 const THEME_KEY_TO_PRESET: Record<ThemeKey, ThemePresetId> = {
   MIDNIGHT_NAVY: 'midnight',
@@ -43,13 +44,13 @@ const Payments = lazy(() => import('./features/finance/PaymentsPage').then((m) =
 const Invoices = lazy(() => import('./features/finance/InvoicesPage').then((m) => ({ default: m.Invoices })));
 const NightAudit = lazy(() => import('./features/finance/NightAuditPage').then((m) => ({ default: m.NightAudit })));
 const Reports = lazy(() => import('./features/analytics/ReportsPage').then((m) => ({ default: m.Reports })));
-const Staff = lazy(() => import('./features/staff/StaffPage').then((m) => ({ default: m.Staff })));
+const PlatformConsole = lazy(() => import('./features/platform/PlatformConsole').then((m) => ({ default: m.PlatformConsole })));
 const Settings = lazy(() => import('./features/settings/SettingsPage').then((m) => ({ default: m.Settings })));
 const LoginPage = lazy(() => import('./features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
-const RegisterPage = lazy(() => import('./features/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })));
+const ChangePasswordPage = lazy(() => import('./features/auth/ChangePasswordPage').then((m) => ({ default: m.ChangePasswordPage })));
 
 function Shell() {
-  const { me, can } = useAuth();
+  const { me, canOpen } = useAuth();
   const [target, setTarget] = useState<NavTarget>({ view: 'dashboard' });
   const [navOpen, setNavOpen] = useState(false);
   const [swatcherOpen, setSwatcherOpen] = useState(false);
@@ -70,12 +71,11 @@ function Shell() {
     // Presentation-level guard. The API still enforces every permission; this
     // only stops a deep link or notification from rendering a screen whose
     // data calls would all come back 403.
-    const required = viewPermission(view);
-    if (required && !can(required)) {
+    if (!canOpen(view)) {
       const activeMembership = me?.user.propertyMemberships.find((m) => m.propertyId === me.activePropertyId);
       return (
         <ForbiddenPage
-          permission={required}
+          permission={viewPermission(view) ?? view}
           userRole={activeMembership?.role.name}
           propertyName={activeMembership?.property.name}
           onGo={go}
@@ -119,14 +119,12 @@ function Shell() {
         return <Reports initialTab="revenue" go={go} />;
       case 'arrivals-departures':
         return <Reports initialTab="movements" go={go} />;
-      case 'staff-roles':
-        return <Staff />;
       case 'settings':
         return <Settings onOpenThemes={() => setSwatcherOpen(true)} />;
       default:
         return <NotFoundPage onGo={go} />;
     }
-  }, [view, target.query, target.focusId, target.draft, go, can, me]);
+  }, [view, target.query, target.focusId, target.draft, go, canOpen, me]);
 
   return (
     <div className="pms-app-shell flex h-dvh min-h-0 bg-page text-ink">
@@ -189,13 +187,11 @@ function AuthenticatedApp() {
   const { me, loading } = useAuth();
   const { preset, setPreset } = useTheme();
   const [loadedThemeProperty, setLoadedThemeProperty] = useState<string | null>(null);
-  // Which signed-out page is showing, and the email to pre-fill on Sign in after registering.
-  const [authPage, setAuthPage] = useState<'login' | 'register'>('login');
-  const [registeredEmail, setRegisteredEmail] = useState('');
-  const themeScope = me?.activePropertyId ? `${me.user.id}:${me.activePropertyId}` : null;
+  // The platform console (no property open) has its own appearance scope.
+  const themeScope = me ? `${me.user.id}:${me.activePropertyId ?? 'platform'}` : null;
 
   useEffect(() => {
-    if (!themeScope || !me?.activePropertyId) return;
+    if (!themeScope) return;
     let active = true;
     const scope = themeScope;
     themeApi.get().then(({ themeKey }) => {
@@ -205,7 +201,7 @@ function AuthenticatedApp() {
       if (active) setLoadedThemeProperty(scope);
     });
     return () => { active = false; };
-  }, [themeScope, me?.activePropertyId, setPreset]);
+  }, [themeScope, setPreset]);
 
   useEffect(() => {
     if (!themeScope || loadedThemeProperty !== themeScope) return;
@@ -225,16 +221,7 @@ function AuthenticatedApp() {
     return (
       <>
         <Suspense fallback={<PageSkeleton />}>
-          {authPage === 'register' ? (
-            <RegisterPage
-              onSignIn={(email) => {
-                setRegisteredEmail(email ?? '');
-                setAuthPage('login');
-              }}
-            />
-          ) : (
-            <LoginPage key={registeredEmail} initialEmail={registeredEmail} onRegister={() => setAuthPage('register')} />
-          )}
+          <LoginPage platform={isPlatformLoginPath(window.location.pathname)} />
         </Suspense>
         {/* The shell mounts its own Toaster; the login page needs one for sign-in errors. */}
         <Toaster />
@@ -242,7 +229,31 @@ function AuthenticatedApp() {
     );
   }
 
-  if (!me.activePropertyId) return <PropertyPickerPage />;
+  // A password a super admin set has to be replaced first; until then the API answers nothing else.
+  if (me.user.mustChangePassword) {
+    return (
+      <>
+        <Suspense fallback={<PageSkeleton />}>
+          <ChangePasswordPage />
+        </Suspense>
+        <Toaster />
+      </>
+    );
+  }
+
+  // A super admin belongs to no property: they start in the platform console and open hotels from it.
+  if (!me.activePropertyId) {
+    if (me.user.role === 'SUPER_ADMIN') {
+      return (
+        <ErrorBoundary fallback={(reset) => <AppCrashFallback reset={reset} />}>
+          <Suspense fallback={<PageSkeleton />}>
+            <PlatformConsole />
+          </Suspense>
+        </ErrorBoundary>
+      );
+    }
+    return <PropertyPickerPage />;
+  }
 
   return (
     <InventoryProvider propertyId={me.activePropertyId}>

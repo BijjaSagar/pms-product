@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
-import { NAV_ITEMS, NAV_SECTIONS, viewPermission } from '../../config/navigation';
+import { NAV_ITEMS, NAV_SECTIONS } from '../../config/navigation';
 import type { NavTarget, ViewId } from '../../config/navigation';
 import { loadNotices } from '../../lib/api/notices';
 import type { Notice } from '../../types';
 import { toast } from '../../utils/toast';
 import { useAuth } from '../../features/auth/AuthContext';
+import { ChangePasswordDialog } from '../../features/auth/ChangePasswordDialog';
 import { displayApiError } from '../../lib/api/client';
 import { folioApi, frontDeskApi, reportsApi } from '../../lib/api/pms';
 import { NAV_ICONS } from './navIcons';
@@ -15,6 +16,7 @@ import { NotificationHub } from './NotificationHub';
 import { ProfileMenu } from './ProfileMenu';
 import { TodayGlance } from './TodayGlance';
 import type { GlanceItem } from './TodayGlance';
+import { useDismiss } from './useDismiss';
 
 const SEARCH_KEYWORDS: Record<ViewId, string[]> = {
   dashboard: ['home', 'overview', 'summary', 'metrics', 'kpi', 'revenue', 'occupancy', 'analytics'],
@@ -35,28 +37,8 @@ const SEARCH_KEYWORDS: Record<ViewId, string[]> = {
   'occupancy-report': ['occupancy', 'percentage', 'fill rate', 'room nights', 'adr', 'capacity'],
   'revenue-report': ['income', 'earnings', 'revpar', 'adr', 'sales', 'financial performance', 'money made'],
   'arrivals-departures': ['movements', 'daily movement', 'transfers', 'today arrivals', 'today departures'],
-  'staff-roles': ['team', 'employees', 'permissions', 'users', 'access control', 'rbac', 'security', 'hotel staff'],
   settings: ['configuration', 'preferences', 'theme', 'color theme', 'hotel details', 'taxes', 'policies', 'profile'],
 };
-
-function useDismiss(onDismiss: () => void) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onDismiss();
-    };
-    const onClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onDismiss();
-    };
-    window.addEventListener('keydown', onKey);
-    window.addEventListener('mousedown', onClick);
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      window.removeEventListener('mousedown', onClick);
-    };
-  }, [onDismiss]);
-  return ref;
-}
 
 export function Header({
   currentView,
@@ -69,7 +51,8 @@ export function Header({
   onOpenThemes: () => void;
   onGo: (t: NavTarget) => void;
 }) {
-  const { me, can, logout, switchProperty } = useAuth();
+  const { me, can, canOpen, isSuperAdmin, logout, switchProperty } = useAuth();
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const [panel, setPanel] = useState<'none' | 'notices' | 'profile'>('none');
   const [prevView, setPrevView] = useState(currentView);
   const [glanceOpen, setGlanceOpen] = useState(currentView === 'dashboard');
@@ -217,9 +200,7 @@ export function Header({
   const visibleNotices = notices.filter((notice) => {
     if (dismissedNotices.includes(notice.id)) return false;
     const target = NAV_ITEMS.find((i) => i.id === notice.target);
-    if (!target) return true;
-    const permission = viewPermission(target.id);
-    return !permission || can(permission);
+    return !target || canOpen(target.id);
   });
 
   const activeMembership = me?.user.propertyMemberships.find((m) => m.propertyId === me.activePropertyId);
@@ -259,8 +240,7 @@ export function Header({
 
   const matchedNavItems = query
     ? NAV_ITEMS.filter((item) => {
-      const perm = viewPermission(item.id);
-      if (perm && !can(perm)) return false;
+      if (!canOpen(item.id)) return false;
 
       const inLabel = item.label.toLowerCase().includes(query);
       const inHint = item.hint.toLowerCase().includes(query);
@@ -421,16 +401,24 @@ export function Header({
               email={me?.user.email ?? null}
               roleName={roleName}
               propertyName={activeMembership?.property.name ?? null}
-              canViewStaff={can('user.read')}
-              otherProperties={otherMemberships}
+              otherProperties={isSuperAdmin ? [] : otherMemberships}
               onSettings={() => {
                 onGo({ view: 'settings' });
                 closePanels();
               }}
-              onStaff={() => {
-                onGo({ view: 'staff-roles' });
+              onChangePassword={() => {
                 closePanels();
+                setPasswordOpen(true);
               }}
+              leave={isSuperAdmin ? {
+                label: 'Back to platform console',
+                onSelect: () => {
+                  closePanels();
+                  void switchProperty(null).catch((error: unknown) =>
+                    toast('Could not leave the property', { detail: displayApiError(error), tone: 'danger' })
+                  );
+                },
+              } : undefined}
               onThemes={() => {
                 onOpenThemes();
                 closePanels();
@@ -453,6 +441,8 @@ export function Header({
 
 
       </header>
+
+      <ChangePasswordDialog open={passwordOpen} onClose={() => setPasswordOpen(false)} />
 
       {/* ================= GLOBAL SEARCH & NAVIGATION MODAL (Ctrl+F) ================= */}
       {searchOpen && typeof document !== 'undefined'

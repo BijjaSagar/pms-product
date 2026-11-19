@@ -1,4 +1,4 @@
-import { ALL_PERMISSIONS, BUSINESS_DATE, CALENDAR_EVENTS, CURRENT_USER_ID, GUESTS, PERMISSION_CATALOG, PROPERTY, ROLE_DEFS, ROOM_TYPES, TAX_RATE, TAX_RULES, USERS, type InternalUser } from './catalog';
+import { ALL_PERMISSIONS, BUSINESS_DATE, CALENDAR_EVENTS, CURRENT_USER_ID, GUESTS, PROPERTY, ROOM_TYPES, TAX_RATE, TAX_RULES, USERS, type InternalUser } from './catalog';
 import { buildSeedState } from './fixtures';
 import {
   addDays,
@@ -17,9 +17,9 @@ import {
 import type {
   AuditEventRow,
   AuditEventsResult,
-  AuthMe,
   AvailabilityResult,
   DayEnquiryRow,
+  DemoSession,
   DayLogSummaryRow,
   DailyFlashRow,
   FolioBalanceRow,
@@ -43,8 +43,6 @@ import type {
   ReservationRoomRow,
   ReservationRow,
   RevenueReportRow,
-  RoleMatrix,
-  RoleRow,
   RoomInventory,
   RoomRow,
   RoomTypeRow,
@@ -55,7 +53,6 @@ import type {
   TaxRuleRow,
   TaxSetupRuleInput,
   TaxSetupRuleRow,
-  UserRow,
 } from '../lib/api/pms';
 
 /* ------------------------------------------------------------------- state */
@@ -116,7 +113,6 @@ const byRoomNumber = (roomNumber: string | null | undefined): RoomRow | undefine
   roomNumber ? rooms.find((r) => r.roomNumber === roomNumber) : undefined;
 const folioForReservation = (reservationId: string): FolioRec | undefined =>
   folios.find((f) => f.reservationId === reservationId);
-const roleName = (key: string): string => ROLE_DEFS.find((r) => r.key === key)?.name ?? key;
 
 /* -------------------------------------------------------------------- auth */
 
@@ -138,7 +134,7 @@ function currentMembership() {
   };
 }
 
-function session(): AuthMe {
+function session(): DemoSession {
   const user = users.find((u) => u.userId === CURRENT_USER_ID) ?? users[0];
   return {
     user: {
@@ -1017,53 +1013,6 @@ function availability(checkIn: string, checkOut: string, roomTypeId: string): Av
   };
 }
 
-/* --------------------------------------------------------------- users/roles */
-
-function userRow(user: InternalUser): UserRow {
-  return {
-    userId: user.userId,
-    email: user.email,
-    fullName: user.fullName,
-    status: user.status,
-    lastLoginAt: user.lastLoginAt ?? null,
-    membershipActive: user.membershipActive,
-    invitePending: user.invitePending,
-    inviteExpired: user.inviteExpired,
-    propertyId: activePropertyId,
-    roleKey: user.roleKey,
-    roleName: user.roleName,
-  };
-}
-
-function roleRows(): RoleRow[] {
-  return ROLE_DEFS.map((role) => ({
-    id: role.id,
-    key: role.key,
-    name: role.name,
-    description: role.description,
-    isSystem: role.isSystem,
-    isActive: role.isActive,
-    permissions: role.permissions,
-    memberCount: users.filter((u) => u.roleKey === role.key).length,
-  }));
-}
-
-function roleMatrix(): RoleMatrix {
-  const resources = Array.from(new Set(PERMISSION_CATALOG.map((p) => p.resource)));
-  return {
-    roles: ROLE_DEFS.map((r) => ({ key: r.key, name: r.name })),
-    resources: resources.map((resource) => ({
-      resource,
-      permissions: PERMISSION_CATALOG.filter((p) => p.resource === resource).map((p) => ({
-        key: p.key,
-        action: p.action,
-        description: p.description,
-        roles: ROLE_DEFS.filter((r) => r.permissions.includes(p.key)).map((r) => r.key),
-      })),
-    })),
-  };
-}
-
 /* --------------------------------------------------------------- csv export */
 
 function csv(rows: Array<Array<string | number>>): string {
@@ -1683,65 +1632,6 @@ export const store = {
   },
 
   /* admin */
-  users: (): UserRow[] => users.map(userRow),
-  invite(body: Record<string, unknown>): { email: string; inviteToken: string; acceptUrl: string } {
-    const email = String(body.email ?? `member${users.length + 1}@grandhorizon.in`);
-    const roleKey = String(body.roleKey ?? 'front_desk');
-    const token = nextId('invite');
-    const user: InternalUser = {
-      userId: nextId('u'),
-      email,
-      fullName: String(body.fullName ?? email.split('@')[0]),
-      status: 'INVITED',
-      lastLoginAt: null,
-      membershipActive: false,
-      invitePending: true,
-      inviteExpired: false,
-      propertyId: activePropertyId,
-      roleKey,
-      roleName: roleName(roleKey),
-      baseRoleKey: roleKey as InternalUser['baseRoleKey'],
-    };
-    users.push(user);
-    return { email, inviteToken: token, acceptUrl: `https://app.grandhorizon.in/accept-invite?token=${token}` };
-  },
-  reissueInvite(id: string): { inviteToken: string; acceptUrl: string } {
-    const token = nextId('invite');
-    const user = users.find((u) => u.userId === id);
-    if (user) {
-      user.invitePending = true;
-      user.status = 'INVITED';
-    }
-    return { inviteToken: token, acceptUrl: `https://app.grandhorizon.in/accept-invite?token=${token}` };
-  },
-  cancelInvite(id: string) {
-    const user = users.find((u) => u.userId === id);
-    if (!user) return;
-    user.invitePending = false;
-    user.status = 'DISABLED';
-  },
-  updateUser(id: string, body: Record<string, unknown>): UserRow | undefined {
-    const user = users.find((u) => u.userId === id);
-    if (!user) return undefined;
-    if (body.fullName !== undefined) user.fullName = String(body.fullName);
-    if (body.email !== undefined) user.email = String(body.email);
-    return userRow(user);
-  },
-  setRole(id: string, _propertyId: string, roleKey: string) {
-    const user = users.find((u) => u.userId === id);
-    if (!user) return;
-    user.roleKey = roleKey;
-    user.roleName = roleName(roleKey);
-  },
-  setUserStatus(id: string, status: 'ACTIVE' | 'DISABLED') {
-    const user = users.find((u) => u.userId === id);
-    if (!user) return;
-    user.status = status;
-    user.membershipActive = status === 'ACTIVE';
-  },
-  roles: (): RoleRow[] => roleRows(),
-  permissions: () => clone(PERMISSION_CATALOG),
-  matrix: (): RoleMatrix => roleMatrix(),
   taxRules: (): TaxRuleRow[] => clone(taxRules),
   createTaxRule(body: Record<string, unknown>) {
     taxRules.push({

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
-import { NAV_SECTIONS, sectionOf, viewPermission } from '../../config/navigation';
+import { NAV_SECTIONS, sectionOf } from '../../config/navigation';
 import type { ViewId } from '../../config/navigation';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useTheme } from '../../theme/useTheme';
@@ -87,7 +87,7 @@ export function Sidebar({
   onClose: () => void;
   onOpenThemes?: () => void;
 }) {
-  const { can } = useAuth();
+  const { canOpen } = useAuth();
   const { preset } = useTheme();
   const activePreset = THEME_PRESETS[preset] || THEME_PRESETS.ocean;
   const fourthColor = activePreset.swatch[3];
@@ -124,10 +124,7 @@ export function Sidebar({
 
   const visibleSections = NAV_SECTIONS.map((section) => ({
     ...section,
-    items: section.items.filter((item) => {
-      const permission = viewPermission(item.id);
-      return !permission || can(permission);
-    }),
+    items: section.items.filter((item) => canOpen(item.id)),
   })).filter((section) => section.items.length > 0);
 
   const toggleSection = (title: string) => {

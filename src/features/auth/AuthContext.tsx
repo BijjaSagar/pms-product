@@ -1,18 +1,33 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { canOpenView } from '../../config/navigation';
+import type { ViewId } from '../../config/navigation';
 import { getAccessToken } from '../../lib/api/authToken';
-import { ApiError, setActivePropertyId } from '../../lib/api/client';
+import { ApiError, onSessionEnded, setActivePropertyId } from '../../lib/api/client';
 import { authApi } from '../../lib/api/pms';
 import type { AuthMe } from '../../lib/api/pms';
+
+interface LoginOptions {
+  /** Refuses (and signs out) anyone who is not a SUPER_ADMIN: the platform sign-in is not for hotel staff. */
+  superAdminOnly?: boolean;
+}
 
 interface AuthContextValue {
   me: AuthMe | null;
   loading: boolean;
   error: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  /** Set when a signed-in session was ended by the server; shown once on the sign-in page. */
+  sessionNotice: string | null;
+  login: (email: string, password: string, options?: LoginOptions) => Promise<void>;
   logout: () => Promise<void>;
-  switchProperty: (propertyId: string) => Promise<void>;
+  /** Opens a property, or (null) leaves the current one: a SUPER_ADMIN returns to the platform console, STAFF to Choose a property. */
+  switchProperty: (propertyId: string | null) => Promise<void>;
   reload: () => Promise<void>;
   can: (permission: string) => boolean;
+  /** A SUPER_ADMIN has the platform console and reaches every property. */
+  isSuperAdmin: boolean;
+  /** Whether the hotel shell offers a view to this user. */
+  canOpen: (view: ViewId) => boolean;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -29,6 +44,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // reload does not flash the login page.
   const [loading, setLoading] = useState(() => getAccessToken() !== null);
   const [error, setError] = useState<string | null>(null);
+  const [sessionNotice, setSessionNotice] = useState<string | null>(null);
+
+  // Any call answered 401 while signed in means the session is over: go back to the sign-in page and say why.
+  useEffect(
+    () =>
+      onSessionEnded(() => {
+        applyMe(null);
+        setSessionNotice('Your session has ended. Please sign in again.');
+      }),
+    [applyMe],
+  );
 
   useEffect(() => {
     if (!getAccessToken()) return;
@@ -66,17 +92,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [me, applyMe]);
 
-  const login = useCallback(async (email: string, password: string) => {
+  // `loading` is not raised here: it swaps the sign-in page for a splash, which would throw away the
+  // page's own error message when the sign-in fails. The page shows its own busy state instead.
+  const login = useCallback(async (email: string, password: string, options: LoginOptions = {}) => {
     setError(null);
-    setLoading(true);
+    setSessionNotice(null);
     try {
       await authApi.login(email, password);
-      applyMe(await authApi.me());
+      const session = await authApi.me();
+      if (options.superAdminOnly && session.user.role !== 'SUPER_ADMIN') {
+        await authApi.logout().catch(() => undefined);
+        throw new Error('This sign-in is for platform administrators. Hotel staff sign in on the main page.');
+      }
+      applyMe(session);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not sign in.');
       throw cause;
-    } finally {
-      setLoading(false);
     }
   }, [applyMe]);
 
@@ -88,21 +119,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [applyMe]);
 
-  const switchProperty = useCallback(async (propertyId: string) => {
+  const switchProperty = useCallback(async (propertyId: string | null) => {
     await authApi.switchProperty(propertyId);
     applyMe(await authApi.me());
   }, [applyMe]);
 
-  const value = useMemo<AuthContextValue>(() => ({
-    me,
-    loading,
-    error,
-    login,
-    logout,
-    switchProperty,
-    reload,
-    can: (permission) => me?.permissions.includes(permission) ?? false,
-  }), [me, loading, error, login, logout, switchProperty, reload]);
+  // The API signs out the account's other sessions and lifts the must-change restriction on this one,
+  // so the account is read again: it now includes the properties that were withheld until now.
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    await authApi.changePassword(currentPassword, newPassword);
+    applyMe(await authApi.me());
+  }, [applyMe]);
+
+  const value = useMemo<AuthContextValue>(() => {
+    const can = (permission: string) => me?.permissions.includes(permission) ?? false;
+    return {
+      me,
+      loading,
+      error,
+      sessionNotice,
+      login,
+      logout,
+      switchProperty,
+      reload,
+      can,
+      isSuperAdmin: me?.user.role === 'SUPER_ADMIN',
+      canOpen: (view) => canOpenView(view, can),
+      changePassword,
+    };
+  }, [me, loading, error, sessionNotice, login, logout, switchProperty, reload, changePassword]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

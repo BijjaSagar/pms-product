@@ -103,12 +103,11 @@ export function Settings({
   onOpenThemes?: () => void;
   initialTab?: SettingsTab;
 }) {
-  const { me, can, reload } = useAuth();
+  const { me, can, reload, isSuperAdmin } = useAuth();
   const activePropertyId = me?.activePropertyId;
-  // The backend only lets administrators change property details, so everyone
+  // The backend only lets a super admin change property details, so everyone
   // else gets the screens read-only instead of a Save that would be refused.
-  const canEditProperty =
-    me?.user.propertyMemberships.find((m) => m.propertyId === me.activePropertyId)?.role.key === 'admin';
+  const canEditProperty = isSuperAdmin;
 
   // The property record feeds only the Property Details tab; the other tabs load their own data.
   const loadProperty = useCallback(

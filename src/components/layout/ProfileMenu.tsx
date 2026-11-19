@@ -44,11 +44,11 @@ export function ProfileMenu({
   email,
   roleName,
   propertyName,
-  canViewStaff,
   otherProperties,
   onSettings,
-  onStaff,
   onThemes,
+  onChangePassword,
+  leave,
   onSwitchProperty,
   onSignOut,
 }: {
@@ -60,11 +60,14 @@ export function ProfileMenu({
   email: string | null;
   roleName: string;
   propertyName: string | null;
-  canViewStaff: boolean;
+  /** The other properties this user can switch to straight from the menu. */
   otherProperties: PropertyChoice[];
-  onSettings: () => void;
-  onStaff: () => void;
+  /** Absent where there are no property settings to open (the platform console). */
+  onSettings?: () => void;
   onThemes: () => void;
+  onChangePassword: () => void;
+  /** A way out of the current property, for a super admin who opened one from the platform console. */
+  leave?: { label: string; onSelect: () => void };
   onSwitchProperty: (propertyId: string) => void;
   onSignOut: () => void;
 }) {
@@ -131,23 +134,30 @@ export function ProfileMenu({
           </div>
 
           <div className="p-1.5">
-            <button type="button" role="menuitem" onClick={onSettings} className={ITEM}>
-              <Lucide.Settings size={16} className="flex-none text-ink-muted" aria-hidden="true" />
-              Profile &amp; settings
-            </button>
-            {canViewStaff ? (
-              <button type="button" role="menuitem" onClick={onStaff} className={ITEM}>
-                <Lucide.ShieldCheck size={16} className="flex-none text-ink-muted" aria-hidden="true" />
-                Staff &amp; roles
+            {onSettings ? (
+              <button type="button" role="menuitem" onClick={onSettings} className={ITEM}>
+                <Lucide.Settings size={16} className="flex-none text-ink-muted" aria-hidden="true" />
+                Profile &amp; settings
               </button>
             ) : null}
             <button type="button" role="menuitem" onClick={onThemes} className={ITEM}>
               <Lucide.Palette size={16} className="flex-none text-primary" aria-hidden="true" />
               Appearance &amp; themes
             </button>
+            <button type="button" role="menuitem" onClick={onChangePassword} className={ITEM}>
+              <Lucide.KeyRound size={16} className="flex-none text-ink-muted" aria-hidden="true" />
+              Change password
+            </button>
           </div>
 
-          {otherProperties.length > 0 ? (
+          {leave ? (
+            <div className="border-t border-divider p-1.5">
+              <button type="button" role="menuitem" onClick={leave.onSelect} className={ITEM}>
+                <Lucide.LayoutDashboard size={16} className="flex-none text-primary" aria-hidden="true" />
+                {leave.label}
+              </button>
+            </div>
+          ) : otherProperties.length > 0 ? (
             <div className="border-t border-divider p-1.5">
               <p className="px-3 pb-1 pt-1.5 text-micro font-bold uppercase tracking-[0.14em] text-ink-muted">Switch property</p>
               {otherProperties.map((membership) => (

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { BrandShell } from '../../components/brand/BrandShell';
 import { Button } from '../../components/primitives';
@@ -8,21 +7,15 @@ import { useApiResource } from '../../lib/api/useApiResource';
 import { toast } from '../../utils/toast';
 import { useAuth } from '../auth/AuthContext';
 import { PropertiesPage } from './PropertiesPage';
-import { SetupWizard } from './setup-wizard/SetupWizard';
-
-type View = { kind: 'list' } | { kind: 'setup' };
 
 /**
- * Shown after sign-in when no property is active. Only an ADMIN can get here (a
- * STAFF user is bound to one property): they pick a property, which opens it
- * directly, or set up a new one. With no properties at all they go straight to setup.
+ * Shown after sign-in to a STAFF user with several properties and none open yet. They pick one, which
+ * opens it directly. (A super admin starts in the platform console instead, which also sets up new
+ * properties.)
  */
 export function PropertyPickerPage() {
-  const { me, switchProperty, logout } = useAuth();
+  const { switchProperty, logout } = useAuth();
   const list = useApiResource(() => propertyApi.list(), []);
-  const [view, setView] = useState<View>({ kind: 'list' });
-
-  const canAdd = me?.user.propertyMemberships[0]?.role.key !== 'staff';
 
   const open = async (propertyId: string) => {
     try {
@@ -55,21 +48,20 @@ export function PropertyPickerPage() {
 
   const properties = list.data.filter((p) => p.isActive);
 
-  if (view.kind === 'setup' || properties.length === 0) {
-    // Only the property list has Sign out; setup just offers a way back when there is a list to go back to.
-    const exit =
-      properties.length > 0 ? (
-        <Button variant="ghost" onClick={() => setView({ kind: 'list' })}>
-          Exit setup
-        </Button>
-      ) : undefined;
+  if (properties.length === 0) {
     return (
-      <SetupWizard
-        exitAction={exit}
-        onDone={(id) => void open(id)}
-      />
+      <BrandShell>
+        <div className="flex flex-col items-start gap-3">
+          <p className="text-[15px] text-ink-secondary" role="status">
+            None of your properties is active right now. Contact an administrator.
+          </p>
+          <Button variant="ghost" icon={<Lucide.LogOut size={14} />} onClick={() => void logout()}>
+            Sign out
+          </Button>
+        </div>
+      </BrandShell>
     );
   }
 
-  return <PropertiesPage properties={properties} canAdd={canAdd} onSignOut={() => void logout()} onAdd={() => setView({ kind: 'setup' })} onOpen={(id) => void open(id)} />;
+  return <PropertiesPage properties={properties} onSignOut={() => void logout()} onOpen={(id) => void open(id)} />;
 }
