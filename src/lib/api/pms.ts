@@ -15,6 +15,13 @@ export interface PropertyMembership {
 
 export type UserRoleKey = 'SUPER_ADMIN' | 'STAFF';
 
+/**
+ * Where a self sign-up stands: PENDING_SETUP (account made, property not described), PENDING_APPROVAL
+ * (property sent, a super admin has not decided) or APPROVED. REJECTED accounts cannot sign in. Accounts a
+ * super admin creates are APPROVED.
+ */
+export type ApprovalStatus = 'PENDING_SETUP' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
+
 export interface AuthMe {
   user: {
     id: string;
@@ -24,6 +31,8 @@ export interface AuthMe {
     role: UserRoleKey;
     /** True until the user replaces a password a super admin set for them; the API refuses everything else meanwhile. */
     mustChangePassword: boolean;
+    /** Until APPROVED the API lets the account do nothing but finish onboarding or wait. */
+    approvalStatus: ApprovalStatus;
     /** Every property a SUPER_ADMIN can open; for STAFF, the ones assigned to them. */
     propertyMemberships: PropertyMembership[];
   };
@@ -33,7 +42,7 @@ export interface AuthMe {
 
 /** What the demo store knows about the session; the real account fields are added by `authApi.me`. */
 export interface DemoSession {
-  user: Omit<AuthMe['user'], 'role' | 'mustChangePassword'>;
+  user: Omit<AuthMe['user'], 'role' | 'mustChangePassword' | 'approvalStatus'>;
   activePropertyId: string | null;
   permissions: string[];
 }
@@ -211,6 +220,7 @@ interface BackendMe {
   /** The properties a STAFF user is assigned to; empty for SUPER_ADMIN, who can use every property. */
   propertyIds: string[];
   mustChangePassword: boolean;
+  approvalStatus: ApprovalStatus;
 }
 
 /** What `GET /properties` returns: every property for SUPER_ADMIN, only the assigned ones for STAFF. */
@@ -259,10 +269,14 @@ export const authApi = {
     });
     saveAccessToken(accessToken);
   },
+  /** Step one of sign-up: creates the account only. The caller signs in next, then sets up the property. */
+  register: (name: string, email: string, password: string) =>
+    apiRequest<{ id: string; email: string; name: string }>('/auth/register', { method: 'POST', body: { name, email, password } }),
   me: async (): Promise<AuthMe> => {
     const user = await apiRequest<BackendMe>('/auth/me');
-    // Until the password is changed the API refuses every other route, so only the account is read.
-    const properties = user.mustChangePassword ? [] : await apiRequest<BackendProperty[]>('/properties');
+    // Until the password is changed, or a sign-up is approved, the API refuses every other route, so only the account is read.
+    const properties =
+      user.mustChangePassword || user.approvalStatus !== 'APPROVED' ? [] : await apiRequest<BackendProperty[]>('/properties');
     const demo = store.session();
     const role = ROLE_LABELS[user.role];
     const demoProperty = demo.user.propertyMemberships[0]?.property;
@@ -289,6 +303,7 @@ export const authApi = {
         fullName: user.name,
         role: user.role,
         mustChangePassword: user.mustChangePassword,
+        approvalStatus: user.approvalStatus,
         propertyMemberships: properties.map((p) => ({
           id: `membership-${p.id}`,
           userId: user.id,
@@ -1406,6 +1421,20 @@ export const taxSetupApi = {
     apiRequest<TaxGeneralSettings>(`/${requireActivePropertyId()}/tax-settings`, { method: 'PUT', body }),
 };
 
+/** What a new account sends for its property: the details, the room categories, and the rooms on each floor. */
+export interface OnboardingSubmission {
+  property: { name: string; code: string; city: string; state?: string; country: string; defaultCurrency: string; numberOfFloors: number; totalRooms: number };
+  categories: Array<{ name: string }>;
+  /** Floors that have rooms; each room names its category, in position order (the first on floor 1 is 101). */
+  floors: Array<{ floor: number; rooms: Array<{ category: string }> }>;
+}
+
+/** Step two of sign-up. Allowed once, for an account that has not been approved. */
+export const onboardingApi = {
+  submit: (body: OnboardingSubmission) =>
+    apiRequest<{ approvalStatus: ApprovalStatus; propertyId: string }>('/onboarding/property', { method: 'POST', body }),
+};
+
 /** A user as the backend returns them. The password hash never leaves the server. */
 export interface AdminUser {
   id: string;
@@ -1415,6 +1444,10 @@ export interface AdminUser {
   isActive: boolean;
   /** True until the user replaces the password a super admin set for them. */
   mustChangePassword: boolean;
+  approvalStatus: ApprovalStatus;
+  /** Why the sign-up was rejected; the user sees it when they try to sign in. */
+  rejectionReason: string | null;
+  reviewedAt: string | null;
   /** The properties a STAFF user is assigned to; empty for SUPER_ADMIN. */
   properties: Array<{ id: string; name: string; code: string; isActive: boolean }>;
   createdAt: string;
@@ -1425,6 +1458,8 @@ export interface AdminUserQuery {
   search?: string;
   role?: UserRoleKey;
   isActive?: boolean;
+  /** PENDING_APPROVAL is the queue of sign-ups waiting for a decision. */
+  approvalStatus?: ApprovalStatus;
   propertyId?: string;
   page?: number;
   pageSize?: number;
@@ -1450,6 +1485,11 @@ export const userAdminApi = {
   /** Signs the user out everywhere; they must replace this password at their next sign-in. */
   resetPassword: async (id: string, password: string) =>
     apiRequest<void>(`/users/${id}/reset-password`, { method: 'POST', body: { password } }),
+  /** Activates the account and the property it submitted. */
+  approve: async (id: string) => apiRequest<AdminUser>(`/users/${id}/approve`, { method: 'POST' }),
+  /** Signs the user out; they see the reason at their next sign-in. */
+  reject: async (id: string, reason?: string) =>
+    apiRequest<AdminUser>(`/users/${id}/reject`, { method: 'POST', body: reason ? { reason } : {} }),
   forProperty: async (propertyId: string) => apiRequest<AdminUser[]>(`/properties/${propertyId}/users`),
   assign: async (propertyId: string, userId: string) =>
     apiRequest<void>(`/properties/${propertyId}/users/${userId}`, { method: 'PUT' }),
@@ -1468,6 +1508,8 @@ export interface PlatformOverview {
     staff: number;
     pendingPasswordChange: number;
     staffWithoutProperty: number;
+    /** Sign-ups that have sent their property and wait for approval. */
+    pendingApproval: number;
   };
   /** Login sessions that have not been signed out. */
   activeSessions: number;
