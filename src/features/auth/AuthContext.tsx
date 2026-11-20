@@ -6,22 +6,20 @@ import { ApiError, onSessionEnded, setActivePropertyId } from '../../lib/api/cli
 import { authApi } from '../../lib/api/pms';
 import type { AuthMe } from '../../lib/api/pms';
 
-interface LoginOptions {
-  /** Refuses (and signs out) anyone who is not a SUPER_ADMIN: the platform sign-in is not for hotel staff. */
-  superAdminOnly?: boolean;
-}
-
 interface AuthContextValue {
   me: AuthMe | null;
   loading: boolean;
   error: string | null;
   /** Set when a signed-in session was ended by the server; shown once on the sign-in page. */
   sessionNotice: string | null;
-  login: (email: string, password: string, options?: LoginOptions) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  /** Creates the account and signs it in; the app then asks for the property details. */
+  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   /** Opens a property, or (null) leaves the current one: a SUPER_ADMIN returns to the platform console, STAFF to Choose a property. */
   switchProperty: (propertyId: string | null) => Promise<void>;
-  reload: () => Promise<void>;
+  /** Reads the account again; resolves with it (null when signed out). */
+  reload: () => Promise<AuthMe | null>;
   can: (permission: string) => boolean;
   /** A SUPER_ADMIN has the platform console and reaches every property. */
   isSuperAdmin: boolean;
@@ -81,35 +79,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [applyMe]);
 
-  const reload = useCallback(async () => {
-    if (!me) return;
+  const reload = useCallback(async (): Promise<AuthMe | null> => {
+    if (!me) return null;
     setError(null);
     try {
-      applyMe(await authApi.me());
+      const session = await authApi.me();
+      applyMe(session);
+      return session;
     } catch (cause) {
       if (cause instanceof ApiError && cause.status === 401) applyMe(null);
       else setError(cause instanceof Error ? cause.message : 'Could not load your session.');
+      return null;
     }
   }, [me, applyMe]);
 
   // `loading` is not raised here: it swaps the sign-in page for a splash, which would throw away the
   // page's own error message when the sign-in fails. The page shows its own busy state instead.
-  const login = useCallback(async (email: string, password: string, options: LoginOptions = {}) => {
+  const login = useCallback(async (email: string, password: string) => {
     setError(null);
     setSessionNotice(null);
     try {
       await authApi.login(email, password);
-      const session = await authApi.me();
-      if (options.superAdminOnly && session.user.role !== 'SUPER_ADMIN') {
-        await authApi.logout().catch(() => undefined);
-        throw new Error('This sign-in is for platform administrators. Hotel staff sign in on the main page.');
-      }
-      applyMe(session);
+      applyMe(await authApi.me());
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not sign in.');
       throw cause;
     }
   }, [applyMe]);
+
+  const register = useCallback(async (name: string, email: string, password: string) => {
+    await authApi.register(name, email, password);
+    try {
+      await login(email, password);
+    } catch {
+      // The account exists; only the automatic sign-in failed.
+      throw new Error('Your account was created, but we could not sign you in. Go back and sign in with your email and password.');
+    }
+  }, [login]);
 
   const logout = useCallback(async () => {
     try {
@@ -139,6 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       error,
       sessionNotice,
       login,
+      register,
       logout,
       switchProperty,
       reload,
@@ -147,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       canOpen: (view) => canOpenView(view, can),
       changePassword,
     };
-  }, [me, loading, error, sessionNotice, login, logout, switchProperty, reload, changePassword]);
+  }, [me, loading, error, sessionNotice, login, register, logout, switchProperty, reload, changePassword]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

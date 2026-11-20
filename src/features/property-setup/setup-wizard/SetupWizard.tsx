@@ -5,7 +5,7 @@ import { BrandShell } from '../../../components/brand/BrandShell';
 import { HEADING } from '../../../components/brand/brandStyles';
 import { Button } from '../../../components/primitives';
 import { displayApiError } from '../../../lib/api/client';
-import { floorPlanApi, propertyApi, roomListingApi } from '../../../lib/api/pms';
+import { floorPlanApi, onboardingApi, propertyApi, roomListingApi } from '../../../lib/api/pms';
 import { toast } from '../../../utils/toast';
 import { CategoriesStep } from './CategoriesStep';
 import { FloorsStep } from './FloorsStep';
@@ -34,13 +34,20 @@ interface Progress {
 }
 
 interface SetupWizardProps {
+  /**
+   * `platform`: a super admin adds a property that is live at once. `registration`: a new account sends
+   * its first property for approval, in one request, and it stays inactive until a super admin approves.
+   */
+  mode?: 'platform' | 'registration';
+  /** A note above the steps. */
+  intro?: ReactNode;
   /** The top-right "Exit setup" action; absent when there is no property list to go back to. */
   exitAction?: ReactNode;
   /** Called once the property, its categories and its floor plan are all saved. */
   onDone: (propertyId: string) => void;
 }
 
-export function SetupWizard({ exitAction, onDone }: SetupWizardProps) {
+export function SetupWizard({ mode = 'platform', intro, exitAction, onDone }: SetupWizardProps) {
   const [step, setStep] = useState(0);
   const [property, setProperty] = useState<PropertyDraft>(emptyProperty);
   const [categories, setCategories] = useState<CategoryDraft[]>(() => [newCategory()]);
@@ -94,6 +101,29 @@ export function SetupWizard({ exitAction, onDone }: SetupWizardProps) {
     setFailure(null);
     const done = progress.current;
     try {
+      if (mode === 'registration') {
+        // One request that saves everything or nothing, so a failed try leaves nothing to resume.
+        const nameOf = new Map(categories.map((c) => [c.id, c.name.trim()]));
+        const submitted = await onboardingApi.submit({
+          property: {
+            name: property.name.trim(),
+            code: property.code,
+            city: property.city.trim(),
+            ...(property.state.trim() ? { state: property.state.trim() } : {}),
+            country: property.country,
+            defaultCurrency: property.currency,
+            numberOfFloors: property.floors,
+            totalRooms: property.rooms,
+          },
+          categories: categories.map((c) => ({ name: c.name.trim() })),
+          floors: Array.from({ length: property.floors }, (_, i) => i + 1)
+            .map((floor) => ({ floor, rooms: (floors[floor] ?? []).map((r) => ({ category: nameOf.get(r.categoryId) ?? '' })) }))
+            .filter((f) => f.rooms.length > 0),
+        });
+        toast('Sent for approval', { detail: `${property.name.trim()} will be ready to use once our team approves it.`, tone: 'success' });
+        onDone(submitted.propertyId);
+        return;
+      }
       if (!done.propertyId) {
         const created = await propertyApi.create({
           name: property.name.trim(),
@@ -156,6 +186,7 @@ export function SetupWizard({ exitAction, onDone }: SetupWizardProps) {
         <SetupRail step={step} property={property} categories={categories} placed={placed} />
 
         <div className="flex min-w-0 flex-1 flex-col lg:min-h-0">
+          {intro}
           <div className="mb-3 flex flex-none items-end justify-between gap-x-4 gap-y-2">
             <div className="min-w-0">
               <p className="text-[12px] font-medium text-ink-muted">Step {step + 1} of 3</p>
@@ -206,11 +237,11 @@ export function SetupWizard({ exitAction, onDone }: SetupWizardProps) {
               <Button variant="primary" className="max-sm:flex-1" onClick={() => void finish()} disabled={saving}>
                 {saving ? (
                   <>
-                    <Lucide.Loader2 size={14} className="animate-spin" /> Setting up…
+                    <Lucide.Loader2 size={14} className="animate-spin" /> {mode === 'registration' ? 'Sending…' : 'Setting up…'}
                   </>
                 ) : (
                   <>
-                    Finish setup <Lucide.Check size={14} />
+                    {mode === 'registration' ? 'Send for approval' : 'Finish setup'} <Lucide.Check size={14} />
                   </>
                 )}
               </Button>

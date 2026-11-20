@@ -24,10 +24,22 @@ interface Attention {
   hint: string;
   tone: BadgeTone;
   view: PlatformView;
+  /** Opens the sign-ups waiting for a decision instead of the whole page. */
+  reviewSignups?: boolean;
 }
 
 function attentionItems({ properties, users }: PlatformOverview): Attention[] {
   const items: Attention[] = [
+    {
+      key: 'pending-approval',
+      count: users.pendingApproval,
+      one: 'sign-up is waiting for approval',
+      many: 'sign-ups are waiting for approval',
+      hint: 'They cannot use TriponX until you approve their property.',
+      tone: 'warning',
+      view: 'users',
+      reviewSignups: true,
+    },
     {
       key: 'staff-without-property',
       count: users.staffWithoutProperty,
@@ -81,7 +93,7 @@ function summaryItems({ properties, users, activeSessions, reservations, guests 
 }
 
 /** The super admin's landing page: figures across every hotel, and what needs a decision. */
-export function PlatformDashboard({ go }: { go: (view: PlatformView) => void }) {
+export function PlatformDashboard({ go, onReviewSignups }: { go: (view: PlatformView) => void; onReviewSignups: () => void }) {
   const { switchProperty } = useAuth();
   const overview = useApiResource(() => platformApi.overview(), []);
   const [opening, setOpening] = useState<string | null>(null);
@@ -198,7 +210,7 @@ export function PlatformDashboard({ go }: { go: (view: PlatformView) => void }) 
                       </p>
                       <p className="mt-1 text-label text-ink-secondary">{item.hint}</p>
                     </div>
-                    <Button variant="secondary" onClick={() => go(item.view)} icon={<Lucide.ArrowRight size={13} />}>
+                    <Button variant="secondary" onClick={() => (item.reviewSignups ? onReviewSignups() : go(item.view))} icon={<Lucide.ArrowRight size={13} />}>
                       Review
                     </Button>
                   </li>

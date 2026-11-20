@@ -18,7 +18,7 @@ import { InventoryProvider } from './features/inventory/InventoryProvider';
 import { themeApi } from './lib/api/pms';
 import type { ThemeKey } from './types';
 import { PropertyPickerPage } from './features/property-setup/PropertyPickerPage';
-import { isPlatformLoginPath } from './features/auth/loginPath';
+import { useAuthPage } from './features/auth/authPage';
 
 const THEME_KEY_TO_PRESET: Record<ThemeKey, ThemePresetId> = {
   MIDNIGHT_NAVY: 'midnight',
@@ -47,6 +47,9 @@ const Reports = lazy(() => import('./features/analytics/ReportsPage').then((m) =
 const PlatformConsole = lazy(() => import('./features/platform/PlatformConsole').then((m) => ({ default: m.PlatformConsole })));
 const Settings = lazy(() => import('./features/settings/SettingsPage').then((m) => ({ default: m.Settings })));
 const LoginPage = lazy(() => import('./features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import('./features/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })));
+const RegistrationSetupPage = lazy(() => import('./features/auth/RegistrationSetupPage').then((m) => ({ default: m.RegistrationSetupPage })));
+const AwaitingApprovalPage = lazy(() => import('./features/auth/AwaitingApprovalPage').then((m) => ({ default: m.AwaitingApprovalPage })));
 const ChangePasswordPage = lazy(() => import('./features/auth/ChangePasswordPage').then((m) => ({ default: m.ChangePasswordPage })));
 
 function Shell() {
@@ -186,7 +189,13 @@ function ShellWithBoundary() {
 function AuthenticatedApp() {
   const { me, loading } = useAuth();
   const { preset, setPreset } = useTheme();
+  const { page: authPage, go: setAuthPage, reset: resetAuthPage } = useAuthPage();
   const [loadedThemeProperty, setLoadedThemeProperty] = useState<string | null>(null);
+  // Once signed in, the address (/register, or an old /admin) means nothing.
+  const signedIn = me !== null;
+  useEffect(() => {
+    if (signedIn) resetAuthPage();
+  }, [signedIn, resetAuthPage]);
   // The platform console (no property open) has its own appearance scope.
   const themeScope = me ? `${me.user.id}:${me.activePropertyId ?? 'platform'}` : null;
 
@@ -221,7 +230,11 @@ function AuthenticatedApp() {
     return (
       <>
         <Suspense fallback={<PageSkeleton />}>
-          <LoginPage platform={isPlatformLoginPath(window.location.pathname)} />
+          {authPage === 'register' ? (
+            <RegisterPage onSignIn={() => setAuthPage('login')} />
+          ) : (
+            <LoginPage onRegister={() => setAuthPage('register')} />
+          )}
         </Suspense>
         {/* The shell mounts its own Toaster; the login page needs one for sign-in errors. */}
         <Toaster />
@@ -235,6 +248,28 @@ function AuthenticatedApp() {
       <>
         <Suspense fallback={<PageSkeleton />}>
           <ChangePasswordPage />
+        </Suspense>
+        <Toaster />
+      </>
+    );
+  }
+
+  // A new account describes its property, then waits for a super admin. The API refuses everything else meanwhile.
+  if (me.user.approvalStatus === 'PENDING_SETUP') {
+    return (
+      <>
+        <Suspense fallback={<PageSkeleton />}>
+          <RegistrationSetupPage />
+        </Suspense>
+        <Toaster />
+      </>
+    );
+  }
+  if (me.user.approvalStatus === 'PENDING_APPROVAL') {
+    return (
+      <>
+        <Suspense fallback={<PageSkeleton />}>
+          <AwaitingApprovalPage />
         </Suspense>
         <Toaster />
       </>
