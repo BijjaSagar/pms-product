@@ -1247,18 +1247,22 @@ export interface ReservationOptions {
 
 interface ReservationListResponse { data: ReservationRow[]; total: number; page: number; pageSize: number }
 
+/** Narrow a reservation list to stays arriving or leaving in a date range (YYYY-MM-DD, both ends included). */
+export interface ReservationDateFilters { checkInFrom?: string; checkInTo?: string; checkOutFrom?: string; checkOutTo?: string }
+
 /** Reservations of the active property, read from and saved to the reservations table in the backend. */
 export const reservationApi = {
-  list: async (search = '', status?: string, page = 1, pageSize = 100): Promise<PageResult<ReservationRow>> => {
+  list: async (search = '', status?: string, page = 1, pageSize = 100, filters: ReservationDateFilters = {}): Promise<PageResult<ReservationRow> & { total: number }> => {
     const result = await apiRequest<ReservationListResponse>(
       `/${requireActivePropertyId()}/reservations${queryString({
         search: search || undefined,
         status: status && RESERVATION_STATUSES.includes(status) ? status : undefined,
+        ...filters,
         page,
         pageSize,
       })}`,
     );
-    return { data: result.data, page: result.page, pageSize: result.pageSize, hasMore: result.page * result.pageSize < result.total };
+    return { data: result.data, page: result.page, pageSize: result.pageSize, hasMore: result.page * result.pageSize < result.total, total: result.total };
   },
   get: async (id: string) => apiRequest<ReservationRow>(`/${requireActivePropertyId()}/reservations/${id}`),
   options: async () => apiRequest<ReservationOptions>(`/${requireActivePropertyId()}/reservation-options`),

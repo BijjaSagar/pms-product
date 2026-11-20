@@ -1,724 +1,462 @@
 import { useCallback, useMemo, useState } from 'react';
-import { PageSkeleton } from '../../components/Skeleton';
+import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
+import { PageSkeleton } from '../../components/Skeleton';
+import { SummaryStrip } from '../../components/SummaryStrip';
 import type { NavTarget } from '../../config/navigation';
-import { folioApi, frontDeskApi, operationsApi, reportsApi, reservationApi } from '../../lib/api/pms';
-import { paymentFromApi, reservationFromApi } from '../../lib/api/adapters';
+import { requireActivePropertyId } from '../../lib/api/client';
+import { reservationApi, roomInventoryApi } from '../../lib/api/pms';
+import type { ReservationRow } from '../../lib/api/pms';
+import { reservationFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { useAuth } from '../../features/auth/AuthContext';
-import type { PaymentRow, ReservationRow, StayRow } from '../../lib/api/pms';
-import { toast } from '../../utils/toast';
 import { Avatar, Badge, TableActionBtn, TableContainer } from '../../components/ui';
 import { Button } from '../../components/primitives';
 
-// ================= DEMO FALLBACK DATA MATCHING REFERENCE IMAGE =================
+/*
+ * Everything on this page is read from the backend for the active property: reservations (arrivals,
+ * departures, in-house, recent) and the room inventory. Nothing is sample data; a property with no
+ * bookings shows empty states.
+ */
 
-interface ActivityItem {
-  id: string;
-  time: string;
-  type: 'arrival' | 'departure' | 'in-house';
-  icon: Lucide.LucideIcon;
-  iconBg: string;
-  title: string;
-  subtitle: string;
-  room?: string;
-  status: string;
-  statusTone: string;
-  actionLabel: string;
-  actionTone: string;
-  target: NavTarget;
+type Stay = ReturnType<typeof reservationFromApi>;
+
+interface DashboardData {
+  today: string;
+  arrivals: ReservationRow[];
+  departures: ReservationRow[];
+  inHouse: ReservationRow[];
+  /** Reservations currently checked in, which can be more than `inHouse` holds. */
+  inHouseTotal: number;
+  recent: ReservationRow[];
+  rooms: { total: number; sellable: number } | null;
 }
 
-const DEMO_TIMELINE: ActivityItem[] = [
-  {
-    id: 't-1',
-    time: '10:00 AM',
-    type: 'arrival',
+/** Rows fetched per list; the dashboard shows at most five of each. */
+const LIST_SIZE = 50;
+const VISIBLE_ROWS = 5;
+
+type TimelineKind = 'arrival' | 'departure' | 'in-house';
+type TimelineTab = 'all' | 'arrivals' | 'departures' | 'in-house';
+
+interface TimelineItem {
+  id: string;
+  kind: TimelineKind;
+  stay: Stay;
+  time: string | null;
+}
+
+const KIND_STYLE: Record<TimelineKind, { icon: Lucide.LucideIcon; iconBg: string; statusTone: string; status: string }> = {
+  arrival: {
     icon: Lucide.DoorOpen,
     iconBg: 'bg-success-bg text-success-text border border-success-border',
-    title: 'Rohan Singh',
-    subtitle: 'RSV-DM-0013 • Deluxe King',
-    room: 'Room 201',
-    status: 'Arriving',
     statusTone: 'bg-success-bg text-success-text border-success-border/60',
-    actionLabel: 'View booking',
-    actionTone: 'text-success-text bg-success-bg/80 hover:bg-success-bg border-success-border',
-    target: { view: 'reservations' },
+    status: 'Arriving',
   },
-  {
-    id: 't-2',
-    time: '11:30 AM',
-    type: 'arrival',
-    icon: Lucide.Sparkles,
-    iconBg: 'bg-primary/10 text-primary border border-primary/30',
-    title: 'Priya Mehta',
-    subtitle: 'RSV-DM-0014 • VIP Welcome Amenity',
-    room: 'Room 302',
-    status: 'VIP Elite',
-    statusTone: 'bg-primary/10 text-primary border-primary/30',
-    actionLabel: 'View booking',
-    actionTone: 'text-primary bg-primary/10 hover:bg-primary/10 border-primary/30',
-    target: { view: 'reservations' },
-  },
-  {
-    id: 't-3',
-    time: '12:00 PM',
-    type: 'departure',
+  departure: {
     icon: Lucide.DoorClosed,
     iconBg: 'bg-warning-bg text-warning-text border border-warning-border',
-    title: 'Rahul Lal',
-    subtitle: 'RSV-DM-0010 • Folio Settled',
-    room: 'Room 103',
-    status: 'Due Out',
     statusTone: 'bg-warning-bg text-warning-text border-warning-border/60',
-    actionLabel: 'Open folio',
-    actionTone: 'text-warning-text bg-warning-bg/80 hover:bg-warning-bg border-warning-border',
-    target: { view: 'folios' },
+    status: 'Due out',
   },
-  {
-    id: 't-4',
-    time: '02:00 PM',
-    type: 'in-house',
-    icon: Lucide.Sparkles,
+  'in-house': {
+    icon: Lucide.BedDouble,
     iconBg: 'bg-info-bg text-info-text border border-info-border',
-    title: 'Deep Cleaning & Sanitization',
-    subtitle: 'Assigned: Anita S. • Due 02:45 PM',
-    room: 'Room 204',
-    status: 'Cleaning',
     statusTone: 'bg-info-bg text-info-text border-info-border/60',
-    actionLabel: 'Mark Done',
-    actionTone: 'text-ink bg-page hover:bg-muted-surface border-border',
-    target: { view: 'room-overview' } as NavTarget,
+    status: 'In house',
   },
-];
+};
 
-const DEMO_PENDING_CHECKINS = [
-  {
-    id: 'RSV-DM-0013',
-    bookingCode: 'RSV-DM-0013',
-    guest: 'Rohan Singh',
-    isVip: false,
-    room: '201',
-    roomType: 'Deluxe King',
-    roomReady: true,
-    eta: '10:00 AM',
-    dates: 'Oct 14 – 16',
-    nights: 2,
-    total: 12980,
-    balance: 0,
-    status: 'Guaranteed',
-  },
-  {
-    id: 'RSV-DM-0014',
-    bookingCode: 'RSV-DM-0014',
-    guest: 'Priya Mehta',
-    isVip: true,
-    vipTier: 'VIP Elite',
-    room: '302',
-    roomType: 'Executive Suite',
-    roomReady: true,
-    eta: '11:30 AM',
-    dates: 'Oct 14 – 17',
-    nights: 3,
-    total: 25600,
-    balance: 0,
-    status: 'Confirmed',
-  },
-  {
-    id: 'RSV-DM-0018',
-    bookingCode: 'RSV-DM-0018',
-    guest: 'Kavita Nair',
-    isVip: false,
-    room: '205',
-    roomType: 'Deluxe Queen',
-    roomReady: false,
-    eta: '01:15 PM',
-    dates: 'Oct 14 – 15',
-    nights: 1,
-    total: 6490,
-    balance: 6490,
-    status: 'Pending Deposit',
-  },
-  {
-    id: 'RSV-DM-0019',
-    bookingCode: 'RSV-DM-0019',
-    guest: 'Arjun Verma',
-    isVip: false,
-    room: 'Unassigned',
-    roomType: 'Superior Twin',
-    roomReady: false,
-    eta: '03:00 PM',
-    dates: 'Oct 14 – 18',
-    nights: 4,
-    total: 21800,
-    balance: 0,
-    status: 'Guaranteed',
-  },
-  {
-    id: 'RSV-DM-0020',
-    bookingCode: 'RSV-DM-0020',
-    guest: 'Sameer Sen',
-    isVip: true,
-    vipTier: 'VIP Diamond',
-    room: '404',
-    roomType: 'Presidential Suite',
-    roomReady: true,
-    eta: '04:30 PM',
-    dates: 'Oct 14 – 16',
-    nights: 2,
-    total: 38400,
-    balance: 10000,
-    status: 'Confirmed',
-  },
-];
+const pad = (value: number) => String(value).padStart(2, '0');
+const localIsoDate = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 
-const DEMO_PENDING_CHECKOUTS = [
-  {
-    id: 'RSV-DM-0010',
-    bookingCode: 'RSV-DM-0010',
-    guest: 'Rahul Lal',
-    room: '103',
-    roomType: 'Standard Queen',
-    outTime: '11:00 AM',
-    isLateCheckout: false,
-    dates: 'Oct 12 – 14',
-    nights: 2,
-    folioBalance: 0,
-    status: 'Due Out' as const,
-  },
-  {
-    id: 'RSV-DM-0008',
-    bookingCode: 'RSV-DM-0008',
-    guest: 'Aditya Nanda',
-    room: '202',
-    roomType: 'Deluxe King',
-    outTime: '11:30 AM',
-    isLateCheckout: false,
-    dates: 'Oct 11 – 14',
-    nights: 3,
-    folioBalance: 1850,
-    status: 'Due Out' as const,
-  },
-  {
-    id: 'RSV-DM-0006',
-    bookingCode: 'RSV-DM-0006',
-    guest: 'Sunita Menon',
-    room: '305',
-    roomType: 'Executive Suite',
-    outTime: '02:00 PM',
-    isLateCheckout: true,
-    dates: 'Oct 10 – 14',
-    nights: 4,
-    folioBalance: 0,
-    status: 'Late Checkout' as const,
-  },
-  {
-    id: 'RSV-DM-0005',
-    bookingCode: 'RSV-DM-0005',
-    guest: 'Manish Gupta',
-    room: '107',
-    roomType: 'Superior Twin',
-    outTime: '12:00 PM',
-    isLateCheckout: false,
-    dates: 'Oct 13 – 14',
-    nights: 1,
-    folioBalance: 4200,
-    status: 'Due Out' as const,
-  },
-  {
-    id: 'RSV-DM-0004',
-    bookingCode: 'RSV-DM-0004',
-    guest: 'Elena Reddy',
-    room: '401',
-    roomType: 'Deluxe King',
-    outTime: '11:00 AM',
-    isLateCheckout: false,
-    dates: 'Oct 12 – 14',
-    nights: 2,
-    folioBalance: 0,
-    status: 'Inspected' as const,
-  },
-];
+function greeting(date: Date): string {
+  const hour = date.getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
 
-const DEMO_RESERVATIONS = [
-  {
-    id: 'RSV-DM-0013',
-    guest: 'Rohan Singh',
-    dates: 'Oct 14 – Oct 16',
-    room: '201',
-    status: 'Confirmed',
-    total: 12980,
-  },
-  {
-    id: 'RSV-DM-0014',
-    guest: 'Priya Mehta',
-    dates: 'Oct 14 – Oct 17',
-    room: '2 Rooms',
-    status: 'Confirmed',
-    total: 25600,
-  },
-  {
-    id: 'RSV-DM-0015',
-    guest: 'Harsh Ali',
-    dates: 'Oct 15 – Oct 17',
-    room: '305',
-    status: 'Pending',
-    total: 8450,
-  },
-  {
-    id: 'RSV-DM-0016',
-    guest: 'Elena Reddy',
-    dates: 'Oct 13 – Oct 14',
-    room: '103',
-    status: 'Checked-out',
-    total: 6490,
-  },
-  {
-    id: 'RSV-DM-0017',
-    guest: 'Vikram Rao',
-    dates: 'Oct 15 – Oct 18',
-    room: '404',
-    status: 'Confirmed',
-    total: 18700,
-  },
-];
+function money(amount: number, currency = 'INR'): string {
+  try {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency }).format(amount);
+  } catch {
+    return amount.toFixed(2);
+  }
+}
 
-const DEMO_PAYMENTS = [
-  {
-    date: 'Oct 14, 10:22',
-    ref: 'PAY-00045',
-    guest: 'Rohan Singh',
-    method: 'Card',
-    amount: 8850,
-    status: 'Paid',
-  },
-  {
-    date: 'Oct 14, 09:10',
-    ref: 'PAY-00044',
-    guest: 'Priya Mehta',
-    method: 'UPI',
-    amount: 12000,
-    status: 'Paid',
-  },
-  {
-    date: 'Oct 13, 08:45',
-    ref: 'PAY-00043',
-    guest: 'Rahul Lal',
-    method: 'Card',
-    amount: 4720,
-    status: 'Paid',
-  },
-  {
-    date: 'Oct 13, 06:30',
-    ref: 'PAY-00042',
-    guest: 'Aditya Nanda',
-    method: 'Cash',
-    amount: 9440,
-    status: 'Paid',
-  },
-  {
-    date: 'Oct 12, 05:18',
-    ref: 'PAY-00041',
-    guest: 'Neha Kapoor',
-    method: 'Card',
-    amount: 14160,
-    status: 'Paid',
-  },
-];
+const balanceOf = (stay: Stay) => Math.max(0, stay.total - stay.paid);
 
+function statusTone(status: string): 'success' | 'warning' | 'info' | 'neutral' {
+  if (status === 'Confirmed') return 'success';
+  if (status === 'Pending') return 'warning';
+  if (status === 'Checked-in') return 'info';
+  return 'neutral';
+}
+
+function Empty({ icon: Icon, title, hint }: { icon: Lucide.LucideIcon; title: string; hint: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-border bg-page/50 px-4 py-8 text-center">
+      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted-surface text-ink-muted">
+        <Icon size={17} aria-hidden="true" />
+      </span>
+      <p className="text-label font-semibold text-ink">{title}</p>
+      <p className="max-w-xs text-label text-ink-muted">{hint}</p>
+    </div>
+  );
+}
+
+/** A dashboard card: gradient icon, title with a count, and an action link on the right. */
+function Panel({
+  icon: Icon,
+  gradient,
+  title,
+  count,
+  subtitle,
+  actionLabel,
+  onAction,
+  footer,
+  children,
+}: {
+  icon: Lucide.LucideIcon;
+  gradient: string;
+  title: string;
+  count: string;
+  subtitle: string;
+  actionLabel: string;
+  onAction: () => void;
+  footer: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="flex min-w-0 flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-xs sm:p-5">
+      <div className="min-w-0">
+        <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2 border-b border-divider pb-3.5">
+          <div className="flex items-center gap-2.5">
+            <div className={`flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr text-white shadow-xs ${gradient}`}>
+              <Icon size={17} strokeWidth={2.4} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-title font-bold tracking-tight text-ink">{title}</h2>
+                <span className="rounded-full border border-border bg-muted-surface px-1.5 py-px text-micro font-bold text-ink-secondary">
+                  {count}
+                </span>
+              </div>
+              <p className="mt-0.5 text-label text-ink-muted">{subtitle}</p>
+            </div>
+          </div>
+          <Button variant="secondary" type="button" onClick={onAction} className="flex cursor-pointer items-center gap-1 transition-colors">
+            <span>{actionLabel}</span>
+            <Lucide.ArrowRight size={14} className="text-ink-secondary" />
+          </Button>
+        </div>
+        {children}
+      </div>
+      <div className="mt-3 flex items-center justify-between border-t border-border/70 pt-3 text-label text-ink-secondary">
+        <span>{footer}</span>
+      </div>
+    </section>
+  );
+}
+
+const TABLE_CLASS =
+  'pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5';
+
+function GuestCell({ stay }: { stay: Stay }) {
+  return (
+    <div className="flex items-center gap-2">
+      <Avatar name={stay.guest} size={30} />
+      <div className="min-w-0">
+        <span className="block max-w-[150px] truncate text-label font-semibold text-ink">{stay.guest}</span>
+        <span className="block font-mono text-label text-ink-secondary">{stay.bookingCode}</span>
+      </div>
+    </div>
+  );
+}
+
+function RoomCell({ stay }: { stay: Stay }) {
+  return (
+    <>
+      <span
+        className={`rounded-md border px-1.5 py-px text-micro font-bold ${
+          stay.roomNumber ? 'border-border/60 bg-muted-surface text-ink' : 'border-warning-border/80 bg-warning-bg text-warning-text'
+        }`}
+      >
+        {stay.roomNumber ? `Room ${stay.roomNumber}` : 'Unassigned'}
+      </span>
+      <span className="mt-0.5 block text-label text-ink-secondary">{stay.roomType}</span>
+    </>
+  );
+}
+
+function BalanceCell({ stay }: { stay: Stay }) {
+  const due = balanceOf(stay);
+  return due > 0 ? (
+    <Badge size="sm" tone="warning">Due {money(due, stay.currencyCode)}</Badge>
+  ) : (
+    <Badge size="sm" tone="success">Paid</Badge>
+  );
+}
 
 export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
   const { me, can } = useAuth();
-  const [timelineTab, setTimelineTab] = useState<'all' | 'arrivals' | 'departures' | 'in-house'>('all');
+  const [timelineTab, setTimelineTab] = useState<TimelineTab>('all');
+  const canReadReservations = can('reservation.read');
 
-  const loadDashboard = useCallback(async () => {
-    try {
-      const [daily, housekeeping] = await Promise.all([
-        reportsApi.dailyFlash().catch(() => null),
-        operationsApi.housekeepingSummary().catch(() => null),
-      ]);
-      const permissions = {
-        reservations: can('reservation.read'),
-        finance: can('report.read.financial'),
-        payments: can('payment.read'),
-      };
-      const [reservationPage, arrivalResult, departureResult, revenue, payments] = await Promise.all([
-        permissions.reservations ? reservationApi.list('', undefined, 1, 5).catch(() => ({ data: [] })) : Promise.resolve({ data: [] as ReservationRow[] }),
-        permissions.reservations ? frontDeskApi.arrivals().catch(() => ({ data: [] })) : Promise.resolve({ data: [] as StayRow[] }),
-        permissions.reservations ? frontDeskApi.departures().catch(() => ({ data: [] })) : Promise.resolve({ data: [] as StayRow[] }),
-        permissions.finance ? reportsApi.revenue(daily?.businessDate ?? '', daily?.businessDate ?? '').catch(() => null) : Promise.resolve(null),
-        permissions.payments ? folioApi.listPayments().catch(() => []) : Promise.resolve([] as PaymentRow[]),
-      ]);
-      return {
-        daily,
-        housekeeping,
-        reservations: reservationPage.data.map(reservationFromApi),
-        arrivals: arrivalResult.data,
-        departures: departureResult.data,
-        revenue,
-        payments: payments.map(paymentFromApi),
-      };
-    } catch {
-      return null;
-    }
-  }, [can]);
+  const loadDashboard = useCallback(async (): Promise<DashboardData> => {
+    const today = localIsoDate(new Date());
+    const none = { data: [] as ReservationRow[], total: 0 };
+    const [arrivals, departures, inHouse, recent, inventory] = await Promise.all([
+      canReadReservations
+        ? reservationApi.list('', 'CONFIRMED', 1, LIST_SIZE, { checkInFrom: today, checkInTo: today })
+        : none,
+      // Anyone still checked in whose stay ends today or has already ended.
+      canReadReservations ? reservationApi.list('', 'CHECKED_IN', 1, LIST_SIZE, { checkOutTo: today }) : none,
+      canReadReservations ? reservationApi.list('', 'CHECKED_IN', 1, LIST_SIZE) : none,
+      canReadReservations ? reservationApi.list('', undefined, 1, VISIBLE_ROWS) : none,
+      // The room count is a nice-to-have: a role without access to it still gets the rest.
+      roomInventoryApi.get(requireActivePropertyId()).catch(() => null),
+    ]);
+    return {
+      today,
+      arrivals: arrivals.data,
+      departures: departures.data,
+      inHouse: inHouse.data,
+      inHouseTotal: inHouse.total,
+      recent: recent.data,
+      rooms: inventory
+        ? { total: inventory.rooms.length, sellable: inventory.rooms.filter((room) => room.sellable).length }
+        : null,
+    };
+  }, [canReadReservations]);
 
   const resource = useApiResource(loadDashboard);
+  const data = resource.data;
 
-  // Filtered timeline items
-  const filteredTimeline = useMemo(() => {
-    if (timelineTab === 'arrivals') return DEMO_TIMELINE.filter((i) => i.type === 'arrival');
-    if (timelineTab === 'departures') return DEMO_TIMELINE.filter((i) => i.type === 'departure');
-    if (timelineTab === 'in-house') return DEMO_TIMELINE.filter((i) => i.type === 'in-house');
-    return DEMO_TIMELINE;
-  }, [timelineTab]);
+  const arrivals = useMemo(() => (data?.arrivals ?? []).map(reservationFromApi), [data]);
+  const departures = useMemo(() => (data?.departures ?? []).map(reservationFromApi), [data]);
+  const recent = useMemo(() => (data?.recent ?? []).map(reservationFromApi), [data]);
 
-  const arrivals = resource.data?.arrivals;
-  const departures = resource.data?.departures;
-  const reservations = resource.data?.reservations;
-  const payments = resource.data?.payments;
-  const roomReadiness = resource.data?.housekeeping?.rooms;
-  const readyRooms = roomReadiness?.ready ?? 0;
-  const totalRoomCount = roomReadiness?.total ?? 0;
-  const readyPct = totalRoomCount > 0 ? Math.round((readyRooms / totalRoomCount) * 100) : 0;
+  const timeline = useMemo<TimelineItem[]>(() => {
+    if (!data) return [];
+    const leavingToday = new Set(data.departures.map((row) => row.id));
+    return [
+      ...data.arrivals.map((row) => ({ id: `a-${row.id}`, kind: 'arrival' as const, stay: reservationFromApi(row), time: row.checkInTime ?? null })),
+      ...data.departures.map((row) => ({ id: `d-${row.id}`, kind: 'departure' as const, stay: reservationFromApi(row), time: row.checkOutTime ?? null })),
+      ...data.inHouse
+        .filter((row) => !leavingToday.has(row.id))
+        .map((row) => ({ id: `h-${row.id}`, kind: 'in-house' as const, stay: reservationFromApi(row), time: null })),
+    ];
+  }, [data]);
 
-  const pendingCheckins = useMemo(() => {
-    if (arrivals && arrivals.length > 0) {
-      return arrivals.slice(0, 5).map((a) => ({
-        id: a.id,
-        bookingCode: a.bookingCode || a.id,
-        guest: a.guestName || 'Registered Guest',
-        isVip: false,
-        vipTier: undefined as string | undefined,
-        room: a.roomNumber || 'Unassigned',
-        roomType: a.roomTypeName || 'Standard Room',
-        roomReady: a.roomReady ?? true,
-        eta: '12:00 PM',
-        dates: `${a.checkInDate} – ${a.checkOutDate}`,
-        nights: a.nights ?? 1,
-        total: parseFloat(a.totalAmount || '0') || 7500,
-        balance: parseFloat(a.balance || '0') || 0,
-        status: (a.status as 'Confirmed' | 'Pending' | 'Checked-in' | 'Checked-out' | 'Cancelled' | 'No-show') || 'Confirmed',
-      }));
-    }
-    return DEMO_PENDING_CHECKINS;
-  }, [arrivals]);
-
-  const pendingCheckouts = useMemo(() => {
-    if (departures && departures.length > 0) {
-      return departures.slice(0, 5).map((d) => ({
-        id: d.id,
-        bookingCode: d.bookingCode || d.id,
-        guest: d.guestName || 'In-House Guest',
-        room: d.roomNumber || '101',
-        roomType: d.roomTypeName || 'Standard Room',
-        outTime: '11:00 AM',
-        isLateCheckout: false,
-        dates: `${d.checkInDate} – ${d.checkOutDate}`,
-        nights: d.nights ?? 1,
-        folioBalance: parseFloat(d.balance || '0') || 0,
-        status: 'Due Out' as const,
-      }));
-    }
-    return DEMO_PENDING_CHECKOUTS;
-  }, [departures]);
-
-  const recentReservations = useMemo(() => {
-    if (reservations && reservations.length > 0) {
-      return reservations.slice(0, 5).map((r) => ({
-        id: r.bookingCode || r.id,
-        guest: r.guest,
-        dates: `${r.checkIn} – ${r.checkOut}`,
-        room: r.room || 'Unassigned',
-        status: r.status,
-        total: r.total,
-      }));
-    }
-    return DEMO_RESERVATIONS;
-  }, [reservations]);
-
-  const recentPayments = useMemo(() => {
-    if (payments && payments.length > 0) {
-      return payments.slice(0, 5).map((p) => ({
-        date: p.date,
-        ref: p.ref,
-        guest: p.guest,
-        method: p.method,
-        amount: p.amount,
-        status: p.status,
-      }));
-    }
-    return DEMO_PAYMENTS;
-  }, [payments]);
-
+  const tabKinds: Record<Exclude<TimelineTab, 'all'>, TimelineKind> = {
+    arrivals: 'arrival',
+    departures: 'departure',
+    'in-house': 'in-house',
+  };
+  const countOf = (kind: TimelineKind) => timeline.filter((item) => item.kind === kind).length;
+  const visibleTimeline = timelineTab === 'all' ? timeline : timeline.filter((item) => item.kind === tabKinds[timelineTab]);
 
   if (resource.initialLoading) return <PageSkeleton />;
+
+  const now = new Date();
+  const firstName = me?.user.fullName?.trim().split(/\s+/)[0];
+
+  if (resource.error || !data) {
+    return (
+      <div className="pms-page text-label">
+        <Empty icon={Lucide.CloudOff} title="The dashboard could not be loaded" hint={resource.error ?? 'Try again in a moment.'} />
+        <div className="flex justify-center">
+          <Button variant="secondary" type="button" onClick={resource.refresh}>Try again</Button>
+        </div>
+      </div>
+    );
+  }
+
+  const inHouseLabel = data.inHouseTotal > data.inHouse.length ? `${data.inHouse.length}+` : String(data.inHouseTotal);
 
   return (
     <div className="pms-page text-label">
       {/* ================= 1. PAGE HEADER ================= */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        {/* Left Welcome Title */}
+      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
         <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-warning-bg text-warning-text shadow-2xs mt-0.5">
-            <Lucide.Sun size={26} className="animate-pulse" />
+          <div className="mt-0.5 flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-warning-bg text-warning-text shadow-2xs">
+            <Lucide.Sun size={26} />
           </div>
           <div>
-            <h1 className="text-disp3 font-bold tracking-tight text-ink leading-tight">
-              Good morning, {me?.user.fullName ? me.user.fullName.split(' ')[0] : 'Admin'}
+            <h1 className="text-disp3 font-bold leading-tight tracking-tight text-ink">
+              {greeting(now)}{firstName ? `, ${firstName}` : ''}
             </h1>
-            <p className="text-label text-ink-secondary mt-1 font-normal">
-              Here&apos;s what&apos;s happening at your hotel today <span className="text-ink-muted">•</span> October 14, 2026
+            <p className="mt-1 text-label font-normal text-ink-secondary">
+              Here&apos;s what&apos;s happening at your hotel today <span className="text-ink-muted">•</span>{' '}
+              {now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </p>
           </div>
         </div>
-
       </div>
 
+      {/* ================= 2. TODAY AT A GLANCE ================= */}
+      <SummaryStrip
+        label="Today at a glance"
+        columns="xs:grid-cols-2 lg:grid-cols-4"
+        items={[
+          { label: 'Arrivals today', value: String(arrivals.length), hint: 'Confirmed, awaiting check-in', icon: Lucide.DoorOpen, tone: 'success' },
+          { label: 'Departures due', value: String(departures.length), hint: 'Checked in, leaving today or earlier', icon: Lucide.DoorClosed, tone: 'warning' },
+          { label: 'In house', value: inHouseLabel, hint: 'Reservations checked in', icon: Lucide.BedDouble, tone: 'info' },
+          {
+            label: 'Rooms',
+            value: data.rooms ? String(data.rooms.total) : '—',
+            hint: data.rooms ? `${data.rooms.sellable} can be booked` : 'Room count unavailable',
+            icon: Lucide.Building2,
+            tone: 'primary',
+          },
+        ]}
+      />
 
-      {/* ================= 3. OPERATIONAL TIMELINE & DEPARTMENT TASKS ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-        {/* Today's Activity Timeline (lg:col-span-6) */}
-        <div className="lg:col-span-6 bg-surface rounded-2xl border border-border/80 p-5 shadow-xs flex flex-col justify-between h-full">
+      {/* ================= 3. TIMELINE & FRONT DESK ================= */}
+      <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-12">
+        {/* Today's movements */}
+        <div className="flex h-full flex-col justify-between rounded-2xl border border-border/80 bg-surface p-5 shadow-xs lg:col-span-6">
           <div>
-            {/* Header */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
+            <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2 border-b border-divider pb-3.5">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
                   <Lucide.Clock size={17} strokeWidth={2.4} />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-title font-bold text-ink tracking-tight">Today&apos;s Activity Timeline</h2>
-                    <span className="flex items-center gap-1 rounded-full bg-success-bg px-1.5 py-px text-micro font-bold text-success-text border border-success-border/60">
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
-                      </span>
-                      Live Feed
-                    </span>
-                  </div>
-                  <p className="text-label text-ink-muted mt-0.5">Real-time guest movements & operations</p>
+                  <h2 className="text-title font-bold tracking-tight text-ink">Today&apos;s Activity</h2>
+                  <p className="mt-0.5 text-label text-ink-muted">Arrivals, departures and guests in house</p>
                 </div>
               </div>
-
-              <Button variant="link"
-                type="button"
-                onClick={() => go({ view: 'arrivals-departures' })}
-              >
+              <Button variant="link" type="button" onClick={() => go({ view: 'arrivals-departures' })}>
                 <span>Front Desk</span>
                 <Lucide.ArrowRight size={13} />
               </Button>
             </div>
 
-            {/* Filter Tabs (Segmented Control) */}
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-muted-surface/80 mb-4 overflow-x-auto no-scrollbar">
-              {[
-                { key: 'all' as const, label: 'All (5)' },
-                { key: 'arrivals' as const, label: 'Arrivals (2)' },
-                { key: 'departures' as const, label: 'Departures (1)' },
-                { key: 'in-house' as const, label: 'In-House (2)' },
-              ].map((tab) => (
-                <Button variant="secondary"
+            <div className="no-scrollbar mb-4 flex items-center gap-1 overflow-x-auto rounded-xl bg-muted-surface/80 p-1">
+              {([
+                { key: 'all', label: `All (${timeline.length})` },
+                { key: 'arrivals', label: `Arrivals (${countOf('arrival')})` },
+                { key: 'departures', label: `Departures (${countOf('departure')})` },
+                { key: 'in-house', label: `In-House (${countOf('in-house')})` },
+              ] as const).map((tab) => (
+                <Button
+                  variant="secondary"
                   key={tab.key}
                   type="button"
                   onClick={() => setTimelineTab(tab.key)}
-                  className={`flex-1 min-w-[70px] text-label transition-all cursor-pointer text-center ${timelineTab === tab.key
- ? 'bg-surface text-ink shadow-2xs border border-border/50'
- : 'text-ink-secondary hover:text-ink'
- }`}
+                  className={`min-w-[70px] flex-1 cursor-pointer text-center text-label transition-all ${
+                    timelineTab === tab.key ? 'border border-border/50 bg-surface text-ink shadow-2xs' : 'text-ink-secondary hover:text-ink'
+                  }`}
                 >
                   {tab.label}
                 </Button>
               ))}
             </div>
 
-            {/* True Timeline Stream with Connected Spine (Strictly limited to 5 records) */}
-            <div className="flex flex-col">
-              {filteredTimeline.slice(0, 5).map((item, index, arr) => {
-                const ItemIcon = item.icon;
-                const isLast = index === arr.length - 1;
-
-                return (
-                  <div key={item.id} className="relative flex items-start gap-3 group">
-                    {/* Timeline spine track */}
-                    <div className="flex flex-col items-center flex-none">
-                      {/* Node squarcle */}
-                      <div className={`flex h-8 w-8 items-center justify-center rounded-xl shadow-2xs transition-all duration-200 group-hover:scale-105 ${item.iconBg}`}>
-                        <ItemIcon size={15} strokeWidth={2.2} />
+            {visibleTimeline.length === 0 ? (
+              <Empty icon={Lucide.CalendarCheck} title="Nothing scheduled" hint="Arrivals, departures and in-house guests will show here as bookings come in." />
+            ) : (
+              <div className="flex flex-col">
+                {visibleTimeline.slice(0, VISIBLE_ROWS).map((item, index, shown) => {
+                  const style = KIND_STYLE[item.kind];
+                  const ItemIcon = style.icon;
+                  const isLast = index === shown.length - 1;
+                  return (
+                    <div key={item.id} className="group relative flex items-start gap-3">
+                      <div className="flex flex-none flex-col items-center">
+                        <div className={`flex h-8 w-8 items-center justify-center rounded-xl shadow-2xs ${style.iconBg}`}>
+                          <ItemIcon size={15} strokeWidth={2.2} />
+                        </div>
+                        {!isLast && <div className="my-1.5 min-h-[34px] w-[2px] flex-1 bg-gradient-to-b from-border via-border to-muted-surface" />}
                       </div>
-                      {/* Connecting vertical rail */}
-                      {!isLast && (
-                        <div className="w-[2px] flex-1 my-1.5 bg-gradient-to-b from-border via-border to-muted-surface min-h-[34px]" />
-                      )}
-                    </div>
-
-                    {/* Event Card */}
-                    <div className={`flex-1 min-w-0 ${isLast ? 'pb-1' : 'pb-3.5'}`}>
-                      <div className="p-3 rounded-xl border border-border/70 bg-surface hover:border-ink-disabled hover:bg-page/50 hover:shadow-2xs transition-all duration-200">
-                        {/* Meta Row: Time, Room, Status, Action */}
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                            <span className="font-mono text-micro font-bold text-ink bg-muted-surface/90 border border-border/60 px-1.5 py-px rounded-md shadow-2xs">
-                              {item.time}
-                            </span>
-                            {item.room && (
-                              <span className="text-micro font-semibold text-ink bg-muted-surface/80 px-1.5 py-px rounded-md">
-                                {item.room}
+                      <div className={`min-w-0 flex-1 ${isLast ? 'pb-1' : 'pb-3.5'}`}>
+                        <div className="rounded-xl border border-border/70 bg-surface p-3 transition-all duration-200 hover:border-ink-disabled hover:bg-page/50">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                              {item.time && (
+                                <span className="rounded-md border border-border/60 bg-muted-surface/90 px-1.5 py-px font-mono text-micro font-bold text-ink">{item.time}</span>
+                              )}
+                              <span className="rounded-md bg-muted-surface/80 px-1.5 py-px text-micro font-semibold text-ink">
+                                {item.stay.roomNumber ? `Room ${item.stay.roomNumber}` : 'Unassigned'}
                               </span>
-                            )}
-                            <span className={`inline-flex items-center gap-1 text-micro font-bold px-1.5 py-px rounded-full border ${item.statusTone}`}>
-                              {item.status}
-                            </span>
+                              <span className={`inline-flex items-center rounded-full border px-1.5 py-px text-micro font-bold ${style.statusTone}`}>{style.status}</span>
+                            </div>
+                            <Button
+                              variant="secondary"
+                              type="button"
+                              onClick={() => go({ view: 'reservations', query: item.stay.bookingCode })}
+                              className="flex flex-none cursor-pointer items-center gap-1 text-label"
+                            >
+                              <span>View booking</span>
+                              <Lucide.ArrowRight size={12} />
+                            </Button>
                           </div>
-
-                          <Button variant="secondary"
-                            type="button"
-                            onClick={() => {
-                              if (item.actionLabel === 'Mark Done' || item.actionLabel === 'Mark Clean') {
-                                toast('Housekeeping task updated', { detail: 'Room 204 marked clean.', tone: 'success' });
-                              } else {
-                                go(item.target);
-                              }
-                            }}
-                            className={`flex-none text-label border shadow-2xs transition-all cursor-pointer hover:shadow-xs active:scale-95 flex items-center gap-1 ${item.actionTone}`}
-                          >
-                            <span>{item.actionLabel}</span>
-                            <Lucide.ArrowRight size={12} />
-                          </Button>
-                        </div>
-
-                        {/* Title & Detail */}
-                        <div className="mt-1.5">
-                          <h4 className="text-label font-bold text-ink group-hover:text-[var(--color-primary)] transition-colors">
-                            {item.title}
-                          </h4>
-                          <p className="text-label text-ink-secondary mt-0.5 truncate">
-                            {item.subtitle}
-                          </p>
+                          <div className="mt-1.5">
+                            <h4 className="text-label font-bold text-ink">{item.stay.guest}</h4>
+                            <p className="mt-0.5 truncate text-label text-ink-secondary">{item.stay.bookingCode} • {item.stay.roomType}</p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Footer Timeline Summary */}
-          <div className="pt-3.5 mt-3 border-t border-divider flex items-center justify-between text-label text-ink-secondary">
-            <div className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-success-text" />
-              <span className="text-label text-ink-secondary font-medium">
-                Showing {filteredTimeline.slice(0, 5).length} of 5 operational activities
-              </span>
-            </div>
-            <Button variant="link"
-              type="button"
-              onClick={() => go({ view: 'arrivals-departures' })}
-            >
+          <div className="mt-3 flex items-center justify-between border-t border-divider pt-3.5 text-label text-ink-secondary">
+            <span className="font-medium">
+              Showing {Math.min(visibleTimeline.length, VISIBLE_ROWS)} of {visibleTimeline.length} activities
+            </span>
+            <Button variant="link" type="button" onClick={() => go({ view: 'arrivals-departures' })}>
               <span>Movement report</span>
               <Lucide.ArrowRight size={12} />
             </Button>
           </div>
         </div>
 
-        {/* Housekeeping & Department Tasks (lg:col-span-6) */}
-        <div className="lg:col-span-6 flex flex-col gap-5 h-full">
-
-          <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
-            <div className="min-w-0">
-              {/* Header */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-success-text to-success-border text-white shadow-xs shadow-success-text/20">
-                    <Lucide.DoorOpen size={17} strokeWidth={2.4} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-title font-bold text-ink tracking-tight">Pending Check-ins</h2>
-                      <span className="flex items-center gap-1 rounded-full bg-success-bg px-1.5 py-px text-micro font-bold text-success-text border border-success-border/60">
-                        <span className="relative flex h-1.5 w-1.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
-                        </span>
-                        {pendingCheckins.length} Expected
-                      </span>
-                    </div>
-                    <p className="text-label text-ink-muted mt-0.5">Today&apos;s arrivals awaiting front desk check-in</p>
-                  </div>
-                </div>
-
-                <Button variant="secondary"
-                  type="button"
-                  onClick={() => go({ view: 'reservations' })}
-                  className="cursor-pointer transition-colors flex items-center gap-1"
-                  title="Open reservations"
-                >
-                  <span>Reservations</span>
-                  <Lucide.ArrowUpRight size={14} className="text-ink-secondary" />
-                </Button>
-              </div>
-
-              {/* Table Container */}
+        {/* Pending check-ins and check-outs */}
+        <div className="flex h-full flex-col gap-5 lg:col-span-6">
+          <Panel
+            icon={Lucide.DoorOpen}
+            gradient="from-success-text to-success-border shadow-success-text/20"
+            title="Pending Check-ins"
+            count={`${arrivals.length} Expected`}
+            subtitle="Today's arrivals awaiting front desk check-in"
+            actionLabel="Reservations"
+            onAction={() => go({ view: 'reservations' })}
+            footer={`Showing ${Math.min(arrivals.length, VISIBLE_ROWS)} of ${arrivals.length} expected arrivals today`}
+          >
+            {arrivals.length === 0 ? (
+              <Empty icon={Lucide.DoorOpen} title="No arrivals today" hint="Confirmed bookings arriving today will show here." />
+            ) : (
               <TableContainer>
-                <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
+                <table className={TABLE_CLASS}>
                   <thead>
                     <tr>
-                      <th className="text-center whitespace-nowrap text-label font-semibold">#</th>
-                      <th className="whitespace-nowrap text-label ">Guest & Booking</th>
-                      <th className="whitespace-nowrap text-label font-semibold">Assigned Room</th>
-                      <th className="whitespace-nowrap text-label font-semibold">ETA & Stay</th>
-                      <th className="text-right whitespace-nowrap pr-3.5 text-label font-semibold">Action</th>
+                      <th className="whitespace-nowrap text-center text-label font-semibold">#</th>
+                      <th className="whitespace-nowrap text-label font-semibold">Guest &amp; Booking</th>
+                      <th className="whitespace-nowrap text-label font-semibold">Room</th>
+                      <th className="whitespace-nowrap text-label font-semibold">Stay</th>
+                      <th className="whitespace-nowrap text-center text-label font-semibold">Balance</th>
+                      <th className="whitespace-nowrap pr-3.5 text-right text-label font-semibold">Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {pendingCheckins.map((r, idx) => (
-                      <tr key={r.id}>
-                        <td className="text-center font-medium text-ink-secondary text-label whitespace-nowrap">
-                          {idx + 1}
-                        </td>
+                    {arrivals.slice(0, VISIBLE_ROWS).map((stay, index) => (
+                      <tr key={stay.backendId}>
+                        <td className="whitespace-nowrap text-center text-label font-medium text-ink-secondary">{index + 1}</td>
+                        <td className="whitespace-nowrap"><GuestCell stay={stay} /></td>
+                        <td className="whitespace-nowrap"><RoomCell stay={stay} /></td>
                         <td className="whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <Avatar name={r.guest} size={30} />
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-semibold text-ink text-label truncate max-w-[130px]">{r.guest}</span>
-                                {r.isVip && (
-                                  <span className="px-1 py-px rounded text-micro font-semibold bg-primary/10 text-primary border border-primary/30">
-                                    VIP
-                                  </span>
-                                )}
-                              </div>
-                              <span className="font-mono text-label text-ink-secondary block">{r.bookingCode}</span>
-                            </div>
-                          </div>
+                          <span className="block text-label text-ink-secondary">{stay.checkIn} – {stay.checkOut} ({stay.nights}n)</span>
                         </td>
-                        <td className="whitespace-nowrap">
-                          <div className="flex items-center gap-1.5">
-                            <span className={`font-bold text-micro px-1.5 py-px rounded-md border ${r.room === 'Unassigned'
-                              ? 'text-warning-text bg-warning-bg border-warning-border/80'
-                              : 'text-ink bg-muted-surface border-border/60'
-                              }`}>
-                              {r.room === 'Unassigned' ? 'Unassigned' : `Room ${r.room}`}
-                            </span>
-                            <span className={`inline-flex items-center gap-1 text-label font-medium ${r.roomReady ? 'text-success-text' : 'text-warning-text'}`}>
-                              <span className={`h-1.5 w-1.5 rounded-full ${r.roomReady ? 'bg-success-text' : 'bg-warning-text'}`} />
-                              {r.roomReady ? 'Ready' : 'Cleaning'}
-                            </span>
-                          </div>
-                          <span className="text-label text-ink-secondary block mt-0.5">{r.roomType}</span>
-                        </td>
-                        <td className="whitespace-nowrap">
-                          <span className="font-mono font-bold text-ink text-label block">{r.eta}</span>
-                          <span className="text-label text-ink-secondary block">{r.dates} ({r.nights}n)</span>
-                        </td>
-                        <td className="text-right whitespace-nowrap pr-2">
-                          <Button variant="success"
-                            type="button"
-                            onClick={() => go({ view: 'reservations', query: r.bookingCode })}
-                            className="inline-flex items-center gap-1.5 transition-all cursor-pointer"
-                          >
+                        <td className="whitespace-nowrap text-center"><BalanceCell stay={stay} /></td>
+                        <td className="whitespace-nowrap pr-2 text-right">
+                          <Button variant="success" type="button" onClick={() => go({ view: 'reservations', query: stay.bookingCode })} className="inline-flex cursor-pointer items-center gap-1.5">
                             <span>View booking</span>
                           </Button>
                         </td>
@@ -727,128 +465,48 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   </tbody>
                 </table>
               </TableContainer>
-            </div>
+            )}
+          </Panel>
 
-            {/* Footer */}
-            <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-label text-ink-secondary">
-              <span>Showing {pendingCheckins.length} expected arrivals today</span>
-              <Button variant="link"
-                type="button"
-                onClick={() => go({ view: 'reservations' })}
-              >
-                <span>Open reservations</span>
-                <Lucide.ArrowRight size={13} />
-              </Button>
-            </div>
-          </div>
-
-          {/* Table 2: Pending Check-outs */}
-          <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
-            <div className="min-w-0">
-              {/* Header */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-warning-text to-warning-border text-white shadow-xs shadow-warning-text/20">
-                    <Lucide.DoorClosed size={17} strokeWidth={2.4} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-title font-bold text-ink tracking-tight">Pending Check-outs</h2>
-                      <span className="flex items-center gap-1 rounded-full bg-warning-bg px-1.5 py-px text-micro font-bold text-warning-text border border-warning-border/60">
-                        <span className="relative flex h-1.5 w-1.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning-text opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-warning-text"></span>
-                        </span>
-                        {pendingCheckouts.length} Due Out
-                      </span>
-                    </div>
-                    <p className="text-label text-ink-muted mt-0.5">Departures scheduled today awaiting key return & folio balance</p>
-                  </div>
-                </div>
-
-                <Button variant="secondary"
-                  type="button"
-                  onClick={() => go({ view: 'folios' })}
-                  className="cursor-pointer transition-colors flex items-center gap-1"
-                  title="Open folios"
-                >
-                  <span>Folios</span>
-                  <Lucide.ArrowUpRight size={14} className="text-ink-secondary" />
-                </Button>
-              </div>
-
-              {/* Table Container */}
+          <Panel
+            icon={Lucide.DoorClosed}
+            gradient="from-warning-text to-warning-border shadow-warning-text/20"
+            title="Pending Check-outs"
+            count={`${departures.length} Due Out`}
+            subtitle="Checked-in guests leaving today or already past their date"
+            actionLabel="Reservations"
+            onAction={() => go({ view: 'reservations' })}
+            footer={`Showing ${Math.min(departures.length, VISIBLE_ROWS)} of ${departures.length} departures pending`}
+          >
+            {departures.length === 0 ? (
+              <Empty icon={Lucide.DoorClosed} title="No departures pending" hint="Guests due to leave today will show here." />
+            ) : (
               <TableContainer>
-                <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
+                <table className={TABLE_CLASS}>
                   <thead>
                     <tr>
-                      <th className="w-8 text-center whitespace-nowrap text-label font-semibold">#</th>
-                      <th className="whitespace-nowrap text-label font-semibold">GUEST & BOOKING</th>
-                      <th className="whitespace-nowrap text-label font-semibold">ASSIGNED ROOM</th>
-                      <th className="whitespace-nowrap text-label font-semibold">OUT TIME & STAY</th>
-                      <th className="text-right whitespace-nowrap pr-3.5 text-label font-semibold">ACTION</th>
+                      <th className="whitespace-nowrap text-center text-label font-semibold">#</th>
+                      <th className="whitespace-nowrap text-label font-semibold">Guest &amp; Booking</th>
+                      <th className="whitespace-nowrap text-label font-semibold">Room</th>
+                      <th className="whitespace-nowrap text-label font-semibold">Stay</th>
+                      <th className="whitespace-nowrap text-center text-label font-semibold">Balance</th>
+                      <th className="whitespace-nowrap pr-3.5 text-right text-label font-semibold">Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {pendingCheckouts.map((d, idx) => (
-                      <tr key={d.id}>
-                        <td className="text-center font-medium text-ink-secondary text-label whitespace-nowrap">
-                          {idx + 1}
-                        </td>
+                    {departures.slice(0, VISIBLE_ROWS).map((stay, index) => (
+                      <tr key={stay.backendId}>
+                        <td className="whitespace-nowrap text-center text-label font-medium text-ink-secondary">{index + 1}</td>
+                        <td className="whitespace-nowrap"><GuestCell stay={stay} /></td>
+                        <td className="whitespace-nowrap"><RoomCell stay={stay} /></td>
                         <td className="whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <Avatar name={d.guest} size={30} />
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-semibold text-ink text-label truncate max-w-[130px]">{d.guest}</span>
-                                {d.isLateCheckout && (
-                                  <span className="px-1 py-px rounded text-micro font-semibold bg-primary/10 text-primary border border-primary/30">
-                                    Late
-                                  </span>
-                                )}
-                              </div>
-                              <span className="font-mono text-label text-ink-secondary block">{d.bookingCode}</span>
-                            </div>
-                          </div>
+                          <span className="block text-label text-ink-secondary">{stay.checkIn} – {stay.checkOut} ({stay.nights}n)</span>
+                          {(stay.checkOutIso ?? '') < data.today && <span className="text-micro font-semibold text-danger-text">Past check-out date</span>}
                         </td>
-                        <td className="whitespace-nowrap">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-micro px-1.5 py-px rounded-md border text-ink bg-muted-surface border-border/60">
-                              Room {d.room}
-                            </span>
-                            <span className={`inline-flex items-center gap-1 text-label font-medium ${d.status === 'Inspected'
-                              ? 'text-success-text'
-                              : d.status === 'Late Checkout'
-                                ? 'text-primary'
-                                : 'text-warning-text'
-                              }`}>
-                              <span className={`h-1.5 w-1.5 rounded-full ${d.status === 'Inspected'
-                                ? 'bg-success-text'
-                                : d.status === 'Late Checkout'
-                                  ? 'bg-primary'
-                                  : 'bg-warning-text'
-                                }`} />
-                              {d.status}
-                            </span>
-                          </div>
-                          <span className="text-label text-ink-secondary block mt-0.5">{d.roomType}</span>
-                        </td>
-                        <td className="whitespace-nowrap">
-                          <span className="font-mono font-bold text-ink text-label block">{d.outTime}</span>
-                          <span className="text-label text-ink-secondary block">{d.dates} ({d.nights}n)</span>
-                        </td>
-                        <td className="text-right whitespace-nowrap pr-3.5">
-                          <Button variant="warning"
-                            type="button"
-                            onClick={() => {
-                              if (d.folioBalance > 0) {
-                                toast('Folio Balance Pending', { detail: `Collect ₹${d.folioBalance.toLocaleString('en-IN')} from ${d.guest} before closing the folio.`, tone: 'warning' });
-                              }
-                              go({ view: 'folios' });
-                            }}
-                            className="inline-flex items-center gap-1.5 transition-all cursor-pointer"
-                          >
-                            <span>Open folio</span>
+                        <td className="whitespace-nowrap text-center"><BalanceCell stay={stay} /></td>
+                        <td className="whitespace-nowrap pr-3.5 text-right">
+                          <Button variant="warning" type="button" onClick={() => go({ view: 'reservations', query: stay.bookingCode })} className="inline-flex cursor-pointer items-center gap-1.5">
+                            <span>View booking</span>
                           </Button>
                         </td>
                       </tr>
@@ -856,464 +514,62 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
                   </tbody>
                 </table>
               </TableContainer>
-            </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-label text-ink-secondary">
-              <span>Showing {pendingCheckouts.length} departures pending today</span>
-              <Button variant="link"
-                type="button"
-                onClick={() => go({ view: 'folios' })}
-              >
-                <span>Open folios</span>
-                <Lucide.ArrowRight size={13} />
-              </Button>
-            </div>
-          </div>
-
+            )}
+          </Panel>
         </div>
       </div>
 
-      {/* ================= 5. RECENT ACTIVITY: RECENT RESERVATIONS & RECENT TRANSACTIONS ================= */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 min-w-0">
-        {/* Table 3: Recent Reservations */}
-        <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
-          <div className="min-w-0">
-            {/* Header */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20">
-                  <Lucide.CalendarDays size={17} strokeWidth={2.4} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-title font-bold text-ink tracking-tight">Recent Reservations</h2>
-                    <span className="flex items-center gap-1 rounded-full bg-info-bg px-1.5 py-px text-micro font-bold text-info-text border border-info-border/60">
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-info-text opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-info-text"></span>
-                      </span>
-                      {recentReservations.length} Bookings
-                    </span>
-                  </div>
-                  <p className="text-label text-ink-muted mt-0.5">Latest confirmed bookings & stays across property</p>
-                </div>
-              </div>
-
-              <Button variant="secondary"
-                type="button"
-                onClick={() => go({ view: 'reservations' })}
-                className="cursor-pointer transition-colors flex items-center gap-1"
-                title="View all reservations"
-              >
-                <span>View all</span>
-                <Lucide.ArrowRight size={14} className="text-ink-secondary" />
-              </Button>
-            </div>
-
-            {/* Table Container */}
-            <TableContainer>
-              <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
-                <thead>
-                  <tr>
-                    <th className="w-8 text-center whitespace-nowrap text-label font-semibold">#</th>
-                    <th className="whitespace-nowrap text-label font-semibold">GUEST & BOOKING</th>
-                    <th className="whitespace-nowrap text-label font-semibold">ROOM & DATES</th>
-                    <th className="whitespace-nowrap text-center text-label font-semibold">STATUS</th>
-                    <th className="text-right whitespace-nowrap text-label font-semibold">TOTAL</th>
-                    <th className="text-right w-12 whitespace-nowrap pr-3.5 text-label font-semibold">ACTION</th>
+      {/* ================= 4. RECENT RESERVATIONS ================= */}
+      <Panel
+        icon={Lucide.CalendarDays}
+        gradient="from-info-text to-dark-accent shadow-info-text/20"
+        title="Recent Reservations"
+        count={`${recent.length} Latest`}
+        subtitle="Most recently created bookings across the property"
+        actionLabel="View all"
+        onAction={() => go({ view: 'reservations' })}
+        footer={`Showing ${recent.length} recent bookings`}
+      >
+        {recent.length === 0 ? (
+          <Empty icon={Lucide.CalendarDays} title="No reservations yet" hint="New bookings will show here as soon as they are made." />
+        ) : (
+          <TableContainer>
+            <table className={TABLE_CLASS}>
+              <thead>
+                <tr>
+                  <th className="w-8 whitespace-nowrap text-center text-label font-semibold">#</th>
+                  <th className="whitespace-nowrap text-label font-semibold">Guest &amp; Booking</th>
+                  <th className="whitespace-nowrap text-label font-semibold">Room &amp; Dates</th>
+                  <th className="whitespace-nowrap text-center text-label font-semibold">Status</th>
+                  <th className="whitespace-nowrap text-right text-label font-semibold">Total</th>
+                  <th className="w-12 whitespace-nowrap pr-3.5 text-right text-label font-semibold">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recent.map((stay, index) => (
+                  <tr key={stay.backendId}>
+                    <td className="whitespace-nowrap text-center text-label font-medium text-ink-secondary">{index + 1}</td>
+                    <td className="whitespace-nowrap"><GuestCell stay={stay} /></td>
+                    <td className="whitespace-nowrap">
+                      <span className="block text-label font-medium text-ink">{stay.room}</span>
+                      <span className="block text-label text-ink-secondary">{stay.checkIn} – {stay.checkOut}</span>
+                    </td>
+                    <td className="whitespace-nowrap text-center">
+                      <Badge size="sm" tone={statusTone(stay.status)}>{stay.status}</Badge>
+                    </td>
+                    <td className="whitespace-nowrap text-right font-mono text-label font-bold text-ink">{money(stay.total, stay.currencyCode)}</td>
+                    <td className="whitespace-nowrap pr-3.5 text-right">
+                      <div className="flex items-center justify-end">
+                        <TableActionBtn icon={Lucide.Eye} title="Open reservation" onClick={() => go({ view: 'reservations', query: stay.bookingCode })} />
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {recentReservations.map((r, idx) => (
-                    <tr key={r.id}>
-                      <td className="text-center font-medium text-ink-secondary text-label whitespace-nowrap">
-                        {idx + 1}
-                      </td>
-                      <td className="whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <Avatar name={r.guest} size={30} />
-                          <div className="min-w-0">
-                            <span className="font-semibold text-ink text-label block truncate max-w-[130px]">{r.guest}</span>
-                            <span className="font-mono text-label text-ink-secondary block">{r.id}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap">
-                        <span className="font-medium text-ink text-label block">{r.room}</span>
-                        <span className="text-label text-ink-secondary block">{r.dates}</span>
-                      </td>
-                      <td className="whitespace-nowrap text-center">
-                        <Badge size="sm" tone={r.status === 'Confirmed' ? 'success' : r.status === 'Pending' ? 'warning' : 'neutral'}>
-                          {r.status}
-                        </Badge>
-                      </td>
-                      <td className="text-right font-bold text-ink text-label font-mono whitespace-nowrap">
-                        ₹{r.total.toLocaleString('en-IN')}.00
-                      </td>
-                      <td className="text-right whitespace-nowrap pr-3.5">
-                        <div className="flex items-center justify-end">
-                          <TableActionBtn
-                            icon={Lucide.Eye}
-                            title="Open reservation"
-                            onClick={() => go({ view: 'reservations', focusId: r.id })}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </TableContainer>
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-label text-ink-secondary">
-            <span>Showing {recentReservations.length} recent bookings</span>
-            <Button variant="link"
-              type="button"
-              onClick={() => go({ view: 'reservations' })}
-            >
-              <span>Manage all reservations</span>
-              <Lucide.ArrowRight size={13} />
-            </Button>
-          </div>
-        </div>
-
-        {/* Table 4: Recent Transactions */}
-        <div className="bg-surface rounded-2xl border border-border shadow-xs p-4 sm:p-5 flex flex-col justify-between min-w-0">
-          <div className="min-w-0">
-            {/* Header */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
-                  <Lucide.ReceiptText size={17} strokeWidth={2.4} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-title font-bold text-ink tracking-tight">Recent Transactions</h2>
-                    <span className="flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-px text-micro font-bold text-primary border border-primary/30">
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
-                      </span>
-                      {recentPayments.length} Settlements
-                    </span>
-                  </div>
-                  <p className="text-label text-ink-muted mt-0.5">Latest settled folios, payments & guest transactions</p>
-                </div>
-              </div>
-
-              <Button variant="secondary"
-                type="button"
-                onClick={() => go({ view: 'payments' })}
-                className="cursor-pointer transition-colors flex items-center gap-1"
-                title="View all transactions"
-              >
-                <span>View all</span>
-                <Lucide.ArrowRight size={14} className="text-ink-secondary" />
-              </Button>
-            </div>
-
-            {/* Table Container */}
-            <TableContainer>
-              <table className="pms-table w-full min-w-[580px] [&_th]:px-3 [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5 [&_th:last-child]:pr-3.5 [&_td:last-child]:pr-3.5">
-                <thead>
-                  <tr>
-                    <th className="w-8 text-center whitespace-nowrap text-label font-semibold">#</th>
-                    <th className="whitespace-nowrap text-label font-semibold">GUEST & REFERENCE</th>
-                    <th className="whitespace-nowrap text-label font-semibold">DATE & METHOD</th>
-                    <th className="whitespace-nowrap text-center text-label font-semibold">STATUS</th>
-                    <th className="text-right whitespace-nowrap text-label font-semibold">AMOUNT</th>
-                    <th className="text-right w-12 whitespace-nowrap pr-3.5 text-label font-semibold">ACTION</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentPayments.map((p, idx) => (
-                    <tr key={p.ref}>
-                      <td className="text-center font-medium text-ink-secondary text-label whitespace-nowrap">
-                        {idx + 1}
-                      </td>
-                      <td className="whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <Avatar name={p.guest} size={30} />
-                          <div className="min-w-0">
-                            <span className="font-semibold text-ink text-label block truncate max-w-[130px]">{p.guest}</span>
-                            <span className="font-mono text-label text-ink-secondary block">{p.ref}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap">
-                        <span className="font-medium text-ink text-label block">{p.date}</span>
-                        <span className="text-label text-ink-secondary block">{p.method}</span>
-                      </td>
-                      <td className="whitespace-nowrap text-center">
-                        <Badge size="sm" tone={p.status === 'Paid' ? 'success' : 'warning'}>
-                          {p.status}
-                        </Badge>
-                      </td>
-                      <td className="text-right font-bold text-ink text-label font-mono whitespace-nowrap">
-                        ₹{p.amount.toLocaleString('en-IN')}.00
-                      </td>
-                      <td className="text-right whitespace-nowrap pr-3.5">
-                        <div className="flex items-center justify-end">
-                          <TableActionBtn
-                            icon={Lucide.FileText}
-                            title="View transaction"
-                            onClick={() => go({ view: 'payments' })}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </TableContainer>
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/70 text-label text-ink-secondary">
-            <span>Showing {recentPayments.length} recent settlements</span>
-            <Button variant="link"
-              type="button"
-              onClick={() => go({ view: 'payments' })}
-            >
-              <span>Manage all transactions</span>
-              <Lucide.ArrowRight size={13} />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-
-      {/* ================= 4. FRONT DESK MOVEMENT: PENDING CHECK-INS & CHECK-OUTS ================= */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 min-w-0">
-        {/* Table 1: Pending Check-ins */}
-        {/* Card: Housekeeping Progress */}
-        <div className="flex-1 bg-surface rounded-2xl border border-border/80 p-5 shadow-xs flex flex-col justify-between">
-          <div>
-            {/* Header */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-info-text to-info-border text-white shadow-xs shadow-info-text/20">
-                  <Lucide.Sparkles size={17} strokeWidth={2.4} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-title font-bold text-ink tracking-tight">Housekeeping Progress</h2>
-                    <span className="flex items-center gap-1 rounded-full bg-info-bg px-1.5 py-px text-micro font-bold text-info-text border border-info-border/60">
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-info-text opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-info-text"></span>
-                      </span>
-                      Live Status
-                    </span>
-                  </div>
-                  <p className="text-label text-ink-muted mt-0.5">Turnaround status & inspection</p>
-                </div>
-              </div>
-              <Button variant="link"
-                type="button"
-                onClick={() => go({ view: 'room-overview' })}
-              >
-                <span>Room board</span>
-                <Lucide.ArrowRight size={13} />
-              </Button>
-            </div>
-
-            {/* Progress Summary */}
-            <div className="flex items-baseline justify-between mb-1.5">
-              <div className="flex items-baseline gap-2">
-                <span className="text-label font-bold text-ink">{readyPct}%</span>
-                <span className="text-label text-ink-secondary font-normal">{readyRooms} of {totalRoomCount} rooms ready</span>
-              </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="h-2 w-full rounded-full bg-muted-surface overflow-hidden mb-3.5">
-              <div className="h-full rounded-full bg-[var(--color-primary)] w-[18%] transition-all" />
-            </div>
-
-            {/* 4 Stat Boxes */}
-            <div className="grid grid-cols-2 gap-2 text-center mb-3.5 sm:grid-cols-4">
-              <div className="rounded-xl border border-success-border bg-success-bg/60 p-2">
-                <span className="text-label font-medium text-success-text block">✓ Cleaned</span>
-                <span className="text-label font-bold text-success-text mt-0.5 block">9</span>
-              </div>
-              <div className="rounded-xl border border-[var(--color-primary)]/20 bg-[var(--color-muted-surface)] p-2">
-                <span className="text-label font-medium text-[var(--color-primary)] block">In progress</span>
-                <span className="text-label font-bold text-[var(--color-primary-active)] mt-0.5 block">6</span>
-              </div>
-              <div className="rounded-xl border border-border/60 bg-page p-2">
-                <span className="text-label font-medium text-ink-secondary block">● Pending</span>
-                <span className="text-label font-bold text-ink mt-0.5 block">31</span>
-              </div>
-              <div className="rounded-xl border border-danger-border bg-danger-bg/60 p-2">
-                <span className="text-label font-medium text-danger-text block">! Issues</span>
-                <span className="text-label font-bold text-danger-text mt-0.5 block">4</span>
-              </div>
-            </div>
-
-            {/* Priority Turnaround Queue */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between text-body font-semibold text-ink">
-                <span>Priority Turnaround Queue</span>
-                <span className="text-label text-ink-muted font-normal">Release for check-in</span>
-              </div>
-
-              <div className="flex items-center justify-between gap-2 p-2 rounded-xl border border-border/60 bg-page/50 hover:bg-page transition-colors">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-warning-text flex-none" />
-                  <div className="min-w-0">
-                    <p className="text-label font-bold text-ink truncate">Room 201 · Deluxe King</p>
-                    <p className="text-label text-ink-muted">Assigned: Anita S. · Turnover due 12:00 PM</p>
-                  </div>
-                </div>
-                <Button variant="success"
-                  type="button"
-                  onClick={() => toast('Room 201 verified', { detail: 'Marked clean & ready for check-in.', tone: 'success' })}
-                  className="flex-none cursor-pointer transition-colors"
-                >
-                  Mark Clean
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between gap-2 p-2 rounded-xl border border-border/60 bg-page/50 hover:bg-page transition-colors">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-primary flex-none" />
-                  <div className="min-w-0">
-                    <p className="text-label font-bold text-ink truncate">Room 304 · Executive Suite</p>
-                    <p className="text-label text-ink-muted">VIP arrival 02:00 PM · Needs supervisor inspection</p>
-                  </div>
-                </div>
-                <Button variant="secondary"
-                  type="button"
-                  onClick={() => toast('Inspection queued', { detail: 'Supervisor alerted for Room 304.', tone: 'info' })}
-                  className="flex-none cursor-pointer transition-colors"
-                >
-                  Inspect
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="pt-3 mt-3 border-t border-divider flex items-center justify-between text-label text-ink-secondary">
-            <span className="text-label text-ink-muted">4 priority turnovers due before 2:00 PM</span>
-            <Button variant="link"
-              type="button"
-              onClick={() => go({ view: 'room-overview' })}
-            >
-              <span>Room board</span>
-              <Lucide.ArrowRight size={12} />
-            </Button>
-          </div>
-        </div>
-
-        {/* Card: Department Tasks */}
-        <div className="flex-1 bg-surface rounded-2xl border border-border/80 p-5 shadow-xs flex flex-col justify-between">
-          <div>
-            {/* Header */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
-                  <Lucide.ClipboardList size={17} strokeWidth={2.4} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-title font-bold text-ink tracking-tight">Department Tasks</h2>
-                    <span className="flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-px text-micro font-bold text-primary border border-primary/30">
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
-                      </span>
-                      3 Actions
-                    </span>
-                  </div>
-                  <p className="text-label text-ink-muted mt-0.5">Operational follow-ups & alerts</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Tasks List */}
-            <div className="flex flex-col gap-2.5">
-              {/* Task 1 */}
-              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-border/60 bg-surface hover:bg-page/60 transition-colors">
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-warning-text mt-1.5 flex-none" />
-                  <div className="min-w-0">
-                    <p className="text-label font-bold text-ink leading-tight">4 rooms pending inspection</p>
-                    <p className="text-label text-ink-muted mt-0.5 truncate">Rooms 204, 305, 408, 501 · Ready for release</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-warning-bg px-1.5 py-px text-micro font-bold text-warning-text">
-                    High
-                  </span>
-                  <Button variant="secondary"
-                    type="button"
-                    onClick={() => toast('Inspection alert sent', { detail: 'Floor supervisor notified.', tone: 'info' })}
-                    className="cursor-pointer transition-colors"
-                  >
-                    Release
-                  </Button>
-                </div>
-              </div>
-
-              {/* Task 3 */}
-              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-border/60 bg-surface hover:bg-page/60 transition-colors">
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-warning-text mt-1.5 flex-none" />
-                  <div className="min-w-0">
-                    <p className="text-label font-bold text-ink leading-tight">3 late check-out requests</p>
-                    <p className="text-label text-ink-muted mt-0.5 truncate">101 (1:00 PM), 305 (2:00 PM), 501 (1:30 PM)</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-warning-bg px-1.5 py-px text-micro font-bold text-warning-text">
-                    Attention
-                  </span>
-                  <Button variant="secondary"
-                    type="button"
-                    onClick={() => go({ view: 'folios' })}
-                    className="cursor-pointer transition-colors"
-                  >
-                    Review
-                  </Button>
-                </div>
-              </div>
-
-              {/* Task 4 */}
-              <div className="flex items-center justify-between gap-3 p-2 rounded-xl border border-border/60 bg-surface hover:bg-page/60 transition-colors">
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="h-2 w-2 rounded-full bg-info-text mt-1.5 flex-none" />
-                  <div className="min-w-0">
-                    <p className="text-label font-bold text-ink leading-tight">1 VIP arrival today</p>
-                    <p className="text-label text-ink-muted mt-0.5 truncate">Amelia Hart · Deluxe Suite 204 · Amenity set</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 flex-none">
-                  <span className="rounded-full bg-[var(--color-muted-surface)] px-1.5 py-px text-micro font-bold text-[var(--color-primary)]">
-                    VIP Elite
-                  </span>
-                  <Button variant="secondary"
-                    type="button"
-                    onClick={() => go({ view: 'arrivals-departures' })}
-                    className="cursor-pointer transition-colors"
-                  >
-                    Prepare
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-
-
+                ))}
+              </tbody>
+            </table>
+          </TableContainer>
+        )}
+      </Panel>
     </div>
   );
 }
