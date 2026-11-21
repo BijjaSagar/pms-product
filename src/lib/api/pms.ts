@@ -272,6 +272,12 @@ export const authApi = {
   /** Step one of sign-up: creates the account only. The caller signs in next, then sets up the property. */
   register: (name: string, email: string, password: string) =>
     apiRequest<{ id: string; email: string; name: string }>('/auth/register', { method: 'POST', body: { name, email, password } }),
+  /** Step one of a forgotten password. `delivery` is `none` while the server cannot send email. */
+  forgotPassword: (email: string) =>
+    apiRequest<{ message: string; delivery: 'email' | 'none' }>('/auth/forgot-password', { method: 'POST', body: { email } }),
+  /** Step two: the code and the new password. Signs the account out everywhere. */
+  resetPassword: (email: string, otp: string, newPassword: string) =>
+    apiRequest<void>('/auth/reset-password', { method: 'POST', body: { email, otp, newPassword } }),
   me: async (): Promise<AuthMe> => {
     const user = await apiRequest<BackendMe>('/auth/me');
     // Until the password is changed, or a sign-up is approved, the API refuses every other route, so only the account is read.
@@ -1425,10 +1431,86 @@ export const taxSetupApi = {
     apiRequest<TaxGeneralSettings>(`/${requireActivePropertyId()}/tax-settings`, { method: 'PUT', body }),
 };
 
+/** A subscription plan (`/subscription-plans`). Super admins manage them; new sign-ups choose one. */
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  tagline: string | null;
+  /** Price per month in `currency`. */
+  priceMonthly: number;
+  currency: string;
+  /** How many OTAs a property on this plan may connect. */
+  otaLimit: number;
+  features: string[];
+  isPopular: boolean;
+  /** Only active plans are offered to new sign-ups. */
+  isActive: boolean;
+  sortOrder: number;
+  /** Properties on this plan; only returned to super admins. */
+  propertyCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface SubscriptionPlanInput {
+  name: string;
+  tagline?: string;
+  priceMonthly: number;
+  currency?: string;
+  otaLimit: number;
+  features?: string[];
+  isPopular?: boolean;
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
+export const subscriptionPlanApi = {
+  /** The active plans: what the sign-up wizard offers. Open to an account that is not approved yet. */
+  list: () => apiRequest<SubscriptionPlan[]>('/subscription-plans'),
+  /** SUPER_ADMIN: every plan, switched off or not, with how many properties are on each. */
+  listAll: () => apiRequest<SubscriptionPlan[]>('/subscription-plans?includeInactive=true'),
+  create: (body: SubscriptionPlanInput) => apiRequest<SubscriptionPlan>('/subscription-plans', { method: 'POST', body }),
+  update: (id: string, body: Partial<SubscriptionPlanInput>) =>
+    apiRequest<SubscriptionPlan>(`/subscription-plans/${id}`, { method: 'PATCH', body }),
+  /** Refused while properties are on the plan; switch it off instead. */
+  remove: (id: string) => apiRequest<void>(`/subscription-plans/${id}`, { method: 'DELETE' }),
+};
+
+/** An OTA a new property can choose at sign-up (`/ota-channels`). Super admins manage the list. */
+export interface OtaChannel {
+  id: string;
+  name: string;
+  region: string | null;
+  /** Only active OTAs are offered to new sign-ups. */
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface OtaChannelInput {
+  name: string;
+  region?: string;
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
+export const otaChannelApi = {
+  /** The active OTAs: what the sign-up wizard offers. Open to an account that is not approved yet. */
+  list: () => apiRequest<OtaChannel[]>('/ota-channels'),
+  /** SUPER_ADMIN: every OTA, switched off or not. */
+  listAll: () => apiRequest<OtaChannel[]>('/ota-channels?includeInactive=true'),
+  create: (body: OtaChannelInput) => apiRequest<OtaChannel>('/ota-channels', { method: 'POST', body }),
+  update: (id: string, body: Partial<OtaChannelInput>) => apiRequest<OtaChannel>(`/ota-channels/${id}`, { method: 'PATCH', body }),
+  remove: (id: string) => apiRequest<void>(`/ota-channels/${id}`, { method: 'DELETE' }),
+};
+
 /** What a new account sends for its property: the details, the room categories, and the rooms on each floor. */
 export interface OnboardingSubmission {
   property: { name: string; code: string; city: string; state?: string; country: string; defaultCurrency: string; numberOfFloors: number; totalRooms: number };
   categories: Array<{ name: string }>;
+  /** The chosen subscription plan (`subscriptionPlanApi.list`). */
+  planId: string;
+  /** The OTAs to connect, at most the plan's `otaLimit`. */
+  channels: string[];
   /** Floors that have rooms; each room names its category, in position order (the first on floor 1 is 101). */
   floors: Array<{ floor: number; rooms: Array<{ category: string }> }>;
 }
@@ -1453,7 +1535,15 @@ export interface AdminUser {
   rejectionReason: string | null;
   reviewedAt: string | null;
   /** The properties a STAFF user is assigned to; empty for SUPER_ADMIN. */
-  properties: Array<{ id: string; name: string; code: string; isActive: boolean }>;
+  properties: Array<{
+    id: string;
+    name: string;
+    code: string;
+    isActive: boolean;
+    /** The plan picked at sign-up; null for a property a super admin added. */
+    subscriptionPlan: { id: string; name: string; priceMonthly: number; currency: string; otaLimit: number } | null;
+    otaChannels: string[];
+  }>;
   createdAt: string;
   updatedAt: string;
 }

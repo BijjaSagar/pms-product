@@ -2,10 +2,8 @@ import { useCallback, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
 import { PageSkeleton } from '../../components/Skeleton';
-import { SummaryStrip } from '../../components/SummaryStrip';
 import type { NavTarget } from '../../config/navigation';
-import { requireActivePropertyId } from '../../lib/api/client';
-import { reservationApi, roomInventoryApi } from '../../lib/api/pms';
+import { reservationApi } from '../../lib/api/pms';
 import type { ReservationRow } from '../../lib/api/pms';
 import { reservationFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
@@ -26,10 +24,7 @@ interface DashboardData {
   arrivals: ReservationRow[];
   departures: ReservationRow[];
   inHouse: ReservationRow[];
-  /** Reservations currently checked in, which can be more than `inHouse` holds. */
-  inHouseTotal: number;
   recent: ReservationRow[];
-  rooms: { total: number; sellable: number } | null;
 }
 
 /** Rows fetched per list; the dashboard shows at most five of each. */
@@ -207,7 +202,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
   const loadDashboard = useCallback(async (): Promise<DashboardData> => {
     const today = localIsoDate(new Date());
     const none = { data: [] as ReservationRow[], total: 0 };
-    const [arrivals, departures, inHouse, recent, inventory] = await Promise.all([
+    const [arrivals, departures, inHouse, recent] = await Promise.all([
       canReadReservations
         ? reservationApi.list('', 'CONFIRMED', 1, LIST_SIZE, { checkInFrom: today, checkInTo: today })
         : none,
@@ -215,19 +210,13 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
       canReadReservations ? reservationApi.list('', 'CHECKED_IN', 1, LIST_SIZE, { checkOutTo: today }) : none,
       canReadReservations ? reservationApi.list('', 'CHECKED_IN', 1, LIST_SIZE) : none,
       canReadReservations ? reservationApi.list('', undefined, 1, VISIBLE_ROWS) : none,
-      // The room count is a nice-to-have: a role without access to it still gets the rest.
-      roomInventoryApi.get(requireActivePropertyId()).catch(() => null),
     ]);
     return {
       today,
       arrivals: arrivals.data,
       departures: departures.data,
       inHouse: inHouse.data,
-      inHouseTotal: inHouse.total,
       recent: recent.data,
-      rooms: inventory
-        ? { total: inventory.rooms.length, sellable: inventory.rooms.filter((room) => room.sellable).length }
-        : null,
     };
   }, [canReadReservations]);
 
@@ -274,8 +263,6 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
     );
   }
 
-  const inHouseLabel = data.inHouseTotal > data.inHouse.length ? `${data.inHouse.length}+` : String(data.inHouseTotal);
-
   return (
     <div className="pms-page text-label">
       {/* ================= 1. PAGE HEADER ================= */}
@@ -296,25 +283,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         </div>
       </div>
 
-      {/* ================= 2. TODAY AT A GLANCE ================= */}
-      <SummaryStrip
-        label="Today at a glance"
-        columns="xs:grid-cols-2 lg:grid-cols-4"
-        items={[
-          { label: 'Arrivals today', value: String(arrivals.length), hint: 'Confirmed, awaiting check-in', icon: Lucide.DoorOpen, tone: 'success' },
-          { label: 'Departures due', value: String(departures.length), hint: 'Checked in, leaving today or earlier', icon: Lucide.DoorClosed, tone: 'warning' },
-          { label: 'In house', value: inHouseLabel, hint: 'Reservations checked in', icon: Lucide.BedDouble, tone: 'info' },
-          {
-            label: 'Rooms',
-            value: data.rooms ? String(data.rooms.total) : '—',
-            hint: data.rooms ? `${data.rooms.sellable} can be booked` : 'Room count unavailable',
-            icon: Lucide.Building2,
-            tone: 'primary',
-          },
-        ]}
-      />
-
-      {/* ================= 3. TIMELINE & FRONT DESK ================= */}
+      {/* ================= 2. TIMELINE & FRONT DESK ================= */}
       <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-12">
         {/* Today's movements */}
         <div className="flex h-full flex-col justify-between rounded-2xl border border-border/80 bg-surface p-5 shadow-xs lg:col-span-6">
@@ -519,7 +488,7 @@ export function Dashboard({ go }: { go: (t: NavTarget) => void }) {
         </div>
       </div>
 
-      {/* ================= 4. RECENT RESERVATIONS ================= */}
+      {/* ================= 3. RECENT RESERVATIONS ================= */}
       <Panel
         icon={Lucide.CalendarDays}
         gradient="from-info-text to-dark-accent shadow-info-text/20"

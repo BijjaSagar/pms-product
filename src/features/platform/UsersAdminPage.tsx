@@ -12,6 +12,7 @@ import type { AdminUser, AdminUserPage, PropertyDetails, UserRoleKey } from '../
 import { useApiResource } from '../../lib/api/useApiResource';
 import { MIN_PASSWORD } from '../auth/passwordRules';
 import { useAuth } from '../auth/AuthContext';
+import { formatPlanPrice } from '../property-setup/setup-wizard/setupPlans';
 import { CredentialsDialog } from './CredentialsDialog';
 import type { Credentials } from './CredentialsDialog';
 import { generatePassword } from './password';
@@ -197,6 +198,30 @@ function ReviewSignupDialog({ user, onClose, onDecided }: { user: AdminUser; onC
             <p className="text-label text-ink-secondary">They have not described a property.</p>
           )}
         </div>
+
+        {propertyRef ? (
+          <div className="rounded-xl border border-border p-3.5">
+            <p className="mb-3 text-body font-semibold text-ink">Plan and channels they chose</p>
+            {propertyRef.subscriptionPlan ? (
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
+                <Detail label="Plan" value={propertyRef.subscriptionPlan.name} />
+                <Detail label="Monthly price" value={formatPlanPrice(propertyRef.subscriptionPlan.priceMonthly, propertyRef.subscriptionPlan.currency)} />
+                <Detail label="OTAs" value={`${propertyRef.otaChannels.length} of ${propertyRef.subscriptionPlan.otaLimit}`} />
+              </dl>
+            ) : (
+              <p className="text-label text-ink-secondary">No plan was chosen.</p>
+            )}
+            {propertyRef.otaChannels.length > 0 ? (
+              <p className="mt-3 flex flex-wrap gap-1.5">
+                {propertyRef.otaChannels.map((name) => (
+                  <Badge key={name} tone="info" size="sm">
+                    {name}
+                  </Badge>
+                ))}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         <p className="text-label text-ink-secondary">
           Approving activates the account and this property together. The person can sign in straight away; until then everything is closed to them.
         </p>

@@ -5,6 +5,8 @@ import { Button } from '../../components/primitives';
 import { ThemeSwatcher } from '../../theme/ThemeSwatcher';
 import { SetupWizard } from '../property-setup/setup-wizard/SetupWizard';
 import { ActivityLogPage } from './ActivityLogPage';
+import { OtaChannelsAdmin } from './OtaChannelsAdminPage';
+import { PlansAdmin } from './PlansAdminPage';
 import { PlatformDashboard } from './PlatformDashboard';
 import { PlatformHeader } from './PlatformHeader';
 import { PlatformSidebar } from './PlatformSidebar';
@@ -81,6 +83,8 @@ export function PlatformConsole() {
             {view === 'overview' ? <PlatformDashboard go={go} onReviewSignups={reviewSignups} /> : null}
             {view === 'properties' ? <PropertiesAdmin onAddProperty={() => go('new-property')} onViewActivity={showActivity} /> : null}
             {view === 'users' ? <UsersAdmin key={usersFilter ?? 'all'} initialStatus={usersFilter} /> : null}
+            {view === 'plans' ? <PlansAdmin /> : null}
+            {view === 'otas' ? <OtaChannelsAdmin /> : null}
             {view === 'activity' ? <ActivityLogPage key={activityProperty ?? 'all'} initialPropertyId={activityProperty} /> : null}
           </main>
           <footer className="border-t border-border bg-surface px-4 py-3.5 lg:px-6">

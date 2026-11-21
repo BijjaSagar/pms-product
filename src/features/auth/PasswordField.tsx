@@ -38,7 +38,7 @@ export function PasswordField({
           onKeyUp={trackCapsLock}
           onBlur={() => setCapsLock(false)}
           placeholder={placeholder}
-          className={`${SIGN_IN_FIELD} pr-10`}
+          className={`${SIGN_IN_FIELD} pr-10 ${value ? 'tracking-[0.12em]' : ''}`}
         />
         <button
           type="button"
