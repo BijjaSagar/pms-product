@@ -127,7 +127,7 @@ export const ROOM_TIMELINE_SEED: RoomTimelineRow[] = [
     floor: 2,
     events: [{ id: '204-occupied', status: 'Occupied', label: 'Occupied', ...FULL_DAY }],
   },
-  {
+  { 
     number: '205',
     type: 'SUP',
     floor: 2,

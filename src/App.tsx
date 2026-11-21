@@ -48,6 +48,7 @@ const PlatformConsole = lazy(() => import('./features/platform/PlatformConsole')
 const Settings = lazy(() => import('./features/settings/SettingsPage').then((m) => ({ default: m.Settings })));
 const LoginPage = lazy(() => import('./features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('./features/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })));
+const ForgotPasswordPage = lazy(() => import('./features/auth/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })));
 const RegistrationSetupPage = lazy(() => import('./features/auth/RegistrationSetupPage').then((m) => ({ default: m.RegistrationSetupPage })));
 const AwaitingApprovalPage = lazy(() => import('./features/auth/AwaitingApprovalPage').then((m) => ({ default: m.AwaitingApprovalPage })));
 const ChangePasswordPage = lazy(() => import('./features/auth/ChangePasswordPage').then((m) => ({ default: m.ChangePasswordPage })));
@@ -232,8 +233,10 @@ function AuthenticatedApp() {
         <Suspense fallback={<PageSkeleton />}>
           {authPage === 'register' ? (
             <RegisterPage onSignIn={() => setAuthPage('login')} />
+          ) : authPage === 'forgot' ? (
+            <ForgotPasswordPage onSignIn={() => setAuthPage('login')} />
           ) : (
-            <LoginPage onRegister={() => setAuthPage('register')} />
+            <LoginPage onRegister={() => setAuthPage('register')} onForgotPassword={() => setAuthPage('forgot')} />
           )}
         </Suspense>
         {/* The shell mounts its own Toaster; the login page needs one for sign-in errors. */}

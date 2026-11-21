@@ -22,3 +22,12 @@ export function newPasswordProblem(current: string, next: string, confirm: strin
   if (next !== confirm) return 'The two new passwords do not match.';
   return null;
 }
+
+/** The first thing wrong with the forgot-password form's second step, or null when it can be sent. */
+export function resetPasswordProblem(otp: string, next: string, confirm: string): string | null {
+  if (!/^\d{6}$/.test(otp.trim())) return 'Enter the 6-digit code.';
+  if (next.length < MIN_PASSWORD) return `Use a new password of at least ${MIN_PASSWORD} characters.`;
+  if (next.length > MAX_PASSWORD) return `Use a new password of at most ${MAX_PASSWORD} characters.`;
+  if (next !== confirm) return 'The two passwords do not match.';
+  return null;
+}

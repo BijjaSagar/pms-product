@@ -12,7 +12,7 @@ import { EYEBROW, HEADING, LABEL } from '../../components/brand/brandStyles';
  * The one sign-in for everyone: hotel staff and platform administrators use the same page, and the
  * account decides where they land (the property, or the platform console). New people go to Create account.
  */
-export function LoginPage({ onRegister }: { onRegister: () => void }) {
+export function LoginPage({ onRegister, onForgotPassword }: { onRegister: () => void; onForgotPassword: () => void }) {
   const { login, sessionNotice } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -72,6 +72,9 @@ export function LoginPage({ onRegister }: { onRegister: () => void }) {
           autoComplete="current-password"
           placeholder="Enter your password"
         />
+        <button type="button" onClick={onForgotPassword} className="-mt-2 cursor-pointer self-end text-[13px] font-semibold text-primary hover:underline">
+          Forgot password?
+        </button>
 
         {sessionNotice && !error && (
           <div role="status" className="flex items-start gap-2 rounded-xl border border-border bg-page px-3 py-2.5 text-[13px] font-medium text-ink-secondary">

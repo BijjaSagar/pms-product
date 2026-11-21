@@ -70,6 +70,9 @@ function FloorCard({ floor, rooms, categories, roomsLeft, defaultCategoryId, onC
             onChange={setCount}
             className="!w-28 max-sm:flex-1 sm:!w-24"
           />
+          <Button variant="primary" icon={<Lucide.Plus size={14} />} disabled={roomsLeft <= 0} onClick={() => setCount(rooms.length + 1)}>
+            Add room
+          </Button>
           <span className="relative max-sm:order-last max-sm:w-full">
             <select
               aria-label={`Set every room on floor ${floor} to a category`}

@@ -1,7 +1,13 @@
 import { evenRoomsPerFloor } from '../../settings/room-settings/floorPlan';
+import { statesOf } from './locations';
 
 export const MAX_ROOMS = 5000;
 export const MAX_CODE_LENGTH = 8;
+const PLATFORM_STEPS = ['Property details', 'Room categories', 'Floors & rooms'];
+const REGISTRATION_STEPS = [...PLATFORM_STEPS, 'Subscription', 'OTA channels', 'Approval'];
+
+/** A super admin adds a live property in three steps; a new account also picks a plan and channels, then waits for approval. */
+export const setupSteps = (mode: 'platform' | 'registration'): string[] => (mode === 'registration' ? REGISTRATION_STEPS : PLATFORM_STEPS);
 
 export interface PropertyDraft {
   name: string;
@@ -44,14 +50,16 @@ export const emptyProperty = (): PropertyDraft => ({
 
 export const newCategory = (patch: Partial<CategoryDraft> = {}): CategoryDraft => ({ id: newId(), name: '', ...patch });
 
-export type PropertyErrors = Partial<Record<'name' | 'code' | 'country' | 'city' | 'currency', string>>;
+export type PropertyErrors = Partial<Record<'name' | 'code' | 'country' | 'state' | 'city' | 'currency', string>>;
 
 export function propertyErrors(p: PropertyDraft): PropertyErrors {
   const errors: PropertyErrors = {};
   if (!p.name.trim()) errors.name = 'Add the property name';
   if (p.code.length < 2) errors.code = 'Add a short code';
   if (!p.country) errors.country = 'Choose a country';
-  if (!p.city.trim()) errors.city = 'Add the city';
+  // Countries the data has no states for need none.
+  if (!p.state.trim() && statesOf(p.country).length > 0) errors.state = 'Choose a state';
+  if (!p.city.trim()) errors.city = p.country && (statesOf(p.country).length === 0 || p.state) ? 'Choose or add the city' : 'Add the city';
   if (!p.currency) errors.currency = 'Choose a currency';
   return errors;
 }
