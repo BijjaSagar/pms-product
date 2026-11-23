@@ -67,9 +67,9 @@ export function Rooms({
   // Every status that has rooms, counted over all rooms so the chips do not shrink as filters narrow the rack.
   const statusCounts = useMemo(
     () =>
-      ROOM_STATUS_FILTERS.map((status) => ({ status, count: all.filter((room) => room.status === status).length })).filter(
-        ({ count }) => count > 0,
-      ),
+      ROOM_STATUS_FILTERS.filter((status) => status !== 'Available')
+        .map((status) => ({ status, count: all.filter((room) => room.status === status).length }))
+        .filter(({ count }) => count > 0),
     [all],
   );
   const roomTypes = useMemo(() => Array.from(new Set(all.map((room) => room.type))).sort(), [all]);
