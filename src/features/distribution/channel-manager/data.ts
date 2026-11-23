@@ -25,6 +25,9 @@ export const INITIAL_CHANNELS: Channel[] = [
   { id: 'goibibo', name: 'Goibibo', code: 'goibibo', logoBg: '#f36b21', logoText: 'go', logoColor: '#ffffff', status: 'error', lastSync: 'Failed · 10:15 AM', activeRooms: 18, bookingsMtd: 0, syncSuccess: 0, errorDetail: 'API token expired. Reconnect this channel to resume synchronization.' },
 ];
 
+/** Direct (non-OTA) sources that make up "Visible on BE" in the distribution status view. */
+export const BOOKING_ENGINE_SOURCES = ['Official Hotel Website', 'Tripadvisor', 'Google ARI'];
+
 export const INITIAL_LOGS: ChannelLog[] = [
   { id: 'log-1', time: '10:48:12 AM', channelId: 'booking', event: 'Inventory & rate push', status: 'Success', detail: '42 rooms synchronized. No errors.' },
   { id: 'log-2', time: '10:45:00 AM', channelId: 'expedia', event: 'Restrictions push', status: 'Success', detail: 'Minimum-stay rule applied for weekend dates.' },

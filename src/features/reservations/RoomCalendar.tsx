@@ -22,6 +22,7 @@ import { matchesStatusFilter } from './reservationStatusFilters';
 import { stayOverlapsRange } from './reservationDateRange';
 import { CellActionMenu, type CellAction } from './room-calendar/CellActionMenu';
 import { CellNoteModal, type CellHoldKind } from './room-calendar/CellNoteModal';
+import { DistributionStatusPopover } from './room-calendar/DistributionStatusPopover';
 import { DayLogButton } from './day-log/DayLogButton';
 import { DayNoteModal } from './day-log/DayNoteModal';
 import { DayEnquiriesModal } from './day-log/DayEnquiriesModal';
@@ -137,6 +138,24 @@ function AvailabilityPill({ free, total }: { free: number; total: number }) {
     <span className="tnum rounded-full bg-neutral-bg px-2 py-0.5 text-micro font-bold text-ink" title={`${free} of ${total} rooms free`}>
       {free} AVL
     </span>
+  );
+}
+
+/** AVL pill with a small tick beside it that opens the distribution status for that category and night. */
+function AvailabilityWithStatus({ free, total, label, onOpen }: { free: number; total: number; label: string; onOpen: (anchor: DOMRect) => void }) {
+  return (
+    <div className="flex items-center gap-1">
+      <AvailabilityPill free={free} total={total} />
+      <button
+        type="button"
+        onClick={(e) => onOpen(e.currentTarget.getBoundingClientRect())}
+        title="Distribution status"
+        aria-label={`Distribution status for ${label}`}
+        className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[var(--color-success-text)] text-white hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+      >
+        <Lucide.Check size={10} strokeWidth={3} aria-hidden="true" />
+      </button>
+    </div>
   );
 }
 
@@ -285,6 +304,9 @@ export function RoomCalendar({
       active = false;
     };
   }, [days, dayLogVersion]);
+
+  // Distribution status popover opened from a category's AVL tick
+  const [distribution, setDistribution] = useState<{ roomType: string; date: string; free: number; anchor: DOMRect } | null>(null);
 
   // Change confirmation after a drag
   const [pendingChange, setPendingChange] = useState<ProposedReservationChange | null>(null);
@@ -851,7 +873,12 @@ export function RoomCalendar({
                           className="flex shrink-0 items-center justify-center border-r border-border"
                           style={{ width: `${dayWidth}px` }}
                         >
-                          <AvailabilityPill free={free} total={total} />
+                          <AvailabilityWithStatus
+                            free={free}
+                            total={total}
+                            label={`${room.type} on ${dateStr}`}
+                            onOpen={(anchor) => setDistribution({ roomType: room.type, date: dateStr, free, anchor })}
+                          />
                         </div>
                       ))}
                     </div>
@@ -1003,6 +1030,21 @@ export function RoomCalendar({
           date={openLog.date}
           onClose={() => setOpenLog(null)}
           onChanged={() => setDayLogVersion((v) => v + 1)}
+        />
+      )}
+
+      {distribution && (
+        <DistributionStatusPopover
+          anchor={distribution.anchor}
+          roomType={distribution.roomType}
+          date={distribution.date}
+          free={distribution.free}
+          onClose={() => setDistribution(null)}
+          onManageOta={() => {
+            setDistribution(null);
+            if (go) go({ view: 'channel-manager' });
+            else toast.info('Manage OTA', { detail: 'Open Channel Manager to manage OTA mappings.' });
+          }}
         />
       )}
 
