@@ -8,34 +8,30 @@ import { Button, IconButton, SelectField, TextArea, TextField } from '../../comp
 import { toast } from '../../utils/toast';
 import { displayApiError } from '../../lib/api/client';
 import { propertyApi, userAdminApi } from '../../lib/api/pms';
-import type { AdminUser, AdminUserPage, PropertyDetails, UserRoleKey } from '../../lib/api/pms';
+import type { AdminUser, AdminUserPage, PropertyDetails } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { MIN_PASSWORD } from '../../utils/passwordRules';
-import { useAuth } from '../auth/AuthContext';
 import { formatPlanPrice } from '../../utils/setupPlans';
 import { CredentialsDialog } from './CredentialsDialog';
 import type { Credentials } from './CredentialsDialog';
 import { generatePassword } from './password';
+import { PasswordInput } from './PasswordInput';
 import { PropertyMultiSelect } from './PropertyMultiSelect';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 
 const PAGE_SIZE = 10;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type RoleFilter = 'all' | UserRoleKey;
 /** `pending` is the queue of sign-ups that have sent their property and wait for a decision. */
 export type UsersStatusFilter = 'all' | 'active' | 'inactive' | 'pending';
 
 /** A sign-up a super admin can decide on: its property is in, and it is not approved. */
 const needsReview = (user: AdminUser) => user.approvalStatus === 'PENDING_APPROVAL' || user.approvalStatus === 'REJECTED';
 
-const ROLE_LABEL: Record<UserRoleKey, string> = { SUPER_ADMIN: 'Super admin', STAFF: 'Staff' };
-
 const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((id) => b.includes(id));
 
-/** Where a person can work: every property, or the codes of the ones assigned to them. */
+/** Where a person can work: the codes of the properties assigned to them. */
 function PropertyBadges({ user }: { user: AdminUser }) {
-  if (user.role === 'SUPER_ADMIN') return <span className="text-label text-ink-secondary">All properties</span>;
   if (user.properties.length === 0) {
     return (
       <Badge tone="warning" size="sm">
@@ -243,17 +239,6 @@ function ReviewSignupDialog({ user, onClose, onDecided }: { user: AdminUser; onC
 }
 
 /** A password field that shows what it holds, with a button for a fresh random one. */
-function PasswordInput({ value, onChange, autoFocus = false }: { value: string; onChange: (value: string) => void; autoFocus?: boolean }) {
-  return (
-    <div className="flex items-center gap-2">
-      <TextField value={value} onChange={(e) => onChange(e.target.value)} autoComplete="off" autoFocus={autoFocus} className="font-mono" />
-      <IconButton title="Generate a password" aria-label="Generate a password" onClick={() => onChange(generatePassword())}>
-        <Lucide.Shuffle size={14} />
-      </IconButton>
-    </div>
-  );
-}
-
 function CreateUserDialog({
   properties,
   onClose,
@@ -265,7 +250,6 @@ function CreateUserDialog({
 }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<UserRoleKey>('STAFF');
   const [password, setPassword] = useState(() => generatePassword());
   const [propertyIds, setPropertyIds] = useState<string[]>([]);
   const [attempted, setAttempted] = useState(false);
@@ -288,8 +272,7 @@ function CreateUserDialog({
         name: name.trim(),
         email: email.trim().toLowerCase(),
         password,
-        role,
-        ...(role === 'STAFF' && propertyIds.length > 0 ? { propertyIds } : {}),
+        ...(propertyIds.length > 0 ? { propertyIds } : {}),
       });
       onCreated(created, password);
     } catch (cause) {
@@ -328,22 +311,14 @@ function CreateUserDialog({
         <Field label="Email" required error={attempted ? errors.email : undefined}>
           <TextField type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="off" />
         </Field>
-        <Field label="Role" hint={role === 'SUPER_ADMIN' ? 'Reaches every property and manages users.' : 'Works at the properties chosen below.'}>
-          <SelectField value={role} onChange={(e) => setRole(e.target.value as UserRoleKey)}>
-            <option value="STAFF">Staff</option>
-            <option value="SUPER_ADMIN">Super admin</option>
-          </SelectField>
-        </Field>
         <Field label="First password" required error={attempted ? errors.password : undefined}>
           <PasswordInput value={password} onChange={setPassword} />
         </Field>
-        {role === 'STAFF' ? (
-          <div className="flex flex-col gap-1.5 sm:col-span-2">
-            <span className="pms-label">Properties</span>
-            <PropertyMultiSelect properties={properties} value={propertyIds} onChange={setPropertyIds} />
-            <span className="pms-helper">They cannot sign in until at least one active property is assigned. You can change this any time.</span>
-          </div>
-        ) : null}
+        <div className="flex flex-col gap-1.5 sm:col-span-2">
+          <span className="pms-label">Properties</span>
+          <PropertyMultiSelect properties={properties} value={propertyIds} onChange={setPropertyIds} />
+          <span className="pms-helper">They cannot sign in until at least one active property is assigned. You can change this any time.</span>
+        </div>
         {error ? (
           <p role="alert" className="rounded-xl border border-danger-border bg-danger-bg p-3 text-label text-danger-text sm:col-span-2">
             {error}
@@ -357,20 +332,17 @@ function CreateUserDialog({
 function ManageUserDialog({
   user,
   properties,
-  isSelf,
   onClose,
   onSaved,
   onPasswordReset,
 }: {
   user: AdminUser;
   properties: PropertyDetails[];
-  isSelf: boolean;
   onClose: () => void;
   onSaved: () => void;
   onPasswordReset: (user: AdminUser, password: string) => void;
 }) {
   const [name, setName] = useState(user.name);
-  const [role, setRole] = useState<UserRoleKey>(user.role);
   const [isActive, setIsActive] = useState(user.isActive);
   const [propertyIds, setPropertyIds] = useState(() => user.properties.map((p) => p.id));
   const [resetting, setResetting] = useState(false);
@@ -385,13 +357,11 @@ function ManageUserDialog({
     setSaving(true);
     setError(null);
     try {
-      const changes: { name?: string; role?: UserRoleKey; isActive?: boolean } = {};
+      const changes: { name?: string; isActive?: boolean } = {};
       if (name.trim() !== user.name) changes.name = name.trim();
-      if (role !== user.role) changes.role = role;
       if (isActive !== user.isActive) changes.isActive = isActive;
       const updated = Object.keys(changes).length > 0 ? await userAdminApi.update(user.id, changes) : user;
-      // Promoting to super admin clears their properties on the server, so there is nothing left to set.
-      if (updated.role === 'STAFF' && !sameSet(propertyIds, updated.properties.map((p) => p.id))) {
+      if (!sameSet(propertyIds, updated.properties.map((p) => p.id))) {
         await userAdminApi.setProperties(user.id, propertyIds);
       }
       toast('User saved', { detail: name.trim(), tone: 'success' });
@@ -445,33 +415,18 @@ function ManageUserDialog({
         <Field label="Full name" error={nameProblem}>
           <TextField value={name} onChange={(e) => setName(e.target.value)} />
         </Field>
-        <Field label="Role" hint={isSelf ? 'You cannot change your own role.' : undefined}>
-          <SelectField value={role} disabled={isSelf} onChange={(e) => setRole(e.target.value as UserRoleKey)}>
-            <option value="STAFF">Staff</option>
-            <option value="SUPER_ADMIN">Super admin</option>
-          </SelectField>
-        </Field>
-
         <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface p-3 sm:col-span-2">
           <div className="min-w-0">
             <p className="text-body font-semibold text-ink">Can sign in</p>
-            <p className="text-label text-ink-secondary">{isSelf ? 'You cannot deactivate your own account.' : 'Switching this off signs them out everywhere.'}</p>
+            <p className="text-label text-ink-secondary">Switching this off signs them out everywhere.</p>
           </div>
-          <Switch checked={isActive} onChange={setIsActive} disabled={isSelf} label="Can sign in" />
+          <Switch checked={isActive} onChange={setIsActive} label="Can sign in" />
         </div>
 
         <div className="flex flex-col gap-1.5 sm:col-span-2">
           <span className="pms-label">Properties</span>
-          {role === 'SUPER_ADMIN' ? (
-            <p className="rounded-xl border border-border bg-muted-surface/60 p-3 text-label text-ink-secondary">
-              A super admin reaches every property, so none are assigned.{user.role === 'STAFF' ? ' Saving removes the ones this user has now.' : ''}
-            </p>
-          ) : (
-            <>
-              <PropertyMultiSelect properties={properties} value={propertyIds} onChange={setPropertyIds} />
-              <span className="pms-helper">Applied on their next request; they do not need to sign in again.</span>
-            </>
-          )}
+          <PropertyMultiSelect properties={properties} value={propertyIds} onChange={setPropertyIds} />
+          <span className="pms-helper">Applied on their next request; they do not need to sign in again.</span>
         </div>
 
         <div className="rounded-xl border border-border p-3 sm:col-span-2">
@@ -479,10 +434,10 @@ function ManageUserDialog({
             <div className="min-w-0">
               <p className="text-body font-semibold text-ink">Password</p>
               <p className="text-label text-ink-secondary">
-                {isSelf ? 'Change your own password from your profile menu.' : 'Set a new one for them. They are signed out and must replace it.'}
+                Set a new one for them. They are signed out and must replace it.
               </p>
             </div>
-            {!isSelf && !resetting ? (
+            {!resetting ? (
               <Button
                 variant="secondary"
                 icon={<Lucide.KeyRound size={14} />}
@@ -522,11 +477,9 @@ function ManageUserDialog({
 
 type Dialog = { kind: 'none' } | { kind: 'create' } | { kind: 'manage'; user: AdminUser } | { kind: 'review'; user: AdminUser };
 
-/** SUPER_ADMIN only: every account, which properties each STAFF user can open, and the sign-ups to approve. */
+/** SUPER_ADMIN only: every staff account, which properties each can open, and the sign-ups to approve. */
 export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersStatusFilter }) {
-  const { me } = useAuth();
   const [query, setQuery] = useState('');
-  const [role, setRole] = useState<RoleFilter>('all');
   const [status, setStatus] = useState<UsersStatusFilter>(initialStatus);
   const [propertyId, setPropertyId] = useState('');
   const [page, setPage] = useState(0);
@@ -541,31 +494,25 @@ export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersSta
     () =>
       userAdminApi.list({
         search: search || undefined,
-        role: role === 'all' ? undefined : role,
         isActive: status === 'active' ? true : status === 'inactive' ? false : undefined,
         approvalStatus: status === 'pending' ? 'PENDING_APPROVAL' : undefined,
         propertyId: propertyId || undefined,
         page: page + 1,
         pageSize: PAGE_SIZE,
       }),
-    [search, role, status, propertyId, page],
+    [search, status, propertyId, page],
   );
   // Keep showing the last page while the next one loads, so typing in the search box does not blank the list.
   const [lastPage, setLastPage] = useState<AdminUserPage | null>(null);
   if (users.data && users.data !== lastPage) setLastPage(users.data);
   const result = users.data ?? lastPage;
   const totalPages = Math.max(1, Math.ceil((result?.total ?? 0) / PAGE_SIZE));
-  const filtered = query.trim() !== '' || role !== 'all' || status !== 'all' || propertyId !== '';
+  const filtered = query.trim() !== '' || status !== 'all' || propertyId !== '';
   const reviewing = status === 'pending';
 
   const resetPaging = () => setPage(0);
   const closeDialog = () => setDialog({ kind: 'none' });
 
-  const roleChips: { id: RoleFilter; label: string }[] = [
-    { id: 'all', label: 'Everyone' },
-    { id: 'STAFF', label: 'Staff' },
-    { id: 'SUPER_ADMIN', label: 'Super admins' },
-  ];
   const statusChips: { id: UsersStatusFilter; label: string }[] = [
     { id: 'all', label: 'Any status' },
     { id: 'active', label: 'Active' },
@@ -643,19 +590,6 @@ export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersSta
             </div>
           </div>
           <div className="pms-chip-row gap-2" role="group" aria-label="Filter people">
-            {roleChips.map((chip) => (
-              <FilterChip
-                key={chip.id}
-                active={role === chip.id}
-                onClick={() => {
-                  setRole(chip.id);
-                  resetPaging();
-                }}
-              >
-                {chip.label}
-              </FilterChip>
-            ))}
-            <span className="mx-1 hidden h-6 w-px self-center bg-divider sm:block" aria-hidden="true" />
             {statusChips.map((chip) => (
               <FilterChip
                 key={chip.id}
@@ -689,7 +623,6 @@ export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersSta
                 variant="secondary"
                 onClick={() => {
                   setQuery('');
-                  setRole('all');
                   setStatus('all');
                   setPropertyId('');
                   resetPaging();
@@ -726,9 +659,6 @@ export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersSta
                   </div>
                   <div className="mt-3 flex flex-col gap-2">
                     <span className="flex flex-wrap items-center gap-1.5">
-                      <Badge tone={user.role === 'SUPER_ADMIN' ? 'info' : 'neutral'} size="sm">
-                        {ROLE_LABEL[user.role]}
-                      </Badge>
                       <StatusBadges user={user} />
                     </span>
                     <PropertyBadges user={user} />
@@ -744,7 +674,6 @@ export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersSta
                   <thead>
                     <tr>
                       <th>PERSON</th>
-                      <th>ROLE</th>
                       <th>PROPERTIES</th>
                       <th>STATUS</th>
                       <th className="text-right">ACTION</th>
@@ -761,11 +690,6 @@ export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersSta
                               <p className="truncate text-label text-ink-secondary">{user.email}</p>
                             </div>
                           </div>
-                        </td>
-                        <td>
-                          <Badge tone={user.role === 'SUPER_ADMIN' ? 'info' : 'neutral'} size="sm">
-                            {ROLE_LABEL[user.role]}
-                          </Badge>
                         </td>
                         <td>
                           <PropertyBadges user={user} />
@@ -829,7 +753,6 @@ export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersSta
         <ManageUserDialog
           user={dialog.user}
           properties={properties}
-          isSelf={dialog.user.id === me?.user.id}
           onClose={closeDialog}
           onSaved={() => {
             closeDialog();

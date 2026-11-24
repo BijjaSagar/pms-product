@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 
 /**
- * Everyone signs in on the same page: hotel staff and super admins alike, and the account decides where
- * they land. New people create an account on a second page; a forgotten password has a third. There is no router, so the address is only
- * read to choose which of the two to show while nobody is signed in.
+ * The hotel app's signed-out pages: Sign in, Create account and Forgot password. Super admins do not
+ * sign in here; they have their own app at `/admin`. There is no router, so the address is only read to
+ * choose which page to show while nobody is signed in.
  */
 export type AuthPage = 'login' | 'register' | 'forgot';
 
@@ -19,8 +19,7 @@ const pageFor = (pathname: string): AuthPage => {
 
 /**
  * The signed-out page being shown, a way to move between the two (the Back button works too), and a way
- * to leave them: once signed in the app lives at the root, so the sign-up address (or an old `/admin`
- * bookmark) is dropped and the next signed-out visit starts on Sign in.
+ * to leave them: once signed in the app lives at the root, so the sign-up address is dropped and the next signed-out visit starts on Sign in.
  */
 export function useAuthPage(): { page: AuthPage; go: (page: AuthPage) => void; reset: () => void } {
   const [page, setPage] = useState<AuthPage>(() => pageFor(window.location.pathname));
