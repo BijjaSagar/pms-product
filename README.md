@@ -61,27 +61,32 @@ src/
   main.tsx                React root
   index.css               Tailwind entry and shared component classes
   config/                 navigation (views, sections, permissions)
-  components/             shared UI primitives, overlays, toasts, error pages
+  components/             shared UI
+    ui/                   primitives, controls, overlays, charts, tabs, display components
+    feedback/             toasts, skeletons, error boundary and error pages
     layout/               sidebar and header
+    brand/                login and shell branding
+  hooks/                  generic hooks (debounce, dismiss)
   features/
     analytics/            reports hub
-    auth/                 demo session context
+    auth/                 sign-in, registration, password pages and session context
     dashboard/            operational overview
     distribution/         rate management and channel manager
     finance/              billing, invoices, payments, night audit
     guests/               guest directory
-    maintenance/          work orders
+    inventory/            room inventory provider
+    platform/             super admin console
+    property-setup/       property picker, properties list, setup wizard
     reservations/         reservations list, room calendar, new reservation
     rooms/                room overview and status timeline
-    settings/             property settings, room types, appearance
-    staff/                staff and roles
+    settings/             property settings (tabs/, components/, room-settings/)
   data/                   catalog, fixtures, in-memory store
   lib/
     api/                  feature-facing API objects and adapters
     scrollLock.ts         body scroll lock for dialogs
   theme/                  presets, theme provider, design tokens, tone helpers
   types/                  shared domain types
-  utils/                  currency, dates, folio and status helpers, toasts
+  utils/                  currency, dates, status, password rules, floor plan, setup plans, toasts
 scripts/check-palette.mjs palette guard
 ```
 

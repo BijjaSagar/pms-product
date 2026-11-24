@@ -1,21 +1,21 @@
 import { useCallback, useMemo, useState } from 'react';
-import { TableSkeletonRows } from '../../components/Skeleton';
+import { TableSkeletonRows } from '../../components/feedback/Skeleton';
 import * as Lucide from 'lucide-react';
 import { formatCurrency } from '../../utils/currency';
-import type { Payment } from '../../types';
-import { Avatar, Badge, Card, CardTitle, TableContainer } from '../../components/ui';
+import type { Payment } from '../../types/index';
+import { Avatar, Badge, Card, CardTitle, TableContainer } from '../../components/ui/display';
 import { paymentTone } from '../../utils/status';
-import { FilterChip, Pagination } from '../../components/controls';
-import { Field } from '../../components/controls';
+import { FilterChip, Pagination } from '../../components/ui/controls';
+import { Field } from '../../components/ui/controls';
 import { inputClass } from '../../utils/styling';
-import { Modal } from '../../components/overlays';
+import { Modal } from '../../components/ui/overlays';
 import { toast } from '../../utils/toast';
 import { folioApi } from '../../lib/api/pms';
 import { paymentFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
-import { useAuth } from '../../features/auth/AuthContext';
-import { Button, TextField } from '../../components/primitives';
+import { useAuth } from '../auth/AuthContext';
+import { Button, TextField } from '../../components/ui/primitives';
 
 const PAGE_SIZE = 8;
 

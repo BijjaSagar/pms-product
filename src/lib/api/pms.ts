@@ -1,9 +1,9 @@
 import { store } from '../../data/store';
 import { clearAccessToken, saveAccessToken } from './authToken';
 import { ApiError, apiBlob, apiRequest, requireActivePropertyId } from './client';
-import type { ThemeKey } from '../../types';
+import type { ThemeKey } from '../../types/index';
 
-export interface PropertyMembership {
+interface PropertyMembership {
   id: string;
   userId: string;
   propertyId: string;
@@ -461,129 +461,6 @@ export const propertyApi = {
     apiRequest<PropertyDetails>(`/properties/${id}`, { method: 'PATCH', body }),
 };
 
-export type RoomTypeStatus = 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE';
-
-/** A room type of one property as the backend stores it (`/:propertyId/rooms`). */
-export interface RoomTypeDetails {
-  id: string;
-  propertyId: string;
-  name: string;
-  /** Number of physical rooms of this type. */
-  roomCount: number;
-  /** Maximum guests per room. */
-  capacity: number;
-  /** Per night; the backend returns the decimal as a string. */
-  baseRate: string;
-  status: RoomTypeStatus;
-  /** Bed classification (a room category of the same property), if set. */
-  categoryId: string | null;
-  category: { id: string; name: string; bedSetup: string } | null;
-}
-
-export interface RoomTypeInput {
-  name: string;
-  roomCount: number;
-  capacity: number;
-  baseRate: number;
-  status: RoomTypeStatus;
-  /** Send null to clear the bed classification. */
-  categoryId?: string | null;
-}
-
-/** Real backend calls, always scoped to one property. */
-export const roomTypeApi = {
-  list: async (propertyId: string) => apiRequest<RoomTypeDetails[]>(`/${propertyId}/rooms`),
-  create: async (propertyId: string, body: RoomTypeInput) =>
-    apiRequest<RoomTypeDetails>(`/${propertyId}/rooms`, { method: 'POST', body }),
-  update: async (propertyId: string, id: string, body: Partial<RoomTypeInput>) =>
-    apiRequest<RoomTypeDetails>(`/${propertyId}/rooms/${id}`, { method: 'PATCH', body }),
-};
-
-/** A room category of one property as the backend stores it (`/:propertyId/room-categories`). */
-export interface RoomCategoryDetails {
-  id: string;
-  propertyId: string;
-  name: string;
-  description: string | null;
-  bedSetup: string;
-  isActive: boolean;
-}
-
-export interface RoomCategoryInput {
-  name: string;
-  description?: string;
-  bedSetup: string;
-  isActive: boolean;
-}
-
-export const roomCategoryApi = {
-  list: async (propertyId: string) => apiRequest<RoomCategoryDetails[]>(`/${propertyId}/room-categories`),
-  create: async (propertyId: string, body: RoomCategoryInput) =>
-    apiRequest<RoomCategoryDetails>(`/${propertyId}/room-categories`, { method: 'POST', body }),
-  update: async (propertyId: string, id: string, body: Partial<RoomCategoryInput>) =>
-    apiRequest<RoomCategoryDetails>(`/${propertyId}/room-categories/${id}`, { method: 'PATCH', body }),
-  remove: async (propertyId: string, id: string) =>
-    apiRequest<void>(`/${propertyId}/room-categories/${id}`, { method: 'DELETE' }),
-};
-
-/** An amenity of one property as the backend stores it (`/:propertyId/amenities`). */
-export interface AmenityDetails {
-  id: string;
-  propertyId: string;
-  name: string;
-  description: string | null;
-  isActive: boolean;
-}
-
-export interface AmenityInput {
-  name: string;
-  description?: string;
-  isActive: boolean;
-}
-
-export const amenityApi = {
-  list: async (propertyId: string) => apiRequest<AmenityDetails[]>(`/${propertyId}/amenities`),
-  create: async (propertyId: string, body: AmenityInput) =>
-    apiRequest<AmenityDetails>(`/${propertyId}/amenities`, { method: 'POST', body }),
-  update: async (propertyId: string, id: string, body: Partial<AmenityInput>) =>
-    apiRequest<AmenityDetails>(`/${propertyId}/amenities/${id}`, { method: 'PATCH', body }),
-  remove: async (propertyId: string, id: string) =>
-    apiRequest<void>(`/${propertyId}/amenities/${id}`, { method: 'DELETE' }),
-};
-
-export type MaintenanceTradeCategory =
-  | 'HVAC' | 'PLUMBING' | 'RENOVATION' | 'ELECTRICAL' | 'HOUSEKEEPING' | 'SECURITY' | 'GENERAL';
-export type MaintenanceReasonPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-export type MaintenanceReasonStatus = 'ACTIVE' | 'INACTIVE';
-
-/** A maintenance reason of one property as the backend stores it (`/:propertyId/maintenance-reasons`). */
-export interface MaintenanceReasonDetails {
-  id: string;
-  propertyId: string;
-  reasonName: string;
-  tradeCategory: MaintenanceTradeCategory;
-  priority: MaintenanceReasonPriority;
-  status: MaintenanceReasonStatus;
-}
-
-export interface MaintenanceReasonInput {
-  reasonName: string;
-  tradeCategory: MaintenanceTradeCategory;
-  priority: MaintenanceReasonPriority;
-  status: MaintenanceReasonStatus;
-}
-
-export const maintenanceReasonApi = {
-  list: async (propertyId: string) =>
-    apiRequest<MaintenanceReasonDetails[]>(`/${propertyId}/maintenance-reasons`),
-  create: async (propertyId: string, body: MaintenanceReasonInput) =>
-    apiRequest<MaintenanceReasonDetails>(`/${propertyId}/maintenance-reasons`, { method: 'POST', body }),
-  update: async (propertyId: string, id: string, body: Partial<MaintenanceReasonInput>) =>
-    apiRequest<MaintenanceReasonDetails>(`/${propertyId}/maintenance-reasons/${id}`, { method: 'PATCH', body }),
-  remove: async (propertyId: string, id: string) =>
-    apiRequest<void>(`/${propertyId}/maintenance-reasons/${id}`, { method: 'DELETE' }),
-};
-
 /** A room offering of one property as the backend stores it (`/:propertyId/room-listings`). */
 export interface RoomDetails {
   id: string;
@@ -1009,7 +886,7 @@ export const cancellationRuleApi = {
 };
 
 /** The bookable room inventory of one property (`/:propertyId/room-inventory`), read from its floor plan. */
-export interface InventoryListing {
+interface InventoryListing {
   /** Id of the room (Rooms table). */
   id: string;
   name: string;
@@ -1024,7 +901,7 @@ export interface InventoryListing {
   maxOccupancy: number;
 }
 
-export interface InventoryRoom {
+interface InventoryRoom {
   roomNumber: string;
   floor: number;
   roomId: string | null;

@@ -11,7 +11,7 @@
 
 export type Tone = 'success' | 'info' | 'warning' | 'danger' | 'neutral';
 
-export const TONES: readonly Tone[] = ['success', 'info', 'warning', 'danger', 'neutral'];
+const TONES: readonly Tone[] = ['success', 'info', 'warning', 'danger', 'neutral'];
 
 export interface ToneClassSet {
   /** Tinted badge: background + readable text + border. */

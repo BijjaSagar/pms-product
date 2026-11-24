@@ -1,4 +1,4 @@
-import type { RoomStatus } from '../../types';
+import type { RoomStatus } from '../../types/index';
 
 export interface RoomFilters {
   q: string;

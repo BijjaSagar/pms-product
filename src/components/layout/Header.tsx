@@ -4,19 +4,19 @@ import * as Lucide from 'lucide-react';
 import { NAV_ITEMS, NAV_SECTIONS } from '../../config/navigation';
 import type { NavTarget, ViewId } from '../../config/navigation';
 import { loadNotices } from '../../lib/api/notices';
-import type { Notice } from '../../types';
+import type { Notice } from '../../types/index';
 import { toast } from '../../utils/toast';
 import { useAuth } from '../../features/auth/AuthContext';
 import { ChangePasswordDialog } from '../../features/auth/ChangePasswordDialog';
 import { displayApiError } from '../../lib/api/client';
 import { folioApi, frontDeskApi, reportsApi } from '../../lib/api/pms';
 import { NAV_ICONS } from './navIcons';
-import { Button, IconButton, ListItem, TextField } from '../primitives';
+import { Button, IconButton, ListItem, TextField } from '../ui/primitives';
 import { NotificationHub } from './NotificationHub';
 import { ProfileMenu } from './ProfileMenu';
 import { TodayGlance } from './TodayGlance';
 import type { GlanceItem } from './TodayGlance';
-import { useDismiss } from './useDismiss';
+import { useDismiss } from '../../hooks/useDismiss';
 
 const SEARCH_KEYWORDS: Record<ViewId, string[]> = {
   dashboard: ['home', 'overview', 'summary', 'metrics', 'kpi', 'revenue', 'occupancy', 'analytics'],

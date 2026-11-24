@@ -1,9 +1,9 @@
 import * as Lucide from 'lucide-react';
 import { BrandStepper } from '../../../components/brand/BrandControls';
-import { Button } from '../../../components/primitives';
+import { Button } from '../../../components/ui/primitives';
 import { CARD, HEADING, LABEL } from '../../../components/brand/brandStyles';
-import { selectClass } from '../../../components/formStyles';
-import { MAX_ROOMS_PER_FLOOR, roomNumber } from '../../settings/room-settings/floorPlan';
+import { selectClass } from '../../../components/ui/formStyles';
+import { MAX_ROOMS_PER_FLOOR, roomNumber } from '../../../utils/floorPlan';
 import { toast } from '../../../utils/toast';
 import { NO_CATEGORY_TONE, categoryTone } from '../categoryTones';
 import { autoFillFloors, newId, placedByCategory, roomsOnFloors } from './draft';

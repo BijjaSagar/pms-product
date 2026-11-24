@@ -3,7 +3,7 @@ import * as Lucide from 'lucide-react';
 import { toast } from '../../utils/toast';
 import type { NavTarget } from '../../config/navigation';
 import { store } from '../../data/store';
-import { IconButton } from '../../components/primitives';
+import { IconButton } from '../../components/ui/primitives';
 import type { CalendarReservation, CalendarRoom, DragState, ProposedReservationChange, ReservationStatus as CalendarReservationStatus } from './room-calendar/types';
 import {
   todayIso,

@@ -1,4 +1,4 @@
-import { Button, Checkbox, TextField } from '../../../components/primitives';
+import { Button, Checkbox, TextField } from '../../../components/ui/primitives';
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { inputClass } from '../../../utils/styling';

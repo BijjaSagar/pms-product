@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { Modal } from '../../../components/overlays';
+import { Modal } from '../../../components/ui/overlays';
 import { dayLogApi, type DayEnquiryRow } from '../../../lib/api/pms';
 import { toast } from '../../../utils/toast';
 import { formatCalendarDate } from '../room-calendar/calendarData';

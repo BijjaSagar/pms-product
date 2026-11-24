@@ -1,7 +1,7 @@
-import { Button, SelectField, TextField } from '../../../components/primitives';
+import { Button, SelectField, TextField } from '../../../components/ui/primitives';
 import * as Lucide from 'lucide-react';
-import { ROOM_TYPES } from './data';
-import type { Channel, RateMapping } from './types';
+import { ROOM_TYPES } from '../../../data/channelManager';
+import type { Channel, RateMapping } from '../../../types/channelManager';
 
 interface Props {
   mappings: RateMapping[];

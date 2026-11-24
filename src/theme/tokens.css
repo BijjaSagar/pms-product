@@ -21,7 +21,6 @@
   --transition-fast: 140ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 220ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-spring: 320ms cubic-bezier(0.34, 1.4, 0.64, 1);
-  --transition-slow: 420ms ease;
 
   --shadow-xs: 0 1px 2px rgb(40 30 20 / 0.05);
   --shadow-sm: 0 1px 2px rgb(40 30 20 / 0.06), 0 1px 3px rgb(40 30 20 / 0.08);
@@ -37,7 +36,6 @@
   --ring-focus: 0 0 0 3px color-mix(in srgb, var(--color-focus) 28%, transparent);
 
   --gradient-card-sheen: linear-gradient(180deg, rgb(250 249 246 / 0.7) 0%, rgb(250 249 246 / 0) 88px);
-  --gradient-accent: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 52%, var(--color-dark-accent) 100%);
 
   --blur-glass: blur(14px) saturate(1.25);
 
@@ -87,13 +85,8 @@
   --color-focus: #c62828;
   --color-selection: rgb(198 40 40 / 0.18);
 
-  /* Sidebar contrast + scrim: warm-white sidebar with theme-aware active tokens */
-  --color-sidebar-ink: #64748b;
-  --color-sidebar-ink-strong: #0f172a;
-  --color-sidebar-ink-muted: #94a3b8;
-  --color-sidebar-border: #e2e8f0;
+  /* Sidebar active background + scrim */
   --color-sidebar-active-bg: var(--color-muted-surface);
-  --color-sidebar-active-ink: var(--color-primary);
   --color-scrim: rgb(20 14 10 / 0.45);
 }
 
@@ -313,11 +306,3 @@
   --color-selection: rgb(198 40 40 / 0.18);
 }
 
-/* Spec aliases (§5 example names) map onto the canonical tokens above. */
-:root {
-  --color-bg: var(--color-page);
-  --color-surface-muted: var(--color-muted-surface);
-  --color-surface-hover: var(--color-hover-surface);
-  --color-text: var(--color-ink);
-  --color-text-secondary: var(--color-ink-secondary);
-}

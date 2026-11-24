@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
-import { Badge } from '../../../components/ui';
-import { BOOKING_ENGINE_SOURCES, INITIAL_CHANNELS, INITIAL_MAPPINGS } from '../../distribution/channel-manager/data';
-import { ChannelLogo } from '../../distribution/channel-manager/ChannelLogo';
+import { Badge } from '../../../components/ui/display';
+import { BOOKING_ENGINE_SOURCES, INITIAL_CHANNELS, INITIAL_MAPPINGS } from '../../../data/channelManager';
+import { ChannelLogo } from '../../../components/ui/ChannelLogo';
 
 const GAP = 10; // room for the arrow between the tick and the card
 const MARGIN = 8;

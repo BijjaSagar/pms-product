@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { EYEBROW, HEADING } from '../../../components/brand/brandStyles';
 import type { CategoryDraft, PropertyDraft } from './draft';
-import type { Plan } from './setupPlans';
+import type { Plan } from '../../../utils/setupPlans';
 
 /** The receipt look from the design: a blush panel behind a white card with a cream footer. Fixed colours, not theme tokens. */
 const PANEL_BG = 'bg-[#F2E8E1]'; // palette-allow: folio design colour

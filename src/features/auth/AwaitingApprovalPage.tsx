@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { BrandShell } from '../../components/brand/BrandShell';
 import { HEADING } from '../../components/brand/brandStyles';
-import { Button } from '../../components/primitives';
+import { Button } from '../../components/ui/primitives';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
 import { useAuth } from './AuthContext';

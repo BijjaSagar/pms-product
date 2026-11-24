@@ -1,7 +1,7 @@
-import { Button, IconButton, ListItem, SelectField } from '../../../components/primitives';
+import { Button, IconButton, ListItem, SelectField } from '../../../components/ui/primitives';
 import * as Lucide from 'lucide-react';
-import { ROOM_TYPES } from './data';
-import type { InventoryDate, InventoryRow, InventorySelection } from './types';
+import { ROOM_TYPES } from '../../../data/channelManager';
+import type { InventoryDate, InventoryRow, InventorySelection } from '../../../types/channelManager';
 
 interface Props {
   dates: InventoryDate[];

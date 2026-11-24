@@ -1,7 +1,7 @@
 import * as Lucide from 'lucide-react';
-import { FilterToolbar } from '../../components/FilterToolbar';
-import { SegmentedControl } from '../../components/SegmentedControl';
-import { SelectField, TextField } from '../../components/primitives';
+import { FilterToolbar } from '../../components/ui/FilterToolbar';
+import { SegmentedControl } from '../../components/ui/SegmentedControl';
+import { SelectField, TextField } from '../../components/ui/primitives';
 import { store } from '../../data/store';
 import { DateRangePicker } from './DateRangePicker';
 import { RESERVATION_STATUS_FILTERS } from './reservationStatusFilters';

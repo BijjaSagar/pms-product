@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { Badge, Card, CardTitle, TableContainer } from '../../components/ui';
-import { Field, Switch } from '../../components/controls';
-import { CardSkeleton } from '../../components/Skeleton';
-import { ConfirmDialog, Modal } from '../../components/overlays';
-import { Button, IconButton, TextField } from '../../components/primitives';
+import { Badge, Card, CardTitle, TableContainer } from '../../components/ui/display';
+import { Field, Switch } from '../../components/ui/controls';
+import { CardSkeleton } from '../../components/feedback/Skeleton';
+import { ConfirmDialog, Modal } from '../../components/ui/overlays';
+import { Button, IconButton, TextField } from '../../components/ui/primitives';
 import { toast } from '../../utils/toast';
 import { displayApiError } from '../../lib/api/client';
 import { otaChannelApi } from '../../lib/api/pms';

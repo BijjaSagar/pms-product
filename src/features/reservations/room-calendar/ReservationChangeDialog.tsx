@@ -4,7 +4,7 @@ import * as Lucide from 'lucide-react';
 import type { ProposedReservationChange } from './types';
 import { roomTypeStyle } from './calendarData';
 import { lockAppScroll } from '../../../lib/scrollLock';
-import { Button, Checkbox, IconButton } from '../../../components/primitives';
+import { Button, Checkbox, IconButton } from '../../../components/ui/primitives';
 
 interface Props {
   change: ProposedReservationChange | null;

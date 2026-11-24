@@ -31,14 +31,14 @@ export const PROPERTY: PropertyRow = {
   city: 'Mumbai',
 };
 
-export interface PermissionDef {
+interface PermissionDef {
   key: string;
   resource: string;
   action: string;
   description: string;
 }
 
-export const PERMISSION_CATALOG: PermissionDef[] = [
+const PERMISSION_CATALOG: PermissionDef[] = [
   { key: 'dashboard.read', resource: 'Dashboard', action: 'read', description: 'View the operational dashboard' },
   { key: 'reservation.read', resource: 'Reservations', action: 'read', description: 'View reservations and the calendar' },
   { key: 'reservation.create', resource: 'Reservations', action: 'create', description: 'Create reservations and walk-ins' },

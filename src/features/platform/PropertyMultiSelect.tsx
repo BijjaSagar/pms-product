@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { Badge } from '../../components/ui';
-import { Checkbox, TextField } from '../../components/primitives';
+import { Badge } from '../../components/ui/display';
+import { Checkbox, TextField } from '../../components/ui/primitives';
 import type { PropertyDetails } from '../../lib/api/pms';
 
 /** Below this many properties, searching is more clutter than help. */

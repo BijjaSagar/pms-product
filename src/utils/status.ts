@@ -1,4 +1,4 @@
-import type { PaymentStatus, ReservationStatus, RoomStatus } from '../types';
+import type { PaymentStatus, ReservationStatus, RoomStatus } from '../types/index';
 
 export type BadgeTone = 'success' | 'info' | 'warning' | 'danger' | 'neutral';
 

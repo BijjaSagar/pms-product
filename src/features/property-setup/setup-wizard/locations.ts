@@ -10,7 +10,7 @@ import type { ICountry, IState } from 'country-state-city';
 
 export const COUNTRIES: ICountry[] = [...Country.getAllCountries()].sort((a, b) => a.name.localeCompare(b.name));
 
-export const findCountry = (name: string): ICountry | undefined => COUNTRIES.find((c) => c.name === name);
+const findCountry = (name: string): ICountry | undefined => COUNTRIES.find((c) => c.name === name);
 
 /** The states or regions of a country, by name; empty for the countries the data has none for. */
 export const statesOf = (countryName: string): IState[] => {

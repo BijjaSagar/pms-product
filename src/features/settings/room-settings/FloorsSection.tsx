@@ -2,12 +2,12 @@ import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import type { RoomDetails } from '../../../lib/api/pms';
 import { toast } from '../../../utils/toast';
-import { Button, IconButton, TextField } from '../../../components/primitives';
-import { Modal } from '../../../components/overlays';
-import { CardSkeleton } from '../../../components/Skeleton';
-import { Badge, Card, CardTitle } from '../../../components/ui';
+import { Button, IconButton, TextField } from '../../../components/ui/primitives';
+import { Modal } from '../../../components/ui/overlays';
+import { CardSkeleton } from '../../../components/feedback/Skeleton';
+import { Badge, Card, CardTitle } from '../../../components/ui/display';
 import type { FloorPlan } from './types';
-import { MAX_FLOORS, MAX_ROOMS_PER_FLOOR, boxKey, parseCount, roomNumber } from './floorPlan';
+import { MAX_FLOORS, MAX_ROOMS_PER_FLOOR, boxKey, parseCount, roomNumber } from '../../../utils/floorPlan';
 
 interface FloorsSectionProps {
   /** The property's room offerings that a box on the sitemap can be assigned to. */

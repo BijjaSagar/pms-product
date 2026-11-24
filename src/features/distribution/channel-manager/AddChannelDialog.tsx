@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { Modal } from '../../../components/overlays';
+import { Modal } from '../../../components/ui/overlays';
 import { inputClass } from '../../../utils/styling';
-import type { ChannelProvider } from './types';
-import { Button, SelectField, TextField } from '../../../components/primitives';
+import type { ChannelProvider } from '../../../types/channelManager';
+import { Button, SelectField, TextField } from '../../../components/ui/primitives';
 
 interface Props {
   open: boolean;

@@ -18,9 +18,9 @@ export type RoomOperationalStatus =
   | 'Out-of-Order';
 
 /** A room type's name, as configured for the property. */
-export type RoomType = string;
+type RoomType = string;
 
-export type BookingSource =
+type BookingSource =
   | 'Direct'
   | 'Booking.com'
   | 'Agoda'

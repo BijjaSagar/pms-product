@@ -1,8 +1,8 @@
-import { SelectField } from '../../../components/primitives';
+import { SelectField } from '../../../components/ui/primitives';
 import { useMemo } from 'react';
 import * as Lucide from 'lucide-react';
-import { ChannelLogo } from './ChannelLogo';
-import type { Channel, ChannelPerformance } from './types';
+import { ChannelLogo } from '../../../components/ui/ChannelLogo';
+import type { Channel, ChannelPerformance } from '../../../types/channelManager';
 
 interface Props {
   channels: Channel[];

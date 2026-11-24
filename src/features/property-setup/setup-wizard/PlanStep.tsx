@@ -1,6 +1,6 @@
 import * as Lucide from 'lucide-react';
 import { HEADING } from '../../../components/brand/brandStyles';
-import type { Plan } from './setupPlans';
+import type { Plan } from '../../../utils/setupPlans';
 
 interface PlanStepProps {
   /** The plans a super admin currently offers; null while they load. */

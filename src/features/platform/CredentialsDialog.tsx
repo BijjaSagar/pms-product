@@ -1,6 +1,6 @@
 import * as Lucide from 'lucide-react';
-import { Modal } from '../../components/overlays';
-import { Button } from '../../components/primitives';
+import { Modal } from '../../components/ui/overlays';
+import { Button } from '../../components/ui/primitives';
 import { toast } from '../../utils/toast';
 
 export interface Credentials {

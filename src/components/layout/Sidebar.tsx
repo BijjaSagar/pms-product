@@ -7,7 +7,7 @@ import { useAuth } from '../../features/auth/AuthContext';
 import { useTheme } from '../../theme/useTheme';
 import { THEME_PRESETS } from '../../theme/presets';
 import { NAV_ICONS, SECTION_ICONS } from './navIcons';
-import { Backdrop, Button, IconButton, ListItem } from '../primitives';
+import { Backdrop, Button, IconButton, ListItem } from '../ui/primitives';
 
 function NavIcon({ id, className = 'h-[18px] w-[18px] flex-none' }: { id: ViewId; className?: string }) {
   const Icon = NAV_ICONS[id] || Lucide.CircleDot;

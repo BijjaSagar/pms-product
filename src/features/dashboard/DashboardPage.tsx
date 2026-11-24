@@ -1,15 +1,15 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
-import { PageSkeleton } from '../../components/Skeleton';
+import { PageSkeleton } from '../../components/feedback/Skeleton';
 import type { NavTarget } from '../../config/navigation';
 import { reservationApi } from '../../lib/api/pms';
 import type { ReservationRow } from '../../lib/api/pms';
 import { reservationFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
-import { useAuth } from '../../features/auth/AuthContext';
-import { Avatar, Badge, TableActionBtn, TableContainer } from '../../components/ui';
-import { Button } from '../../components/primitives';
+import { useAuth } from '../auth/AuthContext';
+import { Avatar, Badge, TableActionBtn, TableContainer } from '../../components/ui/display';
+import { Button } from '../../components/ui/primitives';
 
 /*
  * Everything on this page is read from the backend for the active property: reservations (arrivals,

@@ -1,19 +1,19 @@
 import { useCallback, useMemo, useState } from 'react';
-import { TableSkeletonRows } from '../../components/Skeleton';
+import { TableSkeletonRows } from '../../components/feedback/Skeleton';
 import * as Lucide from 'lucide-react';
 import { formatCurrency } from '../../utils/currency';
-import type { Invoice } from '../../types';
-import { Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../../components/ui';
+import type { Invoice } from '../../types/index';
+import { Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../../components/ui/display';
 import { paymentTone } from '../../utils/status';
-import { FilterChip } from '../../components/controls';
+import { FilterChip } from '../../components/ui/controls';
 import { inputClass } from '../../utils/styling';
-import { Drawer, PromptDialog } from '../../components/overlays';
+import { Drawer, PromptDialog } from '../../components/ui/overlays';
 import { toast } from '../../utils/toast';
 import { folioApi } from '../../lib/api/pms';
 import { invoiceFromApi } from '../../lib/api/adapters';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
-import { Button, TextField } from '../../components/primitives';
+import { Button, TextField } from '../../components/ui/primitives';
 
 export function Invoices() {
   const loadInvoices = useCallback(async () => (await folioApi.listInvoices()).map(invoiceFromApi), []);

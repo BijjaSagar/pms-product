@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Modal } from '../../../components/overlays';
-import { Button, FieldLabel, TextArea } from '../../../components/primitives';
+import { Modal } from '../../../components/ui/overlays';
+import { Button, FieldLabel, TextArea } from '../../../components/ui/primitives';
 import { dayLogApi } from '../../../lib/api/pms';
 import { toast } from '../../../utils/toast';
 import { formatCalendarDate } from '../room-calendar/calendarData';

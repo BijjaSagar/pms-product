@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { CardSkeleton } from '../../../components/Skeleton';
+import { CardSkeleton } from '../../../components/feedback/Skeleton';
 import * as Lucide from "lucide-react";
 import { auditApi } from "../../../lib/api/pms";
 import { useApiResource } from "../../../lib/api/useApiResource";
