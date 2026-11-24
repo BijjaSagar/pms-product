@@ -1,5 +1,5 @@
 import { store } from '../../data/store';
-import { clearAccessToken, saveAccessToken } from './authToken';
+import { clearAccessToken, saveAccessToken, scopedKey } from './authToken';
 import { ApiError, apiBlob, apiRequest, requireActivePropertyId } from './client';
 import type { ThemeKey } from '../../types/index';
 
@@ -13,7 +13,7 @@ interface PropertyMembership {
   property: { id: string; name: string; slug: string; timezone: string; currencyCode: string };
 }
 
-export type UserRoleKey = 'SUPER_ADMIN' | 'STAFF';
+type UserRoleKey = 'SUPER_ADMIN' | 'STAFF';
 
 /**
  * Where a self sign-up stands: PENDING_SETUP (account made, property not described), PENDING_APPROVAL
@@ -240,7 +240,6 @@ const ROLE_LABELS: Record<UserRoleKey, { id: string; key: string; name: string; 
 };
 
 /** The property chosen for this browser tab. The server decides what the user may open; this only remembers the choice. */
-const ACTIVE_PROPERTY_KEY = 'pms.activePropertyId';
 
 /**
  * The property to open straight away, or null to show Choose a property. A choice already made in
@@ -249,7 +248,7 @@ const ACTIVE_PROPERTY_KEY = 'pms.activePropertyId';
  */
 function pickActiveProperty(role: UserRoleKey, properties: BackendProperty[]): string | null {
   const usable = properties.filter((p) => role === 'SUPER_ADMIN' || p.isActive);
-  const saved = sessionStorage.getItem(ACTIVE_PROPERTY_KEY);
+  const saved = sessionStorage.getItem(scopedKey('activePropertyId'));
   if (saved && usable.some((p) => p.id === saved)) return saved;
   return role === 'STAFF' && usable.length === 1 ? (usable[0]?.id ?? null) : null;
 }
@@ -262,8 +261,9 @@ function pickActiveProperty(role: UserRoleKey, properties: BackendProperty[]): s
  * presented as the active property.
  */
 export const authApi = {
-  login: async (email: string, password: string) => {
-    const { accessToken } = await apiRequest<LoginResponse>('/auth/login', {
+  /** `platform` is the separate super admin login; the hotel login refuses super admins. */
+  login: async (email: string, password: string, audience: 'hotel' | 'platform' = 'hotel') => {
+    const { accessToken } = await apiRequest<LoginResponse>(audience === 'platform' ? '/auth/platform/login' : '/auth/login', {
       method: 'POST',
       body: { email, password },
     });
@@ -273,11 +273,11 @@ export const authApi = {
   register: (name: string, email: string, password: string) =>
     apiRequest<{ id: string; email: string; name: string }>('/auth/register', { method: 'POST', body: { name, email, password } }),
   /** Step one of a forgotten password. `delivery` is `none` while the server cannot send email. */
-  forgotPassword: (email: string) =>
-    apiRequest<{ message: string; delivery: 'email' | 'none' }>('/auth/forgot-password', { method: 'POST', body: { email } }),
+  forgotPassword: (email: string, audience: 'hotel' | 'platform' = 'hotel') =>
+    apiRequest<{ message: string; delivery: 'email' | 'none' }>('/auth/forgot-password', { method: 'POST', body: { email, audience } }),
   /** Step two: the code and the new password. Signs the account out everywhere. */
-  resetPassword: (email: string, otp: string, newPassword: string) =>
-    apiRequest<void>('/auth/reset-password', { method: 'POST', body: { email, otp, newPassword } }),
+  resetPassword: (email: string, otp: string, newPassword: string, audience: 'hotel' | 'platform' = 'hotel') =>
+    apiRequest<void>('/auth/reset-password', { method: 'POST', body: { email, otp, newPassword, audience } }),
   me: async (): Promise<AuthMe> => {
     const user = await apiRequest<BackendMe>('/auth/me');
     // Until the password is changed, or a sign-up is approved, the API refuses every other route, so only the account is read.
@@ -341,13 +341,13 @@ export const authApi = {
       if (!(error instanceof ApiError && error.status === 401)) throw error;
     } finally {
       clearAccessToken();
-      sessionStorage.removeItem(ACTIVE_PROPERTY_KEY);
+      sessionStorage.removeItem(scopedKey('activePropertyId'));
     }
   },
   /** Opens a property, or (null) goes back to Choose a property. The API still limits what the user can open. */
   switchProperty: async (propertyId: string | null) => {
-    if (propertyId) sessionStorage.setItem(ACTIVE_PROPERTY_KEY, propertyId);
-    else sessionStorage.removeItem(ACTIVE_PROPERTY_KEY);
+    if (propertyId) sessionStorage.setItem(scopedKey('activePropertyId'), propertyId);
+    else sessionStorage.removeItem(scopedKey('activePropertyId'));
   },
 };
 
@@ -1403,7 +1403,6 @@ export interface AdminUser {
   id: string;
   email: string;
   name: string;
-  role: UserRoleKey;
   isActive: boolean;
   /** True until the user replaces the password a super admin set for them. */
   mustChangePassword: boolean;
@@ -1411,7 +1410,7 @@ export interface AdminUser {
   /** Why the sign-up was rejected; the user sees it when they try to sign in. */
   rejectionReason: string | null;
   reviewedAt: string | null;
-  /** The properties a STAFF user is assigned to; empty for SUPER_ADMIN. */
+  /** The properties the user is assigned to. */
   properties: Array<{
     id: string;
     name: string;
@@ -1427,7 +1426,6 @@ export interface AdminUser {
 export interface AdminUserPage { data: AdminUser[]; total: number; page: number; pageSize: number }
 export interface AdminUserQuery {
   search?: string;
-  role?: UserRoleKey;
   isActive?: boolean;
   /** PENDING_APPROVAL is the queue of sign-ups waiting for a decision. */
   approvalStatus?: ApprovalStatus;
@@ -1440,7 +1438,6 @@ export interface AdminUserCreate {
   email: string;
   /** The first password, to be shared with the user; they must replace it at their first sign-in. */
   password: string;
-  role?: UserRoleKey;
   propertyIds?: string[];
 }
 
@@ -1448,7 +1445,7 @@ export interface AdminUserCreate {
 export const userAdminApi = {
   list: async (query: AdminUserQuery = {}) => apiRequest<AdminUserPage>(`/users${queryString({ ...query })}`),
   create: async (body: AdminUserCreate) => apiRequest<AdminUser>('/users', { method: 'POST', body }),
-  update: async (id: string, body: { name?: string; role?: UserRoleKey; isActive?: boolean }) =>
+  update: async (id: string, body: { name?: string; isActive?: boolean }) =>
     apiRequest<AdminUser>(`/users/${id}`, { method: 'PATCH', body }),
   /** Replaces the user's whole set of properties; an empty list removes all access. */
   setProperties: async (id: string, propertyIds: string[]) =>

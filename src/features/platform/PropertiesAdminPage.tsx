@@ -21,14 +21,14 @@ type StatusFilter = 'all' | 'active' | 'inactive';
 
 const place = (p: PropertyDetails) => [p.city, p.state, p.country].filter(Boolean).join(', ');
 
-/** Who works at one property: remove people, or find STAFF and add them. */
+/** Who works at one property: remove people, or find staff and add them. */
 function TeamDialog({ property, onClose }: { property: PropertyDetails; onClose: () => void }) {
   const team = useApiResource(() => userAdminApi.forProperty(property.id), [property.id]);
   const [query, setQuery] = useState('');
   const search = useDebouncedValue(query.trim());
   const searching = search.length >= MIN_SEARCH;
   const candidates = useApiResource(
-    () => (searching ? userAdminApi.list({ search, role: 'STAFF', isActive: true, pageSize: 6 }) : Promise.resolve(null)),
+    () => (searching ? userAdminApi.list({ search, isActive: true, pageSize: 6 }) : Promise.resolve(null)),
     [search, searching],
   );
   const [busy, setBusy] = useState<string | null>(null);

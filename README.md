@@ -75,7 +75,7 @@ src/
     finance/              billing, invoices, payments, night audit
     guests/               guest directory
     inventory/            room inventory provider
-    platform/             super admin console
+    platform/             super admin console: its own app at /admin (PlatformApp, PlatformLoginPage)
     property-setup/       property picker, properties list, setup wizard
     reservations/         reservations list, room calendar, new reservation
     rooms/                room overview and status timeline
