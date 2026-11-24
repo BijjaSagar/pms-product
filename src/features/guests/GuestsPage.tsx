@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { PanelLoadState, TableSkeletonRows } from '../../components/Skeleton';
+import { PanelLoadState, TableSkeletonRows } from '../../components/feedback/Skeleton';
 import * as Lucide from 'lucide-react';
 import type { BadgeTone } from '../../utils/status';
-import { Avatar, Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../../components/ui';
-import { Pagination, Tabs } from '../../components/controls';
+import { Avatar, Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../../components/ui/display';
+import { Pagination, Tabs } from '../../components/ui/controls';
 import { inputClass } from '../../utils/styling';
 import { toast } from '../../utils/toast';
 import type { NavTarget } from '../../config/navigation';
@@ -12,7 +12,7 @@ import type { GuestDirectoryRow } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { formatCurrency } from '../../utils/currency';
-import { Button } from '../../components/primitives';
+import { Button } from '../../components/ui/primitives';
 import { useAuth } from '../auth/AuthContext';
 
 const PAGE_SIZE = 6;

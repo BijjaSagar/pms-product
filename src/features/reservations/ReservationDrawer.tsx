@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { ConfirmDialog, Modal } from '../../components/overlays';
+import { ConfirmDialog, Modal } from '../../components/ui/overlays';
 import { toast } from '../../utils/toast';
 import type { NavTarget } from '../../config/navigation';
-import type { Reservation, ReservationStatus } from '../../types';
-import { Button, SelectField, TextField } from '../../components/primitives';
-import { Badge } from '../../components/ui';
+import type { Reservation, ReservationStatus } from '../../types/index';
+import { Button, SelectField, TextField } from '../../components/ui/primitives';
+import { Badge } from '../../components/ui/display';
 import { formatCurrency } from '../../utils/currency';
 import { reservationTone } from '../../utils/status';
 

@@ -7,8 +7,8 @@ export type RateTabId =
   | 'bulk'
   | 'history';
 
-export type RatePlanStatus = 'Active' | 'Inactive' | 'Scheduled';
-export type SeasonStatus = 'Active' | 'Scheduled' | 'Expired';
+type RatePlanStatus = 'Active' | 'Inactive' | 'Scheduled';
+type SeasonStatus = 'Active' | 'Scheduled' | 'Expired';
 
 export interface RatePlan {
   id: string;

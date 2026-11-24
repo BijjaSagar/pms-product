@@ -1,4 +1,4 @@
-import { Button } from '../../../components/primitives';
+import { Button } from '../../../components/ui/primitives';
 import * as Lucide from 'lucide-react';
 import { formatSeasonPeriod } from './data';
 import type { Season } from './types';

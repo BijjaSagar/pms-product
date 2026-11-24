@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
 import { CARD, HEADING } from '../../../components/brand/brandStyles';
 import type { PropertyDraft } from './draft';
-import type { Plan } from './setupPlans';
+import type { Plan } from '../../../utils/setupPlans';
 
 function TimelineItem({ state, title, note }: { state: 'done' | 'active' | 'todo'; title: string; note: string }) {
   return (

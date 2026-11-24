@@ -20,9 +20,9 @@ const srcRoot = path.join(root, 'src');
 const FILE_ALLOWLIST = new Set([
   'src/theme/tokens.css',
   'src/theme/presets.ts',
-  'src/features/distribution/channel-manager/data.ts',
+  'src/data/channelManager.ts',
   'src/features/distribution/rate-management/data.ts',
-  'src/features/distribution/channel-manager/ChannelLogo.tsx',
+  'src/components/ui/ChannelLogo.tsx',
 ]);
 
 const HEX = /#[0-9a-fA-F]{3,8}\b/g;

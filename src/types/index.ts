@@ -29,11 +29,9 @@ export type HkStatus = 'Clean' | 'Dirty' | 'Cleaning' | 'Inspected';
 
 export type PaymentStatus = 'Paid' | 'Pending' | 'Overdue' | 'Failed' | 'Refunded' | 'Partially refunded';
 
-export type FolioStatus = 'Open' | 'Settled' | 'Disputed';
+type MaintenanceStatus = 'Open' | 'In progress' | 'Resolved';
 
-export type MaintenanceStatus = 'Open' | 'In progress' | 'Resolved';
-
-export type MaintenancePriority = 'Urgent' | 'High' | 'Medium' | 'Low';
+type MaintenancePriority = 'Urgent' | 'High' | 'Medium' | 'Low';
 
 export interface RoomType {
   id: string;
@@ -159,36 +157,6 @@ export interface Invoice {
   status: PaymentStatus | 'Issued' | 'Draft' | 'Void' | 'Credited';
   due: string;
   method: string;
-}
-
-export interface FolioCharge {
-  backendId?: string;
-  label: string;
-  detail: string;
-  amount: number;
-}
-
-export interface FolioPayment {
-  ref: string;
-  method: string;
-  amount: number;
-  date: string;
-}
-
-export interface Folio {
-  id: string;
-  backendId?: string;
-  currencyCode?: string;
-  checkOutDate?: string;
-  reservationId: string;
-  guest: string;
-  guestId: string;
-  room: string;
-  status: FolioStatus;
-  charges: FolioCharge[];
-  tax: number;
-  discount: number;
-  payments: FolioPayment[];
 }
 
 export interface Payment {

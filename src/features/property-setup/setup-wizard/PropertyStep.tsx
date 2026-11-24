@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
 import { BrandCombobox, BrandField, BrandSelect, BrandStepper } from '../../../components/brand/BrandControls';
 import { CARD, FIELD, FIELD_INVALID, HEADING } from '../../../components/brand/brandStyles';
-import { MAX_FLOORS } from '../../settings/room-settings/floorPlan';
+import { MAX_FLOORS } from '../../../utils/floorPlan';
 import { MAX_CODE_LENGTH, MAX_ROOMS } from './draft';
 import type { PropertyDraft, PropertyErrors } from './draft';
 import { COUNTRIES, CURRENCIES, currencyOfCountry, loadCities, statesOf } from './locations';

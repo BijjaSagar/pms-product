@@ -1,7 +1,7 @@
 import { useCallback, useMemo, type ReactNode } from 'react';
-import { CardSkeleton } from '../../components/Skeleton';
+import { CardSkeleton } from '../../components/feedback/Skeleton';
 import { store } from '../../data/store';
-import { Button } from '../../components/primitives';
+import { Button } from '../../components/ui/primitives';
 import { displayApiError } from '../../lib/api/client';
 import { roomInventoryApi } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';

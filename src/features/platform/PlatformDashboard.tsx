@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { Avatar, Badge, Card, CardTitle } from '../../components/ui';
-import { CardSkeleton } from '../../components/Skeleton';
-import { Button, IconButton } from '../../components/primitives';
-import { SummaryStrip } from '../../components/SummaryStrip';
-import type { SummaryItem } from '../../components/SummaryStrip';
+import { Avatar, Badge, Card, CardTitle } from '../../components/ui/display';
+import { CardSkeleton } from '../../components/feedback/Skeleton';
+import { Button, IconButton } from '../../components/ui/primitives';
+import { SummaryStrip } from '../../components/ui/SummaryStrip';
+import type { SummaryItem } from '../../components/ui/SummaryStrip';
 import { displayApiError } from '../../lib/api/client';
 import { platformApi } from '../../lib/api/pms';
 import type { PlatformOverview } from '../../lib/api/pms';

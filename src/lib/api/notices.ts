@@ -1,4 +1,4 @@
-import type { Notice } from '../../types';
+import type { Notice } from '../../types/index';
 import { frontDeskApi, inventoryApi } from './pms';
 
 /**

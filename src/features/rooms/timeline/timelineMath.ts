@@ -1,4 +1,4 @@
-import type { RoomStatus } from '../../../types';
+import type { RoomStatus } from '../../../types/index';
 import type { Tone } from '../../../theme/tone';
 import type { TimelineEvent, TimelineStatus } from '../../../data/roomTimeline';
 
@@ -13,7 +13,7 @@ export const TIME_TICKS = [8, 10, 12, 14, 16, 18, 20, 22].map((hour) => ({
   percent: ((hour - START_HOUR) / SPAN) * 100,
 }));
 
-export function formatTick(hour: number): string {
+function formatTick(hour: number): string {
   if (hour === 12) return '12 PM';
   return hour < 12 ? `${hour} AM` : `${hour - 12} PM`;
 }

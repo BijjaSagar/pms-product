@@ -6,7 +6,7 @@ import { useAuth } from './AuthContext';
 import { AuthLayout } from './AuthLayout';
 import { PasswordField } from './PasswordField';
 import { SIGN_IN_BUTTON, SIGN_IN_FIELD } from './authStyles';
-import { MIN_PASSWORD, registrationProblem } from './passwordRules';
+import { MIN_PASSWORD, registrationProblem } from '../../utils/passwordRules';
 
 /**
  * Step one of three: name, email and password. The account is created and signed in at once, and the

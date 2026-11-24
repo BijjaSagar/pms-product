@@ -1,4 +1,4 @@
-import { Button, IconButton, TextField } from '../../../components/primitives';
+import { Button, IconButton, TextField } from '../../../components/ui/primitives';
 import { useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { inputClass } from '../../../utils/styling';

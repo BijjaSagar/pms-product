@@ -8,7 +8,7 @@ import type {
   ReservationStatus,
   Room,
   RoomType,
-} from '../../types';
+} from '../../types/index';
 import type {
   GuestRow,
   HousekeepingTaskRow,
@@ -22,7 +22,7 @@ import type {
 } from './pms';
 
 /** "Oct 14" for a day this year, "Oct 14, 2027" for any other year, so two years never look alike. */
-export const shortDate = (value: unknown): string => {
+const shortDate = (value: unknown): string => {
   if (!value) return '—';
   const day = String(value).slice(0, 10);
   const parsed = new Date(`${day}T12:00:00Z`);
@@ -207,7 +207,7 @@ export function maintenanceFromApi(row: MaintenanceTicketRow): MaintenanceReques
   };
 }
 
-export function paymentMethodFromApi(value: string): string {
+function paymentMethodFromApi(value: string): string {
   return ({ CARD_TERMINAL: 'Card', CASH: 'Cash', BANK_TRANSFER: 'Transfer', UPI: 'UPI', PAYMENT_LINK: 'Payment link', CORPORATE_ACCOUNT: 'Invoice' } as Record<string, string>)[value] ?? value;
 }
 

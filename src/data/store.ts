@@ -76,7 +76,7 @@ interface Hold {
   expiresAtMs: number;
 }
 /** Floor-plan boxes not yet linked to a room are listed under this pseudo category and cannot be booked. */
-export const UNASSIGNED_TYPE_ID = 'unassigned';
+const UNASSIGNED_TYPE_ID = 'unassigned';
 export const UNASSIGNED_TYPE_NAME = 'Unassigned';
 const holds = new Map<string, Hold>();
 const HOLD_MS = 10 * 60 * 1000;

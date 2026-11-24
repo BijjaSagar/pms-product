@@ -1,14 +1,14 @@
 import { useState, useMemo, useCallback } from 'react';
-import { PageSkeleton } from '../../components/Skeleton';
+import { PageSkeleton } from '../../components/feedback/Skeleton';
 import * as Lucide from 'lucide-react';
-import { Modal } from '../../components/overlays';
+import { Modal } from '../../components/ui/overlays';
 import { toast } from '../../utils/toast';
 import { folioApi, frontDeskApi, type FolioDetailRow, type StayRow } from '../../lib/api/pms';
 import { BUSINESS_DATE, GUESTS } from '../../data/catalog';
 import { addDays, nightsBetween } from '../../data/model';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { formatINR, formatNumber } from '../../utils/currency';
-import { Button, Checkbox, IconButton, ListItem, SelectField, TextField } from '../../components/primitives';
+import { Button, Checkbox, IconButton, ListItem, SelectField, TextField } from '../../components/ui/primitives';
 
 // Types
 export interface BillingTransaction {

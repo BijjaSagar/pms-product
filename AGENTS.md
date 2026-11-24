@@ -43,16 +43,21 @@ src/
   index.css               Tailwind entry, global base rules, shared .pms-* components
   config/
     navigation.ts         view ids, sidebar sections, view-to-permission map, SUPER_ADMIN-only views
-  components/             shared UI, one component per file
-    layout/               Sidebar and Header (app chrome only)
+  components/             shared UI, one component per file (small UI kits may export several related parts)
+    ui/                   primitives, controls, display (Badge, Card, tables), overlays (Modal, Drawer, dialogs), charts, tabs, form styles, ChannelLogo
+    feedback/             Toaster, Skeleton, ErrorBoundary, ErrorPages
+    layout/               Sidebar, Header and their menus (app chrome only)
+    brand/                login and shell branding
+  hooks/                  generic hooks used by more than one feature (useDebouncedValue, useDismiss)
   features/<domain>/      one folder per screen area; a page file plus its sub-parts
-  data/                   demo catalog, fixtures, in-memory store (the single source of demo data)
+                          (settings/ keeps SettingsPage.tsx at its root, tab bodies in tabs/, shared parts in components/)
+  data/                   demo catalog, fixtures, channel manager data, in-memory store (the single source of demo data)
   lib/
     api/                  feature-facing API objects (pms.ts) and adapters
     scrollLock.ts         body scroll lock used by dialogs
   theme/                  nine colour presets, theme provider, tokens.css, tone helpers
-  types/index.ts          shared domain types
-  utils/                  small pure helpers (currency, dates, status tones, toasts)
+  types/                  shared domain types (index.ts, channelManager.ts)
+  utils/                  small pure helpers (currency, dates, status tones, toasts, password rules, floor plan, setup plans)
 scripts/check-palette.mjs palette guard, run by `npm run lint`
 ```
 

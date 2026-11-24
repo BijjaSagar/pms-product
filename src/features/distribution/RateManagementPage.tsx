@@ -33,13 +33,13 @@ import { RateRestrictionsPanel } from './rate-management/RateRestrictionsPanel';
 import { SeasonDialog } from './rate-management/SeasonDialog';
 import { SeasonalityPanel } from './rate-management/SeasonalityPanel';
 import type { BulkUpdatePayload, EditableRateRow, RateHistoryEvent, RatePlan, RateTabId, Season } from './rate-management/types';
-import { Button, SelectField } from '../../components/primitives';
-import { Field } from '../../components/controls';
-import { PageTabs } from '../../components/PageTabs';
-import type { PageTab } from '../../components/PageTabs';
-import { SummaryStrip } from '../../components/SummaryStrip';
-import type { SummaryItem } from '../../components/SummaryStrip';
-import { Badge } from '../../components/ui';
+import { Button, SelectField } from '../../components/ui/primitives';
+import { Field } from '../../components/ui/controls';
+import { PageTabs } from '../../components/ui/PageTabs';
+import type { PageTab } from '../../components/ui/PageTabs';
+import { SummaryStrip } from '../../components/ui/SummaryStrip';
+import type { SummaryItem } from '../../components/ui/SummaryStrip';
+import { Badge } from '../../components/ui/display';
 
 const ROOM_RATE_MULTIPLIER: Record<string, number> = {
   Standard: 0.72,

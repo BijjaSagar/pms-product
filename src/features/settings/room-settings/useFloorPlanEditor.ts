@@ -5,7 +5,7 @@ import { useApiResource } from '../../../lib/api/useApiResource';
 import { displayApiError } from '../../../lib/api/client';
 import { toast } from '../../../utils/toast';
 import type { FloorPlan } from './types';
-import { MAX_FLOORS, MAX_ROOMS_PER_FLOOR, boxKey, parseCount } from './floorPlan';
+import { MAX_FLOORS, MAX_ROOMS_PER_FLOOR, boxKey, parseCount } from '../../../utils/floorPlan';
 
 interface FloorPlanEditorOptions {
   propertyId: string | null | undefined;

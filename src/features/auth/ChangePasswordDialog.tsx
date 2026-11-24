@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { Field } from '../../components/controls';
-import { Modal } from '../../components/overlays';
-import { Button, TextField } from '../../components/primitives';
+import { Field } from '../../components/ui/controls';
+import { Modal } from '../../components/ui/overlays';
+import { Button, TextField } from '../../components/ui/primitives';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
 import { useAuth } from './AuthContext';
-import { MIN_PASSWORD, newPasswordProblem } from './passwordRules';
+import { MIN_PASSWORD, newPasswordProblem } from '../../utils/passwordRules';
 
 function DialogBody({ onClose }: { onClose: () => void }) {
   const { changePassword } = useAuth();

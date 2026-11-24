@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { ProfileMenu } from '../../components/layout/ProfileMenu';
-import { useDismiss } from '../../components/layout/useDismiss';
-import { IconButton } from '../../components/primitives';
+import { useDismiss } from '../../hooks/useDismiss';
+import { IconButton } from '../../components/ui/primitives';
 import { displayApiError } from '../../lib/api/client';
 import { toast } from '../../utils/toast';
 import { ChangePasswordDialog } from '../auth/ChangePasswordDialog';

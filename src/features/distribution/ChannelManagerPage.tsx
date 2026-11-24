@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { toast } from '../../utils/toast';
-import { Modal } from '../../components/overlays';
+import { Modal } from '../../components/ui/overlays';
 import { AddChannelDialog } from './channel-manager/AddChannelDialog';
 import { ChannelDirectoryPanel } from './channel-manager/ChannelDirectoryPanel';
-import { ChannelLogo } from './channel-manager/ChannelLogo';
+import { ChannelLogo } from '../../components/ui/ChannelLogo';
 import { InventoryPanel } from './channel-manager/InventoryPanel';
 import { MappingPanel } from './channel-manager/MappingPanel';
 import { PromotionsPanel } from './channel-manager/PromotionsPanel';
@@ -26,15 +26,15 @@ import {
   buildInventoryDates,
   formatDateRange,
   shiftDate,
-} from './channel-manager/data';
-import type { Channel, ChannelBooking, ChannelLog, ChannelPerformance, ChannelProvider, ChannelTabId, InventoryRow, InventorySelection, RateMapping, SyncSettings } from './channel-manager/types';
-import { Button, IconButton, TextField } from '../../components/primitives';
-import { Field, Switch } from '../../components/controls';
-import { PageTabs } from '../../components/PageTabs';
-import type { PageTab } from '../../components/PageTabs';
-import { SummaryStrip } from '../../components/SummaryStrip';
-import type { SummaryItem } from '../../components/SummaryStrip';
-import { Badge } from '../../components/ui';
+} from '../../data/channelManager';
+import type { Channel, ChannelBooking, ChannelLog, ChannelPerformance, ChannelProvider, ChannelTabId, InventoryRow, InventorySelection, RateMapping, SyncSettings } from '../../types/channelManager';
+import { Button, IconButton, TextField } from '../../components/ui/primitives';
+import { Field, Switch } from '../../components/ui/controls';
+import { PageTabs } from '../../components/ui/PageTabs';
+import type { PageTab } from '../../components/ui/PageTabs';
+import { SummaryStrip } from '../../components/ui/SummaryStrip';
+import type { SummaryItem } from '../../components/ui/SummaryStrip';
+import { Badge } from '../../components/ui/display';
 import type { BadgeTone } from '../../utils/status';
 
 const TABS: PageTab<ChannelTabId>[] = [

@@ -1,8 +1,8 @@
-import { Button, SelectField } from '../../../components/primitives';
+import { Button, SelectField } from '../../../components/ui/primitives';
 import * as Lucide from 'lucide-react';
-import { formatStayDates } from './data';
-import { ChannelLogo } from './ChannelLogo';
-import type { Channel, ChannelBooking } from './types';
+import { formatStayDates } from '../../../data/channelManager';
+import { ChannelLogo } from '../../../components/ui/ChannelLogo';
+import type { Channel, ChannelBooking } from '../../../types/channelManager';
 
 interface Props {
   channels: Channel[];

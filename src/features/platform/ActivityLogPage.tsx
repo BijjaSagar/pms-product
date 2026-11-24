@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { Avatar, Badge, Card, TableContainer } from '../../components/ui';
-import { FilterChip, Pagination } from '../../components/controls';
-import { CardSkeleton } from '../../components/Skeleton';
-import { Button, IconButton, SelectField, TextField } from '../../components/primitives';
+import { Avatar, Badge, Card, TableContainer } from '../../components/ui/display';
+import { FilterChip, Pagination } from '../../components/ui/controls';
+import { CardSkeleton } from '../../components/feedback/Skeleton';
+import { Button, IconButton, SelectField, TextField } from '../../components/ui/primitives';
 import { TONE_CLASSES } from '../../theme/tone';
 import { activityApi, propertyApi } from '../../lib/api/pms';
 import type { ActivityEntry, ActivityPage, ActivityQuery } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { toast } from '../../utils/toast';
-import { useDebouncedValue } from './useDebouncedValue';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { ActivityDetailDrawer } from './ActivityDetailDrawer';
 import { KIND_STYLES, activityKind, clockTime, entriesToCsv, fullStamp, shortDate } from './activityMeta';
 

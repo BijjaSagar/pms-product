@@ -1,5 +1,5 @@
 import * as Lucide from 'lucide-react';
-import { Button } from '../../components/primitives';
+import { Button } from '../../components/ui/primitives';
 import { SetupWizard } from '../property-setup/setup-wizard/SetupWizard';
 import { useAuth } from './AuthContext';
 

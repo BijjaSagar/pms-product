@@ -1,7 +1,7 @@
 import { PRESET_LIST } from './presets';
 import { useTheme } from './useTheme';
 import { toast } from '../utils/toast';
-import { Backdrop, Button } from '../components/primitives';
+import { Backdrop, Button } from '../components/ui/primitives';
 
 export function ThemeSwatcher({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { preset = 'crimson', setPreset } = useTheme();

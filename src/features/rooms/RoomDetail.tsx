@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
-import type { HkStatus, HousekeepingTask, MaintenanceRequest, Room, RoomStatus } from '../../types';
-import { Avatar, Badge } from '../../components/ui';
+import type { HkStatus, HousekeepingTask, MaintenanceRequest, Room, RoomStatus } from '../../types/index';
+import { Avatar, Badge } from '../../components/ui/display';
 import { roomTone } from '../../utils/status';
 import type { BadgeTone } from '../../utils/status';
-import { Button } from '../../components/primitives';
+import { Button } from '../../components/ui/primitives';
 import { formatCurrency } from '../../utils/currency';
 
 function hkTone(hk: HkStatus): BadgeTone {

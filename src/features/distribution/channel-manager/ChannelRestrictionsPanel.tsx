@@ -1,5 +1,5 @@
 import * as Lucide from 'lucide-react';
-import type { SyncSettings } from './types';
+import type { SyncSettings } from '../../../types/channelManager';
 
 interface Props {
   settings: SyncSettings;

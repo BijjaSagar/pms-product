@@ -33,13 +33,10 @@
   --color-elevated: var(--color-elevated);
   --color-hover-surface: var(--color-hover-surface);
   --color-muted-surface: var(--color-muted-surface);
-  --color-bg: var(--color-page);
   --color-ink: var(--color-ink);
   --color-ink-secondary: var(--color-ink-secondary);
   --color-ink-muted: var(--color-ink-muted);
   --color-ink-disabled: var(--color-ink-disabled);
-  --color-text: var(--color-ink);
-  --color-text-secondary: var(--color-ink-secondary);
   --color-border: var(--color-border);
   --color-divider: var(--color-divider);
   --color-focus: var(--color-focus);
@@ -85,10 +82,6 @@
   --font-mono: var(--font-mono);
 }
 
-:root {
-  /* Height of the app header (4rem bar + 1px border). Keep in sync with Header.tsx. */
-  --app-header-h: calc(4rem + 1px);
-}
 
 html,
 body,
@@ -657,43 +650,6 @@ textarea {
   cursor: default;
 }
 
-/* Staggered entrance for dashboard grids and lists */
-.pms-stagger>* {
-  animation: pms-fade-up 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-.pms-stagger>*:nth-child(2) {
-  animation-delay: 40ms;
-}
-
-.pms-stagger>*:nth-child(3) {
-  animation-delay: 80ms;
-}
-
-.pms-stagger>*:nth-child(4) {
-  animation-delay: 120ms;
-}
-
-.pms-stagger>*:nth-child(5) {
-  animation-delay: 160ms;
-}
-
-.pms-stagger>*:nth-child(6) {
-  animation-delay: 200ms;
-}
-
-.pms-stagger>*:nth-child(7) {
-  animation-delay: 240ms;
-}
-
-.pms-stagger>*:nth-child(8) {
-  animation-delay: 280ms;
-}
-
-.pms-stagger>*:nth-child(n + 9) {
-  animation-delay: 320ms;
-}
-
 /* Touch targets + small-screen density */
 @media (max-width: 640px) {
 
@@ -711,10 +667,6 @@ textarea {
 
   .pms-card-hover:hover {
     transform: none;
-  }
-
-  .pms-stagger>* {
-    animation: none;
   }
 }
 
@@ -756,7 +708,6 @@ textarea {
     transition-duration: 0.01ms !important;
   }
 
-  .pms-stagger>*,
   .pms-animate-fade-up,
   .pms-animate-fade-in,
   .pms-animate-pop,

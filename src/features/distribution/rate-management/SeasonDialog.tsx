@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Modal } from '../../../components/overlays';
+import { Modal } from '../../../components/ui/overlays';
 import { inputClass } from '../../../utils/styling';
 import type { Season } from './types';
-import { Button, TextField } from '../../../components/primitives';
+import { Button, TextField } from '../../../components/ui/primitives';
 
 interface Props {
   open: boolean;

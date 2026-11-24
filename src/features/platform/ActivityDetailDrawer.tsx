@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
-import { Avatar, Badge } from '../../components/ui';
-import { Drawer } from '../../components/overlays';
-import { Button } from '../../components/primitives';
+import { Avatar, Badge } from '../../components/ui/display';
+import { Drawer } from '../../components/ui/overlays';
+import { Button } from '../../components/ui/primitives';
 import { toast } from '../../utils/toast';
 import type { ActivityEntry } from '../../lib/api/pms';
 import { KIND_STYLES, activityKind, deviceLabel, flattenDetails, fullStamp } from './activityMeta';

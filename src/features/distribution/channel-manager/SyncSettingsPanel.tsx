@@ -1,7 +1,7 @@
 import * as Lucide from 'lucide-react';
 import { inputClass } from '../../../utils/styling';
-import type { SyncSettings } from './types';
-import { Button, ListItem, SelectField, TextField } from '../../../components/primitives';
+import type { SyncSettings } from '../../../types/channelManager';
+import { Button, ListItem, SelectField, TextField } from '../../../components/ui/primitives';
 
 interface Props {
   settings: SyncSettings;

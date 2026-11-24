@@ -1,4 +1,4 @@
-import { Button, Checkbox, IconButton, TextField } from '../../../components/primitives';
+import { Button, Checkbox, IconButton, TextField } from '../../../components/ui/primitives';
 import * as Lucide from 'lucide-react';
 import type { CalendarDate, EditableRateRow, RatePlan } from './types';
 

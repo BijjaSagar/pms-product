@@ -1,4 +1,4 @@
-import { evenRoomsPerFloor } from '../../settings/room-settings/floorPlan';
+import { evenRoomsPerFloor } from '../../../utils/floorPlan';
 import { statesOf } from './locations';
 
 export const MAX_ROOMS = 5000;

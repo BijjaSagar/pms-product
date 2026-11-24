@@ -1,4 +1,4 @@
-import { fieldClass } from '../formStyles';
+import { fieldClass } from '../ui/formStyles';
 
 /**
  * The look of the pre-workspace screens (sign in, choose a property, property

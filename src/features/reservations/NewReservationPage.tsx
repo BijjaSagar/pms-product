@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as Lucide from "lucide-react";
 import type { NavDraft, NavTarget } from "../../config/navigation";
 import { toast } from "../../utils/toast";
-import { Modal } from "../../components/overlays";
-import { fieldClass, labelClass, selectClass } from "../../components/formStyles";
-import { PageSkeleton } from "../../components/Skeleton";
+import { Modal } from "../../components/ui/overlays";
+import { fieldClass, labelClass, selectClass } from "../../components/ui/formStyles";
+import { PageSkeleton } from "../../components/feedback/Skeleton";
 import { inventoryApi, guestApi, reservationApi } from "../../lib/api/pms";
 import type {
   ReservationPendingPaymentRow,
@@ -14,7 +14,7 @@ import type {
 import { useApiResource } from "../../lib/api/useApiResource";
 import { displayApiError, newIdempotencyKey } from "../../lib/api/client";
 import { guestFromApi } from "../../lib/api/adapters";
-import type { Guest } from "../../types";
+import type { Guest } from "../../types/index";
 import { TAX_RATE } from "../../data/catalog";
 import { todayIso } from "./room-calendar/calendarData";
 import { AddGuestModal } from "./new-reservation/AddGuestModal";

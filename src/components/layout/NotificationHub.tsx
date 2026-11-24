@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import type { Ref } from 'react';
 import * as Lucide from 'lucide-react';
-import type { Notice } from '../../types';
-import { Button, IconButton } from '../primitives';
+import type { Notice } from '../../types/index';
+import { Button, IconButton } from '../ui/primitives';
 
 type Filter = 'all' | 'unread' | 'urgent';
 

@@ -7,7 +7,7 @@ import { useAuth } from './AuthContext';
 import { AuthLayout } from './AuthLayout';
 import { PasswordField } from './PasswordField';
 import { SIGN_IN_BUTTON } from './authStyles';
-import { MIN_PASSWORD, newPasswordProblem } from './passwordRules';
+import { MIN_PASSWORD, newPasswordProblem } from '../../utils/passwordRules';
 
 /**
  * Shown instead of the app while the account still has the password a super admin set for it. The API

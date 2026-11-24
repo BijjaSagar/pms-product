@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { Button, IconButton } from '../../components/primitives';
+import { Button, IconButton } from '../../components/ui/primitives';
 import { todayIso } from './room-calendar/calendarData';
 import {
   addMonthsIso,

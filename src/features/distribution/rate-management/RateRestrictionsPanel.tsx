@@ -1,6 +1,6 @@
 import * as Lucide from 'lucide-react';
 import type { CalendarDate } from './types';
-import { Button } from '../../../components/primitives';
+import { Button } from '../../../components/ui/primitives';
 
 interface Props {
   dates: CalendarDate[];

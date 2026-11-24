@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
 import { BODY, EYEBROW, HEADING } from '../../../components/brand/brandStyles';
-import { Button } from '../../../components/primitives';
+import { Button } from '../../../components/ui/primitives';
 import { displayApiError } from '../../../lib/api/client';
 import { floorPlanApi, onboardingApi, otaChannelApi, propertyApi, roomListingApi, subscriptionPlanApi } from '../../../lib/api/pms';
 import { useApiResource } from '../../../lib/api/useApiResource';
@@ -14,7 +14,7 @@ import { FloorsStep } from './FloorsStep';
 import { PlanStep } from './PlanStep';
 import { PropertyStep } from './PropertyStep';
 import { PropertyFolio } from './PropertyFolio';
-import { toWizardPlan } from './setupPlans';
+import { toWizardPlan } from '../../../utils/setupPlans';
 import { SetupStepBar } from './SetupStepBar';
 import {
   autoFillFloors,

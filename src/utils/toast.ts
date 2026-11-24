@@ -2,13 +2,13 @@
  * Lightweight reactive toast notification store with rich actions and lifecycle control.
  */
 
-export interface ToastAction {
+interface ToastAction {
   label: string;
   onClick: () => void | Promise<void> | unknown;
   altText?: string;
 }
 
-export interface ToastOptions {
+interface ToastOptions {
   detail?: string;
   tone?: 'success' | 'info' | 'warning' | 'danger';
   duration?: number;
@@ -57,7 +57,7 @@ export function dismissToast(id: number): void {
 /**
  * Dismisses all active toasts with exit animations.
  */
-export function clearToasts(): void {
+function clearToasts(): void {
   if (items.length === 0) return;
   items.forEach((t) => {
     t.isDismissing = true;

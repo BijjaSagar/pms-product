@@ -1,13 +1,13 @@
 import { useState, type ChangeEvent } from "react";
-import { Field } from "../../../components/controls";
-import { Modal } from "../../../components/overlays";
-import { Button } from "../../../components/primitives";
+import { Field } from "../../../components/ui/controls";
+import { Modal } from "../../../components/ui/overlays";
+import { Button } from "../../../components/ui/primitives";
 import { guestApi } from "../../../lib/api/pms";
 import { guestFromApi } from "../../../lib/api/adapters";
 import { displayApiError } from "../../../lib/api/client";
 import { toast } from "../../../utils/toast";
 import { inputClass } from "../../../utils/styling";
-import type { Guest } from "../../../types";
+import type { Guest } from "../../../types/index";
 
 const GENDER_OPTIONS = ["Male", "Female", "Other", "Prefer not to say"];
 

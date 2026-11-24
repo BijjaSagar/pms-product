@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { Avatar, Badge, Card, CardTitle, TableContainer } from '../../components/ui';
-import { FilterChip, Pagination } from '../../components/controls';
-import { CardSkeleton } from '../../components/Skeleton';
-import { ConfirmDialog, Modal } from '../../components/overlays';
-import { Button, IconButton, TextField } from '../../components/primitives';
+import { Avatar, Badge, Card, CardTitle, TableContainer } from '../../components/ui/display';
+import { FilterChip, Pagination } from '../../components/ui/controls';
+import { CardSkeleton } from '../../components/feedback/Skeleton';
+import { ConfirmDialog, Modal } from '../../components/ui/overlays';
+import { Button, IconButton, TextField } from '../../components/ui/primitives';
 import { toast } from '../../utils/toast';
 import { displayApiError } from '../../lib/api/client';
 import { propertyApi, userAdminApi } from '../../lib/api/pms';
 import type { AdminUser, PropertyDetails } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { useAuth } from '../auth/AuthContext';
-import { useDebouncedValue } from './useDebouncedValue';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 
 const PAGE_SIZE = 10;
 /** Fewest letters worth searching users for. */

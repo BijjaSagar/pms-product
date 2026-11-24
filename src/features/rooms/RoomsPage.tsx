@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
-import { PageSkeleton } from '../../components/Skeleton';
+import { PageSkeleton } from '../../components/feedback/Skeleton';
 import * as Lucide from 'lucide-react';
-import type { Room, RoomStatus } from '../../types';
-import { Badge } from '../../components/ui';
+import type { Room, RoomStatus } from '../../types/index';
+import { Badge } from '../../components/ui/display';
 import { roomTone } from '../../utils/status';
-import { Drawer, PromptDialog } from '../../components/overlays';
+import { Drawer, PromptDialog } from '../../components/ui/overlays';
 import { toast } from '../../utils/toast';
 import { inventoryApi, operationsApi } from '../../lib/api/pms';
 import { housekeepingTaskFromApi, maintenanceFromApi } from '../../lib/api/adapters';
@@ -12,10 +12,10 @@ import { loadRoomInventory } from '../../lib/api/loaders';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { displayApiError } from '../../lib/api/client';
 import { formatCurrency } from '../../utils/currency';
-import { useAuth } from '../../features/auth/AuthContext';
+import { useAuth } from '../auth/AuthContext';
 import { StatusTimeline } from './StatusTimeline';
 import { RoomDetail, RoomDrawerActions } from './RoomDetail';
-import { Button } from '../../components/primitives';
+import { Button } from '../../components/ui/primitives';
 import { RoomFilterBar, type RoomViewMode } from './RoomFilterBar';
 import { EMPTY_ROOM_FILTERS, ROOM_STATUS_FILTERS, filterRooms, type RoomFilters } from './roomFilters';
 

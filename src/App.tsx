@@ -1,22 +1,22 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PageSkeleton } from './components/Skeleton';
+import { PageSkeleton } from './components/feedback/Skeleton';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import type { NavTarget } from './config/navigation';
 import { viewPermission } from './config/navigation';
 import { ThemeSwatcher } from './theme/ThemeSwatcher';
-import { AppCrashFallback, ErrorBoundary, PanelCrashFallback } from './components/ErrorBoundary';
-import { ForbiddenPage, NotFoundPage } from './components/ErrorPages';
+import { AppCrashFallback, ErrorBoundary, PanelCrashFallback } from './components/feedback/ErrorBoundary';
+import { ForbiddenPage, NotFoundPage } from './components/feedback/ErrorPages';
 import { ThemeProvider } from './theme/ThemeContext';
 import { useTheme } from './theme/useTheme';
 import { THEME_PRESETS } from './theme/presets';
 import type { ThemePresetId } from './theme/presets';
-import { Toaster } from './components/overlays';
+import { Toaster } from './components/feedback/Toaster';
 import { Dashboard } from './features/dashboard/DashboardPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { InventoryProvider } from './features/inventory/InventoryProvider';
 import { themeApi } from './lib/api/pms';
-import type { ThemeKey } from './types';
+import type { ThemeKey } from './types/index';
 import { PropertyPickerPage } from './features/property-setup/PropertyPickerPage';
 import { useAuthPage } from './features/auth/authPage';
 

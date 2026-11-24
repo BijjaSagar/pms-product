@@ -1,7 +1,7 @@
 import * as Lucide from 'lucide-react';
-import { FilterToolbar } from '../../components/FilterToolbar';
-import { SegmentedControl } from '../../components/SegmentedControl';
-import { SelectField, TextField } from '../../components/primitives';
+import { FilterToolbar } from '../../components/ui/FilterToolbar';
+import { SegmentedControl } from '../../components/ui/SegmentedControl';
+import { SelectField, TextField } from '../../components/ui/primitives';
 import { ROOM_STATUS_FILTERS, countActiveRoomFilters, type RoomFilters } from './roomFilters';
 
 export type RoomViewMode = 'grid' | 'timeline';

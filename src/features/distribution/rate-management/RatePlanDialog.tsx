@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { Modal } from '../../../components/overlays';
+import { Modal } from '../../../components/ui/overlays';
 import { inputClass } from '../../../utils/styling';
 import type { RatePlan } from './types';
-import { Button, Checkbox, SelectField, TextArea, TextField } from '../../../components/primitives';
+import { Button, Checkbox, SelectField, TextArea, TextField } from '../../../components/ui/primitives';
 
 interface Props {
   open: boolean;

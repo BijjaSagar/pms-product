@@ -1,4 +1,4 @@
-import { fieldClass } from '../../components/formStyles';
+import { fieldClass } from '../../components/ui/formStyles';
 
 /** The shared field, a little taller than the app's 32px so the sign-in and register forms feel roomier. */
 export const SIGN_IN_FIELD = `${fieldClass} !min-h-[44px] max-md:text-[16px] md:!min-h-[40px]`;

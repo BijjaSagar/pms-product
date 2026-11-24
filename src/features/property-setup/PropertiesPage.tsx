@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { BrandShell } from '../../components/brand/BrandShell';
-import { Button } from '../../components/primitives';
+import { Button } from '../../components/ui/primitives';
 import { CARD, EYEBROW, HEADING } from '../../components/brand/brandStyles';
 import { roomListingApi } from '../../lib/api/pms';
 import type { PropertyDetails } from '../../lib/api/pms';

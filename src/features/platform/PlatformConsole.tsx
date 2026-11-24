@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ErrorBoundary, PanelCrashFallback } from '../../components/ErrorBoundary';
-import { Toaster } from '../../components/overlays';
-import { Button } from '../../components/primitives';
+import { ErrorBoundary, PanelCrashFallback } from '../../components/feedback/ErrorBoundary';
+import { Toaster } from '../../components/feedback/Toaster';
+import { Button } from '../../components/ui/primitives';
 import { ThemeSwatcher } from '../../theme/ThemeSwatcher';
 import { SetupWizard } from '../property-setup/setup-wizard/SetupWizard';
 import { ActivityLogPage } from './ActivityLogPage';

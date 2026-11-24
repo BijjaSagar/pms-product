@@ -7,8 +7,8 @@ import { useCallback, useEffect, useState } from 'react';
  */
 export type AuthPage = 'login' | 'register' | 'forgot';
 
-export const REGISTER_PATH = '/register';
-export const FORGOT_PATH = '/forgot-password';
+const REGISTER_PATH = '/register';
+const FORGOT_PATH = '/forgot-password';
 
 const PATHS: Record<AuthPage, string> = { login: '/', register: REGISTER_PATH, forgot: FORGOT_PATH };
 

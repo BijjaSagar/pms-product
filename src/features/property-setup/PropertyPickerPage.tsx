@@ -1,6 +1,6 @@
 import * as Lucide from 'lucide-react';
 import { BrandShell } from '../../components/brand/BrandShell';
-import { Button } from '../../components/primitives';
+import { Button } from '../../components/ui/primitives';
 import { displayApiError } from '../../lib/api/client';
 import { propertyApi } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';

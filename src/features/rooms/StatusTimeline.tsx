@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { toast } from '../../utils/toast';
 import { ROOM_TIMELINE_SEED, type RoomTimelineRow, type TimelineStatus } from '../../data/roomTimeline';
-import { TableContainer } from '../../components/ui';
+import { TableContainer } from '../../components/ui/display';
 import { matchesRoomFilters, type RoomFilters } from './roomFilters';
 import { END_HOUR, START_HOUR, TIME_TICKS, formatClock, pluralRooms, roomStatusOf } from './timeline/timelineMath';
 import { TimelineRow } from './timeline/TimelineRow';
