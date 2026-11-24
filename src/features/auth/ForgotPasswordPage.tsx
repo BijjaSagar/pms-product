@@ -24,7 +24,7 @@ function ErrorNote({ message }: { message: string }) {
  * Forgot password in two steps on one page: ask for a code by email, then enter the code with a new
  * password. Signing in with the new password follows on the sign-in page.
  */
-export function ForgotPasswordPage({ onSignIn, audience = 'hotel' }: { onSignIn: () => void; audience?: 'hotel' | 'platform' }) {
+export function ForgotPasswordPage({ onSignIn }: { onSignIn: () => void }) {
   const [step, setStep] = useState<'email' | 'reset'>('email');
   const [email, setEmail] = useState('');
   const [delivery, setDelivery] = useState<'email' | 'none'>('email');
@@ -45,7 +45,7 @@ export function ForgotPasswordPage({ onSignIn, audience = 'hotel' }: { onSignIn:
     setBusy(true);
     setError(null);
     try {
-      const result = await authApi.forgotPassword(normalisedEmail, audience);
+      const result = await authApi.forgotPassword(normalisedEmail);
       setDelivery(result.delivery);
       setStep('reset');
     } catch (cause) {
@@ -65,7 +65,7 @@ export function ForgotPasswordPage({ onSignIn, audience = 'hotel' }: { onSignIn:
     setBusy(true);
     setError(null);
     try {
-      await authApi.resetPassword(normalisedEmail, otp.trim(), password, audience);
+      await authApi.resetPassword(normalisedEmail, otp.trim(), password);
       toast('Password changed', { detail: 'Sign in with your new password.', tone: 'success' });
       onSignIn();
     } catch (cause) {

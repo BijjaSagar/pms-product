@@ -4,14 +4,13 @@ import { Avatar, Badge, Card, CardTitle, TableContainer } from '../../components
 import { Field, FilterChip, Pagination, Switch } from '../../components/ui/controls';
 import { CardSkeleton } from '../../components/feedback/Skeleton';
 import { Modal } from '../../components/ui/overlays';
-import { Button, IconButton, SelectField, TextArea, TextField } from '../../components/ui/primitives';
+import { Button, IconButton, SelectField, TextField } from '../../components/ui/primitives';
 import { toast } from '../../utils/toast';
 import { displayApiError } from '../../lib/api/client';
 import { propertyApi, userAdminApi } from '../../lib/api/pms';
 import type { AdminUser, AdminUserPage, PropertyDetails } from '../../lib/api/pms';
 import { useApiResource } from '../../lib/api/useApiResource';
 import { MIN_PASSWORD } from '../../utils/passwordRules';
-import { formatPlanPrice } from '../../utils/setupPlans';
 import { CredentialsDialog } from './CredentialsDialog';
 import type { Credentials } from './CredentialsDialog';
 import { generatePassword } from './password';
@@ -22,11 +21,7 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 const PAGE_SIZE = 10;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** `pending` is the queue of sign-ups that have sent their property and wait for a decision. */
-export type UsersStatusFilter = 'all' | 'active' | 'inactive' | 'pending';
-
-/** A sign-up a super admin can decide on: its property is in, and it is not approved. */
-const needsReview = (user: AdminUser) => user.approvalStatus === 'PENDING_APPROVAL' || user.approvalStatus === 'REJECTED';
+type UsersStatusFilter = 'all' | 'active' | 'inactive';
 
 const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((id) => b.includes(id));
 
@@ -63,178 +58,12 @@ function StatusBadges({ user }: { user: AdminUser }) {
           Password not set
         </Badge>
       ) : null}
-      {user.approvalStatus === 'PENDING_APPROVAL' ? (
-        <Badge tone="warning" size="sm" dot>
-          Awaiting approval
-        </Badge>
-      ) : null}
       {user.approvalStatus === 'PENDING_SETUP' ? (
         <Badge tone="info" size="sm">
-          Setting up property
-        </Badge>
-      ) : null}
-      {user.approvalStatus === 'REJECTED' ? (
-        <Badge tone="danger" size="sm">
-          Rejected
+          Awaiting activation key
         </Badge>
       ) : null}
     </span>
-  );
-}
-
-/** One line of what the person sent, in the review dialog. */
-function Detail({ label, value }: { label: string; value: string | number | null | undefined }) {
-  return (
-    <div className="min-w-0">
-      <dt className="text-micro font-semibold uppercase tracking-wide text-ink-muted">{label}</dt>
-      <dd className="mt-0.5 truncate text-body text-ink">{value === null || value === undefined || value === '' ? '—' : value}</dd>
-    </div>
-  );
-}
-
-/** Approve or reject a sign-up, after looking at the property they described. */
-function ReviewSignupDialog({ user, onClose, onDecided }: { user: AdminUser; onClose: () => void; onDecided: () => void }) {
-  const propertyRef = user.properties[0];
-  const property = useApiResource(() => (propertyRef ? propertyApi.get(propertyRef.id) : Promise.resolve(null)), [propertyRef?.id]);
-  const [rejecting, setRejecting] = useState(false);
-  const [reason, setReason] = useState('');
-  const [busy, setBusy] = useState<'approve' | 'reject' | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const decide = async (decision: 'approve' | 'reject') => {
-    setBusy(decision);
-    setError(null);
-    try {
-      if (decision === 'approve') {
-        await userAdminApi.approve(user.id);
-        toast('Approved', { detail: `${user.name} can now sign in and use their property.`, tone: 'success' });
-      } else {
-        await userAdminApi.reject(user.id, reason.trim() || undefined);
-        toast('Rejected', { detail: `${user.name} has been signed out.`, tone: 'success' });
-      }
-      onDecided();
-    } catch (cause) {
-      setError(displayApiError(cause));
-      setBusy(null);
-    }
-  };
-
-  const p = property.data;
-  return (
-    <Modal
-      open
-      onClose={onClose}
-      title={`Review ${user.name}`}
-      subtitle={user.email}
-      wide
-      footer={
-        rejecting ? (
-          <>
-            <Button variant="secondary" onClick={() => setRejecting(false)} disabled={busy !== null}>
-              Back
-            </Button>
-            <Button
-              variant="danger"
-              onClick={() => void decide('reject')}
-              disabled={busy !== null}
-              icon={busy === 'reject' ? <Lucide.Loader2 size={14} className="animate-spin" /> : <Lucide.X size={14} />}
-            >
-              {busy === 'reject' ? 'Rejecting…' : 'Reject sign-up'}
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button variant="secondary" onClick={onClose} disabled={busy !== null}>
-              Close
-            </Button>
-            {user.approvalStatus === 'PENDING_APPROVAL' ? (
-              <Button variant="danger" onClick={() => setRejecting(true)} disabled={busy !== null} icon={<Lucide.X size={14} />}>
-                Reject
-              </Button>
-            ) : null}
-            <Button
-              variant="primary"
-              onClick={() => void decide('approve')}
-              disabled={busy !== null || !propertyRef}
-              icon={busy === 'approve' ? <Lucide.Loader2 size={14} className="animate-spin" /> : <Lucide.Check size={14} />}
-            >
-              {busy === 'approve' ? 'Approving…' : user.approvalStatus === 'REJECTED' ? 'Approve after all' : 'Approve'}
-            </Button>
-          </>
-        )
-      }
-    >
-      <div className="flex flex-col gap-4 py-2">
-        {user.approvalStatus === 'REJECTED' ? (
-          <p className="rounded-xl border border-danger-border bg-danger-bg p-3 text-label text-danger-text">
-            Rejected{user.rejectionReason ? ` with the reason “${user.rejectionReason}”` : ''}. They are signed out and cannot sign in. Approving now lets them in.
-          </p>
-        ) : null}
-
-        <div className="rounded-xl border border-border p-3.5">
-          <p className="mb-3 text-body font-semibold text-ink">The property they described</p>
-          {property.loading && !p ? (
-            <CardSkeleton lines={2} label="Loading the property" />
-          ) : property.error ? (
-            <p role="alert" className="text-label text-danger-text">
-              Could not load the property: {property.error}
-            </p>
-          ) : p ? (
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
-              <Detail label="Name" value={p.name} />
-              <Detail label="Abbreviation" value={p.code} />
-              <Detail label="Currency" value={p.defaultCurrency} />
-              <Detail label="City" value={p.city} />
-              <Detail label="State" value={p.state} />
-              <Detail label="Country" value={p.country} />
-              <Detail label="Floors" value={p.numberOfFloors} />
-              <Detail label="Rooms" value={p.totalRooms} />
-            </dl>
-          ) : (
-            <p className="text-label text-ink-secondary">They have not described a property.</p>
-          )}
-        </div>
-
-        {propertyRef ? (
-          <div className="rounded-xl border border-border p-3.5">
-            <p className="mb-3 text-body font-semibold text-ink">Plan and channels they chose</p>
-            {propertyRef.subscriptionPlan ? (
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
-                <Detail label="Plan" value={propertyRef.subscriptionPlan.name} />
-                <Detail label="Monthly price" value={formatPlanPrice(propertyRef.subscriptionPlan.priceMonthly, propertyRef.subscriptionPlan.currency)} />
-                <Detail label="OTAs" value={`${propertyRef.otaChannels.length} of ${propertyRef.subscriptionPlan.otaLimit}`} />
-              </dl>
-            ) : (
-              <p className="text-label text-ink-secondary">No plan was chosen.</p>
-            )}
-            {propertyRef.otaChannels.length > 0 ? (
-              <p className="mt-3 flex flex-wrap gap-1.5">
-                {propertyRef.otaChannels.map((name) => (
-                  <Badge key={name} tone="info" size="sm">
-                    {name}
-                  </Badge>
-                ))}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-        <p className="text-label text-ink-secondary">
-          Approving activates the account and this property together. The person can sign in straight away; until then everything is closed to them.
-        </p>
-
-        {rejecting ? (
-          <Field label="Reason (shown to them when they try to sign in)" hint="Optional.">
-            <TextArea rows={3} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} autoFocus />
-          </Field>
-        ) : null}
-
-        {error ? (
-          <p role="alert" className="rounded-xl border border-danger-border bg-danger-bg p-3 text-label text-danger-text">
-            {error}
-          </p>
-        ) : null}
-      </div>
-    </Modal>
   );
 }
 
@@ -475,12 +304,12 @@ function ManageUserDialog({
   );
 }
 
-type Dialog = { kind: 'none' } | { kind: 'create' } | { kind: 'manage'; user: AdminUser } | { kind: 'review'; user: AdminUser };
+type Dialog = { kind: 'none' } | { kind: 'create' } | { kind: 'manage'; user: AdminUser };
 
-/** SUPER_ADMIN only: every staff account, which properties each can open, and the sign-ups to approve. */
-export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersStatusFilter }) {
+/** SUPER_ADMIN only: every staff account and which properties each can open. */
+export function UsersAdmin() {
   const [query, setQuery] = useState('');
-  const [status, setStatus] = useState<UsersStatusFilter>(initialStatus);
+  const [status, setStatus] = useState<UsersStatusFilter>('all');
   const [propertyId, setPropertyId] = useState('');
   const [page, setPage] = useState(0);
   const [dialog, setDialog] = useState<Dialog>({ kind: 'none' });
@@ -495,7 +324,6 @@ export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersSta
       userAdminApi.list({
         search: search || undefined,
         isActive: status === 'active' ? true : status === 'inactive' ? false : undefined,
-        approvalStatus: status === 'pending' ? 'PENDING_APPROVAL' : undefined,
         propertyId: propertyId || undefined,
         page: page + 1,
         pageSize: PAGE_SIZE,
@@ -508,7 +336,6 @@ export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersSta
   const result = users.data ?? lastPage;
   const totalPages = Math.max(1, Math.ceil((result?.total ?? 0) / PAGE_SIZE));
   const filtered = query.trim() !== '' || status !== 'all' || propertyId !== '';
-  const reviewing = status === 'pending';
 
   const resetPaging = () => setPage(0);
   const closeDialog = () => setDialog({ kind: 'none' });
@@ -517,7 +344,6 @@ export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersSta
     { id: 'all', label: 'Any status' },
     { id: 'active', label: 'Active' },
     { id: 'inactive', label: 'Inactive' },
-    { id: 'pending', label: 'Awaiting approval' },
   ];
 
   return (
@@ -610,13 +436,9 @@ export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersSta
         ) : result && result.data.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-12 text-center">
             <Lucide.UserSearch size={28} className="text-ink-muted" aria-hidden="true" />
-            <p className="text-body font-semibold text-ink">{reviewing ? 'Nothing is waiting for approval' : filtered ? 'No one matches' : 'No users yet'}</p>
+            <p className="text-body font-semibold text-ink">{filtered ? 'No one matches' : 'No users yet'}</p>
             <p className="text-label text-ink-secondary">
-              {reviewing
-                ? 'New sign-ups appear here once they have sent their property.'
-                : filtered
-                  ? 'Try a different search or filter.'
-                  : 'Add the first person with the button above.'}
+              {filtered ? 'Try a different search or filter.' : 'Add the first person with the button above.'}
             </p>
             {filtered ? (
               <Button
@@ -647,11 +469,6 @@ export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersSta
                       </div>
                     </div>
                     <span className="flex flex-none items-center gap-1.5">
-                      {needsReview(user) ? (
-                        <Button variant="primary" onClick={() => setDialog({ kind: 'review', user })} icon={<Lucide.ClipboardCheck size={13} />}>
-                          Review
-                        </Button>
-                      ) : null}
                       <IconButton title={`Manage ${user.name}`} aria-label={`Manage ${user.name}`} onClick={() => setDialog({ kind: 'manage', user })}>
                         <Lucide.Pencil size={14} />
                       </IconButton>
@@ -699,11 +516,6 @@ export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersSta
                         </td>
                         <td className="text-right">
                           <span className="inline-flex items-center justify-end gap-2">
-                            {needsReview(user) ? (
-                              <Button variant="primary" onClick={() => setDialog({ kind: 'review', user })} icon={<Lucide.ClipboardCheck size={13} />}>
-                                Review
-                              </Button>
-                            ) : null}
                             <Button variant="secondary" onClick={() => setDialog({ kind: 'manage', user })} icon={<Lucide.Pencil size={13} />}>
                               Manage
                             </Button>
@@ -735,16 +547,6 @@ export function UsersAdmin({ initialStatus = 'all' }: { initialStatus?: UsersSta
           onCreated={(created, password) => {
             closeDialog();
             setCredentials({ name: created.name, email: created.email, password });
-            users.refresh();
-          }}
-        />
-      ) : null}
-      {dialog.kind === 'review' ? (
-        <ReviewSignupDialog
-          user={dialog.user}
-          onClose={closeDialog}
-          onDecided={() => {
-            closeDialog();
             users.refresh();
           }}
         />

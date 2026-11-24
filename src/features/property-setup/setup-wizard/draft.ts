@@ -4,9 +4,9 @@ import { statesOf } from './locations';
 export const MAX_ROOMS = 5000;
 export const MAX_CODE_LENGTH = 8;
 const PLATFORM_STEPS = ['Property details', 'Room categories', 'Floors & rooms'];
-const REGISTRATION_STEPS = [...PLATFORM_STEPS, 'Subscription', 'OTA channels', 'Approval'];
+const REGISTRATION_STEPS = [...PLATFORM_STEPS, 'Activation'];
 
-/** A super admin adds a live property in three steps; a new account also picks a plan and channels, then waits for approval. */
+/** A super admin adds a live property in three steps; a new account adds a fourth, the activation key that makes it live. */
 export const setupSteps = (mode: 'platform' | 'registration'): string[] => (mode === 'registration' ? REGISTRATION_STEPS : PLATFORM_STEPS);
 
 export interface PropertyDraft {
@@ -34,6 +34,14 @@ export interface RoomDraft {
 
 /** Floor number to the rooms drawn on it, in position order. */
 export type FloorRooms = Record<number, RoomDraft[]>;
+
+export const ACTIVATION_KEY_LENGTH = 16;
+
+/** What the person typed, as the key is shown: upper case, groups of four joined by dashes. */
+export function formatActivationKey(input: string): string {
+  const raw = input.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, ACTIVATION_KEY_LENGTH);
+  return (raw.match(/.{1,4}/g) ?? []).join('-');
+}
 
 export const newId = (): string => globalThis.crypto.randomUUID();
 

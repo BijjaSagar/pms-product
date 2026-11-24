@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { EYEBROW, HEADING } from '../../../components/brand/brandStyles';
 import type { CategoryDraft, PropertyDraft } from './draft';
-import type { Plan } from '../../../utils/setupPlans';
 
 /** The receipt look from the design: a blush panel behind a white card with a cream footer. Fixed colours, not theme tokens. */
 const PANEL_BG = 'bg-[#F2E8E1]'; // palette-allow: folio design colour
@@ -9,8 +8,7 @@ const FOOTER_BG = 'bg-[#FDFAF6]'; // palette-allow: folio design colour
 
 const STATUS = {
   draft: { label: 'Draft', tone: 'border-border bg-muted-surface/60 text-ink-secondary' },
-  plan: { label: 'Plan selected', tone: 'border-primary/30 bg-primary/10 text-primary' },
-  review: { label: 'In review', tone: 'border-warning-border bg-warning-bg text-warning-text' },
+  ready: { label: 'Ready to activate', tone: 'border-primary/30 bg-primary/10 text-primary' },
 } as const;
 
 function Row({ label, value }: { label: string; value: ReactNode }) {
@@ -34,9 +32,6 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
 
 interface PropertyFolioProps {
   steps: string[];
-  /** Set once a plan has been chosen, which adds the Subscription group. */
-  plan?: Plan;
-  otaCount: number;
   status: keyof typeof STATUS;
   property: PropertyDraft;
   categories: CategoryDraft[];
@@ -46,7 +41,7 @@ interface PropertyFolioProps {
 }
 
 /** The receipt-style summary on the left: it fills in as the person moves through the steps. */
-export function PropertyFolio({ steps, plan, otaCount, status, property, categories, placed, completed }: PropertyFolioProps) {
+export function PropertyFolio({ steps, status, property, categories, placed, completed }: PropertyFolioProps) {
   const named = categories.filter((c) => c.name.trim()).map((c) => c.name.trim());
   const location = [property.city.trim(), property.state.trim()].filter(Boolean).join(', ');
   const none = <span className="font-normal text-ink-muted">—</span>;
@@ -78,14 +73,6 @@ export function PropertyFolio({ steps, plan, otaCount, status, property, categor
           <Row label="Categories" value={named.length || none} />
           {named.length > 0 && <p className="truncate text-right text-[12px] text-ink-secondary [@media(max-height:700px)]:hidden">{named.join(' · ')}</p>}
         </Group>
-
-        {plan && (
-          <Group title="Subscription">
-            <Row label="Plan" value={`${plan.name} · ${plan.otaLimit} OTAs`} />
-            <Row label="Monthly" value={plan.price} />
-            <Row label="OTAs" value={`${otaCount} of ${plan.otaLimit}`} />
-          </Group>
-        )}
 
         <footer className={`border-t-2 border-primary/10 ${FOOTER_BG} px-4 py-3`}>
           <div className="flex items-baseline justify-between">

@@ -7,12 +7,13 @@ import { PropertyPickerPage } from './features/property-setup/PropertyPickerPage
 import { useAuthPage } from './features/auth/authPage';
 import { useServerTheme } from './theme/useServerTheme';
 import { HotelWorkspace } from './HotelWorkspace';
+import { AppCrashFallback, ErrorBoundary } from './components/feedback/ErrorBoundary';
 
 const LoginPage = lazy(() => import('./features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('./features/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })));
 const ForgotPasswordPage = lazy(() => import('./features/auth/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })));
 const RegistrationSetupPage = lazy(() => import('./features/auth/RegistrationSetupPage').then((m) => ({ default: m.RegistrationSetupPage })));
-const AwaitingApprovalPage = lazy(() => import('./features/auth/AwaitingApprovalPage').then((m) => ({ default: m.AwaitingApprovalPage })));
+const PlatformConsole = lazy(() => import('./features/platform/PlatformConsole').then((m) => ({ default: m.PlatformConsole })));
 const ChangePasswordPage = lazy(() => import('./features/auth/ChangePasswordPage').then((m) => ({ default: m.ChangePasswordPage })));
 
 function AuthenticatedApp() {
@@ -23,7 +24,7 @@ function AuthenticatedApp() {
   useEffect(() => {
     if (signedIn) resetAuthPage();
   }, [signedIn, resetAuthPage]);
-  useServerTheme(me ? `${me.user.id}:${me.activePropertyId ?? 'none'}` : null);
+  useServerTheme(me ? `${me.user.id}:${me.activePropertyId ?? 'platform'}` : null);
 
   if (loading) {
     return (
@@ -63,7 +64,18 @@ function AuthenticatedApp() {
     );
   }
 
-  // A new account describes its property, then waits for a super admin. The API refuses everything else meanwhile.
+  // A super admin belongs to no property: the platform console is home, and hotels open from it.
+  if (me.user.role === 'SUPER_ADMIN' && !me.activePropertyId) {
+    return (
+      <ErrorBoundary fallback={(reset) => <AppCrashFallback reset={reset} />}>
+        <Suspense fallback={<PageSkeleton />}>
+          <PlatformConsole />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
+  // A new account describes its property and enters an activation key. The API refuses everything else meanwhile.
   if (me.user.approvalStatus === 'PENDING_SETUP') {
     return (
       <>
@@ -74,17 +86,6 @@ function AuthenticatedApp() {
       </>
     );
   }
-  if (me.user.approvalStatus === 'PENDING_APPROVAL') {
-    return (
-      <>
-        <Suspense fallback={<PageSkeleton />}>
-          <AwaitingApprovalPage />
-        </Suspense>
-        <Toaster />
-      </>
-    );
-  }
-
   // Staff choose which of their properties to open (a single one opens straight away).
   if (!me.activePropertyId) return <PropertyPickerPage />;
 

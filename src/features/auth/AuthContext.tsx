@@ -30,8 +30,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/** `audience` is which app is signing in: the hotel app, or the separate platform console for super admins. */
-export function AuthProvider({ children, audience = 'hotel' }: { children: ReactNode; audience?: 'hotel' | 'platform' }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<AuthMe | null>(null);
   // Everything that sets the session also tells the API layer which property it is for, before any screen
   // below has a chance to ask for its data.
@@ -100,13 +99,13 @@ export function AuthProvider({ children, audience = 'hotel' }: { children: React
     setError(null);
     setSessionNotice(null);
     try {
-      await authApi.login(email, password, audience);
+      await authApi.login(email, password);
       applyMe(await authApi.me());
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not sign in.');
       throw cause;
     }
-  }, [applyMe, audience]);
+  }, [applyMe]);
 
   const register = useCallback(async (name: string, email: string, password: string) => {
     await authApi.register(name, email, password);

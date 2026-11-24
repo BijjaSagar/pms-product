@@ -35,7 +35,7 @@ function OtaDialog({ ota, nextOrder, onClose, onSaved }: { ota: OtaChannel | nul
       const body = { name: name.trim(), region: region.trim(), isActive, sortOrder: order };
       if (ota) await otaChannelApi.update(ota.id, body);
       else await otaChannelApi.create(body);
-      toast(ota ? 'OTA updated' : 'OTA added', { detail: `${body.name} ${isActive ? 'is offered to' : 'is hidden from'} new sign-ups.`, tone: 'success' });
+      toast(ota ? 'OTA updated' : 'OTA added', { detail: `${body.name} ${isActive ? 'is offered to' : 'is hidden from'} every property.`, tone: 'success' });
       onSaved();
     } catch (cause) {
       setError(displayApiError(cause));
@@ -48,7 +48,7 @@ function OtaDialog({ ota, nextOrder, onClose, onSaved }: { ota: OtaChannel | nul
       open
       onClose={onClose}
       title={ota ? `Edit ${ota.name}` : 'Add an OTA'}
-      subtitle="New properties choose from the active OTAs, up to what their plan allows."
+      subtitle="Every property gets all the active OTAs."
       footer={
         <>
           <Button variant="secondary" onClick={onClose} disabled={saving}>
@@ -77,10 +77,10 @@ function OtaDialog({ ota, nextOrder, onClose, onSaved }: { ota: OtaChannel | nul
         </Field>
         <div className="flex items-center justify-between gap-3 rounded-xl border border-border p-3 sm:col-span-2">
           <span>
-            <span className="block text-body font-semibold text-ink">Offered to new sign-ups</span>
-            <span className="block text-label text-ink-secondary">Off hides it from the list; properties that already chose it keep it.</span>
+            <span className="block text-body font-semibold text-ink">Offered to every property</span>
+            <span className="block text-label text-ink-secondary">Off hides it from every property.</span>
           </span>
-          <Switch label="Offered to new sign-ups" checked={isActive} onChange={setIsActive} />
+          <Switch label="Offered to every property" checked={isActive} onChange={setIsActive} />
         </div>
         {error ? (
           <p role="alert" className="rounded-xl border border-danger-border bg-danger-bg p-3 text-label text-danger-text sm:col-span-2">
@@ -94,7 +94,7 @@ function OtaDialog({ ota, nextOrder, onClose, onSaved }: { ota: OtaChannel | nul
 
 type Dialog = { kind: 'none' } | { kind: 'edit'; ota: OtaChannel | null } | { kind: 'delete'; ota: OtaChannel };
 
-/** SUPER_ADMIN only: the OTAs a new property can choose from while setting up. */
+/** SUPER_ADMIN only: the OTAs every property gets. */
 export function OtaChannelsAdmin() {
   const otas = useApiResource(() => otaChannelApi.listAll(), []);
   const [dialog, setDialog] = useState<Dialog>({ kind: 'none' });
@@ -111,7 +111,7 @@ export function OtaChannelsAdmin() {
     setBusy(ota.id);
     try {
       await otaChannelApi.update(ota.id, { isActive });
-      toast(isActive ? 'OTA switched on' : 'OTA switched off', { detail: `${ota.name} is ${isActive ? 'offered to' : 'hidden from'} new sign-ups.`, tone: 'success' });
+      toast(isActive ? 'OTA switched on' : 'OTA switched off', { detail: `${ota.name} is ${isActive ? 'offered to' : 'hidden from'} every property.`, tone: 'success' });
       otas.refresh();
     } catch (cause) {
       toast('Could not change the OTA', { detail: displayApiError(cause), tone: 'danger' });
@@ -137,7 +137,7 @@ export function OtaChannelsAdmin() {
     <Card>
       <CardTitle
         title="OTA channels"
-        subtitle="The booking channels a new property can ask to connect. A plan decides how many it may pick."
+        subtitle="The booking channels every property gets. Switch one off to hide it everywhere."
         icon={Lucide.Share2}
         action={
           <Button variant="primary" onClick={() => setDialog({ kind: 'edit', ota: null })} icon={<Lucide.Plus size={14} />}>
@@ -156,7 +156,7 @@ export function OtaChannelsAdmin() {
         <div className="flex flex-col items-center gap-2 py-12 text-center">
           <Lucide.Share2 size={28} className="text-ink-muted" aria-hidden="true" />
           <p className="text-body font-semibold text-ink">No OTAs yet</p>
-          <p className="text-label text-ink-secondary">New sign-ups cannot choose channels until at least one active OTA exists.</p>
+          <p className="text-label text-ink-secondary">Properties have no channels until at least one active OTA exists.</p>
         </div>
       ) : list ? (
         <div className={`mt-3 ${otas.loading ? 'opacity-60' : ''}`} aria-busy={otas.loading}>
@@ -187,7 +187,7 @@ export function OtaChannelsAdmin() {
                     <td className="text-label text-ink-secondary">{ota.region ?? '—'}</td>
                     <td className="tnum text-label text-ink-secondary">{ota.sortOrder}</td>
                     <td>
-                      <Switch label={`${ota.name} offered to new sign-ups`} checked={ota.isActive} disabled={busy === ota.id} onChange={(next) => void toggle(ota, next)} />
+                      <Switch label={`${ota.name} offered to every property`} checked={ota.isActive} disabled={busy === ota.id} onChange={(next) => void toggle(ota, next)} />
                     </td>
                     <td className="text-right">
                       <span className="inline-flex items-center justify-end gap-1.5">
@@ -214,7 +214,7 @@ export function OtaChannelsAdmin() {
           danger
           onClose={close}
           title={`Delete ${dialog.ota.name}?`}
-          body="It is removed from the list for good. Properties that already chose it keep the name. Switch it off instead if you only want to stop offering it."
+          body="It is removed for every property for good. Switch it off instead if you only want to hide it."
           confirmLabel="Delete OTA"
           onConfirm={() => remove(dialog.ota)}
         />

@@ -75,7 +75,7 @@ src/
     finance/              billing, invoices, payments, night audit
     guests/               guest directory
     inventory/            room inventory provider
-    platform/             super admin console: its own app at /admin (PlatformApp, PlatformLoginPage)
+    platform/             super admin console (PlatformConsole), shown to a super admin after the one shared sign-in
     property-setup/       property picker, properties list, setup wizard
     reservations/         reservations list, room calendar, new reservation
     rooms/                room overview and status timeline
@@ -86,7 +86,7 @@ src/
     scrollLock.ts         body scroll lock for dialogs
   theme/                  presets, theme provider, design tokens, tone helpers
   types/                  shared domain types
-  utils/                  currency, dates, status, password rules, floor plan, setup plans, toasts
+  utils/                  currency, dates, status, password rules, floor plan, toasts
 scripts/check-palette.mjs palette guard
 ```
 
