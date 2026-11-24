@@ -1,5 +1,5 @@
 import { store } from '../../data/store';
-import { clearAccessToken, saveAccessToken, scopedKey } from './authToken';
+import { clearAccessToken, saveAccessToken } from './authToken';
 import { ApiError, apiBlob, apiRequest, requireActivePropertyId } from './client';
 import type { ThemeKey } from '../../types/index';
 
@@ -16,11 +16,10 @@ interface PropertyMembership {
 type UserRoleKey = 'SUPER_ADMIN' | 'STAFF';
 
 /**
- * Where a self sign-up stands: PENDING_SETUP (account made, property not described), PENDING_APPROVAL
- * (property sent, a super admin has not decided) or APPROVED. REJECTED accounts cannot sign in. Accounts a
- * super admin creates are APPROVED.
+ * Where a self sign-up stands: PENDING_SETUP (account made, property not yet sent with an activation key)
+ * or APPROVED. Accounts a super admin creates are APPROVED.
  */
-export type ApprovalStatus = 'PENDING_SETUP' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
+export type ApprovalStatus = 'PENDING_SETUP' | 'APPROVED';
 
 export interface AuthMe {
   user: {
@@ -239,6 +238,8 @@ const ROLE_LABELS: Record<UserRoleKey, { id: string; key: string; name: string; 
   STAFF: { id: 'role-staff', key: 'staff', name: 'Staff', description: 'Works at the properties assigned to them.' },
 };
 
+const ACTIVE_PROPERTY_KEY = 'pms.activePropertyId';
+
 /** The property chosen for this browser tab. The server decides what the user may open; this only remembers the choice. */
 
 /**
@@ -248,7 +249,7 @@ const ROLE_LABELS: Record<UserRoleKey, { id: string; key: string; name: string; 
  */
 function pickActiveProperty(role: UserRoleKey, properties: BackendProperty[]): string | null {
   const usable = properties.filter((p) => role === 'SUPER_ADMIN' || p.isActive);
-  const saved = sessionStorage.getItem(scopedKey('activePropertyId'));
+  const saved = sessionStorage.getItem(ACTIVE_PROPERTY_KEY);
   if (saved && usable.some((p) => p.id === saved)) return saved;
   return role === 'STAFF' && usable.length === 1 ? (usable[0]?.id ?? null) : null;
 }
@@ -262,8 +263,8 @@ function pickActiveProperty(role: UserRoleKey, properties: BackendProperty[]): s
  */
 export const authApi = {
   /** `platform` is the separate super admin login; the hotel login refuses super admins. */
-  login: async (email: string, password: string, audience: 'hotel' | 'platform' = 'hotel') => {
-    const { accessToken } = await apiRequest<LoginResponse>(audience === 'platform' ? '/auth/platform/login' : '/auth/login', {
+  login: async (email: string, password: string) => {
+    const { accessToken } = await apiRequest<LoginResponse>('/auth/login', {
       method: 'POST',
       body: { email, password },
     });
@@ -273,14 +274,14 @@ export const authApi = {
   register: (name: string, email: string, password: string) =>
     apiRequest<{ id: string; email: string; name: string }>('/auth/register', { method: 'POST', body: { name, email, password } }),
   /** Step one of a forgotten password. `delivery` is `none` while the server cannot send email. */
-  forgotPassword: (email: string, audience: 'hotel' | 'platform' = 'hotel') =>
-    apiRequest<{ message: string; delivery: 'email' | 'none' }>('/auth/forgot-password', { method: 'POST', body: { email, audience } }),
+  forgotPassword: (email: string) =>
+    apiRequest<{ message: string; delivery: 'email' | 'none' }>('/auth/forgot-password', { method: 'POST', body: { email } }),
   /** Step two: the code and the new password. Signs the account out everywhere. */
-  resetPassword: (email: string, otp: string, newPassword: string, audience: 'hotel' | 'platform' = 'hotel') =>
-    apiRequest<void>('/auth/reset-password', { method: 'POST', body: { email, otp, newPassword, audience } }),
+  resetPassword: (email: string, otp: string, newPassword: string) =>
+    apiRequest<void>('/auth/reset-password', { method: 'POST', body: { email, otp, newPassword } }),
   me: async (): Promise<AuthMe> => {
     const user = await apiRequest<BackendMe>('/auth/me');
-    // Until the password is changed, or a sign-up is approved, the API refuses every other route, so only the account is read.
+    // Until the password is changed, or a sign-up is activated, the API refuses every other route, so only the account is read.
     const properties =
       user.mustChangePassword || user.approvalStatus !== 'APPROVED' ? [] : await apiRequest<BackendProperty[]>('/properties');
     const demo = store.session();
@@ -341,13 +342,13 @@ export const authApi = {
       if (!(error instanceof ApiError && error.status === 401)) throw error;
     } finally {
       clearAccessToken();
-      sessionStorage.removeItem(scopedKey('activePropertyId'));
+      sessionStorage.removeItem(ACTIVE_PROPERTY_KEY);
     }
   },
   /** Opens a property, or (null) goes back to Choose a property. The API still limits what the user can open. */
   switchProperty: async (propertyId: string | null) => {
-    if (propertyId) sessionStorage.setItem(scopedKey('activePropertyId'), propertyId);
-    else sessionStorage.removeItem(scopedKey('activePropertyId'));
+    if (propertyId) sessionStorage.setItem(ACTIVE_PROPERTY_KEY, propertyId);
+    else sessionStorage.removeItem(ACTIVE_PROPERTY_KEY);
   },
 };
 
@@ -1308,56 +1309,12 @@ export const taxSetupApi = {
     apiRequest<TaxGeneralSettings>(`/${requireActivePropertyId()}/tax-settings`, { method: 'PUT', body }),
 };
 
-/** A subscription plan (`/subscription-plans`). Super admins manage them; new sign-ups choose one. */
-export interface SubscriptionPlan {
-  id: string;
-  name: string;
-  tagline: string | null;
-  /** Price per month in `currency`. */
-  priceMonthly: number;
-  currency: string;
-  /** How many OTAs a property on this plan may connect. */
-  otaLimit: number;
-  features: string[];
-  isPopular: boolean;
-  /** Only active plans are offered to new sign-ups. */
-  isActive: boolean;
-  sortOrder: number;
-  /** Properties on this plan; only returned to super admins. */
-  propertyCount?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-export interface SubscriptionPlanInput {
-  name: string;
-  tagline?: string;
-  priceMonthly: number;
-  currency?: string;
-  otaLimit: number;
-  features?: string[];
-  isPopular?: boolean;
-  isActive?: boolean;
-  sortOrder?: number;
-}
-
-export const subscriptionPlanApi = {
-  /** The active plans: what the sign-up wizard offers. Open to an account that is not approved yet. */
-  list: () => apiRequest<SubscriptionPlan[]>('/subscription-plans'),
-  /** SUPER_ADMIN: every plan, switched off or not, with how many properties are on each. */
-  listAll: () => apiRequest<SubscriptionPlan[]>('/subscription-plans?includeInactive=true'),
-  create: (body: SubscriptionPlanInput) => apiRequest<SubscriptionPlan>('/subscription-plans', { method: 'POST', body }),
-  update: (id: string, body: Partial<SubscriptionPlanInput>) =>
-    apiRequest<SubscriptionPlan>(`/subscription-plans/${id}`, { method: 'PATCH', body }),
-  /** Refused while properties are on the plan; switch it off instead. */
-  remove: (id: string) => apiRequest<void>(`/subscription-plans/${id}`, { method: 'DELETE' }),
-};
-
-/** An OTA a new property can choose at sign-up (`/ota-channels`). Super admins manage the list. */
+/** An OTA (`/ota-channels`). Super admins manage the list; every property gets all the active ones. */
 export interface OtaChannel {
   id: string;
   name: string;
   region: string | null;
-  /** Only active OTAs are offered to new sign-ups. */
+  /** Only active OTAs are offered. */
   isActive: boolean;
   sortOrder: number;
   createdAt: string;
@@ -1371,7 +1328,7 @@ export interface OtaChannelInput {
 }
 
 export const otaChannelApi = {
-  /** The active OTAs: what the sign-up wizard offers. Open to an account that is not approved yet. */
+  /** The active OTAs. */
   list: () => apiRequest<OtaChannel[]>('/ota-channels'),
   /** SUPER_ADMIN: every OTA, switched off or not. */
   listAll: () => apiRequest<OtaChannel[]>('/ota-channels?includeInactive=true'),
@@ -1380,19 +1337,40 @@ export const otaChannelApi = {
   remove: (id: string) => apiRequest<void>(`/ota-channels/${id}`, { method: 'DELETE' }),
 };
 
+/** A single-use key a super admin issues; a new customer enters it to activate their property. */
+export interface ActivationKey {
+  id: string;
+  code: string;
+  note: string | null;
+  status: 'unused' | 'used' | 'revoked';
+  createdAt: string;
+  usedAt: string | null;
+  revokedAt: string | null;
+  /** The property the key activated, once used. */
+  usedByProperty: { id: string; name: string; code: string } | null;
+}
+export interface ActivationKeyPage { data: ActivationKey[]; total: number; page: number; pageSize: number }
+
+/** Activation keys (`/activation-keys`). SUPER_ADMIN only. */
+export const activationKeyApi = {
+  list: (query: { status?: ActivationKey['status']; page?: number; pageSize?: number } = {}) =>
+    apiRequest<ActivationKeyPage>(`/activation-keys${queryString({ ...query })}`),
+  create: (body: { count?: number; note?: string }) => apiRequest<ActivationKey[]>('/activation-keys', { method: 'POST', body }),
+  /** Withdraws an unused key. */
+  revoke: (id: string) => apiRequest<ActivationKey>(`/activation-keys/${id}/revoke`, { method: 'POST' }),
+};
+
 /** What a new account sends for its property: the details, the room categories, and the rooms on each floor. */
 export interface OnboardingSubmission {
   property: { name: string; code: string; city: string; state?: string; country: string; defaultCurrency: string; numberOfFloors: number; totalRooms: number };
   categories: Array<{ name: string }>;
-  /** The chosen subscription plan (`subscriptionPlanApi.list`). */
-  planId: string;
-  /** The OTAs to connect, at most the plan's `otaLimit`. */
-  channels: string[];
+  /** The activation key a super admin issued; a valid one activates the property. */
+  activationKey: string;
   /** Floors that have rooms; each room names its category, in position order (the first on floor 1 is 101). */
   floors: Array<{ floor: number; rooms: Array<{ category: string }> }>;
 }
 
-/** Step two of sign-up. Allowed once, for an account that has not been approved. */
+/** Step two of sign-up. Allowed once, for an account that is still PENDING_SETUP. A valid key activates the account. */
 export const onboardingApi = {
   submit: (body: OnboardingSubmission) =>
     apiRequest<{ approvalStatus: ApprovalStatus; propertyId: string }>('/onboarding/property', { method: 'POST', body }),
@@ -1407,18 +1385,12 @@ export interface AdminUser {
   /** True until the user replaces the password a super admin set for them. */
   mustChangePassword: boolean;
   approvalStatus: ApprovalStatus;
-  /** Why the sign-up was rejected; the user sees it when they try to sign in. */
-  rejectionReason: string | null;
-  reviewedAt: string | null;
   /** The properties the user is assigned to. */
   properties: Array<{
     id: string;
     name: string;
     code: string;
     isActive: boolean;
-    /** The plan picked at sign-up; null for a property a super admin added. */
-    subscriptionPlan: { id: string; name: string; priceMonthly: number; currency: string; otaLimit: number } | null;
-    otaChannels: string[];
   }>;
   createdAt: string;
   updatedAt: string;
@@ -1427,7 +1399,7 @@ export interface AdminUserPage { data: AdminUser[]; total: number; page: number;
 export interface AdminUserQuery {
   search?: string;
   isActive?: boolean;
-  /** PENDING_APPROVAL is the queue of sign-ups waiting for a decision. */
+  /** PENDING_SETUP lists sign-ups that have not entered a key yet. */
   approvalStatus?: ApprovalStatus;
   propertyId?: string;
   page?: number;
@@ -1453,11 +1425,6 @@ export const userAdminApi = {
   /** Signs the user out everywhere; they must replace this password at their next sign-in. */
   resetPassword: async (id: string, password: string) =>
     apiRequest<void>(`/users/${id}/reset-password`, { method: 'POST', body: { password } }),
-  /** Activates the account and the property it submitted. */
-  approve: async (id: string) => apiRequest<AdminUser>(`/users/${id}/approve`, { method: 'POST' }),
-  /** Signs the user out; they see the reason at their next sign-in. */
-  reject: async (id: string, reason?: string) =>
-    apiRequest<AdminUser>(`/users/${id}/reject`, { method: 'POST', body: reason ? { reason } : {} }),
   forProperty: async (propertyId: string) => apiRequest<AdminUser[]>(`/properties/${propertyId}/users`),
   assign: async (propertyId: string, userId: string) =>
     apiRequest<void>(`/properties/${propertyId}/users/${userId}`, { method: 'PUT' }),
@@ -1476,8 +1443,6 @@ export interface PlatformOverview {
     staff: number;
     pendingPasswordChange: number;
     staffWithoutProperty: number;
-    /** Sign-ups that have sent their property and wait for approval. */
-    pendingApproval: number;
   };
   /** Login sessions that have not been signed out. */
   activeSessions: number;

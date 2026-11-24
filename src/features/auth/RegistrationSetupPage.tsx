@@ -4,8 +4,8 @@ import { SetupWizard } from '../property-setup/setup-wizard/SetupWizard';
 import { useAuth } from './AuthContext';
 
 /**
- * Step two of three, for a new account: describe the property (details, room categories, floors and
- * rooms). Finishing sends it for approval, and the account then moves to the waiting page.
+ * Step two, for a new account: describe the property (details, room categories, floors and rooms) and
+ * enter an activation key. A valid key activates the account, and reloading the session opens the hotel.
  */
 export function RegistrationSetupPage() {
   const { logout, reload } = useAuth();

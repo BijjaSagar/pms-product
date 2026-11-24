@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 
 /**
- * The hotel app's signed-out pages: Sign in, Create account and Forgot password. Super admins do not
- * sign in here; they have their own app at `/admin`. There is no router, so the address is only read to
+ * The hotel app's signed-out pages: Sign in, Create account and Forgot password. Everyone, super admins
+ * included, signs in on the same page. There is no router, so the address is only read to
  * choose which page to show while nobody is signed in.
  */
 export type AuthPage = 'login' | 'register' | 'forgot';
