@@ -55,7 +55,7 @@ export function ActivationStep({ value, onChange, onSubmit, property, categoryCo
           maxLength={ACTIVATION_KEY_LENGTH + 3}
         />
         <p className="mt-2 text-[12px] leading-5 text-ink-secondary">
-          Your key was sent to you by TriponX. Each key works once, and activating makes {property.name.trim() || 'your property'} ready to use straight away.
+          Your key was sent to you by Hotel PMX. Each key works once, and activating makes {property.name.trim() || 'your property'} ready to use straight away.
         </p>
       </section>
 

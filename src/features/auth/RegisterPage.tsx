@@ -46,7 +46,7 @@ export function RegisterPage({ onSignIn }: { onSignIn: () => void }) {
   return (
     <AuthLayout sectionLabel="Create an account">
       <header>
-        <p className={`${EYEBROW} [@media(max-height:560px)]:hidden`}>New to TriponX</p>
+        <p className={`${EYEBROW} [@media(max-height:560px)]:hidden`}>New to Hotel PMX</p>
         <h1 className={`mt-3 text-[30px] font-bold leading-tight tracking-[-0.045em] text-ink sm:text-[36px] [@media(max-height:560px)]:mt-0 ${HEADING}`}>
           Create your account.
         </h1>

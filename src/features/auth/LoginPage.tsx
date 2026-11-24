@@ -40,7 +40,7 @@ export function LoginPage({ onRegister, onForgotPassword }: { onRegister: () => 
         <h1 className={`mt-3 text-[30px] font-bold leading-tight tracking-[-0.045em] text-ink sm:text-[36px] [@media(max-height:560px)]:mt-0 ${HEADING}`}>
           Sign in.
         </h1>
-        <p className="mt-2 text-[15px] text-ink-secondary sm:mt-3 sm:text-[16px] [@media(max-height:560px)]:hidden">Sign in to continue to TriponX.</p>
+        <p className="mt-2 text-[15px] text-ink-secondary sm:mt-3 sm:text-[16px] [@media(max-height:560px)]:hidden">Sign in to continue to Hotel PMX.</p>
       </header>
 
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4 sm:mt-8 sm:gap-5 lg:[@media(max-height:600px)]:mt-4 lg:[@media(max-height:600px)]:gap-3">
@@ -106,7 +106,7 @@ export function LoginPage({ onRegister, onForgotPassword }: { onRegister: () => 
       </form>
 
       <p className="mt-5 text-center text-[14px] text-ink-secondary">
-        New to TriponX?{' '}
+        New to Hotel PMX?{' '}
         <button type="button" onClick={onRegister} className="cursor-pointer font-semibold text-primary hover:underline">
           Create an account
         </button>

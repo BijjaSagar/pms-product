@@ -216,7 +216,7 @@ export function SetupWizard({ mode = 'platform', exitAction, onDone }: SetupWiza
             <span className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Lucide.Compass size={17} aria-hidden="true" />
             </span>
-            <span className={`text-[16px] font-semibold tracking-tight text-ink ${HEADING}`}>Triponx</span>
+            <span className={`text-[16px] font-semibold tracking-tight text-ink ${HEADING}`}>Hotel PMX</span>
           </span>
           <span aria-hidden="true" className="h-5 w-px bg-border" />
           <span className="truncate text-[14px] text-ink-secondary">Property setup</span>

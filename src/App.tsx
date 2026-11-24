@@ -29,7 +29,7 @@ function AuthenticatedApp() {
   if (loading) {
     return (
       <main className="flex h-dvh items-center justify-center bg-page text-ink">
-        <p className="pms-helper">Connecting to TriponX…</p>
+        <p className="pms-helper">Connecting to Hotel PMX…</p>
       </main>
     );
   }

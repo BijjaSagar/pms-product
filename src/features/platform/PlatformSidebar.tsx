@@ -44,7 +44,7 @@ export function PlatformSidebar({
               <Lucide.Crown size={18} />
             </span>
             <div className="min-w-0">
-              <p className="font-brand truncate text-disp2 font-bold leading-none tracking-tight text-ink">TriponX</p>
+              <p className="font-brand truncate text-disp2 font-bold leading-none tracking-tight text-ink">Hotel PMX</p>
               <p className="mt-1 text-label font-semibold uppercase tracking-[0.14em] text-ink-muted">Platform console</p>
             </div>
           </div>
