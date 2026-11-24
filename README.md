@@ -1,4 +1,4 @@
-# TriponX Hotel PMS — static demo build
+# Hotel PMX — static demo build
 
 A React + TypeScript front end for a hotel property management system: reservations, room calendar, front desk, rates and channel distribution, folios and billing, night audit, reports and staff management.
 

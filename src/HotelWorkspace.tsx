@@ -135,7 +135,7 @@ function Shell() {
             className="border-t px-4 py-3.5 lg:px-6 border-border bg-surface"
           >
             <p className="tnum mx-auto w-full max-w-[1600px] text-label font-normal 2xl:max-w-[1760px] text-ink-secondary">
-              TriponX PMS · {THEME_PRESETS[preset]?.name ?? 'Theme'} · 9 colour themes ·
+              Hotel PMX · {THEME_PRESETS[preset]?.name ?? 'Theme'} · 9 colour themes ·
               status colours fixed across themes · unsupported modules remain demo-only
             </p>
           </footer>

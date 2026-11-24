@@ -234,7 +234,7 @@ export function Sidebar({
           </button>
           <div className="min-w-0">
             <p className="font-brand truncate text-disp2 font-bold leading-none tracking-tight text-ink">
-              TriponX
+              Hotel PMX
             </p>
             <p className="mt-1 text-label font-semibold uppercase tracking-[0.14em] text-ink-muted">
               Hotel PMS
@@ -343,10 +343,10 @@ export function Sidebar({
         <button
           type="button"
           onClick={() => go('dashboard')}
-          onMouseEnter={(e) => handleMouseEnter(e, 'TriponX Hotel PMS', 'Go to Dashboard', 'PMS')}
+          onMouseEnter={(e) => handleMouseEnter(e, 'Hotel PMX', 'Go to Dashboard', 'PMS')}
           onMouseLeave={handleMouseLeave}
           className="flex h-10 w-10 items-center justify-center rounded-xl font-brand text-disp2 font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 cursor-pointer bg-primary text-primary-foreground"
-          aria-label="TriponX Home"
+          aria-label="Hotel PMX Home"
         >
           T
         </button>

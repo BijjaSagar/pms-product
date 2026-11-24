@@ -23,7 +23,7 @@ export class ErrorBoundary extends Component<BoundaryProps, BoundaryState> {
   }
 
   componentDidCatch(error: Error) {
-    console.error('[TriponX PMS error boundary]', error);
+    console.error('[Hotel PMX error boundary]', error);
   }
 
   componentDidUpdate(prev: BoundaryProps) {
@@ -165,7 +165,7 @@ export function AppCrashFallback({ reset }: { reset: () => void }) {
               className="mt-2 text-left rounded-xl border p-3 font-mono text-label text-ink-secondary overflow-x-auto max-h-36 bg-ink/5 border-border"
             >
               <p className="text-danger-text font-bold mb-1">ComponentStack Error:</p>
-              <p>Check browser console logs [TriponX PMS error boundary] for full stack trace.</p>
+              <p>Check browser console logs [Hotel PMX error boundary] for full stack trace.</p>
             </div>
           )}
         </div>

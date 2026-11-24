@@ -80,7 +80,7 @@ export function PlatformConsole() {
           </main>
           <footer className="border-t border-border bg-surface px-4 py-3.5 lg:px-6">
             <p className="tnum mx-auto w-full max-w-[1600px] text-label font-normal text-ink-secondary 2xl:max-w-[1760px]">
-              TriponX PMS · Platform console · one database, every property
+              Hotel PMX · Platform console · one database, every property
             </p>
           </footer>
         </div>

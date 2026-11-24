@@ -15,7 +15,7 @@ export function AuthLayout({ sectionLabel, children }: { sectionLabel: string; c
       {/* Brand side: 8 of 12 columns */}
       <aside
         className="relative flex flex-none items-center overflow-hidden border-b border-border/60 bg-gradient-to-br from-surface via-primary/[0.06] to-primary/[0.22] px-5 py-3.5 sm:px-10 lg:col-span-8 lg:items-stretch lg:border-b-0 lg:px-16 lg:py-12"
-        aria-label="About TriponX"
+        aria-label="About Hotel PMX"
       >
         {/* Soft light streaks, blurred glows and two outlined tiles (decorative) */}
         <div
