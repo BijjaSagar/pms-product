@@ -1,4 +1,4 @@
-import { ALL_PERMISSIONS, BUSINESS_DATE, CALENDAR_EVENTS, CURRENT_USER_ID, GUESTS, PROPERTY, ROOM_TYPES, TAX_RATE, USERS, type InternalUser } from './catalog';
+import { ALL_PERMISSIONS, BUSINESS_DATE, CURRENT_USER_ID, GUESTS, PROPERTY, ROOM_TYPES, TAX_RATE, USERS, type InternalUser } from './catalog';
 import { buildSeedState } from './fixtures';
 import {
   addDays,
@@ -1118,7 +1118,6 @@ export const store = {
         {
           hasNote: dayNotes.has(date),
           enquiryCount: dayEnquiries.filter((e) => e.date === date).length,
-          events: CALENDAR_EVENTS.filter((e) => e.date === date).map((e) => e.name),
         },
       ]),
     );

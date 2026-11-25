@@ -1,4 +1,5 @@
 import { useState, type ChangeEvent } from "react";
+import { LocationFields } from "../../../components/brand/LocationFields";
 import { Field } from "../../../components/ui/controls";
 import { Modal } from "../../../components/ui/overlays";
 import { Button } from "../../../components/ui/primitives";
@@ -151,15 +152,14 @@ export function AddGuestModal({
             <input value={form.address} onChange={setField("address")} placeholder="Street and house number" className={inputClass("text-body")} />
           </Field>
         </div>
-        <Field label="City">
-          <input value={form.city} onChange={setField("city")} placeholder="Hyderabad" className={inputClass("text-body")} />
-        </Field>
-        <Field label="State">
-          <input value={form.state} onChange={setField("state")} placeholder="Telangana" className={inputClass("text-body")} />
-        </Field>
-        <Field label="Country">
-          <input value={form.country} onChange={setField("country")} placeholder="India" className={inputClass("text-body")} />
-        </Field>
+        <div className="grid grid-cols-1 gap-3 sm:col-span-2 sm:grid-cols-3">
+          <LocationFields
+            field={Field}
+            inputClassName={inputClass("text-body")}
+            value={form}
+            onChange={(patch) => setForm((previous) => ({ ...previous, ...patch }))}
+          />
+        </div>
       </div>
     </Modal>
   );

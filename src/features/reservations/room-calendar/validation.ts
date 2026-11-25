@@ -1,5 +1,6 @@
 import type { CalendarReservation, CalendarRoom, ValidationResult } from './types';
 import { countNights } from './calendarData';
+import type { RoomHoldRow } from '../../../lib/api/pms';
 
 /**
  * Validates a proposed reservation move (dates and/or room) against all operational constraints.
@@ -12,13 +13,39 @@ export function validateReservationMove({
   proposedCheckIn,
   proposedCheckOut,
   allReservations,
+  holds,
 }: {
   reservation: CalendarReservation;
   targetRoom: CalendarRoom;
   proposedCheckIn: string;
   proposedCheckOut: string;
   allReservations: CalendarReservation[];
+  holds: RoomHoldRow[];
 }): ValidationResult {
+  const unchanged = { proposedTotal: reservation.totalAmount, priceDifference: 0, proposedNights: reservation.nights };
+
+  // The server refuses these too; saying so while dragging saves a failed save.
+  if (reservation.status === 'Checked-out' || reservation.status === 'No-show') {
+    return { isValid: false, reason: `A ${reservation.status.toLowerCase()} reservation cannot be moved.`, ...unchanged };
+  }
+  if (reservation.status === 'Checked-in' && proposedCheckIn !== reservation.checkInDate) {
+    return { isValid: false, reason: 'A checked-in guest can only change the check-out date.', ...unchanged };
+  }
+  if (targetRoom.type !== reservation.roomType) {
+    return { isValid: false, reason: `A booking can only move within its room type (${reservation.roomType}).`, ...unchanged };
+  }
+
+  const held = holds.find(
+    (hold) => hold.roomNumber === targetRoom.number && hold.date >= proposedCheckIn && hold.date < proposedCheckOut
+  );
+  if (held) {
+    return {
+      isValid: false,
+      reason: `Room ${targetRoom.number} is ${held.kind === 'HOLD' ? 'held' : 'blocked'} on ${held.date}.`,
+      ...unchanged,
+    };
+  }
+
   // 1. Date chronological validity
   if (proposedCheckIn >= proposedCheckOut) {
     return {
@@ -103,9 +130,8 @@ export function validateReservationMove({
   }
 
   // 6. Pricing calculation
-  // If moving to a different room type, use the new room's base rate
-  const ratePerNight = targetRoom.baseRate;
-  const proposedTotal = proposedNights * ratePerNight;
+  // The booked nightly rate is kept when the stay moves or changes length
+  const proposedTotal = proposedNights * reservation.nightlyRate;
   const priceDifference = proposedTotal - reservation.totalAmount;
 
   return {

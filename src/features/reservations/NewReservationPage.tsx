@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as Lucide from "lucide-react";
 import type { NavDraft, NavTarget } from "../../config/navigation";
+import { rememberSavedBooking } from "./savedBooking";
 import { toast } from "../../utils/toast";
 import { Modal } from "../../components/ui/overlays";
 import { fieldClass, labelClass, selectClass } from "../../components/ui/formStyles";
@@ -936,6 +937,7 @@ function ReservationForm({
           .join("\n"),
       }, idempotencyKey.current);
       idempotencyKey.current = newIdempotencyKey("reservation");
+      rememberSavedBooking({ id: saved.id, checkIn: checkInDate });
       const code = saved.bookingCode;
       setBookingId(code);
       setConfirmedBooking({

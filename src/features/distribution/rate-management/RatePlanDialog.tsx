@@ -2,6 +2,7 @@ import { useState } from 'react';
 import * as Lucide from 'lucide-react';
 import { Modal } from '../../../components/ui/overlays';
 import { inputClass } from '../../../utils/styling';
+import { DEFAULT_PLAN_COLOR } from './data';
 import type { RatePlan } from './types';
 import { Button, Checkbox, SelectField, TextArea, TextField } from '../../../components/ui/primitives';
 
@@ -15,6 +16,7 @@ interface Props {
 }
 
 const EMPTY_PLAN = {
+  color: DEFAULT_PLAN_COLOR,
   name: '',
   code: '',
   status: 'Active' as RatePlan['status'],
@@ -26,6 +28,7 @@ const EMPTY_PLAN = {
 
 export function RatePlanDialog({ open, plan, roomTypes, channelIds, onClose, onSave }: Props) {
   const [draft, setDraft] = useState(() => plan ? {
+    color: plan.color,
     name: plan.name,
     code: plan.code,
     status: plan.status,
@@ -81,6 +84,9 @@ export function RatePlanDialog({ open, plan, roomTypes, channelIds, onClose, onS
         <div className="space-y-3.5">
           <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">Plan name
             <input autoFocus value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} className={inputClass('text-body')} placeholder="e.g. Weekend Escape" />
+          </label>
+          <label className="flex items-center gap-3 text-label font-semibold text-ink-secondary">Colour
+            <input type="color" value={draft.color} onChange={(event) => setDraft({ ...draft, color: event.target.value })} className="h-8 w-10 cursor-pointer rounded border border-border bg-surface p-0.5" />
           </label>
           <div className="grid grid-cols-2 gap-3">
             <label className="flex flex-col gap-1.5 text-label font-semibold text-ink-secondary">Plan code

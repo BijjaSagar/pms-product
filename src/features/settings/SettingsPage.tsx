@@ -18,8 +18,8 @@ import { PropertyDetailsTab } from './tabs/PropertyDetailsTab';
 import { ReservationSettingsTab } from './tabs/ReservationSettingsTab';
 import { RoomSetup2Tab } from './tabs/RoomSetup2Tab';
 import { ComingSoon, NoPropertyState } from './components/SettingsKit';
-import { SettingsNav } from './components/SettingsNav';
-import type { NavGroup } from './components/SettingsNav';
+import { SectionNav } from '../../components/ui/SectionNav';
+import type { NavGroup } from '../../components/ui/SectionNav';
 import { TaxCategoryTab } from './tabs/TaxCategoryTab';
 import { TaxGeneralSettingTab } from './tabs/TaxGeneralSettingTab';
 import { TaxRuleTab } from './tabs/TaxRuleTab';
@@ -156,7 +156,7 @@ export function Settings({
   return (
     <div className="pms-page pms-animate-fade-in">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-5">
-        <SettingsNav groups={NAV_GROUPS} active={activeTab} onSelect={setActiveTab} />
+        <SectionNav label="Settings" searchLabel="Find a setting" groups={NAV_GROUPS} active={activeTab} onSelect={setActiveTab} />
 
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           <nav aria-label="Breadcrumb" className="hidden items-center gap-1.5 text-label text-ink-muted lg:flex">

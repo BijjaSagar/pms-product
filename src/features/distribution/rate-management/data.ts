@@ -1,8 +1,9 @@
 import { BUSINESS_DATE } from '../../../data/catalog';
+import type { RoomTypeRow } from '../../../lib/api/pms';
 import { shiftDate } from '../../../utils/date';
 
 export { BUSINESS_DATE, shiftDate };
-import type { DistributionChannel, RateHistoryEvent, RatePlan, Season } from './types';
+import type { DistributionChannel, MealPlanCode, Occupancy, RateHistoryEvent, RatePlan, SalesChannel, Season } from './types';
 
 export const INITIAL_RANGE_START = '2026-10-14';
 export const ROOM_TYPES = ['Standard', 'Deluxe', 'Superior', 'Executive', 'Family', 'Suite'];
@@ -23,6 +24,7 @@ export const INITIAL_DEMAND: Array<'Medium' | 'High'> = [
 export const INITIAL_RATE_PLANS: RatePlan[] = [
   {
     id: 'bar',
+    color: '#0f766e',
     code: 'BAR',
     name: 'Best Available Rate',
     roomTypes: ['All room types'],
@@ -35,6 +37,7 @@ export const INITIAL_RATE_PLANS: RatePlan[] = [
   },
   {
     id: 'advance',
+    color: '#16a34a',
     code: 'ADV15',
     name: 'Advance Purchase',
     roomTypes: ['All room types'],
@@ -47,6 +50,7 @@ export const INITIAL_RATE_PLANS: RatePlan[] = [
   },
   {
     id: 'lastminute',
+    color: '#d97706',
     code: 'LMD10',
     name: 'Last Minute Deal',
     roomTypes: ['Standard', 'Deluxe'],
@@ -59,6 +63,7 @@ export const INITIAL_RATE_PLANS: RatePlan[] = [
   },
   {
     id: 'corporate',
+    color: '#2563eb',
     code: 'CORP',
     name: 'Corporate Rate',
     roomTypes: ['All room types'],
@@ -71,6 +76,7 @@ export const INITIAL_RATE_PLANS: RatePlan[] = [
   },
   {
     id: 'member',
+    color: '#ff3333',
     code: 'MEM10',
     name: 'Member Discount',
     roomTypes: ['All room types'],
@@ -83,6 +89,7 @@ export const INITIAL_RATE_PLANS: RatePlan[] = [
   },
   {
     id: 'longstay',
+    color: '#6b7280',
     code: 'LONG',
     name: 'Long Stay Rate',
     roomTypes: ['Executive', 'Family', 'Suite'],
@@ -151,4 +158,17 @@ export function formatSeasonPeriod(startDate: string, endDate: string): string {
     month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
   });
   return `${format(startDate)} – ${format(endDate)}`;
+}
+
+export const DEFAULT_PLAN_COLOR = '#2563eb';
+export const SALES_CHANNELS: SalesChannel[] = ['Direct', 'OTA', 'Agent', 'BookingEngine', 'Meta', 'OTA-B2B'];
+export const MEAL_PLAN_CODES: MealPlanCode[] = ['EP', 'CP'];
+export const OCCUPANCIES: Occupancy[] = ['Single', 'Double', 'Extra Person', 'Extra Child'];
+export const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+/** Demo starting rate for a grid cell, before anyone has edited it. */
+export function defaultGridRate(room: RoomTypeRow, mealPlan: MealPlanCode, occupancy: Occupancy, adjustmentPct: number): number {
+  if (occupancy === 'Extra Person' || occupancy === 'Extra Child') return 1000;
+  const rate = Number(room.baseRate) + (mealPlan === 'CP' ? 300 : 0) + (occupancy === 'Double' ? 200 : 0);
+  return Math.round(rate * (1 + adjustmentPct / 100));
 }
