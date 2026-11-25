@@ -251,7 +251,7 @@ export function RateCalendarPanel({
       </div>
 
       <div className="flex flex-col gap-2 border-t px-4 py-3 text-label text-ink-muted sm:flex-row sm:items-center sm:justify-between sm:px-5 border-divider">
-        <span>Rate changes are saved in this demo session and can be published to connected channels.</span>
+        <span>Rate changes are saved in this demo session only.</span>
         <span className="inline-flex items-center gap-1.5"><Lucide.MousePointer2 size={12} /> Values can be edited inline</span>
       </div>
     </section>

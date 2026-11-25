@@ -2,24 +2,28 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
 
-export type CellAction = 'Book' | 'Hold' | 'Block';
+export type CellAction = 'Book' | 'Hold' | 'Block' | 'Release' | 'Unblock';
 
 const ITEMS: Array<{ action: CellAction; icon: typeof Lucide.Clock }> = [
   { action: 'Book', icon: Lucide.CalendarPlus },
   { action: 'Hold', icon: Lucide.Clock },
   { action: 'Block', icon: Lucide.Ban },
+  { action: 'Release', icon: Lucide.LockOpen },
+  { action: 'Unblock', icon: Lucide.CircleCheck },
 ];
 
 const GAP = 4;
 const MARGIN = 8;
 
-/** Dropdown under a clicked calendar cell offering Book, Hold or Block. */
+/** Dropdown under a clicked calendar cell offering the actions that apply to it. */
 export function CellActionMenu({
   anchor,
+  actions,
   onSelect,
   onClose,
 }: {
   anchor: DOMRect;
+  actions: CellAction[];
   onSelect: (action: CellAction) => void;
   onClose: () => void;
 }) {
@@ -66,7 +70,7 @@ export function CellActionMenu({
       className="fixed z-[100] flex w-36 flex-col rounded-xl border border-border bg-surface p-1 shadow-xl"
       style={{ left: pos?.left ?? 0, top: pos?.top ?? 0, visibility: pos ? 'visible' : 'hidden' }}
     >
-      {ITEMS.map(({ action, icon: Icon }) => (
+      {ITEMS.filter((item) => actions.includes(item.action)).map(({ action, icon: Icon }) => (
         <button
           key={action}
           type="button"

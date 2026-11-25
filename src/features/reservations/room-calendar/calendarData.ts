@@ -1,5 +1,4 @@
 import type { CalendarReservation, CalendarRoom, RoomOperationalStatus, ReservationStatus } from './types';
-import { GUESTS } from '../../../data/catalog';
 import { store, UNASSIGNED_TYPE_NAME } from '../../../data/store';
 import type { ReservationRow } from '../../../lib/api/pms';
 
@@ -56,6 +55,7 @@ export function formatCalendarDate(isoDate: string): {
   dayNum: string;
   weekday: string;
   month: string;
+  monthName: string;
   year: string;
   isWeekend: boolean;
 } {
@@ -63,12 +63,14 @@ export function formatCalendarDate(isoDate: string): {
   const date = new Date(Date.UTC(y, m - 1, d));
   const weekday = date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
   const month = date.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
+  const monthName = date.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
   const dayNum = String(date.getUTCDate()).padStart(2, '0');
   const dayOfWeek = date.getUTCDay();
   return {
     dayNum,
     weekday,
     month,
+    monthName,
     year: String(y),
     isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
   };
@@ -139,7 +141,6 @@ export function toCalendarReservations(data: ReservationRow[], rooms: CalendarRo
         r.guest?.name ||
         (r.guest?.firstName ? `${r.guest.firstName} ${r.guest.lastName ?? ''}`.trim() : null) ||
         'Guest';
-      const guest = GUESTS.find((g) => g.id === (r.primaryGuestId || r.guest?.id));
       const checkInDate = String(r.checkInDate).slice(0, 10);
       const checkOutDate = String(r.checkOutDate).slice(0, 10);
       const nights = countNights(checkInDate, checkOutDate);
@@ -170,10 +171,9 @@ export function toCalendarReservations(data: ReservationRow[], rooms: CalendarRo
         return [{
           id: isGroup ? `${r.id}::${line.id}` : r.id,
           backendId: r.id,
+          version: r.version,
           roomLineId: line.id.startsWith('legacy-') ? undefined : line.id,
           guestName,
-          guestEmail: guest?.email ?? '',
-          guestPhone: guest?.phone ?? '',
           roomId: room.id,
           roomNumber: room.number,
           roomType: room.type,

@@ -1,6 +1,5 @@
 import * as Lucide from 'lucide-react';
 import type { CalendarDate } from './types';
-import { Button } from '../../../components/ui/primitives';
 
 interface Props {
   dates: CalendarDate[];
@@ -9,10 +8,9 @@ interface Props {
   closedToArrival: boolean[];
   closedToDeparture: boolean[];
   stopSell: boolean[];
-  onOpenCalendar: () => void;
 }
 
-export function RateRestrictionsPanel({ dates, minStays, maxStays, closedToArrival, closedToDeparture, stopSell, onOpenCalendar }: Props) {
+export function RateRestrictionsPanel({ dates, minStays, maxStays, closedToArrival, closedToDeparture, stopSell }: Props) {
   const restrictions = dates.flatMap((date, index) => {
     const items = [];
     if (stopSell[index]) items.push({ id: `${date.iso}-stop`, label: 'Stop sell', detail: 'Room sales closed', tone: 'danger' as const, icon: Lucide.Ban });
@@ -40,9 +38,6 @@ export function RateRestrictionsPanel({ dates, minStays, maxStays, closedToArriv
             <p className="text-label text-ink-muted mt-0.5">Review arrival, departure, stop-sell and stay-length rules in the selected date window</p>
           </div>
         </div>
-        <Button variant="secondary" type="button" onClick={onOpenCalendar} >
-          <Lucide.CalendarDays size={14} /> Edit calendar
-        </Button>
       </div>
 
       <div className="grid gap-3 p-4 sm:grid-cols-3 sm:p-5">

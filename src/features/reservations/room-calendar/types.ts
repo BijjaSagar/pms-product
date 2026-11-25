@@ -45,10 +45,10 @@ export interface CalendarRoom {
 export interface CalendarReservation {
   id: string;
   backendId?: string;
+  /** The reservation's version, sent with a change so a newer one is not overwritten. */
+  version?: number;
   roomLineId?: string;
   guestName: string;
-  guestEmail: string;
-  guestPhone: string;
   roomId: string;
   roomNumber: string;
   roomType: RoomType;

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { TextField } from '../../../components/ui/primitives';
+import { TextField } from './primitives';
 
 interface NavItem<T extends string> {
   id: T;
@@ -14,19 +14,27 @@ export interface NavGroup<T extends string> {
 }
 
 /**
- * Section navigation for Settings. From the large breakpoint up it is a sticky side list with a
- * filter box; below that it folds into one button showing the current section, so a phone is not
- * filled by a list of twenty links before any content.
+ * Side navigation for a page with many sections. From the large breakpoint up it is a sticky side
+ * list; below that it folds into one button showing the current section, so a phone is not filled
+ * by a list of links before any content. Pass `searchLabel` to add a filter box to a long list.
  */
-export function SettingsNav<T extends string>({
+export function SectionNav<T extends string>({
   groups,
   active,
   onSelect,
+  label,
+  searchLabel,
+  className = 'lg:w-[272px]',
 }: {
   groups: NavGroup<T>[];
   active: T;
   onSelect: (id: T) => void;
+  label: string;
+  searchLabel?: string;
+  /** Width of the side list on large screens. */
+  className?: string;
 }) {
+  const listId = useId();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
 
@@ -43,17 +51,17 @@ export function SettingsNav<T extends string>({
   };
 
   return (
-    <aside className="pms-card w-full flex-none p-2 lg:sticky lg:top-2 lg:w-[272px] lg:max-h-[calc(100dvh-5rem)] lg:overflow-y-auto lg:p-3">
+    <aside className={`pms-card w-full flex-none p-2 lg:sticky lg:top-2 lg:max-h-[calc(100dvh-5rem)] lg:overflow-y-auto lg:p-3 ${className}`}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-controls="settings-nav-list"
+        aria-controls={listId}
         className="flex min-h-[44px] w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-left lg:hidden"
       >
         {CurrentIcon ? <CurrentIcon size={17} className="flex-none text-primary" aria-hidden="true" /> : null}
         <span className="min-w-0 flex-1">
-          <span className="block text-micro font-bold uppercase tracking-[0.12em] text-ink-muted">Settings section</span>
+          <span className="block text-micro font-bold uppercase tracking-[0.12em] text-ink-muted">{label} section</span>
           <span className="block truncate text-body font-semibold text-ink">{current?.label}</span>
         </span>
         <Lucide.ChevronDown
@@ -63,26 +71,28 @@ export function SettingsNav<T extends string>({
         />
       </button>
 
-      <div id="settings-nav-list" className={`${open ? 'block' : 'hidden'} lg:block`}>
-        <div className="px-1 pb-3 pt-2 lg:pt-0">
-          <div className="relative">
-            <Lucide.Search
-              size={14}
-              aria-hidden="true"
-              className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted"
-            />
-            <TextField
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Find a setting"
-              aria-label="Find a setting"
-              className="!pl-8"
-            />
+      <div id={listId} className={`${open ? 'block' : 'hidden'} lg:block`}>
+        {searchLabel ? (
+          <div className="px-1 pb-3 pt-2 lg:pt-0">
+            <div className="relative">
+              <Lucide.Search
+                size={14}
+                aria-hidden="true"
+                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted"
+              />
+              <TextField
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={searchLabel}
+                aria-label={searchLabel}
+                className="!pl-8"
+              />
+            </div>
           </div>
-        </div>
+        ) : null}
 
-        <nav aria-label="Settings" className="flex flex-col gap-4">
+        <nav aria-label={label} className="flex flex-col gap-4">
           {visible.map((group) => (
             <div key={group.title}>
               <p className="px-3 pb-1.5 text-micro font-bold uppercase tracking-[0.14em] text-ink-muted">{group.title}</p>
@@ -120,7 +130,7 @@ export function SettingsNav<T extends string>({
             </div>
           ))}
           {visible.length === 0 ? (
-            <p className="px-3 py-4 text-center text-label text-ink-muted">No setting matches “{query.trim()}”.</p>
+            <p className="px-3 py-4 text-center text-label text-ink-muted">Nothing matches “{query.trim()}”.</p>
           ) : null}
         </nav>
       </div>

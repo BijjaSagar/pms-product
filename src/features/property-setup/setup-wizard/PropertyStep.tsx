@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
-import { BrandCombobox, BrandField, BrandSelect, BrandStepper } from '../../../components/brand/BrandControls';
+import { BrandField, BrandSelect, BrandStepper } from '../../../components/brand/BrandControls';
+import { LocationFields } from '../../../components/brand/LocationFields';
 import { CARD, FIELD, FIELD_INVALID, HEADING } from '../../../components/brand/brandStyles';
 import { MAX_FLOORS } from '../../../utils/floorPlan';
 import { MAX_CODE_LENGTH, MAX_ROOMS } from './draft';
 import type { PropertyDraft, PropertyErrors } from './draft';
-import { COUNTRIES, CURRENCIES, currencyOfCountry, loadCities, statesOf } from './locations';
+import { CURRENCIES, currencyOfCountry } from '../../../utils/locations';
 
 function Section({ icon: Icon, title, subtitle, children }: { icon: typeof Lucide.Building2; title: string; subtitle: string; children: ReactNode }) {
   return (
@@ -32,42 +32,9 @@ interface PropertyStepProps {
   errors: PropertyErrors;
 }
 
-const countryNames = COUNTRIES.map((c) => c.name);
-
 /** Step 1: who and where the property is, its currency, and how many floors and rooms it has. */
 export function PropertyStep({ value, onChange, errors }: PropertyStepProps) {
   const text = (error?: string) => (error ? FIELD_INVALID : FIELD);
-  const states = useMemo(() => statesOf(value.country), [value.country]);
-  const stateNames = useMemo(() => states.map((st) => st.name), [states]);
-  // null while the city list is loading; [] when the data has no cities here, so the city is typed.
-  const [loaded, setLoaded] = useState<{ key: string; cities: string[] } | null>(null);
-  const cityKey = `${value.country}/${value.state}`;
-  const needsState = states.length > 0;
-  const canListCities = Boolean(value.country) && (!needsState || Boolean(value.state));
-
-  useEffect(() => {
-    if (!canListCities) return;
-    let active = true;
-    void loadCities(value.country, value.state)
-      .catch(() => [] as string[])
-      .then((cities) => {
-        if (active) setLoaded({ key: cityKey, cities });
-      });
-    return () => {
-      active = false;
-    };
-  }, [canListCities, cityKey, value.country, value.state]);
-
-  const cities = loaded?.key === cityKey ? loaded.cities : null;
-  const loadingCities = canListCities && cities === null;
-  // A city saved earlier that is not in the list still shows, so editing never blanks it.
-  const cityOptions = useMemo(() => (cities && value.city && !cities.includes(value.city) ? [value.city, ...cities] : cities), [cities, value.city]);
-
-  const pickCountry = (country: string) => {
-    if (country === value.country) return;
-    // The currency follows the country; it can still be changed below.
-    onChange({ country, state: '', city: '', currency: currencyOfCountry(country) });
-  };
   return (
     <div className="flex flex-col gap-4">
       <Section icon={Lucide.Building2} title="Basic details" subtitle="How guests and your team will recognise the property">
@@ -96,61 +63,14 @@ export function PropertyStep({ value, onChange, errors }: PropertyStepProps) {
 
       <Section icon={Lucide.MapPin} title="Location" subtitle="Where the property is situated">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <BrandField label="Country" error={errors.country}>
-            <BrandCombobox
-              ariaLabel="Country"
-              invalid={!!errors.country}
-              value={value.country}
-              options={countryNames}
-              placeholder="Select country"
-              searchPlaceholder="Search countries"
-              onChange={pickCountry}
-            />
-          </BrandField>
-          <BrandField label="State" error={errors.state}>
-            {needsState ? (
-              <BrandCombobox
-                ariaLabel="State"
-                invalid={!!errors.state}
-                value={value.state}
-                options={stateNames}
-                placeholder="Select state"
-                searchPlaceholder="Search states"
-                onChange={(state) => onChange({ state, city: '' })}
-              />
-            ) : (
-              <input
-                className={text(errors.state)}
-                value={value.state}
-                maxLength={100}
-                disabled={!value.country}
-                placeholder={value.country ? 'Not needed for this country' : 'Select a country first'}
-                onChange={(e) => onChange({ state: e.target.value })}
-              />
-            )}
-          </BrandField>
-          <BrandField label="City" error={errors.city}>
-            {cityOptions && cityOptions.length > 0 ? (
-              <BrandCombobox
-                ariaLabel="City"
-                invalid={!!errors.city}
-                value={value.city}
-                options={cityOptions}
-                placeholder="Select city"
-                searchPlaceholder="Search cities"
-                onChange={(city) => onChange({ city })}
-              />
-            ) : (
-              <input
-                className={text(errors.city)}
-                value={value.city}
-                maxLength={100}
-                disabled={!canListCities || loadingCities}
-                placeholder={loadingCities ? 'Loading cities…' : !value.country ? 'Select a country first' : needsState && !value.state ? 'Select a state first' : 'Type the city'}
-                onChange={(e) => onChange({ city: e.target.value })}
-              />
-            )}
-          </BrandField>
+          <LocationFields
+            field={BrandField}
+            inputClassName={FIELD}
+            value={value}
+            errors={errors}
+            // The currency follows the country; it can still be changed below.
+            onChange={(patch) => onChange(patch.country === undefined ? patch : { ...patch, currency: currencyOfCountry(patch.country) })}
+          />
         </div>
       </Section>
 

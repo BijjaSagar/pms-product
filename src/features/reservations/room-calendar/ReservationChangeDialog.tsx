@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
 import type { ProposedReservationChange } from './types';
 import { roomTypeStyle } from './calendarData';
 import { lockAppScroll } from '../../../lib/scrollLock';
-import { Button, Checkbox, IconButton } from '../../../components/ui/primitives';
+import { Button, IconButton } from '../../../components/ui/primitives';
 
 interface Props {
   change: ProposedReservationChange | null;
-  onConfirm: (notifyGuest: boolean) => Promise<void> | void;
+  onConfirm: () => Promise<void> | void;
   onCancel: () => void;
   isSaving: boolean;
 }
@@ -19,8 +19,6 @@ export function ReservationChangeDialog({
   onCancel,
   isSaving,
 }: Props) {
-  const [notifyGuest, setNotifyGuest] = useState(true);
-
   // Lock background scroll when modal is active
   useEffect(() => {
     if (!change) return;
@@ -140,7 +138,7 @@ export function ReservationChangeDialog({
             <div className="h-[1px] bg-border/70" />
 
             <div>
-              <span className="text-label text-ink-secondary">Total Billed</span>
+              <span className="text-label text-ink-secondary">Room Charges</span>
               <p className="text-body font-bold font-mono text-ink mt-0.5">
                 ₹{originalTotal.toLocaleString('en-IN')}.00
               </p>
@@ -182,7 +180,7 @@ export function ReservationChangeDialog({
 
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-label text-ink-secondary">New Total</span>
+                <span className="text-label text-ink-secondary">New Room Charges</span>
                 {priceDifference !== 0 && (
                   <span
                     className={`text-micro font-bold px-1.5 py-0.2 rounded ${
@@ -207,31 +205,16 @@ export function ReservationChangeDialog({
         <div className="p-3.5 rounded-2xl bg-page border border-border/80 flex items-center justify-between text-label">
           <div className="flex items-center gap-2">
             <Lucide.Receipt size={16} className="text-ink-muted" />
-            <span className="text-ink-secondary font-medium">Estimated Folio Adjustment:</span>
+            <span className="text-ink-secondary font-medium">Change in room charges (before tax):</span>
           </div>
           <span className="font-extrabold font-mono text-ink">
             {priceDifference === 0
               ? 'No Price Change (₹0.00)'
               : priceDifference > 0
-              ? `Additional ₹${priceDifference.toLocaleString('en-IN')}.00 due`
-              : `Refund / Credit of ₹${Math.abs(priceDifference).toLocaleString('en-IN')}.00`}
+              ? `Additional ₹${priceDifference.toLocaleString('en-IN')}.00 more`
+              : `₹${Math.abs(priceDifference).toLocaleString('en-IN')}.00 less`}
           </span>
         </div>
-
-        {/* Simulated Notification Toggle */}
-        <label className="flex items-start gap-2.5 text-label text-ink cursor-pointer select-none">
-          <Checkbox
-            type="checkbox"
-            checked={notifyGuest}
-            onChange={(e) => setNotifyGuest(e.target.checked)}
-          />
-          <div>
-            <span className="font-bold text-ink block">Queue simulated guest notification</span>
-            <span className="text-label text-ink-secondary">
-              Mock notification email & SMS with updated confirmation slip dispatched to {reservation.guestPhone}
-            </span>
-          </div>
-        </label>
 
         {/* Action Buttons */}
         <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-divider">
@@ -246,7 +229,7 @@ export function ReservationChangeDialog({
           
           <Button variant="primary"
             type="button"
-            onClick={() => onConfirm(notifyGuest)}
+            onClick={() => onConfirm()}
             disabled={isSaving}
             className="flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
           >

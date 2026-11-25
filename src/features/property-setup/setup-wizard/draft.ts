@@ -1,5 +1,5 @@
 import { evenRoomsPerFloor } from '../../../utils/floorPlan';
-import { statesOf } from './locations';
+import { statesOf } from '../../../utils/locations';
 
 export const MAX_ROOMS = 5000;
 export const MAX_CODE_LENGTH = 8;

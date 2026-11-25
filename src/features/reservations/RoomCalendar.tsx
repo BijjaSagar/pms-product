@@ -2,7 +2,6 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import * as Lucide from 'lucide-react';
 import { toast } from '../../utils/toast';
 import type { NavTarget } from '../../config/navigation';
-import { store } from '../../data/store';
 import { IconButton } from '../../components/ui/primitives';
 import type { CalendarReservation, CalendarRoom, DragState, ProposedReservationChange, ReservationStatus as CalendarReservationStatus } from './room-calendar/types';
 import {
@@ -18,6 +17,7 @@ import { UNASSIGNED_TYPE_NAME } from '../../data/store';
 import { validateReservationMove } from './room-calendar/validation';
 import { ReservationChangeDialog } from './room-calendar/ReservationChangeDialog';
 import type { ReservationFilters } from './reservationFilters';
+import { forgetSavedBooking, peekSavedBooking } from './savedBooking';
 import { matchesStatusFilter } from './reservationStatusFilters';
 import { stayOverlapsRange } from './reservationDateRange';
 import { CellActionMenu, type CellAction } from './room-calendar/CellActionMenu';
@@ -26,10 +26,11 @@ import { DistributionStatusPopover } from './room-calendar/DistributionStatusPop
 import { DayLogButton } from './day-log/DayLogButton';
 import { DayNoteModal } from './day-log/DayNoteModal';
 import { DayEnquiriesModal } from './day-log/DayEnquiriesModal';
-import { dayLogApi, reservationApi, type DayLogSummaryRow } from '../../lib/api/pms';
+import { dayLogApi, holidayApi, reservationApi, roomHoldApi, type DayLogSummaryRow, type ReservationRow, type RoomHoldRow } from '../../lib/api/pms';
 
 // ================= ROOM CALENDAR: 10-DAY VIEW =================
 const DAYS_IN_VIEW = 10;
+const PAGE_SIZE = 200; // the most the server returns at once
 const ROOM_COL_WIDTH = 108; // sticky room column
 const MIN_DAY_WIDTH = 84; // below this width the view scrolls sideways instead of shrinking
 const AVAIL_ROW_HEIGHT = 32;
@@ -37,7 +38,6 @@ const ROW_HEIGHT = 56; // drag maths uses this to map vertical movement to rooms
 const BAR_INSET = 3; // gap between a booking bar and the day lines it spans
 
 type DragType = 'move' | 'resize-start' | 'resize-end';
-type CellMark = { roomId: string; date: string; kind: CellHoldKind; note: string };
 
 const RESERVATION_BAR_TONES: Record<
   CalendarReservationStatus,
@@ -120,12 +120,16 @@ function isRoomBookedOn(room: CalendarRoom, dateStr: string, reservations: Calen
   );
 }
 
-/** Sellable rooms per night for a set of rooms; out-of-order rooms are left out of the count. */
-function nightlyAvailability(roomList: CalendarRoom[], days: string[], reservations: CalendarReservation[]) {
+function findHold(holds: RoomHoldRow[], room: CalendarRoom, dateStr: string): RoomHoldRow | undefined {
+  return holds.find((hold) => hold.roomNumber === room.number && hold.date === dateStr);
+}
+
+/** Free rooms per night: booked, held and blocked rooms are not free, out-of-order rooms are not counted at all. */
+function nightlyAvailability(roomList: CalendarRoom[], days: string[], reservations: CalendarReservation[], holds: RoomHoldRow[]) {
   const sellable = roomList.filter((r) => r.bookable && r.status !== 'Out-of-Order');
   return days.map((dateStr) => ({
     dateStr,
-    free: sellable.filter((r) => !isRoomBookedOn(r, dateStr, reservations)).length,
+    free: sellable.filter((r) => !isRoomBookedOn(r, dateStr, reservations) && !findHold(holds, r, dateStr)).length,
     total: sellable.length,
   }));
 }
@@ -206,6 +210,7 @@ function ReservationBar({
     <div
       role="button"
       tabIndex={0}
+      data-reservation={res.backendId}
       onPointerDown={(e) => onPointerDown(e, 'move')}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -259,7 +264,13 @@ export function RoomCalendar({
   // the arrows move it by a full window. Changing the range resets the window to its start.
   const today = todayIso();
   const windowAnchor = filters.from || today;
-  const [startOffset, setStartOffset] = useState(0);
+  // A booking just saved is brought into view: first by its dates, then by scrolling once it has loaded
+  const [savedBooking] = useState(peekSavedBooking);
+  const [startOffset, setStartOffset] = useState(() => {
+    if (!savedBooking) return 0;
+    const daysAhead = Math.round((Date.parse(savedBooking.checkIn) - Date.parse(windowAnchor)) / 86_400_000);
+    return daysAhead >= 0 && daysAhead < DAYS_IN_VIEW ? 0 : daysAhead;
+  });
   const [anchorSeen, setAnchorSeen] = useState(windowAnchor);
   if (anchorSeen !== windowAnchor) {
     setAnchorSeen(windowAnchor);
@@ -270,23 +281,80 @@ export function RoomCalendar({
     [windowAnchor, startOffset]
   );
   const firstDay = days[0];
+  // The month or months the visible days fall in, shown between the arrows
+  const from = formatCalendarDate(firstDay);
+  const to = formatCalendarDate(days[DAYS_IN_VIEW - 1]);
+  const monthLabel =
+    from.year !== to.year
+      ? `${from.monthName} ${from.year} – ${to.monthName} ${to.year}`
+      : `${from.month === to.month ? from.monthName : `${from.monthName} – ${to.monthName}`} ${to.year}`;
   const horizonEnd = addDaysToIso(days[DAYS_IN_VIEW - 1], 1);
 
   // Master data synchronized with the central PMS store
   const [rooms] = useState<CalendarRoom[]>(loadCalendarRooms);
   const [reservations, setReservations] = useState<CalendarReservation[]>([]);
+  const [reservationsVersion, setReservationsVersion] = useState(0);
+  // Only the stays touching the visible days are loaded, every page of them.
   useEffect(() => {
     let active = true;
-    reservationApi
-      .list('', undefined, 1, 200)
-      .then((result) => {
-        if (active) setReservations(toCalendarReservations(result.data, rooms));
-      })
-      .catch(() => toast.error('Could not load reservations'));
+    const load = async () => {
+      const range = { checkInTo: addDaysToIso(horizonEnd, -1), checkOutFrom: addDaysToIso(firstDay, 1) };
+      const rows: ReservationRow[] = [];
+      for (let page = 1; ; page += 1) {
+        const result = await reservationApi.list('', undefined, page, PAGE_SIZE, range);
+        rows.push(...result.data);
+        if (!result.hasMore) break;
+      }
+      if (active) setReservations(toCalendarReservations(rows, rooms));
+    };
+    load().catch(() => toast.error('Could not load reservations'));
     return () => {
       active = false;
     };
-  }, [rooms]);
+  }, [rooms, firstDay, horizonEnd, reservationsVersion]);
+
+  useEffect(() => {
+    if (!savedBooking) return;
+    const bar = gridContainerRef.current?.querySelector(`[data-reservation="${CSS.escape(savedBooking.id)}"]`);
+    if (!bar) return;
+    // Scrolls the grid and the page: the row can be below either one's visible area
+    bar.scrollIntoView({ block: 'center', inline: 'center' });
+    forgetSavedBooking();
+  }, [savedBooking, reservations]);
+
+  // Held and blocked room-nights for the visible days
+  const [holds, setHolds] = useState<RoomHoldRow[]>([]);
+  const [holdsVersion, setHoldsVersion] = useState(0);
+  useEffect(() => {
+    let active = true;
+    roomHoldApi
+      .list(firstDay, addDaysToIso(horizonEnd, -1))
+      .then((rows) => {
+        if (active) setHolds(rows);
+      })
+      .catch(() => toast.error('Could not load held and blocked rooms'));
+    return () => {
+      active = false;
+    };
+  }, [firstDay, horizonEnd, holdsVersion]);
+
+  // Public holidays of the property's country for the visible days
+  const [holidays, setHolidays] = useState<Record<string, string[]>>({});
+  useEffect(() => {
+    let active = true;
+    holidayApi
+      .list(firstDay, addDaysToIso(horizonEnd, -1))
+      .then((rows) => {
+        if (!active) return;
+        const byDate: Record<string, string[]> = {};
+        for (const row of rows) (byDate[row.date] ??= []).push(row.name);
+        setHolidays(byDate);
+      })
+      .catch(() => toast.error('Could not load holidays'));
+    return () => {
+      active = false;
+    };
+  }, [firstDay, horizonEnd]);
 
   // Day notes and enquiries: summary drives the header icons, the date opens the day log
   const [dayLog, setDayLog] = useState<Record<string, DayLogSummaryRow>>({});
@@ -373,7 +441,7 @@ export function RoomCalendar({
     [filteredRooms, collapsedTypes]
   );
 
-  const availability = useMemo(() => nightlyAvailability(rooms, days, reservations), [days, rooms, reservations]);
+  const availability = useMemo(() => nightlyAvailability(rooms, days, reservations, holds), [days, rooms, reservations, holds]);
 
   // Each category's AVL counts all of its rooms, like the Total line counts all rooms
   const categoryAvailability = useMemo(
@@ -381,19 +449,18 @@ export function RoomCalendar({
       new Map(
         [...typeOrder.keys()].map((type) => [
           type,
-          nightlyAvailability(rooms.filter((r) => r.type === type), days, reservations),
+          nightlyAvailability(rooms.filter((r) => r.type === type), days, reservations, holds),
         ])
       ),
-    [days, rooms, reservations, typeOrder]
+    [days, rooms, reservations, holds, typeOrder]
   );
 
-  // Free cell the user clicked, waiting for Book / Hold / Block; holds and blocks placed this session
+  // Cell the user clicked, waiting for an action
   const [cellAction, setCellAction] = useState<{ room: CalendarRoom; date: string; anchor: DOMRect; step: 'menu' | CellHoldKind } | null>(null);
-  const [cellMarks, setCellMarks] = useState<CellMark[]>([]);
 
   /**
-   * Clicking a free day cell offers Book, Hold or Block. Book opens a new reservation
-   * pre-filled with that room and night (check-out defaults to the next day).
+   * Clicking a free day cell offers Book, Hold or Block; a held or blocked cell offers Release or Unblock.
+   * Book opens a new reservation pre-filled with that room and night (check-out defaults to the next day).
    */
   const handleNewReservation = (room: CalendarRoom, checkIn: string, anchor: DOMRect) => {
     const covered = reservations.some(
@@ -405,6 +472,12 @@ export function RoomCalendar({
         checkIn < res.checkOutDate
     );
     if (covered) return;
+
+    // A held or blocked night can always be freed, even if the room has since gone out of order
+    if (findHold(holds, room, checkIn)) {
+      setCellAction({ room, date: checkIn, anchor, step: 'menu' });
+      return;
+    }
 
     if (!room.bookable) {
       toast.info('Room not bookable', {
@@ -420,8 +493,6 @@ export function RoomCalendar({
       toast.info('Room unavailable', { detail: `Room ${room.number} is out of order and cannot be booked.` });
       return;
     }
-
-    if (cellMarks.some((m) => m.roomId === room.id && m.date === checkIn)) return;
 
     setCellAction({ room, date: checkIn, anchor, step: 'menu' });
   };
@@ -441,11 +512,36 @@ export function RoomCalendar({
     toast.success('New reservation started', { detail: `Room ${room.number} · ${checkIn} → ${checkOut}` });
   };
 
-  const markCell = (room: CalendarRoom, date: string, kind: CellHoldKind, note: string) => {
-    setCellMarks((prev) => [...prev, { roomId: room.id, date, kind, note }]);
+  // The calendar reloads after every change, refused ones too, so it shows what the server holds.
+  const saveHold = async (change: () => Promise<unknown>, done: string, failed: string, detail: string) => {
     setCellAction(null);
-    toast.success(kind === 'Hold' ? 'Room held' : 'Room blocked', { detail: `Room ${room.number} · ${date}` });
+    try {
+      await change();
+      toast.success(done, { detail });
+    } catch (error) {
+      toast.error(failed, { detail: error instanceof Error ? error.message : 'The server refused the change.' });
+    } finally {
+      setHoldsVersion((v) => v + 1);
+    }
   };
+
+  const markCell = (room: CalendarRoom, date: string, kind: CellHoldKind, note: string) =>
+    saveHold(
+      () => roomHoldApi.create({ roomNumber: room.number, date, kind: kind === 'Hold' ? 'HOLD' : 'BLOCK', note }),
+      kind === 'Hold' ? 'Room held' : 'Room blocked',
+      kind === 'Hold' ? 'Room not held' : 'Room not blocked',
+      `Room ${room.number} · ${date}`
+    );
+
+  const clearMark = (room: CalendarRoom, date: string, action: 'Release' | 'Unblock') =>
+    saveHold(
+      () => roomHoldApi.remove(room.number, date),
+      action === 'Release' ? 'Room released' : 'Room unblocked',
+      action === 'Release' ? 'Room not released' : 'Room not unblocked',
+      `Room ${room.number} · ${date}`
+    );
+
+  const menuMark = cellAction && findHold(holds, cellAction.room, cellAction.date);
 
   // Opening a booking edits it on the New Reservation screen
   const openReservation = useCallback(
@@ -535,6 +631,7 @@ export function RoomCalendar({
         proposedCheckIn,
         proposedCheckOut,
         allReservations: reservations,
+        holds,
       });
 
       setDragState((prev) =>
@@ -587,6 +684,7 @@ export function RoomCalendar({
           proposedCheckIn: dragState.proposedCheckIn,
           proposedCheckOut: dragState.proposedCheckOut,
           allReservations: reservations,
+          holds,
         });
 
         if (!valResult.isValid) {
@@ -632,57 +730,67 @@ export function RoomCalendar({
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
-  }, [dragState, reservations, visibleRooms, rooms, dayWidth, openReservation]);
+  }, [dragState, reservations, holds, visibleRooms, rooms, dayWidth, openReservation]);
 
-  // Apply the confirmed change and sync it back to the PMS store
-  const handleConfirmChange = async (notifyGuest: boolean) => {
+  // Save the confirmed change, then reload so the calendar shows what the server holds
+  const handleConfirmChange = async () => {
     if (!pendingChange) return;
-
-    setIsSavingChange(true);
-    await new Promise((resolve) => setTimeout(resolve, 350));
-
-    const { reservation, proposedRoom, proposedCheckIn, proposedCheckOut, proposedNights, proposedTotal } =
+    const { reservation, originalRoom, proposedRoom, originalCheckIn, originalCheckOut, proposedCheckIn, proposedCheckOut } =
       pendingChange;
     const backendId = reservation.backendId ?? reservation.id;
-
-    try {
-      store.updateReservation(backendId, {
-        roomId: proposedRoom.id,
-        roomNumber: proposedRoom.number,
-        checkInDate: proposedCheckIn,
-        checkOutDate: proposedCheckOut,
-        nights: proposedNights,
-        totalAmount: String(proposedTotal),
-      });
-      store.assignRoom(backendId, proposedRoom.id, reservation.roomLineId);
-    } catch {
-      // In-memory store only; the local state below still updates the view
+    const roomChanged = originalRoom.id !== proposedRoom.id;
+    const datesChanged = originalCheckIn !== proposedCheckIn || originalCheckOut !== proposedCheckOut;
+    const { roomLineId } = reservation;
+    if (roomChanged && !roomLineId) {
+      toast.error('Cannot Reallocate', { detail: 'This booking has no room line to move.' });
+      setPendingChange(null);
+      return;
     }
 
-    setReservations((prev) =>
-      prev.map((r) =>
-        r.backendId === backendId
-          ? {
-            ...r,
-            ...(r.id === reservation.id
-              ? { roomId: proposedRoom.id, roomNumber: proposedRoom.number, roomType: proposedRoom.type }
-              : {}),
-            checkInDate: proposedCheckIn,
-            checkOutDate: proposedCheckOut,
-            nights: proposedNights,
-            totalAmount: proposedNights * r.nightlyRate,
-          }
-          : r
-      )
+    let version = reservation.version;
+    const saveDates = async () => {
+      const saved = await reservationApi.update(backendId, {
+        checkInDate: proposedCheckIn,
+        checkOutDate: proposedCheckOut,
+        version,
+      });
+      version = saved.version;
+    };
+    const saveRoom = async () => {
+      const saved = await reservationApi.assignRoom(backendId, proposedRoom.number, roomLineId!, version);
+      version = saved.version;
+    };
+    const steps = [...(datesChanged ? [saveDates] : []), ...(roomChanged ? [saveRoom] : [])];
+    // Dates and room are two saves. When the current room is taken on the new dates, move room first.
+    const currentRoomTaken = reservations.some(
+      (other) =>
+        other.backendId !== backendId &&
+        other.roomId === originalRoom.id &&
+        other.status !== 'No-show' &&
+        other.checkInDate < proposedCheckOut &&
+        proposedCheckIn < other.checkOutDate
     );
+    if (currentRoomTaken) steps.reverse();
 
-    setIsSavingChange(false);
-    setPendingChange(null);
-    onReservationUpdated?.();
-
-    toast.success('Reservation Updated & Synced', {
-      detail: `${reservation.guestName} reassigned to Room ${proposedRoom.number} (${proposedCheckIn} → ${proposedCheckOut}). ${notifyGuest ? 'Simulated guest email & SMS queued.' : ''}`,
-    });
+    setIsSavingChange(true);
+    let saved = 0;
+    try {
+      for (const step of steps) {
+        await step();
+        saved += 1;
+      }
+      toast.success('Reservation updated', {
+        detail: `${reservation.guestName}: Room ${proposedRoom.number} (${proposedCheckIn} → ${proposedCheckOut}).`,
+      });
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'The server refused the change.';
+      toast.error(saved ? 'Only part of the change was saved' : 'Change not saved', { detail: reason });
+    } finally {
+      setIsSavingChange(false);
+      setPendingChange(null);
+      setReservationsVersion((v) => v + 1);
+      if (saved) onReservationUpdated?.();
+    }
   };
 
   const ghost = dragState?.isDragging
@@ -692,7 +800,7 @@ export function RoomCalendar({
   return (
     <div className="flex w-full flex-col gap-4 font-sans text-ink select-none">
       <section className="pms-card overflow-hidden" aria-label="Room reservation timeline">
-        {/* Toolbar: window navigation, arrows at the left and right extremes */}
+        {/* Toolbar: the visible month, with the window navigation arrows at the left and right extremes */}
         <div className="flex items-center justify-between border-b border-divider px-3 py-2 sm:px-4">
           <IconButton
             variant="ghost"
@@ -703,6 +811,9 @@ export function RoomCalendar({
           >
             <Lucide.ChevronLeft size={16} />
           </IconButton>
+          <h2 className="text-center text-title font-semibold text-ink" aria-live="polite">
+            {monthLabel}
+          </h2>
           <IconButton
             variant="ghost"
             type="button"
@@ -727,7 +838,7 @@ export function RoomCalendar({
                   <span className="truncate">Holidays</span>
                 </div>
                 {days.map((dateStr) => {
-                  const events = dayLog[dateStr]?.events ?? [];
+                  const events = holidays[dateStr] ?? [];
                   const label = events.join(', ');
                   return (
                     <div
@@ -920,29 +1031,38 @@ export function RoomCalendar({
                         const isToday = dateStr === today;
                         const info = formatCalendarDate(dateStr);
                         const isBooked = isRoomBookedOn(room, dateStr, reservations);
-                        const mark = cellMarks.find((m) => m.roomId === room.id && m.date === dateStr);
+                        const mark = findHold(holds, room, dateStr);
                         const canCreate = !isBooked && !isOOO && !mark;
+                        const markAction = mark && !isBooked ? (mark.kind === 'HOLD' ? 'Release' : 'Unblock') : null;
+                        const clickable = canCreate || markAction !== null;
+                        const markLabel = mark?.kind === 'HOLD' ? 'Hold' : 'Block';
                         return (
                           <div
                             key={dateStr}
-                            role={canCreate ? 'button' : undefined}
-                            tabIndex={canCreate ? 0 : undefined}
-                            aria-label={canCreate ? `New reservation for room ${room.number} on ${dateStr}` : undefined}
+                            role={clickable ? 'button' : undefined}
+                            tabIndex={clickable ? 0 : undefined}
+                            aria-label={
+                              canCreate
+                                ? `New reservation for room ${room.number} on ${dateStr}`
+                                : markAction
+                                  ? `${markAction} room ${room.number} on ${dateStr}`
+                                  : undefined
+                            }
                             title={
                               canCreate
                                 ? `Book, hold or block · Room ${room.number} · ${dateStr}`
                                 : mark
-                                  ? `${mark.kind}: ${mark.note}`
+                                  ? `${markLabel}${mark.note ? `: ${mark.note}` : ''}${markAction ? ` · select to ${markAction.toLowerCase()}` : ''}`
                                   : undefined
                             }
                             onClick={(e) => handleNewReservation(room, dateStr, e.currentTarget.getBoundingClientRect())}
                             onKeyDown={(e) => {
-                              if ((e.key === 'Enter' || e.key === ' ') && canCreate) {
+                              if ((e.key === 'Enter' || e.key === ' ') && clickable) {
                                 e.preventDefault();
                                 handleNewReservation(room, dateStr, e.currentTarget.getBoundingClientRect());
                               }
                             }}
-                            className={`group relative flex h-full shrink-0 items-center justify-center border-r border-border ${canCreate ? 'cursor-pointer' : ''}`}
+                            className={`group relative flex h-full shrink-0 items-center justify-center border-r border-border ${clickable ? 'cursor-pointer' : ''}`}
                             style={{
                               width: `${dayWidth}px`,
                               background: isOOO
@@ -956,9 +1076,9 @@ export function RoomCalendar({
                           >
                             {mark && (
                               <span
-                                className={`pointer-events-none max-w-full truncate rounded-md px-1.5 py-0.5 text-micro font-bold ${mark.kind === 'Hold' ? 'bg-warning-bg text-warning-text' : 'bg-danger-bg text-danger-text'}`}
+                                className={`pointer-events-none max-w-full truncate rounded-md px-1.5 py-0.5 text-micro font-bold ${mark.kind === 'HOLD' ? 'bg-warning-bg text-warning-text' : 'bg-danger-bg text-danger-text'}`}
                               >
-                                {mark.kind}
+                                {markLabel}
                               </span>
                             )}
                             {canCreate && (
@@ -1051,12 +1171,13 @@ export function RoomCalendar({
       {cellAction?.step === 'menu' && (
         <CellActionMenu
           anchor={cellAction.anchor}
+          actions={menuMark ? [menuMark.kind === 'HOLD' ? 'Release' : 'Unblock'] : ['Book', 'Hold', 'Block']}
           onClose={() => setCellAction(null)}
-          onSelect={(action: CellAction) =>
-            action === 'Book'
-              ? startBooking(cellAction.room, cellAction.date)
-              : setCellAction({ ...cellAction, step: action })
-          }
+          onSelect={(action: CellAction) => {
+            if (action === 'Book') startBooking(cellAction.room, cellAction.date);
+            else if (action === 'Release' || action === 'Unblock') clearMark(cellAction.room, cellAction.date, action);
+            else setCellAction({ ...cellAction, step: action });
+          }}
         />
       )}
       {cellAction && cellAction.step !== 'menu' && (

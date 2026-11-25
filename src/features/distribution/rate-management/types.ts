@@ -1,10 +1,16 @@
-export type RateTabId =
-  | 'calendar'
+export type RateSectionId = 'bar' | 'packages' | 'planner' | 'restrictions' | 'deals' | 'activity';
+
+/** One screen inside a section; a section with several switches between them with tabs. */
+export type RateViewId =
+  | 'bar'
+  | 'yearly'
+  | 'packages'
   | 'plans'
   | 'seasonality'
   | 'restrictions'
   | 'mapping'
   | 'bulk'
+  | 'deals'
   | 'history';
 
 type RatePlanStatus = 'Active' | 'Inactive' | 'Scheduled';
@@ -12,6 +18,8 @@ type SeasonStatus = 'Active' | 'Scheduled' | 'Expired';
 
 export interface RatePlan {
   id: string;
+  /** Hex value picked by the user to tell plans apart. */
+  color: string;
   code: string;
   name: string;
   roomTypes: string[];
@@ -67,3 +75,10 @@ export interface BulkUpdatePayload {
   minStay: number | null;
   weekendsOnly: boolean;
 }
+
+export type SalesChannel = 'Direct' | 'OTA' | 'Agent' | 'BookingEngine' | 'Meta' | 'OTA-B2B';
+export type MealPlanCode = 'EP' | 'CP';
+export type Occupancy = 'Single' | 'Double' | 'Extra Person' | 'Extra Child';
+
+/** Rates changed from their defaults, keyed by channel, category, meal plan, occupancy and day. */
+export type RateGrid = Record<string, number>;

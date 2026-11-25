@@ -379,9 +379,34 @@ export interface DayEnquiryRow {
 export interface DayLogSummaryRow {
   hasNote: boolean;
   enquiryCount: number;
-  /** Holiday and event names falling on the date. */
-  events: string[];
 }
+
+export interface HolidayRow { date: string; name: string }
+
+/** Holidays of the active property's country, from `from` to `to` inclusive. */
+export const holidayApi = {
+  list: async (from: string, to: string) =>
+    apiRequest<HolidayRow[]>(`/${requireActivePropertyId()}/holidays${queryString({ from, to })}`),
+};
+
+/** One night of one room taken off sale without a booking. */
+export interface RoomHoldRow {
+  roomNumber: string;
+  /** YYYY-MM-DD */
+  date: string;
+  kind: 'HOLD' | 'BLOCK';
+  note: string;
+}
+
+export const roomHoldApi = {
+  list: async (from: string, to: string) =>
+    apiRequest<RoomHoldRow[]>(`/${requireActivePropertyId()}/room-holds${queryString({ from, to })}`),
+  create: async (body: RoomHoldRow) =>
+    apiRequest<RoomHoldRow>(`/${requireActivePropertyId()}/room-holds`, { method: 'POST', body }),
+  /** Releases a hold or unblocks a room. */
+  remove: async (roomNumber: string, date: string) =>
+    apiRequest<void>(`/${requireActivePropertyId()}/room-holds${queryString({ roomNumber, date })}`, { method: 'DELETE' }),
+};
 
 /** Per-date notes and enquiries shown in the room calendar's date header. */
 export const dayLogApi = {

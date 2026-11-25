@@ -5,6 +5,30 @@ import { FIELD, LABEL } from './brandStyles';
 
 /** Most matches drawn at once; a list of thousands of cities stays quick, and typing narrows it. */
 const MAX_SHOWN = 100;
+/** Tallest the list of a combobox gets, in pixels. */
+const LIST_HEIGHT = 240;
+
+/**
+ * Which way a list opens from a field, and how tall it may be, so it stays inside what is visible:
+ * the window and any scrolling or clipping box around the field. Nothing has to scroll to show it.
+ */
+function placeList(field: HTMLElement, footerHeight: number): { up: boolean; height: number } {
+  let top = 0;
+  let bottom = window.innerHeight;
+  for (let box = field.parentElement; box && box !== document.body; box = box.parentElement) {
+    if (getComputedStyle(box).overflowY === 'visible') continue;
+    const rect = box.getBoundingClientRect();
+    top = Math.max(top, rect.top);
+    bottom = Math.min(bottom, rect.bottom);
+  }
+  const rect = field.getBoundingClientRect();
+  // The gap beside the field and the borders of the list.
+  const extra = footerHeight + 8;
+  const below = bottom - rect.bottom - extra;
+  const above = rect.top - top - extra;
+  const up = below < LIST_HEIGHT && above > below;
+  return { up, height: Math.max(96, Math.min(LIST_HEIGHT, up ? above : below)) };
+}
 
 /** A labelled form field with an optional hint and an inline error. */
 export function BrandField({
@@ -118,6 +142,7 @@ export function BrandCombobox({
   const listId = useId();
   const root = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const [place, setPlace] = useState({ up: false, height: LIST_HEIGHT });
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
@@ -145,11 +170,16 @@ export function BrandCombobox({
     close();
   };
 
+  const show = () => {
+    if (root.current) setPlace(placeList(root.current, options.length > MAX_SHOWN ? 52 : 0));
+    setOpen(true);
+  };
+
   // Opening starts on the current choice; typing starts again from the best match.
   const openList = () => {
     if (disabled || open) return;
     setActive(Math.max(0, options.slice(0, MAX_SHOWN).indexOf(value)));
-    setOpen(true);
+    show();
   };
 
   useEffect(() => {
@@ -164,8 +194,15 @@ export function BrandCombobox({
     return () => document.removeEventListener('mousedown', onDown);
   }, [open]);
 
+  // Only the list scrolls to the highlighted option; scrollIntoView would move the dialog or page too.
   useEffect(() => {
-    if (open) listRef.current?.children[active]?.scrollIntoView({ block: 'nearest' });
+    const list = listRef.current;
+    const item = list?.children[active] as HTMLElement | undefined;
+    if (!open || !list || !item) return;
+    if (item.offsetTop < list.scrollTop) list.scrollTop = item.offsetTop;
+    else if (item.offsetTop + item.offsetHeight > list.scrollTop + list.clientHeight) {
+      list.scrollTop = item.offsetTop + item.offsetHeight - list.clientHeight;
+    }
   }, [open, active]);
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -211,7 +248,7 @@ export function BrandCombobox({
         onChange={(e) => {
           setQuery(e.target.value);
           setActive(0);
-          if (!open) setOpen(true);
+          if (!open) show();
         }}
         onKeyDown={onKeyDown}
         className={`${FIELD} cursor-pointer pr-9 ${invalid ? '!border-danger-text' : ''} ${open && value ? 'placeholder:text-ink' : ''}`}
@@ -225,9 +262,9 @@ export function BrandCombobox({
         // Pressing inside the list must not take focus from the input.
         <div
           onMouseDown={(e) => e.preventDefault()}
-          className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-xl border border-border bg-elevated shadow-lg"
+          className={`absolute left-0 right-0 z-30 ${place.up ? 'bottom-full mb-1' : 'top-full mt-1'} overflow-hidden rounded-xl border border-border bg-elevated shadow-lg`}
         >
-          <ul ref={listRef} id={listId} role="listbox" className="max-h-60 overflow-y-auto py-1">
+          <ul ref={listRef} id={listId} role="listbox" className="relative overflow-y-auto py-1" style={{ maxHeight: place.height }}>
             {shown.map((option, i) => (
               <li
                 key={option}

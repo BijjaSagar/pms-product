@@ -4,7 +4,7 @@ import type { ICountry, IState } from 'country-state-city';
 
 /**
  * Every country, its states and cities, and the currency each country uses. Countries and states are
- * small and load with the wizard; the city list is large (about 8 MB), so it is fetched only when a
+ * small and load with the screen that uses them; the city list is large (about 8 MB), so it is fetched only when a
  * state is chosen.
  */
 
