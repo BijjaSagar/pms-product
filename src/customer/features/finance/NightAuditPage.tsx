@@ -1,0 +1,1062 @@
+import { Button } from '../../../shared/components/ui/primitives';
+import { useState } from 'react';
+import * as Lucide from 'lucide-react';
+import type { NavTarget } from '../../../shared/config/navigation';
+import { toast } from '../../../shared/utils/toast';
+import { Modal } from '../../../shared/components/ui/overlays';
+
+interface NightAuditProps {
+  go?: (t: NavTarget) => void;
+}
+
+export function NightAudit({ go }: NightAuditProps) {
+  // Modal states
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [auditStep, setAuditStep] = useState<1 | 2 | 3 | 4>(1);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [logsModalOpen, setLogsModalOpen] = useState(false);
+  const [openFoliosModalOpen, setOpenFoliosModalOpen] = useState(false);
+  const [pendingPaymentsModalOpen, setPendingPaymentsModalOpen] = useState(false);
+  const [unpostedChargesModalOpen, setUnpostedChargesModalOpen] = useState(false);
+  const [auditCompleted, setAuditCompleted] = useState(false);
+
+  // Business date
+  const [currentBusinessDate, setCurrentBusinessDate] = useState('Tuesday, Oct 14, 2026');
+
+  // Simulated audit run
+  const handleStartAudit = () => {
+    setAuditStep(1);
+    setAuditCompleted(false);
+    setWizardOpen(true);
+  };
+
+  const handleNextStep = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      if (auditStep === 1) {
+        setAuditStep(2);
+        toast('Pre-audit checks verified successfully', { tone: 'info' });
+      } else if (auditStep === 2) {
+        setAuditStep(3);
+        toast('Room & service charges posted to 68 rooms', { tone: 'success' });
+      } else if (auditStep === 3) {
+        setAuditStep(4);
+        toast('Ledgers & balances settled', { tone: 'info' });
+      } else if (auditStep === 4) {
+        setAuditCompleted(true);
+        setCurrentBusinessDate('Wednesday, Oct 15, 2026');
+        toast('Night Audit Complete! Rolled over to Oct 15, 2026', { tone: 'success' });
+      }
+    }, 700);
+  };
+
+  return (
+    <div className="pms-page">
+      {/* ================= 1. HEADER SECTION ================= */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20 mt-0.5">
+            <Lucide.Moon size={20} strokeWidth={2.4} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-disp3 font-bold tracking-tight text-ink leading-tight">
+                Night Audit
+              </h1>
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
+                </span>
+                Operations Active
+              </span>
+            </div>
+            <p className="text-label text-ink-secondary mt-1 font-normal">
+              Close the day, post room charges, settle accounts and roll over to the next day.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button variant="secondary"
+            type="button"
+            onClick={() => setLogsModalOpen(true)}
+            className="flex items-center gap-2 border-border bg-surface text-ink"
+          >
+            <Lucide.ScrollText size={15} className="text-ink-muted" />
+            <span>Audit Logs</span>
+          </Button>
+
+          <Button variant="secondary"
+            type="button"
+            onClick={() => go?.({ view: 'reports' })}
+            className="flex items-center gap-2 border-border bg-surface text-ink"
+          >
+            <span>View Reports</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* ================= 2. 4-STEP WIZARD / PROGRESS BAR ================= */}
+      <div
+        className="rounded-2xl border p-4 sm:p-5 shadow-2xs transition-all bg-surface border-border"
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+          {/* Step 1 */}
+          <div className="flex items-center gap-3">
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-body flex-none text-white shadow-xs bg-primary"
+            >
+              1
+            </div>
+            <div>
+              <p className="text-body font-bold text-ink">Pre-Audit Checks</p>
+              <p className="text-label text-ink-secondary">Review status &amp; resolve issues</p>
+            </div>
+          </div>
+
+          {/* Step 2 */}
+          <div className="flex items-center gap-3">
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-body flex-none border-2 text-primary"
+              style={{ borderColor: 'color-mix(in srgb, var(--color-primary) 40%, transparent)', background: 'color-mix(in srgb, var(--color-primary) 6%, transparent)' }}
+            >
+              2
+            </div>
+            <div>
+              <p className="text-body font-bold text-ink">Post Charges</p>
+              <p className="text-label text-ink-secondary">Apply room and service charges</p>
+            </div>
+          </div>
+
+          {/* Step 3 */}
+          <div className="flex items-center gap-3">
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-body flex-none border-2 text-primary"
+              style={{ borderColor: 'color-mix(in srgb, var(--color-primary) 40%, transparent)', background: 'color-mix(in srgb, var(--color-primary) 6%, transparent)' }}
+            >
+              3
+            </div>
+            <div>
+              <p className="text-body font-bold text-ink">Settle &amp; Verify</p>
+              <p className="text-label text-ink-secondary">Check payments and balances</p>
+            </div>
+          </div>
+
+          {/* Step 4 */}
+          <div className="flex items-center gap-3">
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-body flex-none border-2 text-primary"
+              style={{ borderColor: 'color-mix(in srgb, var(--color-primary) 40%, transparent)', background: 'color-mix(in srgb, var(--color-primary) 6%, transparent)' }}
+            >
+              4
+            </div>
+            <div>
+              <p className="text-body font-bold text-ink">Close Day</p>
+              <p className="text-label text-ink-secondary">Lock date and roll over</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= 3. TOP KPI CARDS ROW (5 CARDS) ================= */}
+      {/* The fifth card fills the last row wherever the cards do not sit five across. */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2 [&>*]:min-w-0 [&>*:last-child]:col-span-2 md:[&>*:last-child]:col-span-2 xl:[&>*:last-child]:col-span-1">
+        {/* KPI 1: Occupied Rooms */}
+        <div
+          className="rounded-xl border p-3 shadow-xs flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3 transition-all bg-surface border-border"
+        >
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-none bg-info-bg text-info-text border border-info-border">
+            <Lucide.Bed size={20} strokeWidth={2} />
+          </div>
+          <div>
+            <p className="text-disp2 font-bold text-ink leading-tight">68</p>
+            <p className="text-label font-medium text-ink-secondary">Occupied Rooms</p>
+            <p className="text-label font-normal text-ink-muted">68 / 100 (68%)</p>
+          </div>
+        </div>
+
+        {/* KPI 2: Expected Arrivals */}
+        <div
+          className="rounded-xl border p-3 shadow-xs flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3 transition-all bg-surface border-border"
+        >
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-none bg-primary/10 text-primary border border-primary/30">
+            <Lucide.DoorOpen size={22} strokeWidth={2} />
+          </div>
+          <div>
+            <p className="text-disp2 font-bold text-ink leading-tight">12</p>
+            <p className="text-label font-medium text-ink-secondary">Expected Arrivals</p>
+            <p className="text-label font-bold text-success-text flex items-center gap-0.5">
+              <span>↗</span> 2 walk-ins
+            </p>
+          </div>
+        </div>
+
+        {/* KPI 3: Expected Departures */}
+        <div
+          className="rounded-xl border p-3 shadow-xs flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3 transition-all bg-surface border-border"
+        >
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-none bg-success-bg text-success-text border border-success-border">
+            <Lucide.DoorClosed size={22} strokeWidth={2} />
+          </div>
+          <div>
+            <p className="text-disp2 font-bold text-ink leading-tight">8</p>
+            <p className="text-label font-medium text-ink-secondary">Expected Departures</p>
+            <p className="text-label font-bold text-danger-text flex items-center gap-0.5">
+              <span>↓</span> 1 early check-out
+            </p>
+          </div>
+        </div>
+
+        {/* KPI 4: In-House Guests */}
+        <div
+          className="rounded-xl border p-3 shadow-xs flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3 transition-all bg-surface border-border"
+        >
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-none bg-info-bg text-info-text border border-info-border">
+            <Lucide.Users size={22} strokeWidth={2} />
+          </div>
+          <div>
+            <p className="text-disp2 font-bold text-ink leading-tight">2</p>
+            <p className="text-label font-medium text-ink-secondary">In-House Guests</p>
+            <p className="text-label font-medium text-ink-muted">124 total guests</p>
+          </div>
+        </div>
+
+        {/* KPI 5: Pending Issues */}
+        <div
+          className="rounded-xl border p-3 shadow-xs flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3 transition-all bg-surface border-border"
+        >
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-none bg-danger-bg text-danger-text border border-danger-border">
+            <Lucide.AlertCircle size={22} strokeWidth={2} />
+          </div>
+          <div>
+            <p className="text-disp2 font-bold text-danger-text leading-tight">3</p>
+            <p className="text-label font-bold text-danger-text">Pending Issues</p>
+            <Button variant="link"
+              type="button"
+              onClick={() => setOpenFoliosModalOpen(true)}
+              className="hover:underline cursor-pointer text-primary"
+            >
+              View details →
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= 4. MIDDLE TWO-COLUMN MAIN SECTION ================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* LEFT COLUMN: Pre-Audit Checklist (approx 68% / 8 cols) */}
+        <div
+          className="lg:col-span-8 rounded-2xl border p-4 sm:p-5 shadow-2xs flex flex-col justify-between bg-surface border-border"
+        >
+          <div>
+            {/* Header with red pill */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-danger-text to-warning-border text-white shadow-xs shadow-danger-text/20">
+                  <Lucide.ShieldAlert size={17} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <h2 className="text-title font-bold text-ink tracking-tight">
+                    Pre-Audit Checklist
+                  </h2>
+                  <p className="text-label text-ink-muted mt-0.5">
+                    Please review and resolve all items before proceeding with the audit.
+                  </p>
+                </div>
+              </div>
+
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-micro font-bold bg-danger-bg text-danger-text border border-danger-border/60 flex-none self-start sm:self-auto">
+                <Lucide.AlertCircle size={12} className="text-danger-text" />
+                <span>3 items pending</span>
+              </span>
+            </div>
+
+            {/* Checklist items list */}
+            <div className="flex flex-col divide-y divide-divider ">
+              {/* Item 1: Open Folios */}
+              <div className="py-3.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-danger-bg border border-danger-border text-danger-text flex items-center justify-center flex-none">
+                    <Lucide.AlertCircle size={16} strokeWidth={2.4} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-body font-bold text-ink">Open Folios</p>
+                    <p className="text-label text-ink-secondary truncate">
+                      3 in-house guests have open folios with balance
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 flex-none">
+                  <span className="text-body font-bold text-danger-text">3</span>
+                  <Button variant="link"
+                    type="button"
+                    onClick={() => setOpenFoliosModalOpen(true)}
+                    className="hover:underline flex items-center gap-1 cursor-pointer text-primary"
+                  >
+                    <span>View guests</span>
+                    <Lucide.ArrowRight size={13} />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Item 2: Pending Payments */}
+              <div className="py-3.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-danger-bg border border-danger-border text-danger-text flex items-center justify-center flex-none">
+                    <Lucide.AlertCircle size={16} strokeWidth={2.4} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-body font-bold text-ink">Pending Payments</p>
+                    <p className="text-label text-ink-secondary truncate">
+                      2 bookings with pending payments
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 flex-none">
+                  <span className="text-body font-bold text-danger-text">2</span>
+                  <Button variant="link"
+                    type="button"
+                    onClick={() => setPendingPaymentsModalOpen(true)}
+                    className="hover:underline flex items-center gap-1 cursor-pointer text-primary"
+                  >
+                    <span>View bookings</span>
+                    <Lucide.ArrowRight size={13} />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Item 3: Unposted Charges */}
+              <div className="py-3.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-warning-bg border border-warning-border text-warning-text flex items-center justify-center flex-none">
+                    <Lucide.AlertTriangle size={16} strokeWidth={2.4} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-body font-bold text-ink">Unposted Charges</p>
+                    <p className="text-label text-ink-secondary truncate">
+                      5 manual charges pending to post
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 flex-none">
+                  <span className="text-body font-bold text-warning-text">5</span>
+                  <Button variant="link"
+                    type="button"
+                    onClick={() => setUnpostedChargesModalOpen(true)}
+                    className="hover:underline flex items-center gap-1 cursor-pointer text-primary"
+                  >
+                    <span>Review charges</span>
+                    <Lucide.ArrowRight size={13} />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Item 4: Room Status Updated */}
+              <div className="py-3.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-success-bg border border-success-border text-success-text flex items-center justify-center flex-none">
+                    <Lucide.CheckCircle2 size={16} strokeWidth={2.4} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-body font-bold text-ink">Room Status Updated</p>
+                    <p className="text-label text-ink-secondary truncate">
+                      All room statuses are up to date
+                    </p>
+                  </div>
+                </div>
+
+                <span className="px-3 py-1 rounded-full text-label font-bold bg-success-bg text-success-text border border-success-border">
+                  Completed
+                </span>
+              </div>
+
+              {/* Item 5: No Pending Check-outs */}
+              <div className="py-3.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-success-bg border border-success-border text-success-text flex items-center justify-center flex-none">
+                    <Lucide.CheckCircle2 size={16} strokeWidth={2.4} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-body font-bold text-ink">No Pending Check-outs</p>
+                    <p className="text-label text-ink-secondary truncate">
+                      All due check-outs processed
+                    </p>
+                  </div>
+                </div>
+
+                <span className="px-3 py-1 rounded-full text-label font-bold bg-success-bg text-success-text border border-success-border">
+                  Completed
+                </span>
+              </div>
+
+              {/* Item 6: Housekeeping Status */}
+              <div className="py-3.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-success-bg border border-success-border text-success-text flex items-center justify-center flex-none">
+                    <Lucide.CheckCircle2 size={16} strokeWidth={2.4} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-body font-bold text-ink">Housekeeping Status</p>
+                    <p className="text-label text-ink-secondary truncate">
+                      Room status and housekeeping sync complete
+                    </p>
+                  </div>
+                </div>
+
+                <span className="px-3 py-1 rounded-full text-label font-bold bg-success-bg text-success-text border border-success-border">
+                  Completed
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Audit Summary (approx 32% / 4 cols) */}
+        <div
+          className="lg:col-span-4 rounded-2xl border p-4 sm:p-5 shadow-2xs flex flex-col justify-between gap-4 bg-surface border-border"
+        >
+          <div>
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-divider">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-dark-accent text-white shadow-xs shadow-primary/20">
+                  <Lucide.BarChart2 size={17} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <h2 className="text-title font-bold text-ink tracking-tight">
+                    Audit Summary <span className="font-normal text-label text-ink-muted">(Oct 14, 2026)</span>
+                  </h2>
+                  <p className="text-label text-ink-muted mt-0.5">End-of-day operational totals</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Metrics breakdown grid in two sub-columns */}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 pt-3.5 text-label">
+              {/* Left sub-column */}
+              <div className="flex flex-col gap-2.5">
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-ink-secondary">Total Rooms</span>
+                  <span className="font-bold text-ink">100</span>
+                </div>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-ink-secondary">Occupied Rooms</span>
+                  <span className="font-bold text-ink">68 (68%)</span>
+                </div>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-ink-secondary">Arrivals</span>
+                  <span className="font-bold text-ink">12</span>
+                </div>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-ink-secondary">Departures</span>
+                  <span className="font-bold text-ink">8</span>
+                </div>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-ink-secondary">In-House Guests</span>
+                  <span className="font-bold text-ink">124</span>
+                </div>
+              </div>
+
+              {/* Right sub-column with highlighted rows */}
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-ink-secondary">Room Revenue</span>
+                  <span className="font-bold text-ink font-mono">₹3,40,000</span>
+                </div>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-ink-secondary">Other Revenue</span>
+                  <span className="font-bold text-ink font-mono">₹45,200</span>
+                </div>
+
+                {/* Total Revenue Highlight */}
+                <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-info-bg/90 border border-info-border">
+                  <span className="font-semibold text-info-text text-label">Total Revenue</span>
+                  <span className="font-extrabold text-info-text font-mono text-label">₹3,85,200</span>
+                </div>
+
+                {/* Total Payments Highlight */}
+                <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-success-bg/90 border border-success-border">
+                  <span className="font-semibold text-success-text text-label">Total Payments</span>
+                  <span className="font-extrabold text-success-text font-mono text-label">₹3,72,500</span>
+                </div>
+
+                {/* Outstanding Balance Highlight */}
+                <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-danger-bg/90 border border-danger-border">
+                  <span className="font-semibold text-danger-text text-label">Outstanding Balance</span>
+                  <span className="font-extrabold text-danger-text font-mono text-label">₹12,700</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 pt-2">
+            {/* Audit Date Callout Banner */}
+            <div className="rounded-xl p-3 flex items-center gap-3 bg-info-bg/70 border border-info-border/60">
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center flex-none text-white text-label font-bold bg-primary"
+              >
+                <Lucide.Info size={15} />
+              </div>
+              <div>
+                <p className="text-label font-bold text-ink-muted uppercase tracking-wider">Audit Date</p>
+                <p className="text-label font-bold text-ink">{currentBusinessDate}</p>
+              </div>
+            </div>
+
+            {/* Big Action CTA */}
+            <Button variant="primary"
+              type="button"
+              onClick={handleStartAudit}
+              className="w-full flex items-center justify-center gap-2 transition-all"
+            >
+              <span>Start Night Audit</span>
+              <Lucide.ArrowRight size={16} />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= 5. BOTTOM 3 DATA TABLES SECTION ================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Table 1: In-House Guests with Balance */}
+        <div
+          className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between bg-surface border-border"
+        >
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <h3 className="font-bold text-title text-ink">
+                In-House Guests with Balance
+              </h3>
+              <Button variant="link"
+                type="button"
+                onClick={() => setOpenFoliosModalOpen(true)}
+                className="hover:underline cursor-pointer text-primary"
+              >
+                View all (3)
+              </Button>
+            </div>
+
+            <div className="pms-table-scroll overflow-x-auto">
+              <table className="pms-table w-full text-left text-label mt-2">
+                <thead>
+                  <tr className="text-ink-muted text-label font-bold uppercase tracking-wider border-b border-border">
+                    <th className="py-2 pr-2">GUEST NAME</th>
+                    <th className="py-2 px-2">ROOM</th>
+                    <th className="py-2 px-2 text-right">BALANCE (₹)</th>
+                    <th className="py-2 pl-2 text-right">STATUS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-divider ">
+                  <tr>
+                    <td className="py-2.5 pr-2 font-medium text-ink">Rahul Mehta</td>
+                    <td className="py-2.5 px-2 text-ink-secondary">205</td>
+                    <td className="py-2.5 px-2 text-right font-mono font-semibold text-ink">2,500.00</td>
+                    <td className="py-2.5 pl-2 text-right">
+                      <span className="px-2 py-0.5 rounded-full text-label font-bold bg-danger-bg text-danger-text border border-danger-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-danger-text" />
+                        Open
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-2.5 pr-2 font-medium text-ink">Sarah Wilson</td>
+                    <td className="py-2.5 px-2 text-ink-secondary">312</td>
+                    <td className="py-2.5 px-2 text-right font-mono font-semibold text-ink">1,200.00</td>
+                    <td className="py-2.5 pl-2 text-right">
+                      <span className="px-2 py-0.5 rounded-full text-label font-bold bg-danger-bg text-danger-text border border-danger-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-danger-text" />
+                        Open
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-2.5 pr-2 font-medium text-ink">Amit Kumar</td>
+                    <td className="py-2.5 px-2 text-ink-secondary">418</td>
+                    <td className="py-2.5 px-2 text-right font-mono font-semibold text-ink">3,000.00</td>
+                    <td className="py-2.5 pl-2 text-right">
+                      <span className="px-2 py-0.5 rounded-full text-label font-bold bg-danger-bg text-danger-text border border-danger-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-danger-text" />
+                        Open
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Table 2: Pending Payments */}
+        <div
+          className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between bg-surface border-border"
+        >
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <h3 className="font-bold text-title text-ink">
+                Pending Payments
+              </h3>
+              <Button variant="link"
+                type="button"
+                onClick={() => setPendingPaymentsModalOpen(true)}
+                className="hover:underline cursor-pointer text-primary"
+              >
+                View all (2)
+              </Button>
+            </div>
+
+            <div className="pms-table-scroll overflow-x-auto">
+              <table className="pms-table w-full text-left text-label mt-2">
+                <thead>
+                  <tr className="text-ink-muted text-label font-bold uppercase tracking-wider border-b border-border">
+                    <th className="py-2 pr-2">BOOKING ID</th>
+                    <th className="py-2 px-2">GUEST NAME</th>
+                    <th className="py-2 px-2 text-right">AMOUNT (₹)</th>
+                    <th className="py-2 pl-2 text-right">DUE DATE</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-divider ">
+                  <tr>
+                    <td className="py-2.5 pr-2 font-mono font-bold text-ink">BK123456</td>
+                    <td className="py-2.5 px-2 text-ink-secondary">John Smith</td>
+                    <td className="py-2.5 px-2 text-right font-mono font-semibold text-ink">5,000.00</td>
+                    <td className="py-2.5 pl-2 text-right text-ink-muted">Oct 14, 2026</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2.5 pr-2 font-mono font-bold text-ink">BK123789</td>
+                    <td className="py-2.5 px-2 text-ink-secondary">Priya Sharma</td>
+                    <td className="py-2.5 px-2 text-right font-mono font-semibold text-ink">7,500.00</td>
+                    <td className="py-2.5 pl-2 text-right text-ink-muted">Oct 14, 2026</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Table 3: Recent Audit History */}
+        <div
+          className="rounded-2xl border p-4 shadow-2xs flex flex-col justify-between bg-surface border-border"
+        >
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <h3 className="font-bold text-title text-ink">
+                Recent Audit History
+              </h3>
+              <Button variant="link"
+                type="button"
+                onClick={() => setLogsModalOpen(true)}
+                className="hover:underline cursor-pointer text-primary"
+              >
+                View all
+              </Button>
+            </div>
+
+            <div className="pms-table-scroll overflow-x-auto">
+              <table className="pms-table w-full text-left text-label mt-2">
+                <thead>
+                  <tr className="text-ink-muted text-label font-bold uppercase tracking-wider border-b border-border">
+                    <th className="py-2 pr-2">DATE</th>
+                    <th className="py-2 px-2">STATUS</th>
+                    <th className="py-2 px-2 text-right">TOTAL REVENUE (₹)</th>
+                    <th className="py-2 pl-2 text-right">USER</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-divider ">
+                  <tr>
+                    <td className="py-2 pr-2 font-medium text-ink">Oct 13, 2026</td>
+                    <td className="py-2 px-2">
+                      <span className="px-2 py-0.5 rounded-full text-label font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
+                        Completed
+                      </span>
+                    </td>
+                    <td className="py-2 px-2 text-right font-mono font-semibold text-ink">3,72,800</td>
+                    <td className="py-2 pl-2 text-right text-ink-muted">Admin</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-2 font-medium text-ink">Oct 12, 2026</td>
+                    <td className="py-2 px-2">
+                      <span className="px-2 py-0.5 rounded-full text-label font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
+                        Completed
+                      </span>
+                    </td>
+                    <td className="py-2 px-2 text-right font-mono font-semibold text-ink">3,68,500</td>
+                    <td className="py-2 pl-2 text-right text-ink-muted">Admin</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-2 font-medium text-ink">Oct 11, 2026</td>
+                    <td className="py-2 px-2">
+                      <span className="px-2 py-0.5 rounded-full text-label font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
+                        Completed
+                      </span>
+                    </td>
+                    <td className="py-2 px-2 text-right font-mono font-semibold text-ink">3,55,200</td>
+                    <td className="py-2 pl-2 text-right text-ink-muted">Manager</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-2 font-medium text-ink">Oct 10, 2026</td>
+                    <td className="py-2 px-2">
+                      <span className="px-2 py-0.5 rounded-full text-label font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
+                        Completed
+                      </span>
+                    </td>
+                    <td className="py-2 px-2 text-right font-mono font-semibold text-ink">3,61,400</td>
+                    <td className="py-2 pl-2 text-right text-ink-muted">Admin</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-2 font-medium text-ink">Oct 09, 2026</td>
+                    <td className="py-2 px-2">
+                      <span className="px-2 py-0.5 rounded-full text-label font-bold bg-success-bg text-success-text border border-success-border inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
+                        Completed
+                      </span>
+                    </td>
+                    <td className="py-2 px-2 text-right font-mono font-semibold text-ink">3,48,900</td>
+                    <td className="py-2 pl-2 text-right text-ink-muted">Manager</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= 6. INTERACTIVE NIGHT AUDIT RUN WIZARD MODAL ================= */}
+      <Modal
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        title="Night Audit Day Close Wizard"
+        subtitle={`Audit date: ${currentBusinessDate}`}
+        footer={
+          <div className="flex items-center justify-between w-full">
+            <Button variant="secondary"
+              type="button"
+              onClick={() => setWizardOpen(false)}
+            >
+              {auditCompleted ? 'Close' : 'Cancel'}
+            </Button>
+
+            {!auditCompleted ? (
+              <Button variant="primary"
+                type="button"
+                onClick={handleNextStep}
+                disabled={isProcessing}
+                className="flex items-center gap-2"
+              >
+                {isProcessing ? (
+                  <>
+                    <Lucide.Loader2 size={14} className="animate-spin" />
+                    <span>Processing...</span>
+                  </>
+                ) : auditStep === 1 ? (
+                  <>
+                    <span>Confirm Pre-Audit Checks &amp; Proceed</span>
+                    <Lucide.ArrowRight size={14} />
+                  </>
+                ) : auditStep === 2 ? (
+                  <>
+                    <span>Post All Room &amp; Extra Charges</span>
+                    <Lucide.ArrowRight size={14} />
+                  </>
+                ) : auditStep === 3 ? (
+                  <>
+                    <span>Verify Ledgers &amp; Trial Balance</span>
+                    <Lucide.ArrowRight size={14} />
+                  </>
+                ) : (
+                  <>
+                    <span>Finalize Close Day &amp; Roll Over Date</span>
+                    <Lucide.CheckCircle2 size={14} />
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button variant="primary"
+                type="button"
+                onClick={() => setWizardOpen(false)}
+              >
+                Done
+              </Button>
+            )}
+          </div>
+        }
+      >
+        <div className="flex flex-col gap-4 py-2 text-label">
+          {!auditCompleted ? (
+            <>
+              {/* Step tracker in modal */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-page border border-border">
+                {[
+                  { step: 1, label: 'Pre-Audit' },
+                  { step: 2, label: 'Post Charges' },
+                  { step: 3, label: 'Settle Ledgers' },
+                  { step: 4, label: 'Date Rollover' },
+                ].map((s) => (
+                  <div key={s.step} className="flex items-center gap-2">
+                    <span
+                      className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-label ${
+                        auditStep === s.step
+                          ? 'bg-primary text-white shadow-xs'
+                          : auditStep > s.step
+                          ? 'bg-success-bg text-success-text'
+                          : 'bg-ink/5 text-ink-muted'
+                      }`}
+                    >
+                      {auditStep > s.step ? '✓' : s.step}
+                    </span>
+                    <span className={`font-semibold ${auditStep === s.step ? 'text-ink' : 'text-ink-muted'}`}>
+                      {s.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {auditStep === 1 && (
+                <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface border-border">
+                  <h4 className="font-bold text-title text-ink">Step 1: Pre-Audit Validation</h4>
+                  <p className="text-ink-secondary leading-relaxed">
+                    Checking departures, arrivals, in-house guest folios, and housekeeping room synchronization.
+                  </p>
+                  <div className="mt-2 flex flex-col gap-1.5 text-label">
+                    <div className="flex justify-between items-center py-1 border-b border-divider">
+                      <span>Expected Departures Processed</span>
+                      <span className="font-bold text-success-text">8 / 8 (Completed)</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1 border-b border-divider">
+                      <span>Occupied Rooms Cleaned &amp; Inspected</span>
+                      <span className="font-bold text-success-text">100% Up to date</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span>Open Folios with Pending Balance</span>
+                      <span className="font-bold text-warning-text">3 guests (Carried over to next business day)</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {auditStep === 2 && (
+                <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface border-border">
+                  <h4 className="font-bold text-title text-ink">Step 2: Post Room &amp; Recurring Charges</h4>
+                  <p className="text-ink-secondary leading-relaxed">
+                    Automated posting engine will apply room tariff, GST, and daily recurring package charges across all 68 occupied guest rooms.
+                  </p>
+                  <div className="p-3 rounded-xl bg-info-bg/70 border border-info-border/50 mt-1">
+                    <p className="font-bold text-info-text">Estimated Room Postings: ₹3,40,000</p>
+                    <p className="text-label text-info-text mt-0.5">68 active guest rooms × average nightly rate</p>
+                  </div>
+                </div>
+              )}
+
+              {auditStep === 3 && (
+                <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface border-border">
+                  <h4 className="font-bold text-title text-ink">Step 3: Settle &amp; Verify Ledgers</h4>
+                  <p className="text-ink-secondary leading-relaxed">
+                    Balancing the Guest Ledger, City Ledger, and Deposit Ledger against payments captured today.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <div className="p-2.5 rounded-lg border bg-page">
+                      <span className="text-ink-muted text-label block">Payments Reconciled</span>
+                      <span className="font-bold text-ink font-mono text-body">₹3,72,500</span>
+                    </div>
+                    <div className="p-2.5 rounded-lg border bg-page">
+                      <span className="text-ink-muted text-label block">Ledger Variance</span>
+                      <span className="font-bold text-success-text font-mono text-body">₹0.00 (Balanced)</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {auditStep === 4 && (
+                <div className="flex flex-col gap-2.5 p-3 rounded-xl border bg-surface border-border">
+                  <h4 className="font-bold text-title text-ink">Step 4: Roll Over Business Date</h4>
+                  <p className="text-ink-secondary leading-relaxed">
+                    Final lock of financial transactions for <strong>Oct 14, 2026</strong>. System will advance the PMS operating date to <strong>Wednesday, Oct 15, 2026</strong>.
+                  </p>
+                  <div className="p-3 rounded-xl bg-warning-bg border border-warning-border mt-1">
+                    <p className="font-bold text-warning-text">Notice:</p>
+                    <p className="text-label text-warning-text mt-0.5">
+                      Once confirmed, the current business date will close permanently and post-audit reports will be generated.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="py-6 flex flex-col items-center justify-center text-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-success-bg text-success-text flex items-center justify-center">
+                <Lucide.CheckCircle2 size={32} />
+              </div>
+              <h3 className="font-extrabold text-title text-ink">Night Audit Completed!</h3>
+              <p className="text-ink-secondary max-w-sm text-label leading-relaxed">
+                The business day has been successfully closed. All room charges have posted, ledger accounts are balanced, and the system business date has advanced to <strong>Wednesday, Oct 15, 2026</strong>.
+              </p>
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* ================= 7. AUDIT LOGS MODAL ================= */}
+      <Modal
+        open={logsModalOpen}
+        onClose={() => setLogsModalOpen(false)}
+        title="Night Audit Execution Logs"
+        subtitle="Historical run logs, automated charges & system rollover timestamps"
+        footer={
+          <Button variant="secondary"
+            type="button"
+            onClick={() => setLogsModalOpen(false)}
+          >
+            Close
+          </Button>
+        }
+      >
+        <div className="flex flex-col gap-2 py-2 text-label max-h-[380px] overflow-y-auto">
+          {[
+            { time: '14-Oct-2026 23:45', action: 'Daily flash report & pre-audit check snapshot generated', user: 'System Automated', status: 'Success' },
+            { time: '13-Oct-2026 23:58', action: 'Day Closed: Business date rolled from Oct 13 to Oct 14', user: 'Admin (Karan)', status: 'Success' },
+            { time: '13-Oct-2026 23:55', action: '68 Room tariff charges & 12% GST auto-posted to in-house folios', user: 'Admin (Karan)', status: 'Success' },
+            { time: '13-Oct-2026 23:50', action: 'Audit verification: ₹3,72,800 total payments balanced', user: 'Admin (Karan)', status: 'Success' },
+            { time: '12-Oct-2026 23:59', action: 'Day Closed: Business date rolled from Oct 12 to Oct 13', user: 'Admin (Karan)', status: 'Success' },
+            { time: '11-Oct-2026 23:58', action: 'Day Closed: Business date rolled from Oct 11 to Oct 12', user: 'Manager (Sunita)', status: 'Success' },
+          ].map((log, i) => (
+            <div key={i} className="p-3 rounded-xl border bg-page flex items-start justify-between gap-3 border-border">
+              <div>
+                <p className="font-bold text-ink">{log.action}</p>
+                <p className="text-label text-ink-muted mt-0.5">By {log.user} • {log.time}</p>
+              </div>
+              <span className="px-2 py-0.5 rounded text-micro font-bold bg-success-bg text-success-text border border-success-border">
+                {log.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      </Modal>
+
+      {/* ================= 8. OPEN FOLIOS MODAL ================= */}
+      <Modal
+        open={openFoliosModalOpen}
+        onClose={() => setOpenFoliosModalOpen(false)}
+        title="Open Folios with Pending Balance"
+        subtitle="In-house guests with outstanding balances prior to night audit"
+        footer={
+          <div className="flex justify-between items-center w-full">
+            <Button variant="link"
+              type="button"
+              onClick={() => {
+                setOpenFoliosModalOpen(false);
+                go?.({ view: 'folios' });
+              }}
+              className="hover:underline cursor-pointer text-primary"
+            >
+              Open Folios &amp; Billing module →
+            </Button>
+            <Button variant="primary"
+              type="button"
+              onClick={() => setOpenFoliosModalOpen(false)}
+            >
+              Done
+            </Button>
+          </div>
+        }
+      >
+        <div className="flex flex-col gap-2 py-2 text-label">
+          {[
+            { name: 'Rahul Mehta', room: '205', balance: '₹2,500.00', checkOut: 'Tomorrow, Oct 15' },
+            { name: 'Sarah Wilson', room: '312', balance: '₹1,200.00', checkOut: 'Oct 16, 2026' },
+            { name: 'Amit Kumar', room: '418', balance: '₹3,000.00', checkOut: 'Oct 17, 2026' },
+          ].map((item, i) => (
+            <div key={i} className="p-3 rounded-xl border bg-page flex items-center justify-between gap-3 border-border">
+              <div>
+                <p className="font-bold text-ink">{item.name} (Room {item.room})</p>
+                <p className="text-label text-ink-muted">Due checkout: {item.checkOut}</p>
+              </div>
+              <span className="font-mono font-bold text-danger-text text-body">{item.balance}</span>
+            </div>
+          ))}
+        </div>
+      </Modal>
+
+      {/* ================= 9. PENDING PAYMENTS MODAL ================= */}
+      <Modal
+        open={pendingPaymentsModalOpen}
+        onClose={() => setPendingPaymentsModalOpen(false)}
+        title="Pending Payments Checklist"
+        subtitle="Unsettled pre-authorizations and pending transactions"
+        footer={
+          <Button variant="primary"
+            type="button"
+            onClick={() => setPendingPaymentsModalOpen(false)}
+          >
+            Close
+          </Button>
+        }
+      >
+        <div className="flex flex-col gap-2 py-2 text-label">
+          {[
+            { id: 'BK123456', guest: 'John Smith', amount: '₹5,000.00', reason: 'Online Gateway Pre-Auth awaiting card capture' },
+            { id: 'BK123789', guest: 'Priya Sharma', amount: '₹7,500.00', reason: 'Corporate direct bill awaiting company voucher' },
+          ].map((item, i) => (
+            <div key={i} className="p-3 rounded-xl border bg-page flex items-center justify-between gap-3 border-border">
+              <div>
+                <p className="font-bold text-ink">{item.id} • {item.guest}</p>
+                <p className="text-label text-ink-muted">{item.reason}</p>
+              </div>
+              <span className="font-mono font-bold text-ink text-body">{item.amount}</span>
+            </div>
+          ))}
+        </div>
+      </Modal>
+
+      {/* ================= 10. UNPOSTED CHARGES MODAL ================= */}
+      <Modal
+        open={unpostedChargesModalOpen}
+        onClose={() => setUnpostedChargesModalOpen(false)}
+        title="Unposted Manual Charges"
+        subtitle="5 incidentals and restaurant tickets pending posting"
+        footer={
+          <div className="flex justify-between items-center w-full">
+            <Button variant="primary"
+              type="button"
+              onClick={() => {
+                setUnpostedChargesModalOpen(false);
+                toast('All 5 manual charges auto-posted', { tone: 'success' });
+              }}
+            >
+              Post All 5 Charges
+            </Button>
+            <Button variant="secondary"
+              type="button"
+              onClick={() => setUnpostedChargesModalOpen(false)}
+            >
+              Close
+            </Button>
+          </div>
+        }
+      >
+        <div className="flex flex-col gap-2 py-2 text-label">
+          {[
+            { room: '201', desc: 'In-Room Dining (Dinner for 2)', amount: '₹1,450.00' },
+            { room: '304', desc: 'Laundry Express Service', amount: '₹680.00' },
+            { room: '105', desc: 'Minibar Beverages', amount: '₹340.00' },
+            { room: '412', desc: 'Airport Pickup Cab', amount: '₹1,800.00' },
+            { room: '501', desc: 'Spa Ayurvedic Therapy', amount: '₹2,500.00' },
+          ].map((c, i) => (
+            <div key={i} className="p-3 rounded-xl border bg-page flex items-center justify-between gap-3 border-border">
+              <div>
+                <p className="font-bold text-ink">Room {c.room} • {c.desc}</p>
+              </div>
+              <span className="font-mono font-bold text-ink text-body">{c.amount}</span>
+            </div>
+          ))}
+        </div>
+      </Modal>
+    </div>
+  );
+}

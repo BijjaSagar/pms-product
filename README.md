@@ -1,28 +1,24 @@
-# Hotel PMX — static demo build
+# Hotel PMX — demo build
 
 A React + TypeScript front end for a hotel property management system: reservations, room calendar, front desk, rates and channel distribution, folios and billing, night audit, reports and staff management.
 
-## Running without a backend
+## Backend
 
-This build is fully static. There is no server, no network calls and no database. The UI runs against an in-memory store that is seeded at startup and lives for the lifetime of the browser tab.
+Sign-up, sign-in, password change the new property setup and Settings > Property Details, Terms and Inclusions, and Cancellation call `pms-backend`'s authentication service (`npm run start:auth:dev` there). Set `VITE_API_URL` if it is not at `http://localhost:3000`. The activation key is `AAAA-AAAA-AAAA-AAAA`. The demo sign-ins and activation keys below no longer work for signing in or setting up, and forgot password is not available yet. Every other screen runs on dummy data in memory.
 
-- `src/data/catalog.ts` holds fixed reference data (property, roles, permissions, staff, room types, guest profiles).
-- `src/data/fixtures.ts` generates rooms, reservations and folios for the business date `2026-10-17`.
-- `src/data/store.ts` is the interactive store. Every create, update and delete the UI performs (check-in, check-out, posting charges, taking payments, raising tickets, inviting staff) changes this store in place, so the change shows everywhere in the app.
-- `src/lib/api/*` keeps the feature-facing API shape. The API objects delegate to the store instead of `fetch`.
-- Every screen reads from this one store: the header KPIs and notifications, the dashboard, the room calendar, billing and the reservation list all show the same rooms, dates and guests.
+- `src/shared/mocks/` holds all demo data; `store.ts` is the interactive store, seeded for the business date `2026-10-17`.
+- `src/shared/services/` holds the API the screens call. Each method reads or changes the store.
+- **All changes reset when you reload the page.** The signed-in session, colour theme and sidebar state are kept in the browser.
+- Report and audit-log CSV exports are generated in the browser.
 
-Because the store lives in memory, **all changes reset when you reload the page**. There is no persistence layer. The one exception is the chosen colour theme and the sidebar collapsed state, which are saved in the browser.
+## Demo sign-ins and data
 
-### Sessions
+| Who | Email | Password |
+| --- | --- | --- |
+| Super admin | `admin@hotelpmx.demo` | `Admin@12345` |
+| Hotel staff (two properties) | `anaya@grandhorizon.in` | `Staff@12345` |
 
-There is no login screen. The app starts in a fixed demo session (Anaya Sharma, Owner) with access to every module. "Sign out" reloads that session.
-
-### Exports
-
-Report and audit-log CSV exports are generated in the browser from the store.
-
-Expenses, rate plans and notification preferences remain demo-only sections.
+Both are listed on the sign-in page; click one to fill the form. Activation keys for the sign-up wizard: `DEMO-2026-HOTL-KEY1`, `DEMO-2026-HOTL-KEY2`, `DEMO-2026-HOTL-KEY3`. The forgot-password code is today's date as DDMMYY.
 
 ## Development
 
@@ -41,10 +37,10 @@ The production bundle in `dist/` is self-contained and can be served from any st
 
 The UI is light-only and uses one controlled palette. Do not add bespoke accents when styling a screen.
 
-- **Theme accent:** `primary`, `primary-hover`, `primary-active`, `dark-accent` and `soft`. These follow the active preset (nine presets in `src/theme/presets.ts`).
+- **Theme accent:** `primary`, `primary-hover`, `primary-active`, `dark-accent` and `soft`. These follow the active preset (nine presets in `src/shared/theme/presets.ts`).
 - **Status tones:** `success`, `info`, `warning`, `danger` and `neutral`. Each exposes `-bg`, `-text`, `-border` and `-foreground` tokens and is fixed across presets. Use them for state, not decoration.
 - **Neutrals:** `page`, `surface`, `elevated`, `muted-surface`, `hover-surface`, `ink`, `ink-secondary`, `ink-muted`, `ink-disabled`, `border` and `divider`.
-- **Charts and inline styles:** import `TONE_VARS` or `CHART_COLORS` from `src/theme/tone.ts` instead of writing hex values.
+- **Charts and inline styles:** import `TONE_VARS` or `CHART_COLORS` from `src/shared/theme/tone.ts` instead of writing hex values.
 
 Stock Tailwind palette utilities (`bg-slate-100`, `text-emerald-600`), raw hex or rgb values and `dark:` variants fail `npm run check:palette`. Legitimate brand marks (OTA logos, preset definitions, design-token files) are allowlisted in `scripts/check-palette.mjs`. A one-off brand colour can be marked with a `palette-allow` comment on the line above:
 
@@ -57,39 +53,28 @@ Stock Tailwind palette utilities (`bg-slate-100`, `text-emerald-600`), raw hex o
 
 ```
 src/
-  App.tsx                 providers, navigation shell and view switch
   main.tsx                React root
   index.css               Tailwind entry and shared component classes
-  config/                 navigation (views, sections, permissions)
-  components/             shared UI
-    ui/                   primitives, controls, overlays, charts, tabs, display components
-    feedback/             toasts, skeletons, error boundary and error pages
-    layout/               sidebar and header
-    brand/                login and shell branding
-  hooks/                  generic hooks (debounce, dismiss)
-  features/
-    analytics/            reports hub
-    auth/                 sign-in, registration, password pages and session context
-    dashboard/            operational overview
-    distribution/         rate management and channel manager
-    finance/              billing, invoices, payments, night audit
-    guests/               guest directory
-    inventory/            room inventory provider
-    platform/             super admin console (PlatformConsole), shown to a super admin after the one shared sign-in
-    property-setup/       property picker, properties list, setup wizard
-    reservations/         reservations list, room calendar, new reservation
-    rooms/                room overview and status timeline
-    settings/             property settings (tabs/, components/, room-settings/)
-  data/                   catalog, fixtures, in-memory store
-  lib/
-    api/                  feature-facing API objects and adapters
-    scrollLock.ts         body scroll lock for dialogs
-  theme/                  presets, theme provider, design tokens, tone helpers
-  types/                  shared domain types
-  utils/                  currency, dates, status, password rules, floor plan, toasts
+  app/                    App.tsx: providers, sign-in gate, chooses super admin or customer
+  superadmin/             the platform console (super admin only)
+    PlatformConsole.tsx
+    layout/               console sidebar, header, navigation
+    features/             dashboard, properties, users, activation-keys, ota-channels, activity-log
+  customer/               the hotel workspace (property staff)
+    HotelWorkspace.tsx
+    layout/               hotel sidebar, header and their menus
+    features/             analytics, dashboard, distribution, finance, guests, inventory,
+                          onboarding, property-picker, reservations, rooms, settings
+  shared/                 used by both sides
+    components/           brand, feedback, layout (account menu), ui
+    features/             auth (one sign-in for both), property-setup (setup wizard)
+    config/               hotel views, sections, permissions
+    services/             one <domain>Api.ts per domain, over the in-memory store
+    mocks/                all dummy data and the in-memory store
+    hooks/ lib/ theme/ types/ utils/
 scripts/check-palette.mjs palette guard
 ```
 
-When adding a screen, place it in its domain folder under `features/` and lazy-load it from `src/App.tsx`. Shared controls belong in `src/components/`. Avoid page-specific copies of existing buttons, tables or theme tokens.
+`superadmin/` and `customer/` never import each other, and `shared/` imports neither. A screen goes in its side's `features/<domain>/` folder; anything both sides need goes in `shared/`. Components are `PascalCase.tsx`, other modules `camelCase.ts`, folders `kebab-case`.
 
 For the rules agents and contributors follow in this repository, see `AGENTS.md`.

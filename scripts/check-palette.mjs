@@ -18,11 +18,11 @@ const root = process.cwd();
 const srcRoot = path.join(root, 'src');
 
 const FILE_ALLOWLIST = new Set([
-  'src/theme/tokens.css',
-  'src/theme/presets.ts',
-  'src/data/channelManager.ts',
-  'src/features/distribution/rate-management/data.ts',
-  'src/components/ui/ChannelLogo.tsx',
+  'src/shared/theme/tokens.css',
+  'src/shared/theme/presets.ts',
+  'src/shared/mocks/channelManager.ts',
+  'src/customer/features/distribution/rate-management/data.ts',
+  'src/shared/components/ui/ChannelLogo.tsx',
 ]);
 
 const HEX = /#[0-9a-fA-F]{3,8}\b/g;

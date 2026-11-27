@@ -8,9 +8,4 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  server: {
-    // Forward API calls to the Nest backend so the browser stays same-origin
-    // (the backend does not enable CORS).
-    proxy: { '/api': process.env.API_TARGET ?? 'http://localhost:3000' },
-  },
 })

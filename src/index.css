@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@import './theme/tokens.css';
+@import './shared/theme/tokens.css';
 
 
 /* One fixed type ladder for every page and breakpoint: micro 10 (badges),

@@ -1,0 +1,332 @@
+import { useCallback, useMemo, useState } from 'react';
+import { TableSkeletonRows } from '../../../shared/components/feedback/Skeleton';
+import * as Lucide from 'lucide-react';
+import { formatCurrency } from '../../../shared/utils/currency';
+import type { Invoice } from '../../../shared/types/index';
+import { Badge, Card, CardTitle, TableContainer, TableActionBtn } from '../../../shared/components/ui/display';
+import { paymentTone } from '../../../shared/utils/status';
+import { FilterChip } from '../../../shared/components/ui/controls';
+import { Drawer, PromptDialog } from '../../../shared/components/ui/overlays';
+import { toast } from '../../../shared/utils/toast';
+import { folioApi } from '../../../shared/services/folioApi';
+import { invoiceFromApi } from '../../../shared/services/adapters';
+import { useApiResource } from '../../../shared/services/useApiResource';
+import { displayError } from '../../../shared/services/errors';
+import { Button, TextField } from '../../../shared/components/ui/primitives';
+
+export function Invoices() {
+  const loadInvoices = useCallback(async () => (await folioApi.listInvoices()).map(invoiceFromApi), []);
+  const resource = useApiResource(loadInvoices);
+  const [q, setQ] = useState('');
+  const [status, setStatus] = useState('All');
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [voidOpen, setVoidOpen] = useState(false);
+
+  const rows: Invoice[] = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    return (resource.data ?? []).filter(
+      (i) =>
+        (status === 'All' || i.status === status) &&
+        (!needle || i.guest.toLowerCase().includes(needle) || i.id.toLowerCase().includes(needle)),
+    );
+  }, [resource.data, q, status]);
+
+  const open = rows.find((i) => i.id === openId) ?? null;
+  const openRecordId = open?.recordId;
+  const previewResource = useApiResource(
+    () => (openRecordId ? folioApi.invoice(openRecordId) : Promise.resolve(null)),
+    [openRecordId],
+  );
+  const preview = previewResource.data;
+
+  const handleVoidSubmit = async (reason: string) => {
+    if (!open?.recordId || !reason.trim()) return;
+    try {
+      await folioApi.voidInvoice(open.recordId, reason.trim());
+      resource.refresh();
+      setOpenId(null);
+      setVoidOpen(false);
+      toast('Invoice voided', { detail: open.id, tone: 'success' });
+    } catch (error) {
+      toast('Could not void invoice', { detail: displayError(error), tone: 'danger' });
+    }
+  };
+
+  return (
+    <div className="pms-page">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20 mt-0.5">
+            <Lucide.FileText size={20} strokeWidth={2.4} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-disp3 font-bold tracking-tight text-ink leading-tight">
+                Invoices & Billing Documents
+              </h1>
+              <span className="flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-0.5 text-micro font-bold text-success-text border border-success-border/60">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-text opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-text"></span>
+                </span>
+                Official Records
+              </span>
+            </div>
+            <p className="text-label text-ink-secondary mt-1">
+              Official tax invoices, credit notes, guest billing records, and audit receipts
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="secondary"
+            type="button"
+            onClick={() => resource.refresh()}
+            className="flex items-center gap-1.5 cursor-pointer"
+            title="Refresh invoices"
+          >
+            <Lucide.RefreshCw size={13} className={resource.loading ? 'animate-spin' : ''} />
+            <span>Refresh</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1">
+        {[
+          { label: 'Total Invoices', val: String(resource.data?.length ?? 0), sub: 'Issued records', Icon: Lucide.FileText },
+          { label: 'Issued Documents', val: String((resource.data ?? []).filter((i) => i.status === 'Issued').length), sub: 'Official invoices', Icon: Lucide.CheckCircle2 },
+          { label: 'Voided Invoices', val: String((resource.data ?? []).filter((i) => i.status === 'Void').length), sub: 'Cancelled records', Icon: Lucide.FileX },
+        ].map(({ label, val, sub, Icon }) => (
+          <section key={label} className="pms-card flex min-w-0 items-start justify-between gap-2 p-3 sm:p-3.5">
+            <div className="min-w-0">
+              <p className="pms-label truncate">{label}</p>
+              <p className="pms-kpi-value tnum mt-1 text-disp3 font-bold">{val}</p>
+              <p className="pms-helper mt-1 truncate">{sub}</p>
+            </div>
+            <div className="hidden h-10 w-10 flex-none items-center justify-center rounded-xl bg-ink/[0.03] text-primary sm:flex">
+              <Icon size={20} />
+            </div>
+          </section>
+        ))}
+      </div>
+
+      <Card>
+        <CardTitle
+          icon={Lucide.FileText}
+          iconBg="bg-gradient-to-tr from-info-text to-dark-accent text-white shadow-xs shadow-info-text/20"
+          title="Invoices"
+          subtitle={resource.loading ? 'Loading invoices…' : `${rows.length} billing documents`}
+          badge={
+            <span className="flex items-center gap-1 rounded-full bg-info-bg px-2 py-0.5 text-micro font-bold text-info-text border border-info-border/60">
+              {rows.length} Documents
+            </span>
+          }
+        />
+        {resource.error ? (
+          <div className="mb-3 flex items-center gap-2 rounded-xl border border-danger-border bg-danger-bg p-4 text-body text-danger-text">
+            <Lucide.AlertCircle size={18} />
+            <span>Could not load invoices: {resource.error}</span>
+          </div>
+        ) : null}
+
+        <div className="mb-4 flex flex-col gap-2.5 lg:flex-row lg:items-center">
+          <div className="relative lg:w-72 lg:flex-none">
+            <Lucide.Search size={15} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+            <TextField
+              type="search"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Guest name or invoice ID…"
+              aria-label="Search invoices"
+              className="pl-9"
+            />
+          </div>
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5" role="group" aria-label="Filter by status">
+            {['All', 'Issued', 'Draft', 'Void', 'Credited'].map((s) => (
+              <FilterChip key={s} active={status === s} onClick={() => setStatus(s)}>
+                {s}
+              </FilterChip>
+            ))}
+          </div>
+          <Button variant="secondary"
+            type="button"
+            className="self-start lg:self-auto"
+            onClick={() => { setQ(''); setStatus('All'); }}
+          >
+            Reset
+          </Button>
+        </div>
+
+        <TableContainer>
+          <table className="pms-table min-w-[760px]">
+            <thead>
+              <tr>
+                <th className="w-12 text-center">#</th>
+                <th>INVOICE</th>
+                <th>GUEST & ROOM</th>
+                <th>DUE DATE</th>
+                <th>PAYMENT METHOD</th>
+                <th>STATUS</th>
+                <th className="text-right">AMOUNT</th>
+                <th className="text-right">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((i, idx) => (
+                <tr key={i.id} className="transition-colors hover:bg-page/70">
+                  <td className="text-center font-medium text-ink-muted text-label">
+                    {idx + 1}
+                  </td>
+                  <td className="tnum font-mono font-bold text-ink text-label">{i.id}</td>
+                  <td>
+                    <span className="block font-semibold text-ink text-label">{i.guest}</span>
+                    <span className="tnum block text-label text-ink-muted">Room {i.room}</span>
+                  </td>
+                  <td className="tnum text-label text-ink-secondary">{i.due}</td>
+                  <td>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-label font-medium bg-muted-surface text-ink">
+                      {i.method}
+                    </span>
+                  </td>
+                  <td>
+                    <Badge tone={paymentTone(i.status)}>{i.status}</Badge>
+                  </td>
+                  <td className="tnum text-right font-bold text-ink text-label">
+                    {formatCurrency(i.amount, i.currencyCode)}
+                  </td>
+                  <td className="text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <TableActionBtn
+                        icon={Lucide.FileText}
+                        title={`Preview invoice ${i.id}`}
+                        onClick={() => setOpenId(i.id)}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {resource.loading ? <TableSkeletonRows cols={8} /> : null}
+            </tbody>
+          </table>
+          {!resource.loading && rows.length === 0 ? <p className="pms-helper py-8 text-center text-ink-muted">No invoices match.</p> : null}
+        </TableContainer>
+      </Card>
+
+      {/* Invoice Drawer Preview */}
+      <Drawer
+        open={open !== null}
+        onClose={() => setOpenId(null)}
+        title={open ? `Invoice ${open.id}` : ''}
+        subtitle="Formal guest invoice preview"
+      >
+        {open ? (
+          <div className="flex flex-col gap-4">
+            <div
+              className="rounded-2xl border p-5 shadow-xs border-border bg-surface"
+            >
+              <div
+                className="flex flex-wrap items-start justify-between gap-3 border-b pb-4 border-border"
+              >
+                <div>
+                  <p className="text-disp2 font-bold text-ink">
+                    {preview?.property?.name ?? 'Grand Horizon Resort'}
+                  </p>
+                  <p className="text-label text-ink-secondary mt-0.5">
+                    {[preview?.property?.addressLine1, preview?.property?.city, preview?.property?.countryCode]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="tnum font-mono text-title font-bold text-primary">{open.id}</p>
+                  <p className="text-label text-ink-secondary">Issued {open.due}</p>
+                  <p className="mt-1">
+                    <Badge tone={paymentTone(open.status)}>{open.status}</Badge>
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 py-4 text-body">
+                <div className="rounded-xl border p-2.5" style={{ borderColor: 'var(--color-border-subtle)' }}>
+                  <p className="pms-label">Billed to</p>
+                  <p className="font-bold text-ink mt-0.5">{open.guest}</p>
+                  <p className="text-label text-ink-secondary">Booking {preview?.bookingCode ?? '—'}</p>
+                </div>
+                <div className="rounded-xl border p-2.5" style={{ borderColor: 'var(--color-border-subtle)' }}>
+                  <p className="pms-label">Stay reference</p>
+                  <p className="font-bold text-ink mt-0.5">Folio {preview?.folioNo ?? '—'}</p>
+                  <p className="text-label text-ink-secondary">Room {open.room}</p>
+                </div>
+              </div>
+
+              <div className="pms-table-scroll overflow-x-auto rounded-xl border mt-2 border-border">
+                <table className="pms-table">
+                  <thead>
+                    <tr>
+                      <th>Description</th>
+                      <th className="text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(preview?.lines ?? []).map((line) => (
+                      <tr key={line.id}>
+                        <td>{line.description}</td>
+                        <td className="tnum text-right font-semibold">
+                          {formatCurrency(Number(line.totalAmount), preview?.currencyCode)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div
+                className="pms-summary-row mt-4 border-t pt-3 border-border"
+              >
+                <span className="font-bold text-title text-ink">Total Invoiced</span>
+                <span className="tnum text-disp3 font-bold text-ink">
+                  {formatCurrency(open.amount, open.currencyCode)}
+                </span>
+              </div>
+            </div>
+
+            <div className="no-print flex gap-2.5">
+              <Button variant="secondary"
+                type="button"
+                className="flex-1 flex items-center justify-center gap-1.5"
+                onClick={() => window.print()}
+              >
+                <Lucide.Printer size={16} />
+                <span>Print</span>
+              </Button>
+              {open.status === 'Issued' ? (
+                <Button variant="danger"
+                  type="button"
+                  className="flex-1 flex items-center justify-center gap-1.5"
+                  onClick={() => setVoidOpen(true)}
+                >
+                  <Lucide.FileX size={16} />
+                  <span>Void invoice</span>
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+      </Drawer>
+
+      {/* Void Invoice Dialog */}
+      <PromptDialog
+        open={voidOpen}
+        onClose={() => setVoidOpen(false)}
+        onSubmit={handleVoidSubmit}
+        title={`Void Invoice ${open?.id}`}
+        subtitle="This action will void this invoice record in hotel accounting."
+        label="Reason for voiding"
+        placeholder="e.g. Invoiced in error, duplicate billing"
+        confirmLabel="Void Invoice"
+        danger
+      />
+    </div>
+  );
+}
