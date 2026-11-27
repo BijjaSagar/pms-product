@@ -1,6 +1,7 @@
 import { store } from '../mocks/store';
 import { request } from './http';
 import { requireActivePropertyId, settingsFor } from './propertyAccess';
+import { roomListingApi } from './roomListingApi';
 import { isServerProperty } from './serverProperty';
 import { roomNumber } from '../utils/floorPlan';
 
@@ -69,6 +70,9 @@ interface ServerRoom {
 /** The bookable room inventory of one property: a server property's from its rooms table, a demo one's from its floor plan. */
 export const roomInventoryApi = {
   get: async (propertyId: string): Promise<RoomInventory> => {
+    // A server property's room details (guests, bed setup) live on the server; bring them in first, so every
+    // screen reads the same numbers whether or not Room Setup was opened.
+    if (isServerProperty(propertyId)) await roomListingApi.list(propertyId);
     const settings = settingsFor(propertyId);
     const categoryOf = (id: string | null) => settings.categories.find((c) => c.id === id);
     const listings = settings.listings.map((room) => ({
