@@ -7,9 +7,21 @@ import { displayError } from '../../shared/services/errors';
 import { toast } from '../../shared/utils/toast';
 import { ChangePasswordDialog } from '../../shared/features/auth/ChangePasswordDialog';
 import { useAuth } from '../../shared/features/auth/AuthContext';
+import { CONSOLE_NAMES } from './consoleNav';
+import type { UserRoleKey } from '../../shared/services/authApi';
 
-/** The console's top bar: the screen title, and the super admin's account menu. */
-export function PlatformHeader({ title, onMenu, onOpenThemes }: { title: string; onMenu: () => void; onOpenThemes: () => void }) {
+/** The console's top bar: the screen title and the signed-in person's account menu. */
+export function ConsoleHeader({
+  role,
+  title,
+  onMenu,
+  onOpenThemes,
+}: {
+  role: Exclude<UserRoleKey, 'STAFF'>;
+  title: string;
+  onMenu: () => void;
+  onOpenThemes: () => void;
+}) {
   const { me, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
@@ -34,9 +46,9 @@ export function PlatformHeader({ title, onMenu, onOpenThemes }: { title: string;
             open={menuOpen}
             onToggle={() => setMenuOpen((open) => !open)}
             containerRef={menuOpen ? dismissRef : undefined}
-            fullName={me?.user.fullName ?? 'Super admin'}
+            fullName={me?.user.fullName ?? CONSOLE_NAMES[role].role}
             email={me?.user.email ?? null}
-            roleName="Super Admin"
+            roleName={CONSOLE_NAMES[role].role}
             propertyName={null}
             otherProperties={[]}
             onThemes={() => {

@@ -1,21 +1,24 @@
 import { useEffect } from 'react';
 import * as Lucide from 'lucide-react';
-import { PLATFORM_NAV } from './platformNav';
-import type { PlatformView } from './platformNav';
+import { CONSOLE_NAMES, consoleNav } from './consoleNav';
+import type { ConsoleView } from './consoleNav';
+import type { UserRoleKey } from '../../shared/services/authApi';
 
 /**
  * The console's own navigation: a fixed rail from the large breakpoint up, a drawer below it. It is
  * separate from the hotel sidebar, which belongs to one property.
  */
-export function PlatformSidebar({
+export function ConsoleSidebar({
+  role,
   active,
   onNavigate,
   open,
   onClose,
   onOpenThemes,
 }: {
-  active: PlatformView;
-  onNavigate: (view: PlatformView) => void;
+  role: Exclude<UserRoleKey, 'STAFF'>;
+  active: ConsoleView;
+  onNavigate: (view: ConsoleView) => void;
   open: boolean;
   onClose: () => void;
   onOpenThemes: () => void;
@@ -33,7 +36,7 @@ export function PlatformSidebar({
     <>
       {open ? <div className="fixed inset-0 z-40 bg-ink/40 lg:hidden" onClick={onClose} aria-hidden="true" /> : null}
       <aside
-        aria-label="Platform navigation"
+        aria-label="Console navigation"
         className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-none flex-col border-r border-border bg-sidebar transition-transform duration-200 lg:static lg:z-auto lg:translate-x-0 ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
@@ -45,7 +48,7 @@ export function PlatformSidebar({
             </span>
             <div className="min-w-0">
               <p className="font-brand truncate text-disp2 font-bold leading-none tracking-tight text-ink">Hotel PMX</p>
-              <p className="mt-1 text-label font-semibold uppercase tracking-[0.14em] text-ink-muted">Platform console</p>
+              <p className="mt-1 text-label font-semibold uppercase tracking-[0.14em] text-ink-muted">{CONSOLE_NAMES[role].console}</p>
             </div>
           </div>
           <button
@@ -60,8 +63,8 @@ export function PlatformSidebar({
 
         <nav className="min-h-0 flex-1 overflow-y-auto px-2.5 py-3" aria-label="Primary">
           <ul className="flex flex-col gap-0.5">
-            {PLATFORM_NAV.map(({ id, label, hint, icon: Icon }) => {
-              // Setting up a property is part of Properties.
+            {consoleNav(role).map(({ id, label, hint, icon: Icon }) => {
+              // Adding a property is part of Properties.
               const selected = id === active || (id === 'properties' && active === 'new-property');
               return (
                 <li key={id}>

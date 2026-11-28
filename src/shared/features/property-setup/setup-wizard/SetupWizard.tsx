@@ -2,79 +2,67 @@ import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import * as Lucide from 'lucide-react';
 import { BODY, EYEBROW, HEADING } from '../../../components/brand/brandStyles';
+import { CredentialsDialog } from '../../../components/ui/CredentialsDialog';
+import type { Credentials } from '../../../components/ui/CredentialsDialog';
 import { Button } from '../../../components/ui/primitives';
 import { displayError } from '../../../services/errors';
-import { floorPlanApi } from '../../../services/floorPlanApi';
-import { onboardingApi } from '../../../services/onboardingApi';
-import { propertyApi } from '../../../services/propertyApi';
-import { roomListingApi } from '../../../services/roomListingApi';
+import { ownerApi } from '../../../services/ownerApi';
 import { toast } from '../../../utils/toast';
-import { ActivationStep } from './ActivationStep';
+import { AdminStep } from './AdminStep';
 import { CategoriesStep } from './CategoriesStep';
 import { FloorsStep } from './FloorsStep';
 import { PropertyStep } from './PropertyStep';
 import { PropertyFolio } from './PropertyFolio';
 import { SetupStepBar } from './SetupStepBar';
 import {
-  ACTIVATION_KEY_LENGTH,
-  DEFAULT_ACTIVATION_KEY,
+  SETUP_STEPS,
+  adminErrors,
   autoFillFloors,
   categoryIssues,
+  emptyAdmin,
   emptyProperty,
   floorsProblem,
-  formatActivationKey,
   newCategory,
   propertyErrors,
   pruneFloors,
   roomsOnFloors,
-  setupSteps,
 } from './draft';
-import type { CategoryDraft, FloorRooms, PropertyDraft } from './draft';
+import type { AdminDraft, CategoryDraft, FloorRooms, PropertyDraft } from './draft';
 
 const STEP_HINTS = [
-  'Tell us the basics about your property.',
-  'List the room types you offer. Room numbers come next.',
+  'Tell us the basics about the property.',
+  'List the room types it offers. Room numbers come next.',
   'Add rooms to each floor and choose a category for every room.',
-  'Enter the activation key you were given. It activates this property.',
+  'Who runs this property day to day? You can also add them later.',
 ];
-/** Every room is saved with these until its rate and occupancy are set later in Settings. */
-const DEFAULT_GUESTS = 2;
-
-interface Progress {
-  propertyId?: string;
-  /** Draft category id to the saved room's id, so a retry does not create duplicates. */
-  roomIds: Record<string, string>;
-}
 
 interface SetupWizardProps {
-  /**
-   * `platform`: a super admin adds a property that is live at once. `registration`: a new account sends
-   * its first property with an activation key, in one request; a valid key makes it live.
-   */
-  mode?: 'platform' | 'registration';
-  /** The top-right "Exit setup" action; absent when there is no property list to go back to. */
+  /** The owner company the new property belongs to. */
+  ownerId: string;
+  /** The top-right "Exit setup" action. */
   exitAction?: ReactNode;
-  /** Called once the property, its categories and its floor plan are all saved. */
+  /** Called once the property, its categories, rooms and (if asked for) its first Property Admin are saved. */
   onDone: (propertyId: string) => void;
 }
 
-export function SetupWizard({ mode = 'platform', exitAction, onDone }: SetupWizardProps) {
+/** Adds one property to an owner company: details, room categories, floors and rooms, then its first Property Admin. */
+export function SetupWizard({ ownerId, exitAction, onDone }: SetupWizardProps) {
   const [step, setStep] = useState(0);
   const [reached, setReached] = useState(0);
   const scroller = useRef<HTMLDivElement>(null);
   const [property, setProperty] = useState<PropertyDraft>(emptyProperty);
   const [categories, setCategories] = useState<CategoryDraft[]>(() => [newCategory()]);
   const [floors, setFloors] = useState<FloorRooms>({});
+  const [admin, setAdmin] = useState<AdminDraft>(emptyAdmin);
   const [tried, setTried] = useState(false);
   const [saving, setSaving] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
-  const progress = useRef<Progress>({ roomIds: {} });
-  const [activationKey, setActivationKey] = useState(DEFAULT_ACTIVATION_KEY);
-  const steps = setupSteps(mode);
-  const keyComplete = formatActivationKey(activationKey).length === ACTIVATION_KEY_LENGTH + 3;
+  // Shown once after saving; the wizard then hands over to `onDone` when it is closed.
+  const [handover, setHandover] = useState<{ propertyId: string; credentials: Credentials } | null>(null);
 
   const errors = propertyErrors(property);
   const categoryCheck = categoryIssues(categories);
+  const adminCheck = adminErrors(admin);
   const placed = roomsOnFloors(floors, property.floors).filter((r) => r.categoryId).length;
 
   const goTo = (next: number) => {
@@ -115,98 +103,50 @@ export function SetupWizard({ mode = 'platform', exitAction, onDone }: SetupWiza
     return false;
   };
 
-  const toActivation = () => {
+  const toAdmin = () => {
     if (!floorsComplete()) return;
     setFailure(null);
     goTo(3);
   };
 
   const finish = async () => {
+    setTried(true);
     if (!floorsComplete()) return;
-    if (mode === 'registration' && !keyComplete) {
-      setFailure('Enter the full activation key (16 characters).');
-      return;
-    }
+    if (Object.keys(adminCheck).length > 0) return;
 
     setSaving(true);
     setFailure(null);
-    const done = progress.current;
     try {
-      if (mode === 'registration') {
-        // One request that saves everything or nothing, so a failed try leaves nothing to resume.
-        const nameOf = new Map(categories.map((c) => [c.id, c.name.trim()]));
-        const { propertyId } = await onboardingApi.submit({
-          activationKey: formatActivationKey(activationKey),
-          property: {
-            name: property.name.trim(),
-            abbreviation: property.code,
-            city: property.city.trim(),
-            ...(property.state.trim() ? { state: property.state.trim() } : {}),
-            country: property.country,
-            defaultCurrency: property.currency,
-            numberOfFloors: property.floors,
-            totalRooms: property.rooms,
-          },
-          categories: categories.map((c) => ({ name: c.name.trim() })),
-          floors: Array.from({ length: property.floors }, (_, i) => i + 1)
-            .map((floor) => ({ floor, rooms: (floors[floor] ?? []).map((r) => ({ category: nameOf.get(r.categoryId) ?? '' })) }))
-            .filter((f) => f.rooms.length > 0),
-        });
-        toast('Property activated', { detail: `${property.name.trim()} is ready to use.`, tone: 'success' });
-        onDone(propertyId);
-        return;
-      }
-      if (!done.propertyId) {
-        const created = await propertyApi.create({
+      // One request that saves everything or nothing, so a failed try leaves nothing to resume.
+      const nameOf = new Map(categories.map((c) => [c.id, c.name.trim()]));
+      const created = await ownerApi.addProperty(ownerId, {
+        property: {
           name: property.name.trim(),
-          code: property.code,
+          abbreviation: property.code,
           city: property.city.trim(),
           ...(property.state.trim() ? { state: property.state.trim() } : {}),
           country: property.country,
           defaultCurrency: property.currency,
           numberOfFloors: property.floors,
           totalRooms: property.rooms,
-        });
-        done.propertyId = created.id;
+        },
+        categories: categories.map((c) => ({ name: c.name.trim() })),
+        floors: Array.from({ length: property.floors }, (_, i) => i + 1)
+          .map((floor) => ({ floor, rooms: (floors[floor] ?? []).map((r) => ({ category: nameOf.get(r.categoryId) ?? '' })) }))
+          .filter((f) => f.rooms.length > 0),
+        ...(admin.name.trim() ? { propertyAdmin: { name: admin.name.trim(), email: admin.email.trim() } } : {}),
+      });
+      toast('Property created', { detail: `${property.name.trim()} is ready to use.`, tone: 'success' });
+      if (created.propertyAdmin) {
+        const { name, email, temporaryPassword } = created.propertyAdmin;
+        setHandover({ propertyId: created.propertyId, credentials: { name, email, password: temporaryPassword } });
+      } else {
+        onDone(created.propertyId);
       }
-      const propertyId = done.propertyId;
-
-      for (const c of categories) {
-        if (done.roomIds[c.id]) continue;
-        const room = await roomListingApi.create(propertyId, {
-          name: c.name.trim(),
-          baseRate: 0,
-          allowExtraBeds: false,
-          maxAdults: DEFAULT_GUESTS,
-          maxChildren: 0,
-          maxOccupancy: DEFAULT_GUESTS,
-          bathrooms: 1,
-          amenityIds: [],
-        });
-        done.roomIds[c.id] = room.id;
-      }
-
-      const floorPlan = Array.from({ length: property.floors }, (_, i) => i + 1)
-        .map((floor) => {
-          const rooms = floors[floor] ?? [];
-          return {
-            floor,
-            roomCount: rooms.length,
-            assignments: rooms.flatMap((r, i) => {
-              const roomId = done.roomIds[r.categoryId];
-              return roomId ? [{ position: i + 1, roomId }] : [];
-            }),
-          };
-        })
-        .filter((f) => f.roomCount > 0);
-      await floorPlanApi.save(propertyId, { numberOfFloors: property.floors, floors: floorPlan });
-
-      toast('Property ready', { detail: `${property.name.trim()} is set up with ${property.rooms} rooms.`, tone: 'success' });
-      onDone(propertyId);
     } catch (cause) {
       const detail = displayError(cause);
-      setFailure(done.propertyId ? `${detail} Your property is saved; press Finish setup again to continue where it stopped.` : detail);
-      toast('Could not finish setup', { detail, tone: 'danger' });
+      setFailure(detail);
+      toast('Could not create the property', { detail, tone: 'danger' });
     } finally {
       setSaving(false);
     }
@@ -223,16 +163,16 @@ export function SetupWizard({ mode = 'platform', exitAction, onDone }: SetupWiza
             <span className={`text-[16px] font-semibold tracking-tight text-ink ${HEADING}`}>Hotel PMX</span>
           </span>
           <span aria-hidden="true" className="h-5 w-px bg-border" />
-          <span className="truncate text-[14px] text-ink-secondary">Property setup</span>
+          <span className="truncate text-[14px] text-ink-secondary">Add a property</span>
         </div>
         {exitAction}
       </header>
 
-      <SetupStepBar steps={steps} step={step} reached={reached} onJump={(next) => !saving && goTo(next)} />
+      <SetupStepBar steps={SETUP_STEPS} step={step} reached={reached} onJump={(next) => !saving && goTo(next)} />
 
       <div className="flex min-h-0 flex-1">
         <PropertyFolio
-          steps={steps}
+          steps={SETUP_STEPS}
           property={property}
           categories={categories}
           placed={placed}
@@ -245,9 +185,9 @@ export function SetupWizard({ mode = 'platform', exitAction, onDone }: SetupWiza
           <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">
             <div className="mx-auto w-full max-w-[860px]">
               <p className={EYEBROW}>
-                Step {step + 1} of {steps.length}
+                Step {step + 1} of {SETUP_STEPS.length}
               </p>
-              <h1 className={`mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink ${HEADING}`}>{steps[step]}</h1>
+              <h1 className={`mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink ${HEADING}`}>{SETUP_STEPS[step]}</h1>
               <p className="mb-4 mt-1 text-[14px] text-ink-secondary">{STEP_HINTS[step]}</p>
 
               {step === 0 && (
@@ -257,15 +197,14 @@ export function SetupWizard({ mode = 'platform', exitAction, onDone }: SetupWiza
               {step === 2 && (
                 <FloorsStep floorCount={property.floors} floors={floors} categories={categories} totalRooms={property.rooms} onChange={setFloors} />
               )}
-
               {step === 3 && (
-                <ActivationStep
-                  value={activationKey}
-                  onChange={(next) => {
-                    setActivationKey(formatActivationKey(next));
+                <AdminStep
+                  value={admin}
+                  onChange={(patch) => {
+                    setAdmin((current) => ({ ...current, ...patch }));
                     setFailure(null);
                   }}
-                  onSubmit={() => void finish()}
+                  errors={tried ? adminCheck : {}}
                   property={property}
                   categoryCount={categories.length}
                   disabled={saving}
@@ -295,33 +234,20 @@ export function SetupWizard({ mode = 'platform', exitAction, onDone }: SetupWiza
                 Continue <Lucide.ArrowRight size={14} />
               </Button>
             )}
-            {step === 2 && mode === 'registration' && (
-              <Button variant="primary" className="max-sm:flex-1" onClick={toActivation}>
+            {step === 2 && (
+              <Button variant="primary" className="max-sm:flex-1" onClick={toAdmin}>
                 Continue <Lucide.ArrowRight size={14} />
               </Button>
             )}
-            {step === 2 && mode === 'platform' && (
+            {step === 3 && (
               <Button variant="primary" className="max-sm:flex-1" onClick={() => void finish()} disabled={saving}>
                 {saving ? (
                   <>
-                    <Lucide.Loader2 size={14} className="animate-spin" /> Setting up…
+                    <Lucide.Loader2 size={14} className="animate-spin" /> Creating…
                   </>
                 ) : (
                   <>
-                    Finish setup <Lucide.Check size={14} />
-                  </>
-                )}
-              </Button>
-            )}
-            {step === 3 && (
-              <Button variant="primary" className="max-sm:flex-1" onClick={() => void finish()} disabled={saving || !keyComplete}>
-                {saving ? (
-                  <>
-                    <Lucide.Loader2 size={14} className="animate-spin" /> Activating…
-                  </>
-                ) : (
-                  <>
-                    Activate property <Lucide.Check size={14} />
+                    Create property <Lucide.Check size={14} />
                   </>
                 )}
               </Button>
@@ -329,6 +255,8 @@ export function SetupWizard({ mode = 'platform', exitAction, onDone }: SetupWiza
           </footer>
         </div>
       </div>
+
+      <CredentialsDialog credentials={handover?.credentials ?? null} onClose={() => handover && onDone(handover.propertyId)} />
     </div>
   );
 }

@@ -12,7 +12,7 @@ import { EYEBROW, HEADING, LABEL } from '../../components/brand/brandStyles';
  * The one sign-in for everyone: hotel staff and platform administrators use the same page, and the
  * account decides where they land (the property, or the platform console). New people go to Create account.
  */
-export function LoginPage({ onRegister, onForgotPassword }: { onRegister: () => void; onForgotPassword: () => void }) {
+export function LoginPage({ onForgotPassword }: { onForgotPassword: () => void }) {
   const { login, sessionNotice } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -105,12 +105,7 @@ export function LoginPage({ onRegister, onForgotPassword }: { onRegister: () => 
         </button>
       </form>
 
-      <p className="mt-5 text-center text-[14px] text-ink-secondary">
-        New to Hotel PMX?{' '}
-        <button type="button" onClick={onRegister} className="cursor-pointer font-semibold text-primary hover:underline">
-          Create an account
-        </button>
-      </p>
+      <p className="mt-5 text-center text-[14px] text-ink-secondary">Accounts are created by your administrator.</p>
     </AuthLayout>
   );
 }

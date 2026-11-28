@@ -4,21 +4,25 @@ A React + TypeScript front end for a hotel property management system: reservati
 
 ## Backend
 
-Sign-up, sign-in, password change the new property setup and Settings > Property Details, Terms and Inclusions, and Cancellation call `pms-backend`'s authentication service (`npm run start:auth:dev` there). Set `VITE_API_URL` if it is not at `http://localhost:3000`. The activation key is `AAAA-AAAA-AAAA-AAAA`. The demo sign-ins and activation keys below no longer work for signing in or setting up, and forgot password is not available yet. Every other screen runs on dummy data in memory.
+Accounts, owners, properties, Settings, guests, reservations and room holds call `pms-backend` (`npm run start:dev` there). Set `VITE_API_URL` in `.env.local` to its address **including the `/api/v1` prefix**, e.g. `http://localhost:3000/api/v1`. Forgot password is not available yet. The finance, night audit, report, rate and channel screens still run on dummy data in memory.
 
 - `src/shared/mocks/` holds all demo data; `store.ts` is the interactive store, seeded for the business date `2026-10-17`.
 - `src/shared/services/` holds the API the screens call. Each method reads or changes the store.
 - **All changes reset when you reload the page.** The signed-in session, colour theme and sidebar state are kept in the browser.
 - Report and audit-log CSV exports are generated in the browser.
 
-## Demo sign-ins and data
+## Accounts
 
-| Who | Email | Password |
+There is no sign-up. Accounts are created from above, each level by the one over it:
+
+| Level | Created by | Works from |
 | --- | --- | --- |
-| Super admin | `admin@hotelpmx.demo` | `Admin@12345` |
-| Hotel staff (two properties) | `anaya@grandhorizon.in` | `Staff@12345` |
+| Super Super Admin | `npm run seed` in `pms-backend` | Platform console: managers, owners, properties, audit trail |
+| Relationship Manager | Super Super Admin | Manager console: their owners (up to their limit, default 10) and those owners' properties |
+| Owner (several people per company) | Super Super Admin or the manager | Owner console: one view across the company's properties, add properties, add colleagues |
+| Property Admin and department staff | Owner, manager, or a Property Admin | The property's hotel workspace; the menu follows the department role |
 
-Both are listed on the sign-in page; click one to fill the form. Activation keys for the sign-up wizard: `DEMO-2026-HOTL-KEY1`, `DEMO-2026-HOTL-KEY2`, `DEMO-2026-HOTL-KEY3`. The forgot-password code is today's date as DDMMYY.
+Each new account gets a temporary password, shown once, and must replace it at first sign-in.
 
 ## Development
 
@@ -56,10 +60,10 @@ src/
   main.tsx                React root
   index.css               Tailwind entry and shared component classes
   app/                    App.tsx: providers, sign-in gate, chooses super admin or customer
-  superadmin/             the platform console (super admin only)
-    PlatformConsole.tsx
-    layout/               console sidebar, header, navigation
-    features/             dashboard, properties, users, activation-keys, ota-channels, activity-log
+  console/                the console for the Super Super Admin, Relationship Managers and owners
+    ConsoleShell.tsx
+    layout/               console sidebar, header, per-role navigation
+    features/             dashboard, managers, owners, properties, audit, ota-channels, activity-log
   customer/               the hotel workspace (property staff)
     HotelWorkspace.tsx
     layout/               hotel sidebar, header and their menus
@@ -67,7 +71,7 @@ src/
                           onboarding, property-picker, reservations, rooms, settings
   shared/                 used by both sides
     components/           brand, feedback, layout (account menu), ui
-    features/             auth (one sign-in for both), property-setup (setup wizard)
+    features/             auth (one sign-in for everyone), property-setup (setup wizard), staff (team and roles)
     config/               hotel views, sections, permissions
     services/             one <domain>Api.ts per domain, over the in-memory store
     mocks/                all dummy data and the in-memory store
@@ -75,6 +79,6 @@ src/
 scripts/check-palette.mjs palette guard
 ```
 
-`superadmin/` and `customer/` never import each other, and `shared/` imports neither. A screen goes in its side's `features/<domain>/` folder; anything both sides need goes in `shared/`. Components are `PascalCase.tsx`, other modules `camelCase.ts`, folders `kebab-case`.
+`console/` and `customer/` never import each other, and `shared/` imports neither. A screen goes in its side's `features/<domain>/` folder; anything both sides need goes in `shared/`. Components are `PascalCase.tsx`, other modules `camelCase.ts`, folders `kebab-case`.
 
 For the rules agents and contributors follow in this repository, see `AGENTS.md`.

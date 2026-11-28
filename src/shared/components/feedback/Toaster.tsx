@@ -223,7 +223,8 @@ export function Toaster({ position = 'bottom-right' }: ToasterProps) {
   if (list.length === 0) return null;
 
   const positionClasses = {
-    'bottom-right': 'bottom-4 sm:bottom-6 right-4 sm:right-6 flex-col-reverse',
+    // Clear of the sticky footers (setup wizard, booking bar) so a toast never covers their buttons.
+    'bottom-right': 'bottom-20 sm:bottom-20 right-4 sm:right-6 flex-col-reverse',
     'top-right': 'top-4 sm:top-6 right-4 sm:right-6 flex-col',
     'bottom-center': 'bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex-col-reverse',
     'top-center': 'top-4 sm:top-6 left-1/2 -translate-x-1/2 flex-col',

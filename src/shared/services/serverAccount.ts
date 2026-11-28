@@ -26,7 +26,7 @@ interface ServerProperty {
   rooms: Array<{ id: string; floor: number; roomNumber: string; categoryId: string }>;
 }
 
-export function copyAccount(fields: Pick<Account, 'id' | 'email' | 'name' | 'role' | 'mustChangePassword' | 'approvalStatus' | 'propertyIds' | 'adminPropertyIds'>): Account {
+export function copyAccount(fields: Pick<Account, 'id' | 'email' | 'name' | 'role' | 'mustChangePassword' | 'propertyIds' | 'adminPropertyIds'>): Account {
   const now = new Date().toISOString();
   let account = accounts.find((item) => item.id === fields.id);
   if (!account) {
@@ -44,14 +44,14 @@ export function copyProperty(propertyId: string): Promise<void> {
   if (properties.some((p) => p.id === propertyId)) return Promise.resolve();
   let pending = copying.get(propertyId);
   if (!pending) {
-    pending = readProperty().finally(() => copying.delete(propertyId));
+    pending = readProperty(propertyId).finally(() => copying.delete(propertyId));
     copying.set(propertyId, pending);
   }
   return pending;
 }
 
-async function readProperty(): Promise<void> {
-  const server = await request<ServerProperty>('/onboarding/property');
+async function readProperty(propertyId: string): Promise<void> {
+  const server = await request<ServerProperty>(`/properties/${propertyId}/setup`);
 
   const { categories, rooms, abbreviation, ...details } = server;
   const settings = blankSettings(server.id);

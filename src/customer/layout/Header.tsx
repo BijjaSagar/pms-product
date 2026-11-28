@@ -53,7 +53,7 @@ export function Header({
   onOpenThemes: () => void;
   onGo: (t: NavTarget) => void;
 }) {
-  const { me, can, canOpen, isSuperAdmin, logout, switchProperty } = useAuth();
+  const { me, can, canOpen, isConsoleUser, logout, switchProperty } = useAuth();
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [panel, setPanel] = useState<'none' | 'notices' | 'profile'>('none');
   const [prevView, setPrevView] = useState(currentView);
@@ -407,7 +407,7 @@ export function Header({
               email={me?.user.email ?? null}
               roleName={roleName}
               propertyName={activeMembership?.property.name ?? null}
-              otherProperties={isSuperAdmin ? [] : otherMemberships}
+              otherProperties={isConsoleUser ? [] : otherMemberships}
               onSettings={() => {
                 onGo({ view: 'settings' });
                 closePanels();
@@ -416,8 +416,8 @@ export function Header({
                 closePanels();
                 setPasswordOpen(true);
               }}
-              leave={isSuperAdmin ? {
-                label: 'Back to platform console',
+              leave={isConsoleUser ? {
+                label: 'Back to console',
                 onSelect: () => {
                   closePanels();
                   void switchProperty(null).catch((error: unknown) =>

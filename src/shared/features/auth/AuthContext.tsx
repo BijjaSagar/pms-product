@@ -12,15 +12,15 @@ interface AuthContextValue {
   /** Set when a signed-in session could not be restored or continued; shown once on the sign-in page. */
   sessionNotice: string | null;
   login: (email: string, password: string) => Promise<void>;
-  /** Creates the account and signs it in; the app then asks for the property details. */
-  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  /** Opens a property, or (null) leaves the current one: a SUPER_ADMIN returns to the platform console, STAFF to Choose a property. */
+  /** Opens a property, or (null) leaves the current one: console users return to their console, STAFF to Choose a property. */
   switchProperty: (propertyId: string | null) => Promise<void>;
   /** Reads the account again; resolves with it (null when signed out). */
   reload: () => Promise<AuthMe | null>;
   can: (permission: string) => boolean;
-  /** A SUPER_ADMIN has the platform console and reaches every property. */
+  /** The Super Super Admin, Relationship Managers and owners work from a console and open properties from it; staff work inside one property. */
+  isConsoleUser: boolean;
+  /** The Super Super Admin reaches every owner and property. */
   isSuperAdmin: boolean;
   /** Whether the hotel shell offers a view to this user. */
   canOpen: (view: ViewId) => boolean;
@@ -98,16 +98,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [applyMe]);
 
-  const register = useCallback(async (name: string, email: string, password: string) => {
-    await authApi.register(name, email, password);
-    try {
-      await login(email, password);
-    } catch {
-      // The account exists; only the automatic sign-in failed.
-      throw new Error('Your account was created, but we could not sign you in. Go back and sign in with your email and password.');
-    }
-  }, [login]);
-
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
@@ -135,16 +125,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       error,
       sessionNotice,
       login,
-      register,
       logout,
       switchProperty,
       reload,
       can,
+      isConsoleUser: me !== null && me.user.role !== 'STAFF',
       isSuperAdmin: me?.user.role === 'SUPER_ADMIN',
       canOpen: (view) => canOpenView(view, can),
       changePassword,
     };
-  }, [me, loading, error, sessionNotice, login, register, logout, switchProperty, reload, changePassword]);
+  }, [me, loading, error, sessionNotice, login, logout, switchProperty, reload, changePassword]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

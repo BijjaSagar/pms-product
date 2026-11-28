@@ -111,8 +111,8 @@ const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
   reservations: 'reservation.read',
   'room-calendar': 'reservation.read',
   'new-reservation': 'reservation.create',
-  'rate-management': 'reservation.read',
-  'channel-manager': 'reservation.read',
+  'rate-management': 'rate.read',
+  'channel-manager': 'rate.read',
   guests: 'guest.read',
   'room-overview': 'room.read',
   'room-types': 'room.read',
@@ -120,12 +120,12 @@ const VIEW_PERMISSION: Partial<Record<ViewId, string>> = {
   folios: 'folio.read',
   payments: 'payment.read',
   invoices: 'invoice.read',
-  'night-audit': 'folio.read',
+  'night-audit': 'night-audit.read',
   reports: 'report.read.operations',
   'occupancy-report': 'report.read.operations',
   'revenue-report': 'report.read.financial',
   'arrivals-departures': 'report.read.operations',
-  settings: 'theme.update',
+  settings: 'settings.read',
 };
 
 export function viewPermission(view: ViewId): string | undefined {
