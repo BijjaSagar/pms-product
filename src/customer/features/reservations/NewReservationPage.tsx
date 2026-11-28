@@ -954,7 +954,7 @@ function ReservationForm({
         nights: nightsCount,
       });
       toast.success("Reservation Confirmed", {
-        detail: `${guestName} · Booking ID ${code}${externalReferenceId.trim() ? ` · Ref ${externalReferenceId.trim()}` : ""} ${withEmail ? "· Confirmation email sent" : ""}`,
+        detail: `${guestName} · Booking ID ${code}${externalReferenceId.trim() ? ` · Ref ${externalReferenceId.trim()}` : ""} ${withEmail ? "· Email was not sent: email delivery is not set up yet" : ""}`,
       });
     } catch (error) {
       toast.error("Reservation Not Saved", {

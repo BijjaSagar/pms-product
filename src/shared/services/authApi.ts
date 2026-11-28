@@ -1,9 +1,14 @@
-import { ALL_PERMISSIONS, PROPERTY } from '../mocks/catalog';
-import { signIns } from '../mocks/platform';
 import { store } from '../mocks/store';
 import { clearToken, request, saveToken } from './http';
 import { copyAccount, copyProperty } from './serverAccount';
-import { endSession, propertiesOf, startSession } from './session';
+import { endSession, startSession } from './session';
+import { properties } from '../mocks/platform';
+
+/**
+ * The chain of responsibility, top to bottom: SUPER_ADMIN (Super Super Admin), RM (Relationship Manager),
+ * OWNER (a person of an owner company) and STAFF (a person who works at one property).
+ */
+export type UserRoleKey = 'SUPER_ADMIN' | 'RM' | 'OWNER' | 'STAFF';
 
 export interface PropertyMembership {
   id: string;
@@ -14,12 +19,6 @@ export interface PropertyMembership {
   role: { id: string; key: string; name: string; description: string | null };
   property: { id: string; name: string; slug: string; timezone: string; currencyCode: string };
 }
-export type UserRoleKey = 'SUPER_ADMIN' | 'STAFF';
-/**
- * Where a self sign-up stands: PENDING_SETUP (account made, property not yet sent with an activation key)
- * or APPROVED. Accounts a super admin creates are APPROVED.
- */
-export type ApprovalStatus = 'PENDING_SETUP' | 'APPROVED';
 export interface AuthMe {
   user: {
     id: string;
@@ -27,48 +26,40 @@ export interface AuthMe {
     fullName: string;
     status: string;
     role: UserRoleKey;
-    /** True until the user replaces a password a super admin set for them; the data layer refuses everything else meanwhile. */
+    /** The department role of a STAFF user, e.g. `PROPERTY_ADMIN` or `FRONT_OFFICE`; null for everyone else. */
+    roleName: string | null;
+    /** The owner company an OWNER person signs in for. */
+    ownerId: string | null;
+    /** True until the user replaces a password someone set for them; the server refuses everything else meanwhile. */
     mustChangePassword: boolean;
-    /** Until APPROVED the data layer lets the account do nothing but finish onboarding or wait. */
-    approvalStatus: ApprovalStatus;
-    /** Every property a SUPER_ADMIN can open; for STAFF, the ones assigned to them. */
+    /** Every property this person can open: all of them for the Super Super Admin, their owners' for an RM, their company's for an owner, the one they work at for staff. */
     propertyMemberships: PropertyMembership[];
   };
   activePropertyId: string | null;
   permissions: string[];
 }
 
-const ROLE_LABELS: Record<UserRoleKey, { id: string; key: string; name: string; description: string }> = {
-  SUPER_ADMIN: { id: 'role-super-admin', key: 'super_admin', name: 'Super Admin', description: 'Manages every property and user.' },
-  STAFF: { id: 'role-staff', key: 'staff', name: 'Staff', description: 'Works at the properties assigned to them.' },
-};
-
 const ACTIVE_PROPERTY_KEY = 'pms.activePropertyId';
 
 /**
- * The property to open straight away, or null to show Choose a property. A choice already made in
- * this tab wins; otherwise a STAFF user with exactly one property goes straight in. A SUPER_ADMIN
- * always chooses, so they can add properties, and may open one that is inactive to fix or reactivate it.
+ * The property to open straight away, or null to show the console (or Choose a property). STAFF work at the one
+ * property the server names. Everyone above chooses from their console, and a choice already made in this tab wins.
  */
-function pickActiveProperty(role: UserRoleKey, properties: Array<{ id: string; isActive: boolean }>): string | null {
-  const usable = properties.filter((p) => role === 'SUPER_ADMIN' || p.isActive);
+function pickActiveProperty(role: UserRoleKey, serverActiveId: string | null, memberships: PropertyMembership[]): string | null {
+  if (role === 'STAFF') return serverActiveId;
   const saved = sessionStorage.getItem(ACTIVE_PROPERTY_KEY);
-  if (saved && usable.some((p) => p.id === saved)) return saved;
-  return role === 'STAFF' && usable.length === 1 ? (usable[0]?.id ?? null) : null;
+  return saved && memberships.some((m) => m.propertyId === saved) ? saved : null;
 }
 
 const NO_RESET = 'Password reset is not available yet. Ask your administrator for help.';
 
-/** Accounts live on the server; a STAFF user only ever sees the properties assigned to them. */
+/** Accounts live on the server; each person only ever sees what is below them in the chain. */
 export const authApi = {
   login: async (email: string, password: string) => {
     const { token } = await request<{ token: string }>('/auth/login', { email, password });
     saveToken(token);
     sessionStorage.removeItem(ACTIVE_PROPERTY_KEY);
   },
-  /** Step one of sign-up: creates the account only. The caller signs in next, then sets up the property. */
-  register: (name: string, email: string, password: string) =>
-    request<{ id: string; email: string; name: string }>('/auth/register', { name, email, password }),
   forgotPassword: async (_email: string): Promise<{ message: string; delivery: 'email' | 'none' }> => {
     throw new Error(NO_RESET);
   },
@@ -78,69 +69,42 @@ export const authApi = {
   me: async (): Promise<AuthMe> => {
     const server = await request<AuthMe>('/auth/me');
     const { user } = server;
-    const isNewSignIn = sessionStorage.getItem('pms.session') !== user.id;
-    const assigned = user.propertyMemberships;
+    // Until the password is replaced no property is read.
+    const memberships = user.mustChangePassword ? [] : user.propertyMemberships;
+    const ids = memberships.map((m) => m.propertyId);
     const account = copyAccount({
       id: user.id,
       email: user.email,
       name: user.fullName,
       role: user.role,
       mustChangePassword: user.mustChangePassword,
-      approvalStatus: user.approvalStatus,
-      propertyIds: assigned.map((m) => m.propertyId),
-      adminPropertyIds: assigned.filter((m) => m.role.key === 'admin').map((m) => m.propertyId),
+      propertyIds: ids,
+      // Staff change a property's setup only as its Property Admin; everyone above them may in what they reach.
+      adminPropertyIds: user.role === 'STAFF' ? (user.roleName === 'PROPERTY_ADMIN' ? ids : []) : ids,
     });
     startSession(account.id);
-    for (const membership of assigned) await copyProperty(membership.propertyId);
-    if (isNewSignIn) {
-      signIns.unshift({
-        sessionId: globalThis.crypto.randomUUID(),
-        userId: account.id,
-        name: account.name,
-        email: account.email,
-        role: account.role,
-        ipAddress: null,
-        userAgent: globalThis.navigator?.userAgent ?? null,
-        signedInAt: new Date().toISOString(),
-      });
-    }
 
-    // Until the password is changed, or a sign-up is activated, no property is read.
-    const properties = account.mustChangePassword || account.approvalStatus !== 'APPROVED' ? [] : propertiesOf(account);
-    const activeId = pickActiveProperty(account.role, properties);
-    const active = properties.find((p) => p.id === activeId);
+    // Staff are told their property up front, but the server refuses to serve it until the password is replaced.
+    const activeId = user.mustChangePassword ? null : pickActiveProperty(user.role, server.activePropertyId, memberships);
     store.setActor(account.name);
-    if (active) {
-      store.openProperty({
-        id: active.id,
-        name: active.name,
-        slug: active.code,
-        currencyCode: active.defaultCurrency,
-        addressLine1: active.addressLine1,
-        city: active.city,
-      });
+    if (activeId) {
+      await copyProperty(activeId);
+      const active = properties.find((p) => p.id === activeId);
+      if (active) {
+        store.openProperty({
+          id: active.id,
+          name: active.name,
+          slug: active.code,
+          currencyCode: active.defaultCurrency,
+          addressLine1: active.addressLine1,
+          city: active.city,
+        });
+      }
     }
-
     return {
-      user: {
-        ...user,
-        propertyMemberships: properties.map((p) => {
-          // The server's role on this property (ADMIN for whoever set it up); the account type otherwise.
-          const role = assigned.find((m) => m.propertyId === p.id)?.role ?? ROLE_LABELS[account.role];
-          return {
-            id: `membership-${p.id}`,
-            userId: account.id,
-            propertyId: p.id,
-            roleId: role.id,
-            isActive: p.isActive,
-            role,
-            property: { id: p.id, name: p.name, slug: p.code, timezone: PROPERTY.timezone, currencyCode: p.defaultCurrency },
-          };
-        }),
-      },
-      activePropertyId: active?.id ?? null,
-      // The server has no permission tables yet.
-      permissions: ALL_PERMISSIONS,
+      user: { ...user, propertyMemberships: memberships },
+      activePropertyId: activeId,
+      permissions: server.permissions,
     };
   },
   /** Replaces the signed-in user's password. */
@@ -158,7 +122,7 @@ export const authApi = {
       sessionStorage.removeItem(ACTIVE_PROPERTY_KEY);
     }
   },
-  /** Opens a property, or (null) goes back to Choose a property. `me` still limits what the user can open. */
+  /** Opens a property, or (null) goes back to the console / Choose a property. `me` still limits what the user can open. */
   switchProperty: async (propertyId: string | null) => {
     if (propertyId) sessionStorage.setItem(ACTIVE_PROPERTY_KEY, propertyId);
     else sessionStorage.removeItem(ACTIVE_PROPERTY_KEY);

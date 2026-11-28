@@ -8,7 +8,7 @@ const FOOTER_BG = 'bg-[#FDFAF6]'; // palette-allow: folio design colour
 
 const STATUS = {
   draft: { label: 'Draft', tone: 'border-border bg-muted-surface/60 text-ink-secondary' },
-  ready: { label: 'Ready to activate', tone: 'border-primary/30 bg-primary/10 text-primary' },
+  ready: { label: 'Ready to create', tone: 'border-primary/30 bg-primary/10 text-primary' },
 } as const;
 
 function Row({ label, value }: { label: string; value: ReactNode }) {

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { ComponentType } from 'react';
 import * as Lucide from 'lucide-react';
 import { PanelLoadState } from '../../../shared/components/feedback/Skeleton';
@@ -15,6 +15,7 @@ import { PropertyAmenitiesTab } from './tabs/PropertyAmenitiesTab';
 import { PropertyDetailsTab } from './tabs/PropertyDetailsTab';
 import { ReservationSettingsTab } from './tabs/ReservationSettingsTab';
 import { RoomSetup2Tab } from './tabs/RoomSetup2Tab';
+import { StaffTab } from './tabs/StaffTab';
 import { ComingSoon, NoPropertyState } from './components/SettingsKit';
 import { SectionNav } from '../../../shared/components/ui/SectionNav';
 import type { NavGroup } from '../../../shared/components/ui/SectionNav';
@@ -33,6 +34,7 @@ type SettingsTab =
   | 'policies'
   | 'meal-plans'
   | 'payment-terms'
+  | 'staff'
   | 'reservation-settings'
   | 'post-master-settings'
   | 'house-keeping'
@@ -40,7 +42,7 @@ type SettingsTab =
   | 'tax-rule'
   | 'general-tax-setting';
 
-const NAV_GROUPS: NavGroup<SettingsTab>[] = [
+const BASE_NAV_GROUPS: NavGroup<SettingsTab>[] = [
   {
     title: 'Property Settings',
     items: [
@@ -73,6 +75,12 @@ const NAV_GROUPS: NavGroup<SettingsTab>[] = [
   },
 ];
 
+/** Shown only to people allowed to see staff (`staff.read`). */
+const PEOPLE_GROUP: NavGroup<SettingsTab> = {
+  title: 'People',
+  items: [{ id: 'staff', label: 'Team & Roles', icon: Lucide.Users }],
+};
+
 /** Tabs that have no screen yet; they show a placeholder card. */
 const PLACEHOLDER_TABS: SettingsTab[] = ['payment-terms'];
 
@@ -88,15 +96,16 @@ const PROPERTY_SCREENS: Partial<Record<SettingsTab, ComponentType<{ propertyId: 
   'reservation-settings': ReservationSettingsTab,
   'post-master-settings': PostMasterSettingsTab,
   'house-keeping': HouseKeepingTab,
+  staff: StaffTab,
 };
 
 export function Settings({ initialTab = 'general' }: { initialTab?: SettingsTab }) {
-  const { me, can, reload, isSuperAdmin } = useAuth();
+  const { me, can, reload } = useAuth();
   const activePropertyId = me?.activePropertyId;
-  // The data layer only lets a super admin or the property's ADMIN make changes, so everyone
-  // else gets the screens read-only instead of a Save that would be refused.
-  const canEditProperty =
-    isSuperAdmin || (me?.user.propertyMemberships.some((m) => m.propertyId === activePropertyId && m.role.key === 'admin') ?? false);
+  // The server only lets people holding `settings.update` (a Property Admin, or anyone above the property in
+  // the chain) make changes, so everyone else gets the screens read-only instead of a Save that would be refused.
+  const canEditProperty = can('settings.update');
+  const navGroups = useMemo(() => (can('staff.read') ? [...BASE_NAV_GROUPS, PEOPLE_GROUP] : BASE_NAV_GROUPS), [can]);
 
   // The property record feeds only the Property Details tab; the other tabs load their own data.
   const loadProperty = useCallback(
@@ -107,7 +116,7 @@ export function Settings({ initialTab = 'general' }: { initialTab?: SettingsTab 
   const property = propertyResource.data;
 
   const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
-  const activeGroup = NAV_GROUPS.find((g) => g.items.some((i) => i.id === activeTab));
+  const activeGroup = navGroups.find((g) => g.items.some((i) => i.id === activeTab));
   const activeItem = activeGroup?.items.find((i) => i.id === activeTab);
 
   const renderScreen = () => {
@@ -141,7 +150,7 @@ export function Settings({ initialTab = 'general' }: { initialTab?: SettingsTab 
   return (
     <div className="pms-page pms-animate-fade-in">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-5">
-        <SectionNav label="Settings" searchLabel="Find a setting" groups={NAV_GROUPS} active={activeTab} onSelect={setActiveTab} />
+        <SectionNav label="Settings" searchLabel="Find a setting" groups={navGroups} active={activeTab} onSelect={setActiveTab} />
 
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           <nav aria-label="Breadcrumb" className="hidden items-center gap-1.5 text-label text-ink-muted lg:flex">

@@ -1,7 +1,7 @@
 import * as Lucide from 'lucide-react';
-import { Modal } from '../../../shared/components/ui/overlays';
-import { Button } from '../../../shared/components/ui/primitives';
-import { toast } from '../../../shared/utils/toast';
+import { Modal } from './overlays';
+import { Button } from './primitives';
+import { toast } from '../../utils/toast';
 
 export interface Credentials {
   name: string;
@@ -19,7 +19,7 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 /**
- * Shows the password just set for someone, once. There is no email service, so the super admin hands
+ * Shows the password just set for someone, once. There is no email service, so the person who created the account hands
  * it over themselves; the user must replace it at their first sign-in.
  */
 export function CredentialsDialog({ credentials, onClose }: { credentials: Credentials | null; onClose: () => void }) {

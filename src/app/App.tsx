@@ -10,21 +10,19 @@ import { HotelWorkspace } from '../customer/HotelWorkspace';
 import { AppCrashFallback, ErrorBoundary } from '../shared/components/feedback/ErrorBoundary';
 
 const LoginPage = lazy(() => import('../shared/features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
-const RegisterPage = lazy(() => import('../shared/features/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })));
 const ForgotPasswordPage = lazy(() => import('../shared/features/auth/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })));
-const RegistrationSetupPage = lazy(() => import('../customer/features/onboarding/RegistrationSetupPage').then((m) => ({ default: m.RegistrationSetupPage })));
-const PlatformConsole = lazy(() => import('../superadmin/PlatformConsole').then((m) => ({ default: m.PlatformConsole })));
+const ConsoleShell = lazy(() => import('../console/ConsoleShell').then((m) => ({ default: m.ConsoleShell })));
 const ChangePasswordPage = lazy(() => import('../shared/features/auth/ChangePasswordPage').then((m) => ({ default: m.ChangePasswordPage })));
 
 function AuthenticatedApp() {
   const { me, loading } = useAuth();
   const { page: authPage, go: setAuthPage, reset: resetAuthPage } = useAuthPage();
-  // Once signed in, the address (/register) means nothing.
+  // Once signed in, the address (/forgot-password) means nothing.
   const signedIn = me !== null;
   useEffect(() => {
     if (signedIn) resetAuthPage();
   }, [signedIn, resetAuthPage]);
-  useServerTheme(me ? `${me.user.id}:${me.activePropertyId ?? 'platform'}` : null);
+  useServerTheme(me ? `${me.user.id}:${me.activePropertyId ?? 'console'}` : null);
 
   if (loading) {
     return (
@@ -38,12 +36,10 @@ function AuthenticatedApp() {
     return (
       <>
         <Suspense fallback={<PageSkeleton />}>
-          {authPage === 'register' ? (
-            <RegisterPage onSignIn={() => setAuthPage('login')} />
-          ) : authPage === 'forgot' ? (
+          {authPage === 'forgot' ? (
             <ForgotPasswordPage onSignIn={() => setAuthPage('login')} />
           ) : (
-            <LoginPage onRegister={() => setAuthPage('register')} onForgotPassword={() => setAuthPage('forgot')} />
+            <LoginPage onForgotPassword={() => setAuthPage('forgot')} />
           )}
         </Suspense>
         {/* The shell mounts its own Toaster; the login page needs one for sign-in errors. */}
@@ -52,7 +48,7 @@ function AuthenticatedApp() {
     );
   }
 
-  // A password a super admin set has to be replaced first; until then the data layer answers nothing else.
+  // A password someone else set has to be replaced first; until then the server answers nothing else.
   if (me.user.mustChangePassword) {
     return (
       <>
@@ -64,29 +60,17 @@ function AuthenticatedApp() {
     );
   }
 
-  // A super admin belongs to no property: the platform console is home, and hotels open from it.
-  if (me.user.role === 'SUPER_ADMIN' && !me.activePropertyId) {
+  // The Super Super Admin, Relationship Managers and owners work from a console and open properties from it.
+  if (me.user.role !== 'STAFF' && !me.activePropertyId) {
     return (
       <ErrorBoundary fallback={(reset) => <AppCrashFallback reset={reset} />}>
         <Suspense fallback={<PageSkeleton />}>
-          <PlatformConsole />
+          <ConsoleShell />
         </Suspense>
       </ErrorBoundary>
     );
   }
-
-  // A new account describes its property and enters an activation key. The data layer refuses everything else meanwhile.
-  if (me.user.approvalStatus === 'PENDING_SETUP') {
-    return (
-      <>
-        <Suspense fallback={<PageSkeleton />}>
-          <RegistrationSetupPage />
-        </Suspense>
-        <Toaster />
-      </>
-    );
-  }
-  // Staff choose which of their properties to open (a single one opens straight away).
+  // Staff work at the property the server names (the picker shows only if they somehow have none).
   if (!me.activePropertyId) return <PropertyPickerPage />;
 
   return <HotelWorkspace propertyId={me.activePropertyId} />;

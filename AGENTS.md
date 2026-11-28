@@ -4,11 +4,11 @@ Guidance for AI coding agents working in this repository.
 
 ## What this project is
 
-Hotel PMX: a React 19 + TypeScript front end for a hotel property management system. Sign-up, sign-in, password change the new property setup and Settings > Property Details, Terms and Inclusions, and Cancellation call `pms-backend` (`src/shared/services/http.ts`, `VITE_API_URL`, default `http://localhost:3000`); **every other screen runs on dummy data held in memory**.
+Hotel PMX: a React 19 + TypeScript front end for a hotel property management system. Accounts, the chain of owners and properties, property setup, Settings (details, terms, policies, cancellation, amenities, room categories, meal plans, team), guests, reservations, room holds and the room list call `pms-backend` (`src/shared/services/http.ts`, `VITE_API_URL`, which must include the `/api/v1` prefix, e.g. `http://localhost:3000/api/v1`); **the other screens (finance, night audit, reports, rates, channel manager, housekeeping) still run on dummy data held in memory**.
 
-Two roles share one sign-in. A **SUPER_ADMIN** gets the platform console (`src/superadmin/`): properties, users and access, activation keys, OTA channels and the activity log; "Open" on a property shows that hotel's workspace. **STAFF** get the hotel workspace (`src/customer/`) for the properties assigned to them. `src/app/App.tsx` picks between them from `me.user.role`. New people can register, describe a property in the setup wizard and enter an activation key. There is no router: signed-out pages are chosen from the path (`src/shared/features/auth/authPage.ts`), so static hosting needs an SPA fallback to `index.html`.
+Four kinds of account share one sign-in, in a chain of responsibility: **SUPER_ADMIN** (Super Super Admin, the platform owner) → **RM** (Relationship Manager, looks after up to a configurable number of owners) → **OWNER** (a person who signs in for an owner company; a company has several people) → **STAFF** (works at one property with a department role: Property Admin, Front Office, Housekeeping, Laundry & Linen, POS & Kitchen, Accounts / Revenue). The first three work from the console (`src/console/`, with navigation per role) and "Open" a property to enter its hotel workspace (`src/customer/`); STAFF go straight to their property. `src/app/App.tsx` picks between them from `me.user.role`. Accounts are created top-down only: there is no sign-up and no activation key. What a person may do inside a property comes from `me.permissions`, sent by the server, never decided in the UI. There is no router: signed-out pages are chosen from the path (`src/shared/features/auth/authPage.ts`), so static hosting needs an SPA fallback to `index.html`.
 
-Screens call `<domain>Api` objects in `src/shared/services/`, which read and change the store in `src/shared/mocks/`. Changes reset on reload; only the session, theme and sidebar state are kept in the browser. Demo sign-ins and activation keys are listed in `README.md`.
+Screens call `<domain>Api` objects in `src/shared/services/`. Server-backed ones call `pms-backend`; the rest read and change the store in `src/shared/mocks/`, and those changes reset on reload. Only the session, theme and sidebar state are kept in the browser. There are no demo accounts: the first Super Super Admin comes from `npm run seed` in `pms-backend`.
 
 ## Stack (keep these versions; do not upgrade without a reason)
 
@@ -41,10 +41,10 @@ src/
   main.tsx                React root
   index.css               Tailwind entry and shared component classes
   app/                    App.tsx: providers, sign-in gate, chooses super admin or customer
-  superadmin/             the platform console (super admin only)
-    PlatformConsole.tsx
-    layout/               console sidebar, header, navigation
-    features/             dashboard, properties, users, activation-keys, ota-channels, activity-log
+  console/                the console for the Super Super Admin, Relationship Managers and owners
+    ConsoleShell.tsx
+    layout/               console sidebar, header, per-role navigation (consoleNav.ts)
+    features/             dashboard, managers, owners, properties, audit, ota-channels, activity-log
   customer/               the hotel workspace (property staff)
     HotelWorkspace.tsx
     layout/               hotel sidebar, header and their menus
@@ -52,7 +52,7 @@ src/
                           onboarding, property-picker, reservations, rooms, settings
   shared/                 used by both sides
     components/           brand, feedback, layout (account menu), ui
-    features/             auth (one sign-in for both), property-setup (setup wizard)
+    features/             auth (one sign-in for everyone), property-setup (setup wizard), staff (team and roles)
     config/               hotel views, sections, permissions
     services/             one <domain>Api.ts per domain, over the in-memory store
     mocks/                all dummy data and the in-memory store
@@ -62,7 +62,7 @@ scripts/check-palette.mjs palette guard
 
 Rules for placing code:
 
-- `superadmin/` and `customer/` never import each other; `shared/` imports neither. Only `app/` composes the two.
+- `console/` and `customer/` never import each other; `shared/` imports neither. Only `app/` composes the two.
 - A new screen goes in its side's `features/<domain>/` and is lazy-loaded.
 - Sub-parts of one screen stay in a sub-folder of that feature (for example `reservations/new-reservation/`).
 - Anything used by two or more features moves to `shared/components/` (UI), `shared/utils/` (logic) or `shared/services/` (data access). Do not copy code between feature folders.
@@ -97,7 +97,7 @@ Rules for placing code:
 
 ## Do not
 
-- Do not commit `.env` files or credentials. This build has no secrets; the demo passwords are fake.
+- Do not commit `.env` files or credentials. Temporary passwords are shown once by `CredentialsDialog` and never stored or logged.
 - Do not edit `dist/` by hand; it is generated.
 - Do not change the demo session, seed data or business date (`2026-10-17`) unless the task asks for it.
 - Do not upgrade major versions of React, Vite or Tailwind as a side effect of another task.
